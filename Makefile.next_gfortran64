@@ -1,0 +1,12 @@
+# FFLAGS = -g -Dlinux -fbounds-check -fbackslash #-fsecond-underscore
+FFLAGS = -O3 -m64 -Dlinux -fbackslash
+
+CFLAGS = -O -m64
+
+FC = gfortran
+LD = $(FC) $(FFLAGS) -Wl,-framework -Wl,vecLib
+SYSLIBS=-L/sw/lib/netcdf-gfortran/lib -L/sw/lib -lnetcdff -lnetcdf
+
+RANLIB = ranlib
+
+include ../Makefile.common
