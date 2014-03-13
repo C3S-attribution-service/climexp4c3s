@@ -1,11 +1,11 @@
 # FFLAGS = -g -Dlinux -fbounds-check -fbackslash #-fsecond-underscore
-FFLAGS = -O3 -m64 -Dlinux -fbackslash
+FFLAGS = -O3 -m64 -Dlinux -fbackslash -fno-backtrace
 
 CFLAGS = -O -m64
 
 FC = gfortran
 LD = $(FC) $(FFLAGS) -Wl,-framework -Wl,vecLib
-SYSLIBS=-L/sw/lib/netcdf-gfortran/lib -L/sw/lib -lnetcdff -lnetcdf
+SYSLIBS=-L/sw/lib -lnetcdff -lnetcdf
 
 RANLIB = ranlib
 

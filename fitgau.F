@@ -22,8 +22,9 @@
         parameter(nmax=100000)
         integer ncur
         real data(nmax),restrain
+        logical llwrite
         common /fitdata1/ data
-        common /fitdata2/ restrain,ncur
+        common /fitdata2/ restrain,ncur,llwrite
 *
         real llgauss,erfc
         real *8 ranf 
@@ -49,9 +50,10 @@
             return
         endif
 *
-*       copy to common for routine llgauss
-*       
         if ( minindx.lt.-1e33 .and. maxindx.gt.1e33 ) then
+*
+*           use mean and sd as parameters of the normal distribution
+*
             a = mean
             b = sd
             if ( lprint ) print '(a)','# for Gaussian used mean, sd.'
@@ -80,7 +82,7 @@
             if ( .not.lboot ) then
                 if ( lchangesign ) then
                     a = -a
-                    b = -b
+                    t = -t
                 endif
                 return
             endif
@@ -138,6 +140,9 @@
             endif
             return
         else
+*
+*           copy to common for routine llgauss
+*       
             ncur = ntot
             do i=1,ncur
                 data(i) = xx(i)
@@ -189,8 +194,9 @@
         integer nmax,ncur
         parameter(nmax=100000)
         real data(nmax),restrain
+        logical llwrite
         common /fitdata1/ data
-        common /fitdata2/ restrain,ncur
+        common /fitdata2/ restrain,ncur,llwrite
 *       
         llgauss = 0
         do i=1,ncur

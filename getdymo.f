@@ -17,7 +17,7 @@
             return
         endif
         m = 1+mod(firstmo-1,nperyear)
-        if ( m.eq.0 ) m = m + nperyear
+        if ( m.le.0 ) m = m + nperyear
         if ( nperyear.eq.36 ) then
             dy = 1
             do i=1,(m-1)/3
@@ -31,6 +31,7 @@
         endif
         mo = 1
  400    continue
+        if ( .false. .and. lwrite ) print *,'dy,mo = ',dy,mo
         if ( nperyear.eq.365 .or. nperyear.eq.73 ) then
             if ( dy.gt.dpm365(mo) ) then
                 dy = dy - dpm365(mo)
@@ -53,7 +54,7 @@
         if ( lwrite ) then
             print *,'getdymo: input: firstmo,nperyear = ',firstmo
      +           ,nperyear
-            print *,'         outpuyt: dy,mo          = ',dy,mo
+            print *,'         output: dy,mo           = ',dy,mo
         end if
         if ( mo.le.0 .or. mo.gt.12 ) then
             write(0,*) 'getdymo: error: impossible month ',mo

@@ -2,6 +2,8 @@
         implicit none
         integer retval
         character*(*) string
+
+        !!!write(0,*) trim(string)
 #ifdef __linux
 *       pgf90, but possibly more
         integer system

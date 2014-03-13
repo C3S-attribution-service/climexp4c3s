@@ -9,14 +9,18 @@
         integer i,j,dy,mo,yr,nperyear,nperyear2,n,nperday,dpm(12)
         real maindata(npermax,yrbeg:yrend),auxdata(npermax,yrbeg:yrend),
      +       xx(30*(yrend-yrbeg+1)),yy(30*(yrend-yrbeg+1))
-        real scale(12),offset(12),siga,sigb,chi2,q,sig(1)
+        real scale(12),offset(12),a,b,siga,sigb,chi2,q,sig(1),
+     +       sx(12),sy(12)
         character var*40,units*20,var2*40,units2*20,
      +       mainfile*255,auxfile*255
-        logical lwrite
+        logical lwrite,lreversefit
         integer iargc
         data dpm /31,29,31,20,31,30,31,31,30,31,30,31/
 
         lwrite = .false.
+        lreversefit = .false.
+        sx = 0
+        sy = 0
         if ( iargc().lt.2 ) then
             write(0,*) 'usage: patchseries mainseries auxseries'
             write(0,*) 'patches holes in mainseries using data from '//
@@ -49,15 +53,26 @@
      +                   auxdata(mo,yr).lt.1e33 ) then
                         n = n + 1
                         xx(n) = auxdata(mo,yr)
+                        sx(mo) = sx(mo) + xx(n)
                         yy(n) = maindata(mo,yr)
+                        sy(mo) = sy(mo) + yy(n)
                     end if
                 end do
+                if ( n.gt.0 ) then
+                    sx(mo) = sx(mo)/n
+                    sy(mo) = sy(mo)/n
+                end if
                 if ( n.lt.7 ) then ! arbitrary
                     scale(mo) = 3e33
                     offset(mo) = 3e33
-                else
+                else if ( lreversefit ) then
                     call fit(xx,yy,n,sig,0,offset(mo),scale(mo),siga
      +                   ,sigb,chi2,q)
+                else
+                    call fit(yy,xx,n,sig,0,a,b,siga
+     +                   ,sigb,chi2,q)
+                    scale(mo) = 1/b
+                    offset(mo) = -a/b
                 end if
             end do
             do yr=yrbeg,yrend
@@ -89,15 +104,25 @@
                             n = n + 1
                             xx(n) = auxdata(j,yr)
                             yy(n) = maindata(j,yr)
+                            sy(mo) = sy(mo) + yy(n)
                         end if
                     end do
                 end do
+                if ( n.gt.0 ) then
+                    sx(mo) = sx(mo)/n
+                    sy(mo) = sy(mo)/n
+                end if
                 if ( n.lt.7 ) then ! arbitrary
                     scale(mo) = 3e33
                     offset(mo) = 3e33
-                else
+                else if ( lreversefit ) then
                     call fit(xx,yy,n,sig,0,offset(mo),scale(mo),siga
      +                   ,sigb,chi2,q)
+                else
+                    call fit(yy,xx,n,sig,0,a,b,siga
+     +                   ,sigb,chi2,q)
+                    scale(mo) = 1/b
+                    offset(mo) = -a/b
                 end if
             end do
             do yr=yrbeg,yrend
@@ -121,9 +146,10 @@
 !
         call copyheader(mainfile,6)
         write(6,'(a,g16.6)') '# patched with data from ',trim(auxfile)
-        write(6,'(a,g16.6)') '# using offset,scale '
+        write(6,'(a,g16.6)') '# using scale,offset,offset at mean '
         do mo=1,min(12,nperyear)
-            write(6,'(a,2f8.3)') '# ',offset(mo),scale(mo)
+            write(6,'(a,4f8.3)') '# ',scale(mo),offset(mo),sx(mo)-sy(mo)
+!!!     +           ,offset(mo)+scale(mo)*sx(mo)-sy(mo)
         end do
         call printdatfile(6,maindata,npermax,nperyear,yrbeg,yrend)
         end

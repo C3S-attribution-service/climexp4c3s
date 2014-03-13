@@ -1,0 +1,13 @@
+FFLAGS = -g -Dlinux -fbounds-check -fbackslash -ffpe-trap=invalid,zero,overflow #-fsecond-underscore
+# FFLAGS = -O3 -ftree-vectorize -msse2 -Dlinux -fbackslash -ffpe-trap=invalid,zero,overflow
+
+FC = gfortran
+CC = gcc-4
+
+LD = $(FC) -L/sw/lib -llapack -lcblas -lf77blas -latlas
+# -Wl,-framework -Wl,vecLib does not work with 64-bit gfortran
+SYSLIBS = -L/sw/opt/netcdf7/lib -L/sw/lib -lnetcdff -lnetcdf
+
+RANLIB = ranlib
+
+include ../Makefile.common

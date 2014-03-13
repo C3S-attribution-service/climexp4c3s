@@ -1,0 +1,11 @@
+# FFLAGS = -g -C -Dlinux -fno-second-underscore
+FFLAGS = -O -Dlinux -fno-second-underscore
+
+FC = g95
+LD = $(FC)
+
+RANLIB = echo 
+
+SYSLIBS = -L/usr/local/free/lib -llapack -lblas
+
+include ../Makefile.common

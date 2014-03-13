@@ -2,7 +2,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include <netcdf.h>
+#include "netcdf.h"
 #define MAX 1E30
 #define PRECISION 1E-12
 

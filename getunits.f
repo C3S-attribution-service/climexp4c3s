@@ -7,10 +7,10 @@
         integer nvarmax
         parameter(nvarmax=100)
         integer iargc
-        integer nx,ny,nz,nt,nperyear,nvars
-        logical xwrap,lwrite
+        integer nx,ny,nz,nt,nperyear,nvars,i,j,nens,off
+        logical xwrap,lwrite,lexist
         character file*255,var(nvarmax)*40,units(nvarmax)*60,
-     +       newunits(nvarmax)*60,string*80
+     +       newunits(nvarmax)*60,string*80,ensfile*255
         if ( iargc().lt.1 ) then
             print *,'usage: getunits file [debug]'
             stop
@@ -24,6 +24,26 @@
                 print *,'getunits: turned on debug printing'
             endif
         endif
+        i = index(file,'%%')
+        j = index(file,'++')
+        if ( i.ne.0 .or. j.ne.0 ) then
+            if ( lwrite ) print *,'counting ensemble members'
+            off = 0
+            do nens=0,999
+                ensfile = file
+                call filloutens(ensfile,nens)
+                inquire(file=trim(ensfile),exist=lexist)
+                if ( .not.lexist ) then
+                    if ( nens.eq.0 ) then
+                        off = 1
+                    else
+                        exit
+                    end if
+                end if
+            end do
+            nens = nens - off
+            call printassignment('NENS',nens)
+        end if
         call getfileunits(file,nx,ny,nz,nt,nperyear,nvarmax,nvars,var
      +       ,units,newunits,xwrap,lwrite)
         call printassignment('NX',nx)

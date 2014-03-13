@@ -8,21 +8,27 @@
 *       xx(ntot) data
 *       mean,sd  for first guess parameters
 *       j1,j2    use days/months/... j1 to j2
+*       year     leave out this year from the fit and compute return time for it
+*       xyear    value for year, has been set to undef in the series
+*       inrestrain restrain xi parameter by adding a normal distribution of width 0.5*inrestrain to the cost function
 *       output
 *       a,b,xi     parameters of fit
 *       t(10)    return values for 10, 20, 50, ..., 10000 years
+*       t25,t975   2.5%, 97.5% quantiles of these return values
+*       tx      return time of the value of year (xyear) in the context of the other values
+*       tx25,tx975 2.5%, 97.5% quantiles of these return times
 *
         implicit none
 *
         integer nmc
         parameter(nmc=1000)
         integer ntot,j1,j2,ntype,year
-        real xx(ntot),mean,sd,a,b,xyear,inrestrain,
+        real xx(ntot),mean,sd,a,b,xi,xyear,inrestrain,
      +       t(10),t25(10),t975(10),tx,tx25,tx975
         logical lweb,lchangesign,lboot,lprint,lwrite
 *
         integer i,j,k,n,nx,iter,iens
-        real x,xi,bb(nmc),xixi(nmc),tt(nmc,10),b25
+        real x,bb(nmc),xixi(nmc),tt(nmc,10),b25
      +       ,b975,xi25,xi975,t5(10),t1(10),db,dxi,f
      +       ,threshold,thens,z,ll,ll1,txtx(nmc),aa(nmc)
      +       ,a25,a975,ranf
@@ -54,6 +60,7 @@
 *
         if ( sd.eq.0 ) then
             xi = 3e33
+            a = 3e33
             b = 3e33
             t = 3e33
             t25 = 3e33
@@ -152,6 +159,7 @@
         enddo
         if ( lchangesign ) then
             a = -a
+            aa = -aa
             b = -b
             t = -t
             tt = -tt
@@ -190,7 +198,7 @@
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>a:</td><td>'
      +           ,a,'</td><td>',a25,'...',a975,'</td></tr>'
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>b:</td><td>'
-     +           ,b,'</td><td>',b25,'...',b975,'</td></tr>'
+     +           ,abs(b),'</td><td>',b25,'...',b975,'</td></tr>'
             print '(a,f16.3,a,f16.3,a,f16.3,a)'
      +           ,'# <tr><td>&xi;:</td><td>',xi,'</td><td>',xi25,'...'
      +           ,xi975,'</td></tr>'
@@ -253,7 +261,7 @@
         real function llgev(p)
 *
 *       computes the log-likelihood function for a GEV distribution
-*       with parameters a,b=p(1),p(2) and data in common.
+*       with parameters a,b,xi=p(1-3) and data in common.
 *
         implicit none
 *       
@@ -286,20 +294,29 @@
         end if
         do i=1,ncur
             if ( abs(p(2)).lt.1e-30 ) then
-                z = 3e33
-            else
-                z = (data(i)-p(1))/abs(p(2))
+                llgev = 3e33
+                goto 999
             end if
+            z = (data(i)-p(1))/abs(p(2))
             xi = p(3)
             if ( abs(xi).lt.1e-4 ) then
+                if ( -z+xi*z**2/2.gt.log(3e33) ) then
+                    llgev = 3e33
+                    goto 999
+                end if
                 llgev = llgev - exp(-z+xi*z**2/2) - z*(1+xi-xi*z/2)
             else
-                if ( abs(z).gt.1e30 .or. 1+xi*z.le.0 ) then
-***                    write(0,*) 'GEV undefined',(1+xi*z)
-                    llgev = llgev - 3e33
+                if ( 1+xi*z.le.0 ) then
+***                 write(0,*) 'GEV undefined',(1+xi*z)
+                    llgev = 3e33
+                    goto 999
+                else if ( -log(1+xi*z)/xi.gt.log(3e33) ) then
+                    ! too large...
+                    llgev = 3e33
+                    goto 999
                 else
                     llgev = llgev - (1+1/xi)*log(1+xi*z)
-     +                    - (1+xi*z)**(-1/xi)
+     +                   - (1+xi*z)**(-1/xi)
                 endif
             endif
         enddo
@@ -322,7 +339,7 @@
 *
   999   continue
         if ( llwrite ) print *,'ncur,a,b,xi,llgev = ',ncur,
-     +       p(1),p(2),p(3),llgev
+     +       p(1),p(2),p(3),llgev,z
         end
 *  #] llgev:
 *  #[ gevnorm:
@@ -410,14 +427,14 @@
 
         z = (1 + xi*(xyear-a)/b)
         if ( z.lt.0 ) then
-            y = 3e33
+            y = 1e20
         else if ( abs(xi).gt.1e-3 ) then
             y = -z**(-1/xi)
         else
             y = -exp(-(xyear-a)/b + xi/2*((xyear-a)/b)**2)
         end if
-        if ( y.gt.1e30 ) then
-            tx = 3e33
+        if ( y.ge.1e20 ) then
+            tx = 1e20
         else if ( abs(y).gt.1e-3 ) then
             tx = 1/(1 - exp(y))
         else if ( abs(y).gt.1e-19 ) then

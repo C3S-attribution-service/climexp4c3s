@@ -1,4 +1,20 @@
       subroutine calcSDII(fyear,lyear,a,qc,b)
+!
+!       now a wrapper on the more general routine SDIInn for arbitrary threshold
+!
+      implicit none
+      include 'comgeneral.h'
+      integer       fyear,lyear
+      real*8        a(yrbeg:yrend,12,31)
+      integer       qc(yrbeg:yrend,12,31)
+      real*8        b(yrbeg:yrend,nseason)
+      real*8        thresh
+      thresh = 1
+      call calcSDIInn(fyear,lyear,a,qc,thresh,b)
+      return
+      end
+
+      subroutine calcSDIInn(fyear,lyear,a,qc,thresh,b)
 c this routine calculates a simple daily intensity index
 c
 c the procedure is to calculate the number of wet days per month first,
@@ -9,6 +25,7 @@ c and then to calculate the values for each of the seasons
       real*8        a(yrbeg:yrend,12,31)
       integer       qc(yrbeg:yrend,12,31)
       real*8        b(yrbeg:yrend,nseason)
+      real*8        thresh
       real*8        cr(yrbeg:yrend,12,2)
       integer       fyear,lyear,i,j,k,length,absen,nsum,npre
       real*8        absenr,absentr,xsum
@@ -33,7 +50,7 @@ c initialize array
           do k=1,length
             if(qc(i,j,k).eq.0) then
               npre = npre + 1
-              if(a(i,j,k).ge.1.0d0) then
+              if(a(i,j,k).ge.thresh) then
                 nsum = nsum + 1
                 xsum = xsum + a(i,j,k)
               endif

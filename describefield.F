@@ -19,7 +19,7 @@
         character infile*255,datfile*255,outfile*255,units(nvmax)*60
      +       ,vars(nvmax)*40,lvars(nvmax)*200,svars(nvmax)*80,title*1024
      +       ,history*10000,months(12)*3,seasons(4)*3,lz(3)*20,ltime*100
-     +       ,cell_methods(nvmax)*128,ew(2),ns(2),string*20
+     +       ,cell_methods(nvmax)*128,ew(2),ns(2),string*20,format*100
         logical xwrap,xrev,yrev,lwrite,lexist,ensemble,tdefined(ntmax)
         integer iargc,llen,leap
         data months /'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug'
@@ -246,7 +246,12 @@
      +               ,firstyr,' to ',seasons(1+mod(firstmo+nt-2,4))
      +               ,firstyr+(firstmo+nt-2)/4,' (',ntt,' seasons)'
             elseif ( nperyear.eq.12 ) then
-                write(0,'(2a,i4,2a,i4,a,i4,a)')
+                if ( ntt.lt.10000 ) then
+                    format = '(2a,i4,2a,i4,a,i4,a)'
+                else
+                    format = '(2a,i4,2a,i4,a,i5,a)'
+                end if
+                write(0,format)
      +               'Monthly data available from ',months(firstmo)
      +               ,firstyr,' to ',months(1+mod(firstmo+nt-2,12))
      +               ,firstyr +(firstmo+nt-2)/12,' (',ntt,' months)'
@@ -265,7 +270,8 @@
                 ntp = nt
                 if ( nperyear.eq.366 ) then
                     do yr=firstyr,firstyr+(firstmo+nt-2)/nperyear
-                        if ( leap(yr).eq.1 ) then
+                        if ( leap(yr).eq.1 .and. (firstmo+nt-2).ge.60)
+     +                       then
                             ntp = ntp + 1 ! we count 366 days per year
                         endif
                     enddo

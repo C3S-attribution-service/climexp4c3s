@@ -5,7 +5,7 @@
 *       between two fields
 *
         implicit none
-#include "params_s.h"
+#include "params.h"
 #include "recfac.h"
 #include "netcdf.inc"
         integer nyrmax
@@ -16,13 +16,9 @@
      +       endian2,status,nxf,nyf,nperyear,firstyr,lastyr
         real  xx1(nxmax),yy1(nymax),zz1(nzmax),
      +        xx2(nxmax),yy2(nymax),zz2(nzmax),
-     +        field1(nxmax,nymax,12,nyrmax),
-     +        field2(nxmax,nymax,12,nyrmax),
      +        u1,u2
+        real,allocatable :: field1(:,:,:,:),field2(:,:,:,:)
         logical lwrite
-*
-*       for f2c
-        common /ccorrelatefield/ field1,field2
 *
         character line*256,datfile1*256,datfile2*256,
      +       title1*256,title2*256,vars1(1)*20,lvars1(1)*80,
@@ -31,6 +27,8 @@
 *
 *       check arguments
 *
+        allocate(field1(nxmax,nymax,12,nyrmax))
+        allocate(field2(nxmax,nymax,12,nyrmax))
         lwrite = .FALSE.
         n = iargc()
         if ( n.lt.4 ) then
@@ -123,8 +121,8 @@
      +        ,firstyr1,firstmo1,endian1,jvars1(6,nvmax),ncid2,nx2,ny2
      +        ,nt2,nper2,firstyr2,firstmo2,endian2,jvars2(6,nvmax)
         real field1(nxf,nyf,nperyear,firstyr:yrend),field2(nxf,nyf
-     +        ,nperyear,firstyr:yrend),xx1(nx1),yy1(ny1),xx2(nx2)
-     +        ,yy2(ny2),u1,u2
+     +        ,nperyear,firstyr:yrend),xx1(nxmax),yy1(nymax),xx2(nxmax)
+     +        ,yy2(nymax),u1,u2
         character*(*) datfile1,datfile2,vars1(1)*(*),units1(1)*(*),
      +       vars2(1)*(*),units2(1)*(*)
 *
@@ -525,7 +523,7 @@
 
         subroutine copyweights(xx,xx1,xx2,wx,wx1,wx2,nx,nx1,nx2)
         integer nx,nx1,nx2
-        real xx(nx),xx1(nx1),xx2(nx2),wx(nx),wx1(nx1),wx2(nx2)
+        real xx(nx),xx1(nx),xx2(nx),wx(nx),wx1(nx),wx2(nx)
         integer i
         logical equal
         

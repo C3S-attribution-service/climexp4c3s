@@ -47,7 +47,8 @@
         logical,allocatable :: lfirst(:)
         parameter (absent=3e33)
         character line*256,string*10,dir*256,ensfile*256,var*40,units*60
-     +       ,ivar*40,iunits*20,newunits*60,dum1*40,dum2*40
+     +       ,ivar*40,iunits*20,newunits*60,dum1*40,dum2*40,varorg*40
+     +       ,unitsorg*60
         character*4 runs(3,2)
         integer iargc,llen
         data runs /'rmin','rmax','zdif', 'bmin','bmax','bdif'/
@@ -158,6 +159,18 @@
 *
         n = iargc()
         call getopts(2,n,nperyear,yrbg,yred,.true.,imens1(0),imens(0))
+        if ( lstandardunits ) then
+            ! not right first time...
+            if ( lwrite ) print *,'calling makestandardseries'
+            varorg = var
+            unitsorg = units
+            do iens = nens1,nens2
+                var = varorg
+                units = unitsorg
+                call makestandardseries(data(1,yrbg,iens),nperyear,
+     +               yrbg,yred,nperyear,var,units,lwrite)
+            end do
+        end if
         if ( minfac.lt.0 ) minfac = 0.75
         if ( imens(0).gt.0 ) then
             print '(a,i4,a,i4,a)','# taking ensemble members ',nens1
@@ -176,6 +189,7 @@
 ***        if ( lsum.gt.1 .and. lsel.gt.1 ) goto 915
         if ( dump ) then
             write(10,'(2a)') '# ',line(1:index(line,' '))
+            write(10,'(6a)') '# ',trim(var),' [',trim(units),']'
             if ( logscale ) write(10,'(a)') '# logarithmic plot'
             if ( sqrtscale ) write(10,'(a)') '# sqrt plot'
         endif

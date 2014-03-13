@@ -1,37 +1,37 @@
 program polygon2mask
-  !
-  ! converts a polygon to a mask, given a grid
-  !
-  use lsdata
-  implicit none
-  include 'params.h'
-  include 'netcdf.inc'
-  integer,parameter :: npolmax=10000,nvarmax=10
-  integer i,j,npol,mens,mens1,ncid,nx,ny,nz,nt,nperyear,firstyr,firstmo,endian,nvars,jvars(6,nvarmax),ntvarid
-  integer nens1,nens2,ntmax,itimeaxis(1),iarg
-  real xx(nxmax),yy(nymax),zz(nzmax),undef,xxls(nxmax),yyls(nymax)
-  real polygon(2,npolmax),mask(nxmax,nymax)
-  character infile*255,datfile*255,maskfile*255,lz(3)*20,ltime*120,title*1047,history*4095, &
-       & string*80,lsmasktype*4
-  character vars(nvarmax)*50,lvars(nvarmax)*100,svars(nvarmax)*100,units(nvarmax)*100 &
-       & ,cell_methods(nvarmax)*100
-  character pole*2,clwrite*1
-  logical lwrite
-  integer iargc
+    !
+    ! converts a polygon to a mask, given a grid
+    !
+    use lsdata
+    implicit none
+    include 'params.h'
+    include 'netcdf.inc'
+    integer,parameter :: npolmax=50000,nvarmax=10
+    integer i,j,npol,mens,mens1,ncid,nx,ny,nz,nt,nperyear,firstyr,firstmo,endian,nvars,jvars(6,nvarmax),ntvarid
+    integer nens1,nens2,ntmax,itimeaxis(1),iarg,ncoords
+    real xx(nxmax),yy(nymax),zz(nzmax),undef,xxls(nxmax),yyls(nymax)
+    real polygon(2,npolmax),mask(nxmax,nymax),coords(3,npolmax)
+    character infile*255,datfile*255,maskfile*255,lz(3)*20,ltime*120,title*1047,history*4095, &
+        & string*80,lsmasktype*4
+    character vars(nvarmax)*50,lvars(nvarmax)*100,svars(nvarmax)*100,units(nvarmax)*100 &
+        & ,cell_methods(nvarmax)*100
+    character pole*2,clwrite*1
+    logical lwrite,xrev,yrev,xwrap
+    integer iargc
 
-  lwrite = .false.
-  call getenv('POLYGON2MAsK_LWRITE',clwrite)
-  if ( clwrite.eq.'T' .or. clwrite.eq.'t' ) lwrite = .true.
-  lsmasktype = 'all '
-  if ( iargc().lt.3 ) then
-     write(0,*) 'usage: polygon2mask grid.nc polygon.txt [sp] '// &
-          & '[lsmask file.nc all|land|sea|notland|notsea|all] mask.nc'
-     write(0,*) 'with grid.nc a netcdf file that defines the grid'
-     write(0,*) 'with polygon.txt a text file with xi yi on each ine'
-     write(0,*) 'sp denotes that the South Pole is inside the polygon'
-     stop
-  end if
-  do i=3,iargc()-1
+    lwrite = .false.
+    lsmasktype = 'all '
+    if ( iargc().lt.3 ) then
+        write(0,*) 'usage: polygon2mask grid.nc polygon.txt [sp] '// &
+            & '[lsmask file.nc all|land|sea|notland|notsea|all] [debug] mask.nc'
+        write(0,*) 'with grid.nc a netcdf file that defines the grid'
+        write(0,*) 'with polygon.txt a text file with xi yi on each ine'
+        write(0,*) 'sp denotes that the South Pole is inside the polygon'
+        write(0,*) 'mask.nc is 1 when the grid point is inside the polygon, '
+        write(0,*) '0 when outside (to be exact odd/even no of crossings).'
+        stop
+    end if
+    do i=3,iargc()-1
      call getarg(i,string)
      call tolower(string)
      if ( string.eq.'lwrite' .or. string.eq.'debug') then
@@ -55,6 +55,7 @@ program polygon2mask
      write(0,*) 'polygon2mask: error: expecting ta least two grid points in longitude'
      call abort
   end if
+  call getxyprop(xx,nx,yy,ny,xrev,yrev,xwrap)
   !
   ! read polygon from text file
   !
@@ -108,6 +109,13 @@ program polygon2mask
      end do
   end if
   !
+  ! make sure there is at least one grid box non-zero inside *or close to* each polygon
+  ! this gives more equal weight to the polygons (eg Hawaii)
+  !
+  call getcoordspolygon(polygon,npol,coords,ncoords,lwrite)
+  call setmasknonzero(coords,ncoords,xx,nx,yy,ny,xwrap,mask,nxmax,nymax,lwrite)
+  !   
+  !
   ! and write to file
   !
   nvars = 1
@@ -135,43 +143,77 @@ program polygon2mask
 end program polygon2mask
 
 subroutine read_polygon(datfile,npol,npolmax,polygon,lwrite)
-  implicit none
-  integer npol,npolmax
-  real polygon(2,npolmax)
-  character datfile*(*)
-  integer ipol
-  character string*100
-  logical lwrite
+    ! reads ghe polygons from file
+    ! these are assumed to be in the format
+    ! # comment
+    ! x11 y11
+    ! x12 y12
+    ! ...
+    ! x1n y1n
+    !
+    ! x21 y21
+    ! ...
+    ! x2m y2m
+    ! ...
+    ! where the first index denotes the number of the polygon and the second the 
+    ! vertex of the polygon. If the polygon is not closed this is done explicitly.
+    ! In the (linear) output a line with 3e33,3e33 denotes the start of a new polygon
+    implicit none
+    integer npol,npolmax
+    real polygon(2,npolmax)
+    character datfile*(*)
+    integer ipol
+    character string*100
+    logical lwrite
+    integer npol1,npol2
+    logical leof
 !
-  npol = 0
-  polygon = 3e33
-  open(1,file=trim(datfile),status='old')
-  do
-     read(1,'(a)',end=100) string
-     if ( string.eq.' ' ) cycle
-     if ( string(1:1).eq.'#' ) cycle
-     npol = npol + 1
-     read(string,*) polygon(1,npol),polygon(2,npol)
-     if ( polygon(2,npol).lt.-90 .or. polygon(2,npol).gt.90 ) then
-        write(0,*) 'polygon2mask: error: latitude ',npol,' is ',polygon(2,npol)
-        call abort
-     end if
-  end do
+    npol = 0
+    npol1 = npol + 1
+    polygon = 3e33
+    open(1,file=trim(datfile),status='old')
+10  continue
+    do
+        leof = .true.
+        read(1,'(a)',end=100) string
+        if ( string.eq.' ' ) then
+            ! signifies the beginning of a new polygon
+            leof = .false.
+            goto 100
+        end if
+        if ( string(1:1).eq.'#' ) cycle
+        npol = npol + 1
+        read(string,*) polygon(1,npol),polygon(2,npol)
+        if ( polygon(2,npol).lt.-90 .or. polygon(2,npol).gt.90 ) then
+            write(0,*) 'polygon2mask: error: latitude ',npol,' is ',polygon(2,npol)
+            call abort
+        end if
+    end do
 100 continue
-  if ( polygon(1,1).ne.polygon(1,npol) .or. &
-       & polygon(2,1).ne.polygon(2,npol) ) then
-     ! close loop
-     npol = npol + 1
-     polygon(1,npol) = polygon(1,1)
-     polygon(2,npol) = polygon(2,1)
-  end if
-  if ( lwrite ) then
-     print *,'read_polygon: found ',npol-1,'-edged polygon'
-     do ipol=1,npol
-        print *,ipol,polygon(1,ipol),polygon(2,ipol)
-     end do
-  end if
-  close(1)
+    if ( polygon(1,npol1).ne.polygon(1,npol) .or. &
+        & polygon(2,npol1).ne.polygon(2,npol) ) then
+        ! close loop
+        npol = npol + 1
+        polygon(1,npol) = polygon(1,npol1)
+        polygon(2,npol) = polygon(2,npol1)
+    end if
+    if ( lwrite ) then
+        print *,'read_polygon: found ',npol-npol1,'-edged polygon'
+        do ipol=npol1,npol
+            print *,ipol,polygon(1,ipol),polygon(2,ipol)
+        end do
+    end if
+    if ( .not.leof ) then
+        ! put marker in list and read another polygon
+        npol = npol + 1
+        polygon(1,npol) = 3e33
+        polygon(2,npol) = 3e33
+        ! mark start of new polygon
+        npol1 = npol + 1
+        ! continue reading
+        goto 10
+    end if
+    close(1)
 end subroutine read_polygon
 
 subroutine fillmask(polygon,npol,pole,xx,nx,yy,ny,mask,nxmax,nymax,lwrite)
@@ -195,16 +237,18 @@ subroutine fillmask(polygon,npol,pole,xx,nx,yy,ny,mask,nxmax,nymax,lwrite)
 
   mask = 0
   if ( .false. ) then ! too many exceptions... (eg Arctic)
-  !
+  ! THIS CODE DOES NOT WORK AND IS NOT EXECUTED
   ! search for lowest/highest latitude to save time in the subsequent loops
   !
   ymin = max(yy(1),yy(ny))
   ymax = min(yy(1),yy(ny))
   do ipol=1,npol - 1 ! last point repeats the first one
-     ymin = min(ymin,polygon(2,ipol))
-     ymax = max(ymax,polygon(2,ipol))
+     if ( polygon(2,ipol).lt.1e33 ) then
+        ymin = min(ymin,polygon(2,ipol))
+        ymax = max(ymax,polygon(2,ipol))
+     end if
   end do
-  if ( yy(ny).gt.yy(1) ) then ! bloody rersved grids...
+  if ( yy(ny).gt.yy(1) ) then ! bloody reversed grids...
      do iy = 1,ny
         if ( yy(iy).ge.ymin ) exit
      end do
@@ -234,8 +278,10 @@ subroutine fillmask(polygon,npol,pole,xx,nx,yy,ny,mask,nxmax,nymax,lwrite)
   xmin = max(xx(1),xx(nx))
   xmax = min(xx(1),xx(nx))
   do ipol=1,npol - 1 ! last point repeats the first one
-     xmin = min(xmin,polygon(1,ipol))
-     xmax = max(xmax,polygon(1,ipol))
+     if ( polygon(1,ipol).lt.3e33 ) then
+        xmin = min(xmin,polygon(1,ipol))
+        xmax = max(xmax,polygon(1,ipol))
+     end if
   end do
   if ( xmin.lt.xx(1) .or. xmax.gt.xx(nx) ) then
      ! probably wraps, take all points
@@ -257,6 +303,7 @@ subroutine fillmask(polygon,npol,pole,xx,nx,yy,ny,mask,nxmax,nymax,lwrite)
      print *,ixmax,xx(ixmax)
   end if
   else
+     ! KEEP IT SIMPLE FOR TEH TIME BEING...
      ixmin = 1
      ixmax = nx
      iymin = 1
@@ -297,10 +344,15 @@ subroutine fillmask(polygon,npol,pole,xx,nx,yy,ny,mask,nxmax,nymax,lwrite)
                     if ( lwrite ) print *,'   y+ point ',ix,xx(ix),iy,yy(iy)+epsilon/sqrt(3.),res(2)
                  end if
               end if
-              epsilon = epsilon/10
+              if ( (res(1).eq.3e33 .or. res(2).eq.3e33) .and. epsilon.gt.1e-4 ) then
+                  ! try again, we were unlucky
+                  res(1) = -1
+                  res(2) = +1
+                  epsilon = epsilon/3.14 ! not a nice number
+              end if 
            end do
            if ( res(1).eq.3e33 ) then
-              write(0,*) 'fillmask: internal error ',res
+              write(0,*) 'fillmask: internal error ',res,epsilon
               call abort
            end if
            mask(ix,iy) = res(1)
@@ -340,6 +392,9 @@ real function in_polygon(polygon,npol,x,y,pole,lwrite)
 !
   if ( lwrite ) print *,'started with ',result
   do ipol=1,npol-1
+     ! skip "segments" that include the polygon-separating marker 3e33,3e33
+     if ( polygon(1,ipol).gt.1e33 ) cycle
+     if ( polygon(1,ipol+1).gt.1e33 ) cycle
      partial = segments_crossed(polygon(1:2,ipol),polygon(1:2,ipol+1),x,y,ynull,.false.)
      if ( lwrite .and. partial.ne.0 ) print *,'in_polygon: segments_crossed returns ',ipol,partial
      if ( partial.eq.0.5 ) then
@@ -463,3 +518,153 @@ real function segments_crossed(p1,p2,xin,y,ynull,lwrite)
      end if      
   end if
 end function segments_crossed
+
+subroutine getcoordspolygon(polygon,npol,coords,ncoords,lwrite)
+  !
+  ! get central coordinates of polygons in list
+  ! for the time being just the centre of the boundingbox
+  !
+  implicit none
+  integer npol,nmax,ncoords
+  real polygon(2,npol),coords(3,npol)
+  logical lwrite
+  integer ipol,i
+  real xmin,xmax,ymin,ymax,x,xold,area
+
+  xmin = 3e33
+  xmax = -3e33
+  xold = 3e33
+  ymin = 3e33
+  ymax = -3e33
+  area = 0
+  ncoords = 0
+  do ipol=1,npol
+     if ( polygon(1,ipol).gt.1e33 ) then
+        ncoords = ncoords + 1
+        coords(1,ncoords) = (xmin + xmax)/2
+        coords(2,ncoords) = (ymin + ymax)/2
+        coords(3,ncoords) = abs(area)/2
+        if ( lwrite ) then
+            print *,'getcoordspolygon: n,x,y,area = ',ncoords,(coords(i,ncoords),i=1,3)
+        end if
+        xmin = 3e33
+        xmax = -3e33
+        xold = 3e33
+        ymin = 3e33
+        ymax = -3e33
+        area = 0
+     else
+        x = polygon(1,ipol)
+        if ( xold.lt.1e33 ) then
+            if ( abs(x-xold).gt.abs(x-xold+360) ) then
+                x = x + 360
+            else if ( abs(x-xold).gt.abs(x-xold-360) ) then
+                x = x - 360
+            end if
+        end if
+        xmin = min(xmin,x)
+        xmax = max(xmax,x)
+        ymin = min(ymin,polygon(2,ipol))
+        ymax = max(ymax,polygon(2,ipol))
+        if ( xold.lt.1e33 ) then
+            ! http://www.mathopenref.com/coordpolygonarea.html
+            area = area + xold*polygon(2,ipol) - x*polygon(2,ipol-1)
+        end if
+        xold = x
+     end if
+  end do
+  ! and the last polygon
+  if ( xmin.lt.1e33 ) then
+     ncoords = ncoords + 1
+     coords(1,ncoords) = (xmin + xmax)/2
+     coords(2,ncoords) = (ymin + ymax)/2
+     coords(3,ncoords) = abs(area)/2
+     if ( lwrite ) then
+        print *,'getcoordspolygon: n,x,y,area = ',ncoords,(coords(i,ncoords),i=1,3)
+     end if
+  end if
+ 
+end subroutine getcoordspolygon
+
+subroutine setmasknonzero(coords,ncoords,xx,nx,yy,ny,xwrap,mask,nxmax,nymax,lwrite)
+    !
+    !   set mask to nonzero for the central point of the polygon if there is nothing there
+    !
+    implicit none
+    integer ncoords,nx,ny,nxmax,nymax
+    real coords(3,ncoords),xx(nx),yy(ny),mask(nxmax,nymax)
+    logical xwrap,lwrite
+    integer icoords,ix,iy
+    real x,dist,pi,dx,dy
+    integer,allocatable :: ijmin(:,:)
+    real,allocatable :: distmin(:)
+
+    pi = 4*atan(1.)
+    allocate(ijmin(2,ncoords))
+    allocate(distmin(ncoords))
+    ijmin = -999
+    distmin = 3e33
+    do iy=1,ny
+        do ix=1,nx
+            do icoords=1,ncoords
+                x = xx(ix)
+                if ( abs(x-coords(1,icoords)+360).lt.abs(x-coords(1,icoords)) ) then
+                    x = x+360
+                else if ( abs(x-coords(1,icoords)-360).lt.abs(x-coords(1,icoords)) ) then
+                    x = x-360
+                end if
+                dist = sqrt((cos(yy(iy)/180*pi)*(x-coords(1,icoords)))**2 + &
+                    & (yy(iy)-coords(2,icoords))**2) ! small distances so approx flat
+                if ( dist.lt.distmin(icoords) ) then
+                    ijmin(1,icoords) = ix
+                    ijmin(2,icoords) = iy
+                    distmin(icoords) = dist
+                end if
+            end do
+        end do
+    end do
+    do icoords=1,ncoords
+        ix = ijmin(1,icoords)
+        iy = ijmin(2,icoords)
+        if ( mask(ix,iy).lt.0.5 ) then
+            if ( xwrap ) then
+                if ( ix.eq.1 ) then
+                    dx = (xx(2) - xx(nx) + 360)/2
+                else if ( ix.eq.nx ) then
+                    dx = (xx(1) - xx(nx-1) + 360)/2
+                else
+                    dx = (xx(ix+1) - xx(ix-1))/2
+                end if        
+            else
+                if ( ix.eq.1 ) then
+                    dx = xx(2) - xx(1)
+                else if ( ix.eq.nx ) then
+                    dx = xx(nx) - xx(nx-1)
+                else
+                    dx = (xx(ix+1) - xx(ix-1))/2
+                end if        
+            end if
+            if ( iy.eq.1 ) then
+                dy = yy(2) - yy(1)
+            else if ( iy.eq.ny ) then
+                dy = yy(ny) - yy(ny-1)
+            else
+                dy = (yy(iy+1) - yy(iy-1))/2
+            end if
+            ! only if the distance is smaller than half the diagonal of the grid box -
+            ! necessary for regional grids
+            if ( distmin(icoords).lt.sqrt((cos(yy(iy)/180*pi)*dx)**2 + dy**2)/2 ) then
+                mask(ix,iy) = mask(ix,iy) + &
+                    & coords(3,icoords)/abs(dx*dy)
+                    ! area of polygon divided by grid box area, no factors cos(lat)
+                mask(ix,iy) = min(1.,mask(ix,iy)) ! Sulawesi is bigger than one grid box
+                if ( lwrite ) then
+                    print *,'setmasknonzero: ix,iy,x,y,dx,dy = ',ix,iy,xx(ix),yy(iy),dx,dy
+                    print *,'                icoords,distmin = ',icoords,distmin(icoords)
+                    print *,'                area,value      = ',coords(3,icoords),coords(3,icoords)/abs(dx*dy)
+                    print *,'                mask            = ',mask(ix,iy)
+                end if
+            end if
+        end if
+    end do
+end subroutine setmasknonzero

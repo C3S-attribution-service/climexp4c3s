@@ -128,7 +128,7 @@
         real minfac,ave(mypermax),avemean(mypermax),lon1,lon2,lat1,lat2,
      +       wx(nxmax),wy(nymax),f,w,sw,sw0,pi,lon1c,lon2c,lat1c,
      +       lat2c,dx,dy,dl,xxls(nxmax),yyls(nymax),zzls(1),meanish
-     +       ,offset,slope
+     +       ,offset,slope,undefmask
         real xxmask(nxmax),yymask(nymax),zzmask(nzmax)
         real,allocatable :: mask(:,:)
         logical xrev,yrev,xwrap,interp,missing,lstandardunits
@@ -177,7 +177,7 @@
             ncidmask = 0
             call parsenc(string,ncidmask,nxmax,nxmask,xxmask,
      +           nymax,nymask,yymask,nzmax,nzmask,zzmask,ntmask,n,
-     +           fyr,fmo,undef,titlemask,1,nvars,varsmask,jvarsmask,
+     +           fyr,fmo,undefmask,titlemask,1,nvars,varsmask,jvarsmask,
      +           lvarsmask,unitsmask)
             if ( nzmask.gt.1 ) then
                 write(0,*) 'get_index: error: can only handle X-Y ',
@@ -345,6 +345,19 @@
             newunits = units(1)
         endif
         call keepalive(2,5)
+        do yr=firstyr,lastyr
+            do mo=1,nperyear
+                do j=1,ny
+                    do i=1,nx
+                        if ( field(i,j,mo,yr).lt.-999 .and.
+     +                       field(i,j,mo,yr).gt.-1000 ) then
+                            write(0,*) 'get_index: suspicious field(',
+     +                           i,j,mo,yr,') = ', field(i,j,mo,yr)
+                        end if
+                    end do
+                end do
+            end do
+        end do
         call getxyprop(xx,nx,yy,ny,xrev,yrev,xwrap)
 !
 !       field output
@@ -354,7 +367,7 @@
      +           ,1,x1,x2,y1,y2,lwrite)
             if ( (y2-y1)*(x2-x1).gt.0.2*nx*ny ) then
                 write(0,*) 'Region too large (',(y2-y1)*(x2-x1),
-     +           	'&gt;0.2*',nx*ny,'.  Please download '//
+     +           	'&gt;0.2*',nx*ny,').  Please download '//
      +               	'the whole dataset.'
                 call abort
             end if
@@ -372,8 +385,28 @@
             if ( index(outfile,'.ctl').eq.0 ) then
                 allocate(itimeaxis(nt))
                 ivars(1,1) = 0
+                if ( nperyear.eq.366 ) then
+                    yr=firstyr
+                    mo=firstmo
+                    irec = 0
+                    do it=1,nt
+                        if ( nperyear.eq.366 .and. mo.eq.60 .and.
+     +                       leap(yr).eq.1 ) then
+                            mo = mo + 1
+                            cycle
+                        end if
+                        irec = irec + 1
+                        mo = mo + 1
+                        if ( mo.gt.nperyear ) then
+                            mo = mo - nperyear
+                            yr = yr + 1
+                        end if
+                    end do
+                else
+                    irec = nt
+                end if
                 call writenc(outfile,ncid,ntvarid,itimeaxis,nt,nx,xx
-     +               ,ny,yy,nz,zz,nt,nperyear,firstyr,firstmo,3e33
+     +               ,ny,yy,nz,zz,irec,nperyear,firstyr,firstmo,3e33
      +               ,title,1,vars,ivars,lvars,units,0,0)
                 yr=firstyr
                 mo=firstmo
@@ -708,6 +741,10 @@
      +                               ' point ',ii,j,lsmask(ii,j)
                             endif
                         endif
+                        if ( f.lt.-999 .and. f.gt.-1000 ) then
+                            write(0,*)'get_index: warning: suspicious ',
+     +                           'point field(',ii,j,month,year,') = ',f
+                        end if
                         if ( f.lt.1e33 ) then
                             if (  dipole.eq.'no' .or.
      +                        dipole.eq.'ll' .and. i.lt.(x1+x2)/2. .or.
@@ -938,8 +975,10 @@
             call abort
         end if
         if ( .not.foundit ) then
-            write(0,*) 'get_index: error: mask is all zero ',axis,sign
-            write(*,*) 'get_index: error: mask is all zero ',axis,sign
+            write(0,*) 'getfirstnonzero: error: mask is all zero ',axis
+     +           ,sign
+            write(*,*) 'getfirstnonzero: error: mask is all zero ',axis
+     +           ,sign
             if ( axis.eq.'x' ) then
                 print *,'i1,i2,di = ',i1,i2,di
             else

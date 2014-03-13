@@ -1,0 +1,9 @@
+FFLAGS = -g -C -Dlinux
+# FFLAGS = -O -Dlinux
+
+FC = g95
+LD = $(FC) -O
+
+RANLIB = echo 
+
+include ../Makefile.common

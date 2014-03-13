@@ -1,1 +1,1 @@
-/sw/opt/netcdf7/include/netcdf.h
+/sw/include/netcdf.h

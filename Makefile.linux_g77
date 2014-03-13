@@ -1,0 +1,8 @@
+FFLAGS = -g
+# FFLAGS = -fast
+EOFFLAGS = -g
+
+FC = g77
+RANLIB = echo ready with
+
+include ../Makefile.common

@@ -27,9 +27,13 @@
             w = w/100
         endif
         if ( abs(w-1).gt.1e-4 ) then
-            write(0,*) 'checklsmask: error: max LS mask = ',w
-            write(*,*) 'checklsmask: error: max LS mask = ',w
-            call abort
+            if ( abs(w).lt.1e-4 ) then
+                write(0,*) 'checklsmask: error: max LS mask = ',w
+                write(*,*) 'checklsmask: error: max LS mask = ',w
+                call abort
+            else
+                write(0,*) 'checklsmask: warning: max mask = ',w
+            end if
         endif
         if ( lwrite ) then
             print *,'LS mask'

@@ -340,6 +340,8 @@
         end do
 !       change other undef conventions to ours
         if ( undef.ne.3e33 ) then
+            if ( lwrite ) print *,'changing undef from ',undef,
+     +           ' to 3e33'
             if ( abs(undef).gt.1000 ) then
                 ! relative diff
                 do i=max(yr1,yrbeg),min(yr2,yrend)

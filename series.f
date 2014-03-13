@@ -399,7 +399,8 @@
 *
         lastvalid = .false.
         do i=yrbeg,yrend
-            s(1,i) = 3e33
+            s(1,i) = 3e33 ! it seems s(1,i) is not used and never set, 
+                          ! we use it here as a flag whether there is at least one valid value
             do j=2,41
                 if ( s(j,i).ge.absent/3 ) then
                     s(j,i) = -999.9
@@ -423,7 +424,11 @@
      +           'were added to let gnuplot make nice plots!'
             do i=yrbeg,yrend
                 if ( s(1,i).ge.absent/3 ) then
-                    if ( lastvalid ) write(1,'(a)')
+                    if ( lastvalid ) then
+                        ! one line with the next year but the previous year's data
+                        write(1,'(i5,40g14.6)') i,(s(j,i-1),j=2,41)
+                        write(1,'(a)')
+                    end if
                     lastvalid = .false.
                 else
                     linvalid = .false.

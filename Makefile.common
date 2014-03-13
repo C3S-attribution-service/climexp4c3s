@@ -3,7 +3,7 @@
 .f90.o:
 	$(FC) $(FFLAGS)  -c $<
 
-CPPFLAGS = -I/sw/opt/netcdf7/include -I/usr/local/free/include
+CPPFLAGS = -I/sw/include -I/usr/local/free/include
 
 VPATH         = ..
 
@@ -142,9 +142,15 @@ OBJS	      = makeabsent.o \
 		printroc.o \
 		fit2.o \
 		fitgpd.o \
+		fitgpdcov.o \
 		fitgev.o \
+		fitgevcov.o \
 		fitgau.o \
+		fitgaucov.o \
 		fitgum.o \
+		fitgumcov.o \
+		fitpoisson.o \
+		fitgamma.o \
 		printpoint.o \
 		printval.o \
 		statmodel1.o \
@@ -165,6 +171,7 @@ OBJS	      = makeabsent.o \
 		normvector.o \
 		makeskew.o \
 		derivative.o \
+		annual2shorter.o \
 		legzo.o \
 		ftest.o \
 		getweightedquant.o \
@@ -184,6 +191,7 @@ OBJS	      = makeabsent.o \
 		calcPRCPTOT.o \
 		calcR10mm.o \
 		calcR20mm.o \
+		calcRnnmm.o \
 		calcRR1.o \
 		calcRX5day.o \
 		calcRXday.o \
@@ -195,7 +203,18 @@ OBJS	      = makeabsent.o \
 		calcTR.o \
 		calcdPabs24.o \
 		calcvDTR.o \
+		calcMIN.o \
+		calcMAX.o \
+		calcFreqDistr.o \
+		calcFreqDistrRR.o \
+		calcCSDI.o \
+		calcWSDI.o \
+		calcTp10.o \
+		calcTp90.o \
+		calcRXXp.o \
+		calcRXXpTOT.o \
 		indexSupport.o \
+		indexNAG.o \
 		climexp2extreme.o \
 		$(EXTRAOBJS)
 
@@ -234,6 +253,7 @@ PROGRAMS      = scientific2decimal \
 		climatology \
 		month2string \
 		season2string \
+		annual2string \
 		series \
 		multifit \
 		lomb \
@@ -246,6 +266,7 @@ PROGRAMS      = scientific2decimal \
 		grads2ascii \
 		grads2nc \
 		histogram \
+		attribute \
 		selectyear \
 		filtermonthseries \
 		filteryearseries \
@@ -291,6 +312,7 @@ PROGRAMS      = scientific2decimal \
 		timeshift \
 		del_dimension \
 		quantiles_field \
+		quantiles_series \
 		testerfcc \
 		fillin \
 		convert2r \
@@ -302,6 +324,7 @@ PROGRAMS      = scientific2decimal \
 		nc2varlist \
 		makesnow \
 		polygon2mask \
+		polygon2box \
 		extremeseries
 
 SHLIBS =	rkillfile.so \
@@ -523,6 +546,9 @@ wave:		wave.o $(LIBRARY)
 quantiles_field:		quantiles_field.o $(LIBRARY)
 		$(LD) $(FFLAGS) $(LDFLAGS) -o $@ $@.o $(LIBS)
 
+quantiles_series:		quantiles_series.o $(LIBRARY)
+		$(LD) $(FFLAGS) $(LDFLAGS) -o $@ $@.o $(LIBS)
+
 grads2ascii:	grads2ascii.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ grads2ascii.o $(LIBS)
 
@@ -533,6 +559,9 @@ extendyear:	extendyear.o llen.o
 		$(LD) $(FFLAGS) -o $@ $@.o llen.o
 
 histogram:	histogram.o $(LIBRARY)
+		$(LD) $(FFLAGS) -o $@ $@.o $(LIBRARY) $(LIBS)
+
+attribute:	attribute.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBRARY) $(LIBS)
 
 histogram_weird:	histogram.o fitgpd_weird.o $(LIBRARY)
@@ -701,6 +730,9 @@ testskew:	testskew.o makeskew.o gasdev.o zbrent.o moment.o
 		$(LD) $(FFLAGS) -o $@ $@.o makeskew.o gasdev.o zbrent.o moment.o
 
 test_fitcross:	test_fitcross.o $(LIBRARY)
+		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)		
+
+testfitgevcov:	testfitgevcov.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)		
 
 rkillfile.so:	rkillfile.f

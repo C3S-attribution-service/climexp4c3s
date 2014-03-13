@@ -269,17 +269,18 @@
      +       then
             j = julday(firstmo,firstdy,firstyr)
             tt0 = tt(1)/nint(iperyear/366.)
-            j = j + tt0
+            j = j + int(tt0)
             do i=1,nt
                 tt(i) = tt(i) - tt0*nint(iperyear/366.)
             enddo
             call caldat(j,firstmo,firstdy,firstyr)
+            firstdy = (firstdy-1)*nint(iperyear/366.)
  120        continue
             if ( lwrite ) then
                 print *,'transformed to'
                 print *,'firstyr,firstmo,firstdy = ',firstyr,firstmo
      +               ,firstdy
-                print *,'tt(1-5) = ',(tt(i),i=1,5)
+                print *,'nt,tt(1-5) = ',nt,(tt(i),i=1,5)
             endif
             if ( firstmo.gt.1 ) then
                 firstmo = firstmo - 1
@@ -294,10 +295,8 @@
             else if ( nperyear.lt.360 ) then
 *               12: this makes both 1-1 and 16-1 go to Jan...
                 firstmo = nint(0.5+real(firstdy)/iperyear*nperyear)
-            else if ( nperyear.gt.366 ) then
-                firstmo = 1 + (firstdy-1)*nint(iperyear/366.) + tt(1)
             else
-                firstmo = firstdy
+                firstmo = 1 + firstdy/nint(iperyear/real(nperyear))
             endif
             if ( lwrite ) print *,'finally, firstmo,firstyr = ',
      +           firstmo,firstyr,nperyear
@@ -308,11 +307,17 @@
      +               firstmo,firstyr
             end if
         else
+            ! find first time step with data
             i = nint(tt(1)/iperyear*nperyear-0.25)
             if ( lwrite ) print *,'adding offset ',i,' periods of '
      +           ,nperyear
             firstyr = firstyr + i/nperyear
-            firstmo = 1 + (firstmo-1)*nperyear/12 + mod(i,nperyear)
+            ! firstdy,firstmo form a date of the year, convert to # of periods
+            firstmo = 1 + nint(-0.25 + 
+     +           nperyear*((firstdy-1)/30. + firstmo-1)/12.)
+            ! next add the remainder of the offset to it
+            firstmo = firstmo + nint(mod(i,nperyear) +
+     +           tt(1)/iperyear*nperyear-0.25-i)
             if ( lwrite ) print *,'getperyear: firstyr,firstmo = '
      +                   ,firstyr,firstmo
             if ( firstmo.lt.1 ) then
@@ -383,6 +388,7 @@
         if ( it.ne.nt ) then
             nt = it
         end if
+        if ( lwrite ) print *,'finally nt = ',nt
 !
         end
 *  #] getperyear:

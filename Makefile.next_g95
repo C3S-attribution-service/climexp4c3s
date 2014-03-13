@@ -1,0 +1,13 @@
+FFLAGS = -g -C -Dlinux
+# FFLAGS = -O -Dlinux
+CFLAGS = -g
+
+###SYSLIBS = -L/usr/lib/gcc/darwin/3.3 -lm -lgcc -lSystem
+FC = g95
+LD = $(FC) -O -Wl,-framework -Wl,vecLib
+
+RANLIB = ranlib
+
+EXTRAOBJS = getppid.o
+
+include ../Makefile.common

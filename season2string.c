@@ -1,4 +1,4 @@
-/* input: month (string 1-12), sum (string 1:\inf[,str]), lag (string), operation, fix2
+/* input: month (string 1-4), sum (string 1:\inf[,str]), lag (string), operation, fix2
    output: seriesmonth=... indexmonth=...  in human-readable format */
 #include <stdio.h>
 #include <stdlib.h>
@@ -57,18 +57,18 @@ main(int argc,char *argv[])
     fix2 = 0;
     
 
-  yr = -lag/12;
+  yr = -lag/4;
   if ( fix2 == 0 ) {
-    sm1 = (season - 1)%12;
-    im1 = (season - lag - 1)%12;
+    sm1 = (season - 1)%4;
+    im1 = (season - lag - 1)%4;
   } else {
-    sm1 = (season + lag - 1)%12;
-    im1 = (season - 1)%12;
+    sm1 = (season + lag - 1)%4;
+    im1 = (season - 1)%4;
   }
-  if ( sm1<0 ) sm1 += 12;
-  if ( im1<0 ) im1 += 12;
-  sm2 = (sm1 + sum  - 1)%12;
-  im2 = (im1 + sum2 - 1)%12;
+  if ( sm1<0 ) sm1 += 4;
+  if ( im1<0 ) im1 += 4;
+  sm2 = (sm1 + sum  - 1)%4;
+  im2 = (im1 + sum2 - 1)%4;
   if ( season == 0 ) {
     if ( lag == 0 ) {
       if ( sum == sum2 ) {
@@ -105,9 +105,9 @@ main(int argc,char *argv[])
     }
   } else {
     if ( yr == 0 ) {
-      if ( lag > 5 )
+      if ( lag > 1 )
 	strcpy(lagstring,"(-)");
-      else if ( lag > -5 )
+      else if ( lag > -1 )
 	strcpy(lagstring,"");
       else
 	strcpy(lagstring,"(+)");

@@ -1,0 +1,11 @@
+FFLAGS = -g -C -Dlinux
+# FFLAGS = -O -Dlinux
+
+SYSLIBS = -L /sw/lib -lnetcdff -lnetcdf -L/usr/lib/gcc/darwin/3.3 -lm -lgcc -lSystem
+###FC = fort77
+FC = g77
+LD = $(FC) -O -Wl,-framework -Wl,vecLib
+
+RANLIB = ranlib
+
+include ../Makefile.common

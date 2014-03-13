@@ -1,0 +1,16 @@
+FFLAGS = -Ktrap=fp -g -C
+# FFLAGS = -Ktrap=fp -fast  # -Mvect=sse slows down correlatefield..
+EOFFLAGS = $(FFLAGS)
+
+CFLAGS = -O2
+
+SYSLIBS = -L/usr/local/free/lib -lnetcdff -lnetcdf -llapack -lblas
+FC = pgf90
+LD = pgf90
+RANLIB = echo ready with
+
+###LDBIGFLAG = -Wl,-Bstatic
+
+EXTRAOBJS = getppid.o isnan.o swapbyte.o
+
+include ../Makefile.common

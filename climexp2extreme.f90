@@ -1,5 +1,5 @@
 subroutine climexp2extreme(data,indx,npermax,fyr,lyr,yr1,yr2,nperyear,npernew, &
-&	var,units,newunits,climdex,lvar,lwrite)
+&	minindx,var,units,newunits,climdex,lvar,lwrite)
 !
 !	glue routine to convert my time series format to the extreme format,
 !	call the correct subroutine and convert the results back
@@ -11,22 +11,55 @@ subroutine climexp2extreme(data,indx,npermax,fyr,lyr,yr1,yr2,nperyear,npernew, &
 
 	integer fyr,lyr,yr1,yr2,npermax,nperyear,npernew
 	real data(npermax,fyr:lyr),indx(npernew,fyr:lyr)
+	real minindx
 	character var*(*),lvar*(*),units*(*),newunits*(*),climdex*(*)
 	logical lwrite
 	real*8 a(yrbeg:yrend,12,31),b(yrbeg:yrend,nseason)
+	real*8 p10(calyrbeg:calyrend+1,12,31),p90(calyrbeg:calyrend+1,12,31)
+	real*8 p75(calyrbeg:calyrend+1,nseason),p95(calyrbeg:calyrend+1,nseason), & 
+	&      p99(calyrbeg:calyrend+1,nseason)
+	real*8 rsum(yrbeg:yrend,nseason),p(calyrbeg:calyrend+1,nseason)
+	real*8 thresh
 	integer qc(yrbeg:yrend,12,31)
-	integer mo,yr,dy,dd,i,l,fyear,lyear
+	integer mo,yr,dy,dd,i,j,k,l,fyear,lyear
 	!
 	!	init
 	!
 	if ( yr1.lt.yrbeg ) yr1 = yrbeg
 	if ( yr2.gt.yrend ) yr2 = yrend
+	!
+	!	actually, Gerard's routines do not use yr1,yr2 to select a time 
+	!	period, but to indicate the first, last year with data. Find these.
+	!
+	do yr=yr1,yr2
+		do mo=1,nperyear
+			if ( data(mo,yr).lt.1e33 ) then
+				goto 101
+			end if
+		end do
+	end do
+	write(0,'(a)') 'climate2extreme: no valid data found'
+	write(*,'(a)') '# climate2extreme: no valid data found'
+	stop
+101	continue
+	yr1 = yr
+	do yr=yr2,yr1,-1
+		do mo=1,nperyear
+			if ( data(mo,yr).lt.1e33 ) then
+				goto 102
+			end if
+		end do
+	end do
+102 continue
+	yr2 = yr
+	!
 	a = -9999
 	qc = 0
 	indx = 3e33
 	if ( lwrite ) then
 		print *,'climexp2extreme: input'
 		print *,'  climdex = ',trim(climdex)
+		print *,'  minindx = ',minindx
 		print *,'  nperyear,npernew = ',nperyear,npernew
 		print *,'  var,units = ',trim(var),' [',trim(units),']'
 	end if
@@ -70,6 +103,7 @@ subroutine climexp2extreme(data,indx,npermax,fyr,lyr,yr1,yr2,nperyear,npernew, &
 	!	call appropriate routine, see list at http://www.climdex.org/indices.html
 	!
 	call tolower(var)
+	thresh = minindx ! convert from real*4 to real*8
 	if ( var.eq.'tn' .or. index(var,'min').ne.0 ) then ! minimum temperature
 		if ( climdex.eq.'FD' ) then
 			lvar = 'Frost days (TN < 0C)'
@@ -85,24 +119,27 @@ subroutine climexp2extreme(data,indx,npermax,fyr,lyr,yr1,yr2,nperyear,npernew, &
 			newunits = 'dy'
 		else if ( climdex.eq.'TNx' ) then
 			lvar = 'Maximum value of daily minimum temperature'
-			write(0,*) 'TNx not yet ready'
+			call calcMAX(fyear,lyear,a,qc,b)
 			newunits = 'Celsius'
 		else if ( climdex.eq.'TNn' ) then
 			lvar = 'Minimum value of daily minimum temperature'
-			write(0,*) 'TNn not yet ready'
+			call calcMIN(fyear,lyear,a,qc,b)
 			newunits = 'Celsius'
 		else if ( climdex.eq.'TN10p' ) then
 			lvar = 'Days with TN < 10th percentile of daily minimum temperature (cold nights)'
-			write(0,*) 'TN10p not yet ready'
+			call calcFreqDistr(a,qc,p10,p90)
+			call calcTp10(fyear,lyear,a,qc,p10,b)
 			newunits = 'dy'
 		else if ( climdex.eq.'TN90p' ) then
 			lvar = 'Days with TN > 90th percentile of daily minimum temperature (warm nights)'
-			write(0,*) 'TN90p not yet ready'
-			newunits = 'Celsius'
+			call calcFreqDistr(a,qc,p10,p90)
+			call calcTp90(fyear,lyear,a,qc,p90,b)
+			newunits = 'dy'
 		else if ( climdex.eq.'CSDI' ) then
 			lvar = 'Cold-spell duration index'
-			write(0,*) 'CSDI not yet ready'
-			newunits = 'Celsius'
+			call calcFreqDistr(a,qc,p10,p90)
+			call calcCSDI(fyear,lyear,a,qc,p10,b)
+			newunits = 'dy'
 		else
 			write(0,*) 'unknown Tmin index ',trim(climdex)
 			call abort
@@ -123,24 +160,27 @@ subroutine climexp2extreme(data,indx,npermax,fyr,lyr,yr1,yr2,nperyear,npernew, &
 			newunits = 'dy'
 		else if ( climdex.eq.'TXx' ) then
 			lvar = 'Maximum value of daily maximum temperature'
-			write(0,*) 'TXx not yet ready'
+			call calcMAX(fyear,lyear,a,qc,b)
 			newunits = 'Celsius'
 		else if ( climdex.eq.'TXn' ) then
 			lvar = 'Minimum value of daily maximum temperature'
-			write(0,*) 'TXn not yet ready'
+			call calcMIN(fyear,lyear,a,qc,b)
 			newunits = 'Celsius'
 		else if ( climdex.eq.'TX10p' ) then
 			lvar = 'Days with TX < 10th percentile of daily maximum temperature (cold day-times)'
-			write(0,*) 'TX10p not yet ready'
-			newunits = 'Celsius'
+			call calcFreqDistr(a,qc,p10,p90)
+			call calcTp10(fyear,lyear,a,qc,p10,b)
+			newunits = 'dy'
 		else if ( climdex.eq.'TX90p' ) then
 			lvar = 'Days with TX > 90th percentile of daily maximum temperature (warm day-times)'
-			write(0,*) 'TX90p not yet ready'
-			newunits = 'Celsius'
+			call calcFreqDistr(a,qc,p10,p90)
+			call calcTp90(fyear,lyear,a,qc,p90,b)
+			newunits = 'dy'
 		else if ( climdex.eq.'WSDI' ) then
 			lvar = 'Warm-spell duration index'
-			write(0,*) 'WSDI not yet ready'
-			newunits = 'Celsius'
+			call calcFreqDistr(a,qc,p10,p90)
+			call calcCSDI(fyear,lyear,a,qc,p10,b)
+			newunits = 'dy'
 		else
 			write(0,*) 'unknown Tmax index ',trim(climdex)
 			call abort
@@ -181,6 +221,10 @@ subroutine climexp2extreme(data,indx,npermax,fyr,lyr,yr1,yr2,nperyear,npernew, &
 			lvar = 'Simple daily intensity index'
 			call calcSDII(fyear,lyear,a,qc,b)
 			newunits = 'mm/dy'
+		else if ( climdex.eq.'SDIInn' ) then
+			lvar = 'Simple daily intensity index'
+			call calcSDIInn(fyear,lyear,a,qc,thresh,b)
+			newunits = 'mm/dy'
 		else if ( climdex.eq.'RR1' ) then ! wet days
 			lvar = 'Wet days (RR >= 1mm)'
 			call calcRR1(fyear,lyear,a,qc,b)
@@ -195,7 +239,7 @@ subroutine climexp2extreme(data,indx,npermax,fyr,lyr,yr1,yr2,nperyear,npernew, &
 			newunits = 'dy'
 		else if ( climdex.eq.'Rnnmm' ) then
 			lvar = 'Heavy precipitation days (precipitation >= XXmm)'
-			write(0,*) 'Rnnmm not yet ready'
+			call calcRnnmm(fyear,lyear,a,qc,thresh,b)
 			newunits = 'dy'
 		else if ( climdex.eq.'CDD' ) then
 			lvar = 'Maximum number of consecutive dry days (RR < 1mm)'
@@ -207,11 +251,21 @@ subroutine climexp2extreme(data,indx,npermax,fyr,lyr,yr1,yr2,nperyear,npernew, &
 			newunits = 'dy'
 		else if ( climdex.eq.'R95pTOT' ) then
 			lvar = 'Precipitation fraction due to very wet days (> 95th percentile)'
-			write(0,*) 'R95pTOT not yet ready'
+			call calcFreqDistrRR(a,qc,p75,p95,p99)
+			call calcRXXp(fyear,lyear,a,qc,p95,rsum,b)
+			call calcRXXptot(fyear,lyear,a,qc,rsum,b)
 			newunits = '%'
 		else if ( climdex.eq.'R99pTOT' ) then
 			lvar = 'Precipitation fraction due to extremely wet days (> 99th percentile)'
-			write(0,*) 'R99pTOT not yet ready'
+			call calcFreqDistrRR(a,qc,p75,p95,p99)
+			call calcRXXp(fyear,lyear,a,qc,p99,rsum,b)
+			call calcRXXptot(fyear,lyear,a,qc,rsum,b)
+			newunits = '%'
+		else if ( climdex.eq.'RnnTOT' ) then
+			lvar = 'Precipitation fraction due to days above threshold'
+			p99 = thresh ! cheat to use a standard routine
+			call calcRXXp(fyear,lyear,a,qc,p99,rsum,b)
+			call calcRXXptot(fyear,lyear,a,qc,rsum,b)
 			newunits = '%'
 		else if ( climdex.eq.'SPI3' ) then
 			lvar = '3-Month Standardized Precipitation Index'
@@ -236,7 +290,7 @@ subroutine climexp2extreme(data,indx,npermax,fyr,lyr,yr1,yr2,nperyear,npernew, &
 				newunits = 'mm'
 			end if
 		else
-			write(0,*) 'unknown Tmean index ',trim(climdex)
+			write(0,*) 'unknown precip index ',trim(climdex)
 			call abort
 		end if		
 

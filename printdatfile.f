@@ -58,8 +58,8 @@
                 end if
                 do i=1,nperyear
                     if ( data(i,year).lt.1e33 ) then
-                        write(unit,'(2g15.7)') year+(i-offset)/nperyear
-     +                       ,data(i,year)
+                        write(unit,'(f10.4,g15.7)') 
+     +                       year+(i-offset)/nperyear,data(i,year)
                     endif
                 enddo
             endif

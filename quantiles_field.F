@@ -22,10 +22,14 @@
      +       ,lvars(nvarmax)*140,svars(nvarmax)*100,units(nvarmax)*100
      +       ,cell_methods(nvarmax)*100
         character var*20,model*20,exp*20,rip*20,yrs*20,oldmodel*20
-        character models(100)*20,inunts*40,p*2,oldp*2
-        logical lwrite,lstandardunits
+     +       ,oldexp*5
+        character models(500)*20,inunts*40,p*2,oldp*2
+        logical lwrite,lstandardunits,lcomputesd
         integer iargc
 
+        lcomputesd = .false.
+        call getarg(iargc(),outfile)
+        if ( index(outfile,'CMIP5ext').ne.0 ) lcomputesd = .true.
         lwrite = .false. ! .true.
         lstandardunits = .false.
         nensmin = 3             ! minimum number of ensemble members to base a sd on
@@ -66,21 +70,24 @@
                 nnmod = 0
                 oldmodel = ' '
                 oldp = ' '
+                oldexp = ' '
             end if
             call parsename(infile,var,model,exp,rip,yrs,lwrite)
-            if ( model.eq.'modmean' .or. model.eq.'modmedian' ) then
+            if ( model.eq.'modmean' .or. model.eq.'onemean' ) then
                 write(0,*) 'skipping ',trim(model)
                 nskip = nskip + 1
                 cycle
             end if
             i = index(rip,'p')
             p = rip(i+1:)
-            if ( model.ne.oldmodel .or. p.ne.oldp ) then
+            if ( model.ne.oldmodel .or. p.ne.oldp .or. exp.ne.oldexp )
+     +           then
                 nmod = nmod + 1
                 nnmod(nmod) = 0
                 models(nmod) = model
                 oldmodel = model
                 oldp = p
+                oldexp = exp
             end if
             nnmod(nmod) = nnmod(nmod) + 1
             call readfield(ncid,infile,datfile,field(1,1,1,1,fyr,iens)
@@ -88,19 +95,21 @@
      +           ,yr2,firstyr,firstmo,nt,undef,endian,vars,units
      +           ,lstandardunits,lwrite)
         end do
-        allocate(sdmod(nx,ny,nz,nperyear,nmod))
-        allocate(sd(nx,ny,nz,nperyear))
-        allocate(sdsd(nx,ny,nz,nperyear))
+        if ( lcomputesd ) then
+            allocate(sdmod(nx,ny,nz,nperyear,nmod))
+            allocate(sd(nx,ny,nz,nperyear))
+            allocate(sdsd(nx,ny,nz,nperyear))
+        end if
         nens = nens - nskip
         lastmo = firstmo + nt - 1
 !
 !       how many ensemble members per model?
 !
-        print *,'Found ',nmod,' models with in all ',nens,
-     +       ' ensemble members:'
+        print *,'Found ',nmod,' model/experiment combinations with '//
+     +       'in all ',nens,' ensemble members<br>'
         iens = 0
         do imod=1,nmod
-            print *,imod,nnmod(imod),' ',trim(models(imod))
+            if ( lwrite) print *,imod,nnmod(imod),' ',trim(models(imod))
             do i=1,nnmod(imod)
                 iens = iens + 1
                 nnens(iens) = nnmod(imod)
@@ -116,23 +125,26 @@
 !
         call getweightedquantile(field,nnens,nx,ny,nz,nperyear,nens
      +       ,firstmo,lastmo,nmod,quantiles,lwrite)
+
+        if ( lcomputesd ) then
 !
-!       compute natural variability
+!           compute natural variability
 !
-        sdmod = 3e33
-        iens = 0
-        do imod=1,nmod
-            iens = iens + nnmod(imod)
-            if ( nnmod(imod).ge.nensmin ) then
-                print *,'using model ',models(imod),' to compute',
-     +               ' natural variability'
-                call getnaturalvariability(field(1,1,1,1,fyr,iens)
-     +               ,nx,ny,nz,nperyear,nnmod(imod),firstmo,lastmo
-     +               ,sdmod(1,1,1,1,imod),lwrite)
-            end if
-        end do
-        call averagefields(sdmod,nx,ny,nz,nperyear,nmod,firstmo,lastmo
-     +       ,sd,sdsd,lwrite)
+            sdmod = 3e33
+            iens = 0
+            do imod=1,nmod
+                iens = iens + nnmod(imod)
+                if ( nnmod(imod).ge.nensmin ) then
+                    if ( lwrite ) print *,'using model ',models(imod),
+     +                   ' to compute natural variability'
+                    call getnaturalvariability(field(1,1,1,1,fyr,iens)
+     +                   ,nx,ny,nz,nperyear,nnmod(imod),firstmo,lastmo
+     +                   ,sdmod(1,1,1,1,imod),lwrite)
+                end if
+            end do
+            call averagefields(sdmod,nx,ny,nz,nperyear,nmod,
+     +           firstmo,lastmo,sd,sdsd,lwrite)
+        end if
 !
 !       write output to file
 !
@@ -152,11 +164,13 @@
         call definevariable(nvars,vars,lvars,'p975','97.5% quantile')
         call definevariable(nvars,vars,lvars,'max'
      +       ,'maximum of all ensemble members')
-        call definevariable(nvars,vars,lvars,'sd'
-     +       ,'mean standard deviation from intra-model spread')
-        call definevariable(nvars,vars,lvars,'sdsd'
-     +       ,'intra-model standard deviation of standard deviation '//
-     +       'from intra-model spread')
+        if ( lcomputesd ) then
+            call definevariable(nvars,vars,lvars,'sd'
+     +           ,'mean standard deviation from intra-model spread')
+            call definevariable(nvars,vars,lvars,'sdsd'
+     +           ,'intra-model standard deviation of standard '//
+     +           'deviation from intra-model spread')
+        end if
         do ivar=1,nvars
             units(ivar) = units(1)
             ivars(1,ivar) = nz
@@ -174,11 +188,11 @@
                     call writencslice(ncid,ntvarid,itimeaxis,ntmax
      +                   ,ivars(1,ivar),quantiles(1,1,1,firstmo+it-1
      +                   ,ivar-7),nx,ny,nz,nx,ny,nz,it,1)
-                else if ( ivar.eq.nvars-1 ) then
+                else if ( lcomputesd .and. ivar.eq.nvars-1 ) then
                     call writencslice(ncid,ntvarid,itimeaxis,ntmax
      +                   ,ivars(1,ivar),sd(1,1,1,firstmo+it-1),nx,ny,nz
      +                   ,nx,ny,nz,it,1)
-                else if ( ivar.eq.nvars ) then
+                else if ( lcomputesd .and. ivar.eq.nvars ) then
                     call writencslice(ncid,ntvarid,itimeaxis,ntmax
      +                   ,ivars(1,ivar),sdsd(1,1,1,firstmo+it-1),
      +                   nx,ny,nz,nx,ny,nz,it,1)
@@ -208,10 +222,27 @@
         call parsename_next(file,i0,i,measure,'measure',lwrite)
         call parsename_next(file,i0,i,var,'var',lwrite)
         call parsename_next(file,i0,i,type,'type',lwrite)
-        call parsename_next(file,i0,i,model,'model',lwrite)
-        call parsename_next(file,i0,i,exp,'exp',lwrite)
-        call parsename_next(file,i0,i,rip,'rip',lwrite)
-        call parsename_next(file,i0,i,yrs,'yrs',lwrite)
+        if ( type.eq.'A1' ) then ! CMIP3
+            i = index(file,'_144') - 1
+            if ( ichar(file(i:i)).ge.ichar('0') .and.
+     +           ichar(file(i:i)).le.ichar('9') .and.
+     +           ichar(file(i-1:i-1)).ge.ichar('0') .and.
+     +           ichar(file(i-1:i-1)).le.ichar('9') .and.
+     +           file(i-2:i-2).eq.'_' ) then
+                rip = file(i-1:i-1)
+                i = i-3
+            else
+                rip = ' '
+            end if
+            model = file(i0:i)
+            exp = 'sresa1b'
+            yrs = ' '
+        else ! CMIP5
+            call parsename_next(file,i0,i,model,'model',lwrite)
+            call parsename_next(file,i0,i,exp,'exp',lwrite)
+            call parsename_next(file,i0,i,rip,'rip',lwrite)
+            call parsename_next(file,i0,i,yrs,'yrs',lwrite)
+        end if
 !
         end subroutine
 

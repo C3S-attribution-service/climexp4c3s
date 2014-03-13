@@ -25,6 +25,7 @@
      +       r(:,:,:,:),prob(:,:,:,:),
      +       a(:,:,:,:),b(:,:,:,:),da(:,:,:,:),db(:,:,:,:),
      +       a1(:,:,:,:),da1(:,:,:,:),cov(:,:,:,:),relregr(:,:,:,:),
+     +       drelregr(:,:,:,:),
      +       rmin(:,:,:,:),rmax(:,:,:,:),zdif(:,:,:,:),rprob(:,:,:,:),
      +       xn(:,:,:,:)
         real xx(nxmax),yy(nymax),zz(nzmax),undef,xxls(nxmax),yyls(nymax)
@@ -142,6 +143,7 @@
         allocate(a1(nx,ny,nz,0:nperyear))
         allocate(da1(nx,ny,nz,0:nperyear))
         allocate(relregr(nx,ny,nz,0:nperyear))
+        allocate(drelregr(nx,ny,nz,0:nperyear))
         allocate(rmin(nx,ny,nz,0:nperyear))
         allocate(rmax(nx,ny,nz,0:nperyear))
         allocate(zdif(nx,ny,nz,0:nperyear))
@@ -153,15 +155,15 @@
         if ( lwrite ) print *,'correlatefield: calling cfield'
         call cfield(datfile,ncid,field,lsmask,nx,xx,ny,yy,nz,zz,nt
      +       ,nperyear,firstyr,lastyr,firstmo,undef,endian,jvars,iarg,r
-     +       ,prob,a,b,da,db,cov,a1,da1,relregr,rmin,rmax,zdif,rprob,xn
-     +       ,vars,lvars,units,title,lsmasktype)
+     +       ,prob,a,b,da,db,cov,a1,da1,relregr,drelregr,rmin,rmax,zdif
+     +       ,rprob,xn,vars,lvars,units,title,lsmasktype)
         end
 *  #] correlatefield:
 *  #[ cfield:
         subroutine cfield(datfile,ncid,field,lsmask,nx,xx,ny,yy,nz,zz,nt
      +       ,nperyear,firstyr,lastyr,firstmo,undef,endian,jvars,iarg,r
-     +       ,prob,a,b,da,db,cov,a1,da1,relregr,rmin,rmax,zdif,rprob,xn
-     +       ,invars,inlvars,inunits,intitle,lsmasktype)
+     +       ,prob,a,b,da,db,cov,a1,da1,relregr,drelregr,rmin,rmax,zdif
+     +       ,rprob,xn,invars,inlvars,inunits,intitle,lsmasktype)
 *
 *       break to use the array field compactly and conserve RAM
 *
@@ -189,6 +191,7 @@
      +       a1(nx,ny,nz,0:nperyear),
      +       da1(nx,ny,nz,0:nperyear),
      +       relregr(nx,ny,nz,0:nperyear),
+     +       drelregr(nx,ny,nz,0:nperyear),
      +       rmin(nx,ny,nz,0:nperyear),
      +       rmax(nx,ny,nz,0:nperyear),
      +       zdif(nx,ny,nz,0:nperyear),
@@ -664,6 +667,7 @@
                         da(jx,jy,jz,month) = absent
                         db(jx,jy,jz,month) = absent
                         relregr(jx,jy,jz,month) = absent
+                        drelregr(jx,jy,jz,month) = absent
                         xn(jx,jy,jz,month) = absent
                     enddo
 *
@@ -1100,8 +1104,11 @@
      +                                   b(jx,jy,jz,m).lt.1e33 ) then
                                     relregr(jx,jy,jz,m) = 
      +                                   b(jx,jy,jz,m)/aindx
+                                    drelregr(jx,jy,jz,m) = 
+     +                                   db(jx,jy,jz,m)/aindx
                                 else
                                     relregr(jx,jy,jz,m) = 3e33
+                                    drelregr(jx,jy,jz,m) = 3e33
                                 endif
                                 if ( nyrwindow.gt.0 ) then
                                     if ( ensseries ) then
@@ -1328,7 +1335,11 @@
                 lvars(8) = 'linear term a2'
                 lvars(9) = 'error on linear term a2'
             else
-                nvars = 8
+                if ( fitfunc.eq.1 ) then
+                    nvars = 9
+                else
+                    nvars = 8
+                end if
                 vars(1) = 'corr'
                 if ( lrank ) then
                     lvars(1) = 'rank correlation'
@@ -1356,10 +1367,13 @@
                 if ( fitfunc.eq.1 ) then
                     vars(7) = 'n'
                     vars(8) = 'relregr'
+                    vars(9) = 'drelregr'
                     lvars(7) = 'number of valid points'
                     lvars(8) = 'relative regression'
+                    lvars(9) = 'error on relative regression'
                     units(7) = '1'
                     units(8) = '1'
+                    units(9) = '1'
                 elseif ( fitfunc.eq.2 ) then
                     vars(7) = 'quad'
                     lvars(7) = 'coefficient of quadratic term'
@@ -1488,6 +1502,8 @@
                             elseif ( .not.composite ) then
                                 write(2,rec=nvars*m+8)
      +                 (((relregr(jx,jy,jz,m),jx=1,nx),jy=1,ny),jz=1,nz)
+                                write(2,rec=nvars*m+9)
+     +                (((drelregr(jx,jy,jz,m),jx=1,nx),jy=1,ny),jz=1,nz)
                             endif
                         else
                             write(2,rec=nvars*m+7)
@@ -1531,6 +1547,9 @@
                                 call writencslice(ncid,0,0,0,ivars(1,8)
      +                           ,relregr(1,1,1,m),nx,ny,nz,nx,ny,nz,m+1
      +                           ,1)
+                                call writencslice(ncid,0,0,0,ivars(1,9)
+     +                           ,drelregr(1,1,1,m),nx,ny,nz,nx,ny,nz,
+     +                           m+1,1)
                             endif
                         else
                             call writencslice(ncid,0,0,0,ivars(1,7)

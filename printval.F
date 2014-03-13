@@ -75,9 +75,10 @@
         end
 *  #] printuntransf:
 *  #[ print3untransf:
-        subroutine print3untransf(x1in,x2in,x3in)
+        subroutine print3untransf(x1in,x2in,x3in,year)
         implicit none
 #include "getopts.inc"
+        integer year
         real x1in,x2in,x3in
         real x(3)
         integer i
@@ -94,8 +95,19 @@
                 if ( sqrtscale ) x(i) = x(i)**2
                 if ( squarescale ) x(i) = sqrt(x(i))
             enddo
-            print '(a,f16.2,a,f16.3,a,f16.3,a)','# w/o transf.',x(1)
-     +            ,'(',x(2),'...',x(3),')'
+            if ( .not.lweb ) then
+                print '(a,f16.3,a,f16.3,a,f16.3,a)','# w/o transf.',x(1)
+     +               ,'(',x(2),'...',x(3),')'
+            else if ( year.eq.0 ) then
+                print '(a,g16.5,a,g16.5,a,g16.5,a)',
+     +               '# <tr><td>w/o transformation</td><td>',x(1),
+     +               '</td><td>',x(2),'...',x(3),'</td></tr>'
+            else
+                print '(a,i4,a,g16.5,a,g16.5,a,g16.5,a)',
+     +               '# <tr><td>w/o transformation</td><td>',year,
+     +               '</td><td>',x(1),
+     +               '</td><td>',x(2),'...',x(3),'</td></tr>'
+            end if
         endif
         end
 *  #] print3untransf:

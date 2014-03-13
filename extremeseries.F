@@ -21,7 +21,7 @@
 *
         if ( iargc().lt.3 ) then
             print *,'usage: extremeseries infile nperyearnew'//
-     +           ' extremeindex'
+     +           ' extremeindex [gt percentile%]'
             stop
         endif
 *
@@ -49,14 +49,17 @@
 *       perform operation
 *
         call climexp2extreme(olddata,newdata,npermax,yrbeg,yrend,yr1,yr2
-     +       ,nperyear,nperyearnew,var,units,newunits,climdex,lvar
-     +       ,lwrite)
+     +       ,nperyear,nperyearnew,minindx,var,units,newunits,climdex
+     +       ,lvar,lwrite)
 !
 !       print out new series
 !
         call copyheader(file,6)
         print '(6a)','# ',trim(climdex),' [',trim(newunits),'] ',
      +       trim(lvar)
+        if ( climdex.eq.'Rnnmm' ) then
+            print '(a,f6.1,a)','# using threshold ',minindx,' mm'
+        end if
         call printdatfile(6,newdata,abs(nperyearnew),abs(nperyearnew),
      +       yrbeg,yrend)
 *
