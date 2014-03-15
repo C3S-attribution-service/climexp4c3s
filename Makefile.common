@@ -130,6 +130,7 @@ OBJS	      = makeabsent.o \
 		fieldday2period.o \
 		killfile.o \
 		getrms.o \
+		getmae.o \
 		getautocor1.o \
 		checkgridequal.o \
 		polint.o \
@@ -216,6 +217,7 @@ OBJS	      = makeabsent.o \
 		indexSupport.o \
 		indexNAG.o \
 		climexp2extreme.o \
+		isnan.o \
 		$(EXTRAOBJS)
 
 LIBRARY       = climexp.a

@@ -9,6 +9,8 @@
 *              n            size of arrays
 *              kind         1: normal correlation
 *                           2: rank correlation
+*                           3: RMSE
+*                           4: MAE
 *              ndecor        decorrelation length
 *       Output:rr(-2:2)     -2sigma,-1sigma,median,1sigma,2sigma of r
 *
@@ -18,12 +20,13 @@
         logical f(n)
 *
         integer nboot
-        parameter (nboot=800)
+        parameter (nboot=1000)
         integer i,j,k,l,m,ii
-        real r(nboot),prob,z,ax,ay,sx,sy,sxy,df,d,probd,val(-2:2)
+        real r(nboot),prob,z,ax,ay,sx,sy,sxy,df,d,probd,val(-2:2),bias
+        real,allocatable :: wy(:),wx(:)
         logical lwrite
         save val,lwrite
-*       
+*
         real*8 ranf
         external ranf
 *
@@ -41,6 +44,12 @@
 *
 *       generate bootstrap ensembles and compute correlation
 *
+        if ( kind.eq.3 .or. kind.eq.4 ) then
+            allocate(wy(n))
+            allocate(wx(n))
+            wy = 1
+            wx = 1
+        end if
         m = n/ndecor
         m = m*ndecor
         df = m-2
@@ -75,6 +84,10 @@
             elseif ( kind.eq.2 ) then
                 call spearx(ys,xs,m,w1,w2,d,z,probd,r(i),prob,m/(df+2)
      +                ,ax,sx,ay,sy)
+            elseif ( kind.eq.3 ) then
+                call getrms(ys,wy,xs,wx,m,bias,ax,sx,ay,sy,r(i))
+            elseif ( kind.eq.4 ) then
+                call getmae(ys,wy,xs,wx,m,bias,ax,sx,ay,sy,r(i))
             else
                 write(0,*) 'bootstrap: error: kind = ',kind
      +                ,' not yet implemented'
@@ -83,20 +96,15 @@
                 call abort
             endif
         enddo
+        if ( kind.eq.3 .or. kind.eq.4 ) then
+            deallocate(wy)
+            deallocate(wx)
+        end if
 *
 *       sort and return 95.4, 68.3% levels
 *
         call nrsort(nboot,r)
         do i=-2,2
-            a = 0.5 + nboot*(100+val(i))/200.
-            j = int(a)
-            a = a - j
-            if ( j.lt.1 .or. j.ge.nboot ) then
-                write(0,*) 'bootstrap: error: will not extrapolate'
-                write(*,*) 'bootstrap: error: will not extrapolate'
-                rr(i) = 3e33
-            else
-                rr(i) = (1-a)*r(j) + a*r(j+1)
-            end if
+            call getcut1(rr(i),(100+val(i))/2,nboot,r,lwrite)
         enddo
         end

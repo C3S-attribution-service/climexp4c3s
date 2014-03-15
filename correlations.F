@@ -913,6 +913,28 @@
             enddo
         endif
 *
+*       bias corrections
+*
+        if ( indxuse.eq.1 ) then
+            ! no different bias corrections for different models yet
+            if ( debias.eq.1 ) then
+                call debiasmean(indx(1,yrbg,0,indxuse),data,nperyear,
+     +               nperyear,yrbg,yred,yr1,yr2,imens1(0),imens(0),var,
+     +               lwrite)
+            elseif ( debias.eq.2 ) then
+                call debiasvar(indx(1,yrbg,0,indxuse),data,nperyear,
+     +               nperyear,yrbg,yred,yr1,yr2,imens1(0),imens(0),var,
+     +               lwrite)
+            elseif ( debias.eq.3 ) then
+                call debiasall(indx(1,yrbg,0,indxuse),data,nperyear,
+     +               nperyear,yrbg,yred,yr1,yr2,imens1(0),imens(0),var,
+     +               lwrite)
+            endif
+            if ( debias.gt.0 ) then
+                ncrossvalidate = 0 ! is already included
+            end if
+        end if
+*
 *       anomalies - necessary if we fit time derivative with relaxation
 *
         if ( anom .or. nfittime.gt.0 .and. ndiff.le.0 ) then

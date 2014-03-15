@@ -36,6 +36,7 @@
 	lconting = .FALSE.
         lbootstrap = .FALSE.
         lrmse = .FALSE.
+        lmae = .FALSE.
         irunvar = 0
         noisetype = 0
         anom = .FALSE.
@@ -238,6 +239,10 @@
                 lrmse = .TRUE.
                 if ( lout ) print '(2a)'
      +                ,'# computing rms error, bias, ratio variance'
+            elseif ( line(1:3).eq.'mae' ) then
+                lmae = .TRUE.
+                if ( lout ) print '(2a)'
+     +                ,'# computing MAE, bias, ratio variance'
             elseif ( line(1:4).eq.'boot' ) then
                 lbootstrap = .TRUE.
                 if ( lout ) print '(a)'

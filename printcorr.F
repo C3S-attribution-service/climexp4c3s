@@ -16,7 +16,7 @@
         integer i,j,nunit,ilen
         integer iindx(ndata),ks,ks1,ks2,l,n1,ndecor
         integer ncont(0:3,0:3)
-        real zd,pt,adat1,avar1,adat2,avar2,d,rmse,a1,a2
+        real zd,pt,adat1,avar1,adat2,avar2,d,rmse,mae,a1,a2
         real chi2,xn,x(ndata),sig(ndata),u(ndata,2),v(2,2),w(2),da(2,2)
      +       ,aa(ndata),bb(ndata)
         real df,sum,a(2),w1(ndata),w2(ndata),q,r,z,adata,sxx
@@ -274,21 +274,38 @@
      +                       ,n,dresult,2,ndecor,w1,w2,ncrossvalidate)
                     endif
                 else
-                    allocate(wdata(n))
-                    allocate(windx(n))
-                    wdata = 1
-                    windx = 1
-                    call getrms(ddata,wdata,dindx,windx,n,bias,adata,sxx
-     +                   ,aindx,syy,rmse)
-                    deallocate(wdata)
-                    deallocate(windx)
-                    if ( lrmse ) then
-                        result = rmse
-                        if ( lboot ) then
-                            write(0,*) 'printcorr: error: bootstrapping'
-     +                           ,' not yet ready for RMSE'
+                    if ( lrmse .or. lmae ) then
+                        allocate(wdata(n))
+                        allocate(windx(n))
+                        wdata = 1
+                        windx = 1
+                        ndecor = int(n/df+0.001)
+                        if ( lrmse ) then
+                            call getrms(ddata,wdata,dindx,windx,n,bias,
+     +                           adata,sxx,aindx,syy,rmse)
+                            result = rmse
+                            if ( lboot ) then
+                                call bootstrap(ddata,dindx,lfirst,
+     +                               u(1,1),u(1,2),n,dresult,3,ndecor,
+     +                               w1,w2,ncrossvalidate)
+                            endif
+                        else if ( lmae ) then
+                            call getmae(ddata,wdata,dindx,windx,n,bias,
+     +                           adata,sxx,aindx,syy,mae)
+                            result = mae
+                            if ( lboot ) then
+                                call bootstrap(ddata,dindx,lfirst,
+     +                               u(1,1),u(1,2),n,dresult,4,ndecor,
+     +                               w1,w2,ncrossvalidate)
+                            endif
+                        else
+                            write(0,*) 'printcorr: error hbgwkfwghv'
                             call abort
-                        endif
+                        end if
+                        sxx = sxx*n ! agree with stupid definition is pearsnx...
+                        syy = syy*n
+                        deallocate(wdata)
+                        deallocate(windx)
                     else
 *                       NumRecp
                         call pearsncross(ddata,dindx,n,r,prob,z,adata,
@@ -360,14 +377,14 @@
                         print 2000,'<tr><td>',string,
      +                       '</td><td align="right">',corrmonths,
      +                       '</td><td align="right">',lag,
-     +                       '</td><td align="right">',r,
+     +                       '</td><td align="right">',result,
      +                       '</td><td align="right">',prob,
      +                       '</td><td align="right">',n-n0,
      +                       '</td><td align="right">',dresult(-2),
      +                       '...',dresult(2),
      +                       '</td></tr>'
                     else
-                        print 1000,string,r,100*(1-prob),n-n0,adata
+                        print 1000,string,result,100*(1-prob),n-n0,adata
      +                    ,sqrt(sxx/(n-1)),aindx,sqrt(syy/(n-1)),lag
      +                    ,dresult
                     endif
@@ -376,12 +393,12 @@
                         print 2000,'<tr><td>',string,
      +                       '</td><td align="right">',corrmonths,
      +                       '</td><td align="right">',lag,
-     +                       '</td><td align="right">',r,
+     +                       '</td><td align="right">',result,
      +                       '</td><td align="right">',prob,
      +                       '</td><td align="right">',n-n0,
      +                       '</td></tr>'
                     else
-                        print 1000,string,r,100*(1-prob),n-n0,adata
+                        print 1000,string,result,100*(1-prob),n-n0,adata
      +                    ,sqrt(sxx/(n-1)),aindx,sqrt(syy/(n-1)),lag
                     endif
                 endif
@@ -404,11 +421,11 @@
  1020               format(i3,i5,f8.3,g10.2,i6,g12.4e2,g9.3e1,g12.4e1,g9
      +                    .3e1,4g12.4e1)
                     if ( lboot ) then
-                        write(11,1002) month,lag,r,prob,n-n0,adata
+                        write(11,1002) month,lag,result,prob,n-n0,adata
      +                        ,sqrt(sxx/(n-1)),aindx,sqrt(syy/(n-1))
      +                        ,dresult,a(1),da(1,1),a(2),da(2,2)
                     else
-                        write(11,1020) month,lag,r,prob,n-n0,adata
+                        write(11,1020) month,lag,result,prob,n-n0,adata
      +                        ,sqrt(sxx/(n-1)),aindx,sqrt(syy/(n-1)),
      +                        a(1),da(1,1),a(2),da(2,2)
                     endif

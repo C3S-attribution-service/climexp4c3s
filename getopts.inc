@@ -12,7 +12,7 @@
      &      anom,composite,ensemble,squarescale,leads,logfield,          &
      &      sqrtfield,lfitnoise,lrandom,lrmse,lchangesign,               &
      &      lmakeensfull,lweb,lstandardunits,lallobs,lstartstop,         &
-     &      lnomissing,lensanom,lnooverlap
+     &      lnomissing,lensanom,lnooverlap,lmae
         character oper*1,strindx(19)*20,plotfile*255,                    &
      &      indexfiles(10:19)*255,plotrunfile*255,corrmonths*8,          &
      &      namestring*40,bbfile*255
@@ -31,6 +31,6 @@
      &      sqrtfield,lfitnoise,lrandom,lrmse,                           &
      &      lchangesign,lmakeensfull,lweb,lstandardunits,lallobs,        &
      &      lstartstop,lnomissing,lensanom,lnooverlap,ncrossvalidate,    &
-     &      day0,minfacsum
+     &      day0,minfacsum,lmae
         common /cc_getopts/ oper,strindx,plotfile,indexfiles,            &
      &      plotrunfile,corrmonths,namestring,bbfile
