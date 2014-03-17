@@ -17,8 +17,8 @@
         lwrite = .false.
         if ( string.ne.' ' ) then
             read(string,*) n
-            if ( n.lt.3 ) n = 3
-            if ( mod(n,2).ne.1 ) n = n + 1
+            if ( n.lt.2 ) n = 2
+            if ( n.ge.3 .and. mod(n,2).ne.1 ) n = n + 1
             call getarg(3,string)
             if ( string.eq.'lwrite' .or. string.eq.'debug' ) then
                 lwrite = .true.
@@ -28,10 +28,20 @@
         end if
         call readseries(file,data,npermax,yrbeg,yrend,nperyear,var,units
      +       ,.false.,lwrite)
-        call derivative(n,data,diff,npermax,yrbeg,yrend,nperyear,minfac
-     +       ,lwrite)
-        print '(3a,i3,a)','# centered derivative of ',trim(file)
-     +       ,' using ',n,' data points'
+        if ( n.eq.2 ) then
+            call ndiffit(data,npermax,nperyear,yrbeg,yrend,1,minfac)
+            diff = data
+        else
+            call derivative(n,data,diff,npermax,yrbeg,yrend,nperyear,
+     +           minfac,lwrite)
+        end if
+        if ( n.eq.2 ) then
+            print '(3a)','# difference with previous year of ',
+     +           trim(file)
+        else
+            print '(3a,i3,a)','# centered derivative of ',trim(file)
+     +       ,' using linear regression over ',n,' data points'
+        end if
         call copyheader(file,6)
         call printdatfile(6,diff,npermax,nperyear,yrbeg,yrend)
         end program
