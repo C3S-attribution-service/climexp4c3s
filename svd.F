@@ -601,7 +601,7 @@
      +       ,etime(tarray),'<br>'
 
         n = min(n1,n2)
-        if ( 4*nxf1*nxf2*nzf1*n .gt. 1e9 ) then
+        if ( 4*nxf1*nxf2*nzf1*n .gt. 3e9 ) then
             write(0,*) 'svd: error: too much memory needed (', 4*nxf1
      +           *nxf2*nzf1*n/1e9,' GB). Please reduce the size of ',
      +           'the problem by averaging over grid boxes.'
