@@ -915,17 +915,24 @@
 *
 *       bias corrections
 *
-        if ( indxuse.eq.1 ) then
+        n = 0
+        do k=1,indxuse
+            if ( lincl(k) ) n = n + 1
+        end do
+        if ( n.eq.1 ) then
             ! no different bias corrections for different models yet
             if ( debias.eq.1 ) then
+                print '(a)','# correcting for bias in mean'
                 call debiasmean(indx(1,yrbg,0,indxuse),data,nperyear,
      +               nperyear,yrbg,yred,yr1,yr2,imens1(0),imens(0),var,
      +               lwrite)
             elseif ( debias.eq.2 ) then
+                print '(a)','# correcting for bias in mean and variance'
                 call debiasvar(indx(1,yrbg,0,indxuse),data,nperyear,
      +               nperyear,yrbg,yred,yr1,yr2,imens1(0),imens(0),var,
      +               lwrite)
             elseif ( debias.eq.3 ) then
+                print '(a)','# correcting for bias in distribution'
                 call debiasall(indx(1,yrbg,0,indxuse),data,nperyear,
      +               nperyear,yrbg,yred,yr1,yr2,imens1(0),imens(0),var,
      +               lwrite)
