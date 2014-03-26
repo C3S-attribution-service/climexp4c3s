@@ -562,7 +562,7 @@
         end
 *  #] plot_tx_cdfs:
 *  #[ getreturnlevels:
-        real function getreturnlevels(a,b,xi,alpha,beta,cov1,cov2,
+        subroutine getreturnlevels(a,b,xi,alpha,beta,cov1,cov2,
      +       covreturnlevel,j1,j2,t)
         implicit none
         integer j1,j2
@@ -586,7 +586,7 @@
         end
 *  #] getreturnlevels:
 *  #[ getreturnyears:
-        real function getreturnyears(a,b,xi,alpha,beta,xyear,cov1,cov2,
+        subroutine getreturnyears(a,b,xi,alpha,beta,xyear,cov1,cov2,
      +       covreturnyear,j1,j2,tx,lwrite)
         implicit none
         integer j1,j2
@@ -654,15 +654,15 @@
      +               'and b'' = b</td></tr>'
             else if ( cassume.eq.'scale' ) then
                 print '(a)','# <tr><td colspan="4">'//
-     +               'with a'' = a exp(&alpha;T)'//
+     +               'with a'' = a exp(&alpha;T) '//
      +               'and b'' = b exp(&alpha;T)</td></tr>'
             else if ( cassume.eq.'both' ) then
                 print '(a)','# <tr><td colspan="4">'//
      +               'with a''= a+&alpha;T '//
      +               'and b'' = b+&beta;T</td></tr>'
             else
-                write(0,*) 'fitgaucov: error: unknow value for assume ',
-     +               cassume
+                write(0,*) 'printpoint: error: unknow value for assume '
+     +               ,cassume
             end if
         else
             if ( cassume.eq.'shift' ) then

@@ -41,8 +41,8 @@
      +       ,beta25,beta975,t5(10,3),t1(10,3)
      +       ,db,dxi,f,threshold,thens,z,ll,ll1,txtx(nmc,3)
      +       ,a25,a975,ranf,mean,sd,dalpha,dbeta
-     +       ,mindata,minindx,pmindata,snorm,s
-        real adev,var,skew,curt,aaa,siga,chi2,q
+     +       ,mindata,minindx,pmindata,snorm,s,xxyear
+        real adev,var,skew,curt,aaa,bbb,siga,chi2,q
         real,allocatable :: yy(:),ys(:),zz(:),sig(:)
         character lgt*4
 *
@@ -320,16 +320,22 @@
                     yy(i) = yy(i) - alpha*(zz(i)-cov2)
                 end do
             end if
+            aaa = a+cov2*alpha
+            bbb = b
+            xxyear = xyear+alpha*(cov2-cov1)
         else if ( assume.eq.'scale' ) then
             if ( lchangesign ) then
                 do i=1,ntot
-                    yy(i) = yy(i)*exp(-alpha*(zz(i)-cov2))
+                    yy(i) = yy(i)*exp(alpha*(zz(i)-cov2))
                 end do
             else
                 do i=1,ntot
-                    yy(i) = yy(i)*exp(alpha*(zz(i)-cov2))
+                    yy(i) = yy(i)*exp(-alpha*(zz(i)-cov2))
                 end do
             end if
+            aaa = a*exp(alpha*cov2)
+            bbb = b*exp(alpha*cov2)
+            xxyear = xyear*exp(alpha*(cov2-cov1))
         end if
         ys(1:ntot) = yy(1:ntot)
         ! no cuts
@@ -340,16 +346,16 @@
         ! GEV fit
         nfit = 5
         call plot_ordered_points(yy,ys,yrs,ntot,ntype,nfit,
-     +       a+cov2*alpha,b,xi,j1,j2,minindx,mindata,pmindata,
+     +       aaa,bbb,xi,j1,j2,minindx,mindata,pmindata,
      +       year,xyear,snorm,lchangesign,lwrite)
         ! and print xyear if the distribution would be at yr1a
         print '(a)'
         print '(a)'
         f = 1 - 1/real(ntot+1)*0.9**100
         call printpoint(0,1/real(ntot+1),ntype,-999.9,
-     +       xyear+alpha*(cov2-cov1),100*yr1a)
+     +       xxyear,100*yr1a)
         call printpoint(0,f,ntype,-999.9,
-     +       xyear+alpha*(cov2-cov1),100*yr1a)
+     +       xxyear+alpha*(cov2-cov1),100*yr1a)
 
         end
 *  #] fitgevcov:
