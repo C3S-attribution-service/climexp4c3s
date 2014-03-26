@@ -355,7 +355,7 @@
         call printpoint(0,1/real(ntot+1),ntype,-999.9,
      +       xxyear,100*yr1a)
         call printpoint(0,f,ntype,-999.9,
-     +       xxyear+alpha*(cov2-cov1),100*yr1a)
+     +       xxyear,100*yr1a)
 
         end
 *  #] fitgevcov:
