@@ -935,6 +935,10 @@
                                             if ( n.gt.ndatmax ) goto 909
                                             ddata(n) = data(j,i,iens2)
                                             dindx(n) = fxy(m,ii,iens)
+!!!                                            print *,'@data(',j,i,iens2,
+!!!     +                                           ') = ',data(j,i,iens2)
+!!!                                            print *,'@ fxy(',m,ii,iens,
+!!!     +                                           ') = ',fxy(m,ii,iens)
                                             yrmo(1,n) = i
                                             yrmo(2,n) = j
                                             yrstart = min(yrstart,i,ii)

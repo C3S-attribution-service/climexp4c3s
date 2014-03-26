@@ -8,7 +8,8 @@
         implicit none
 #include "netcdf.inc"
         integer ncid,nxf,nyf,nzf,nx,ny,nz,nperyear,yrbeg,yrend,firstyr
-     +        ,firstmo,nt,yr1,yr2,jvars(5),ilast,jlast,k1,k2,k3
+     +       ,firstmo,nt,yr1,yr2,jvars(5),ilast,jlast,k1,k2,k3,j1,j2,j3
+     +       ,dy,mo
         real field(nxf,nyf,nzf,nperyear,yrbeg:yrend),undef
         logical lwrite
         integer unit,jx,jy,jz,i,j,k,l,start(4),count(4),stride(4),
@@ -16,7 +17,7 @@
         real scale,offset
         real,allocatable :: aux2(:,:)
         logical lwsave,notfirst
-        integer leap
+        integer,external :: leap,julday
         logical isnan ! ieee_is_nan is more standard but not yet implemented in pgf90 nor gfortran
         itoobig = 0
         ntoobig = 1
@@ -127,9 +128,21 @@
             k = k + 1
             if ( yr1.gt.firstyr ) then
                 startmo = 1
-                start(k) = 1 + nperyear*(yr1-firstyr) - firstmo + 1
-                count(k) = min( nt - nperyear*(yr1-firstyr) + firstmo -
-     +                1,nperyear*(yr2-yr1+1))
+                if ( nperyear.ne.366 ) then
+                    start(k) = 1 + nperyear*(yr1-firstyr) - firstmo + 1
+                    count(k) = min(nt-start(k), nperyear*(yr2-yr1+1))
+                else ! leap years :-(
+                    if ( leap(firstyr).eq.2 .or. firstmo.le.60 ) then
+                        call getdymo(dy,mo,firstmo,nperyear)
+                    else
+                        call getdymo(dy,mo,firstmo-1,nperyear)
+                    end if
+                    j1 = julday(mo,dy,firstyr)
+                    j2 = julday(1,1,yr1)
+                    start(k) = 1 + j2-j1
+                    j3 = julday(12,31,yr2)
+                    count(k) = min(nt-start(k),1+j3-j2)
+                end if
             else
                 startmo = firstmo
                 start(k) = 1

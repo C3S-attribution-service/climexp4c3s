@@ -1,4 +1,9 @@
 	integer function leap(yr)
+!
+!	returns 1 if the year yr is not a leap year
+!	returns 2 if it is a leap year
+!	Gregorian calendar assumed throughout
+!	
 	implicit none
 	integer yr
 	if ( mod(yr,4).ne.0 ) then
