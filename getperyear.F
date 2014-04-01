@@ -127,8 +127,10 @@
                     elseif ( calendar(1:6).eq.'noleap' .or. 
      +                       calendar(1:7).eq.'365_day' ) then
                         iperyear = 365*nint(iperyear/365.)
+                        nperyear = 365*nint(nperyear/365.)
                     elseif ( calendar(1:7).eq.'360_day' ) then
                         iperyear = 360*nint(iperyear/360.)
+                        nperyear = 360*nint(nperyear/360.)
                     else
                         write(0,*)'getperyear: error: unknown calendar '
      +                       ,trim(calendar)
@@ -139,7 +141,7 @@
                 endif
 *               this assumes nperyear <= iperyear but include 366 vs 360
                 if ( nperyear.gt.0 .and. iperyear.gt.0 .and. 
-     +               nperyear.le.1.05*iperyear ) then
+     +               nperyear.le.iperyear ) then
                     nperyear = nint(real(iperyear)/
      +                   nint(real(iperyear)/nperyear))
                 end if
