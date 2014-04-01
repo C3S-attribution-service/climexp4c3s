@@ -137,14 +137,14 @@
                         call abort
                     endif
                 endif
-*               this assumes nperyear < iperyear
-                if ( lwrite ) print *,'iperyear,nperyear = '
-     +               ,iperyear,nperyear
+*               this assumes nperyear <= iperyear but include 366 vs 360
                 if ( nperyear.gt.0 .and. iperyear.gt.0 .and. 
-     +               nperyear.le.iperyear ) then
+     +               nperyear.le.1.05*iperyear ) then
                     nperyear = nint(real(iperyear)/
      +                   nint(real(iperyear)/nperyear))
                 end if
+                if ( lwrite ) print *,'iperyear,nperyear = '
+     +               ,iperyear,nperyear
             else
                 if ( j.eq.0 .and. k.eq.0 ) then
                     i = i+12
@@ -903,6 +903,7 @@
                 endif
             elseif ( ( name(1:3).eq.'lev' .or. name.eq.'z' .or.
      +               name.eq.'z1' .or. name(1:3).eq.'z1_' .or.
+     +               name.eq.'z0' .or. name(1:3).eq.'z0_' .or.
      +               name(1:3).eq.'sig' .or. name(1:4).eq.'plev' .or.
      +               name(1:3).eq.'dep' .or. name(1:4).eq.'heig' .or.
      +               index(name,'press').ne.0 ).and. name(max(1,l-4):l)

@@ -690,6 +690,7 @@
                 month = 0
                 k1 = 1
             endif
+            ave(1:nperyear) = 3e33
             year = firstyr
             do k=k1,nt+firstmo-1
                 month = month + 1
@@ -787,6 +788,8 @@
                                 avemean(month+nperyear) = 
      +                               avemean(month+nperyear) + 
      +                               sgn*w*mean(ii,j,month+nperyear)
+                                write(0,*)'@@@ avemean(',month+nperyear,
+     +                               ') = ',avemean(month+nperyear)
                             endif
                             sw = sw + w
                         else
@@ -817,13 +820,14 @@
                         avemean(month+nperyear) = 3e33
                         sw0 = 0
                         if ( lwrite ) write(0,*) 'sw<minfac*area 2: ',sw
-     +                        ,minfac/100
+     +                        ,minfac/100,month+nperyear
                     else
                         sw0 = sw
-                        avemean(month+nperyear) = avemean(month+nperyear
-     +                        )/sw
+                        avemean(month+nperyear) =
+     +                       avemean(month+nperyear)/sw
                         if ( lwrite ) write(0,*) 'avemean(',month
-     +                        +nperyear,') = ',ave(month+nperyear)
+     +                        +nperyear,') = ',avemean(month+nperyear),
+     +                       sw
                     endif
                 endif
                 call keepalive(k-k1+1,nt+firstmo-k1)

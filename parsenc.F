@@ -110,6 +110,7 @@
                 print *,'         dims:     ',ndimvar,':',
      +                (dimids(i),i=1,ndimvar)
                 print *,'         natts:    ',natts
+                print *,'         axis:     ',axis
             endif
             if ( index(name,'_bnd').ne.0 .or. index(name,'_bound').ne.0
      +           ) then

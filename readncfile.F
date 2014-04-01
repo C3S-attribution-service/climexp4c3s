@@ -96,6 +96,8 @@
         do i=1,4
             stride(i) = 1
         enddo
+        start = 0
+        count = 0
         if ( jvars(2).gt.0 ) then
             k = k + 1
             start(k) = 1
@@ -141,7 +143,7 @@
                         print *,'readncfile: calling ',
      +                       'nf_get_vara_real(',
      +                       ncid,jvars(1),start,count,',field(',1,1,
-     +                       startmo,max(firstyr,yr1),')'
+     +                       startmo,max(firstyr,yr1),'))'
                         write(0,*) 'field(1) = ',
      +                       field(1,1,startmo,max(firstyr,yr1))
                         write(0,*) 'field(',
