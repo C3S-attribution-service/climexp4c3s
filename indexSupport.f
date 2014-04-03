@@ -3240,6 +3240,7 @@ c
 
           elseif(j.eq.4) then
             if(i.gt.yrbeg)then
+              k=12
               if((c(i-1,k).gt.absenr).and.(c(i-1,k).gt.xmax)) 
      +             xmax = c(i-1,k)
             endif
@@ -3309,6 +3310,7 @@ c
 
           elseif(j.eq.4) then
             if(fyear.gt.yrbeg)then
+              k=12
               if((c(i-1,k).gt.absenr).and.(c(i-1,k).lt.xmin)) 
      +             xmin = c(i-1,k)
             endif

@@ -234,8 +234,8 @@
         endif
 *
         do yr=yrbeg,yrend
+            call keepalive(yr-yrbeg+1,yrend-yrbeg+1)
             do jy=1,ny
-                call keepalive(jy,ny)
                 do jx=1,nx
                     if ( (oper.eq.'sd' .or. oper.eq.'var' ) .and. 
      +                   itype.eq.0 ) then
@@ -453,7 +453,7 @@ C                           invalid data [this may be relaxed later...]
  100                continue
                 enddo           ! jx
             enddo               ! jy
-            call keepalive(yr-yrbeg+1,yrend-yrbeg+1)            
+            !!!call keepalive(yr-yrbeg+1,yrend-yrbeg+1)            
         enddo                   ! yr
         end
 

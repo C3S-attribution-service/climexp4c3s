@@ -181,8 +181,22 @@
         logical lweb
         integer i
         real x,f
+        character fx*10,ff*10
 *
         if ( ntype.eq.2 .or. ntype.eq.3 .or. ntype.eq.4 ) then ! extreme value  plot
+            if ( ntype.eq.2 ) then
+                fx = 'Gumbel(T)'
+            else if ( ntype.eq.3 ) then
+                fx = 'log(T)'
+            else if ( ntype.eq.4 ) then
+                fx = 'sqrtlog(T)'
+            else
+                fx = '???'
+            end if
+            ff = 'fit' ! maybe later propagate nfit and make beautiful...
+            print '(5a)','#     n            ',fx,
+     +           '            Y                     ',ff,
+     +           '            T              date'
             do i=1,10
                 if ( mod(i,3).eq.1 ) then
                     x = 1 + i/3

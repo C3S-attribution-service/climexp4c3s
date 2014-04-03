@@ -39,6 +39,7 @@
         real llgpd
         external llgpd
 *
+        llwrite = lwrite
         if ( lwrite ) then
             print *,'fitgpd: input:'
             print *,'j1,j2      = ',j1,j2
@@ -352,7 +353,7 @@
         real p(2)
 *
         integer i
-        real b,xi,s,z
+        real b,xi,s,z,llold
 *
         integer nmax,ncur
         parameter(nmax=100000)
@@ -387,6 +388,7 @@
                 llgpd = 3e33
                 goto 999
             endif
+            llold = llgpd
             if ( abs(xi).lt.1e-4 ) then
                 llgpd = llgpd - z/b + (z/b)**2*xi/2
 ***                print *,i,z, - z/b + (z/b)**2*xi/2 - log(b)
@@ -394,6 +396,7 @@
                 llgpd = llgpd - (1+1/xi)*log(1+xi*z/b)
 ***                print *,i,z, - (1+1/xi)*log(1+xi*z/b) - log(b)
             endif
+            if ( llwrite ) print *,i,z,b,llgpd-llold
         enddo
         if ( restrain.eq.0 ) then
             llgpd = llgpd - ncur*log(b)

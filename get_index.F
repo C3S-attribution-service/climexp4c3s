@@ -788,8 +788,6 @@
                                 avemean(month+nperyear) = 
      +                               avemean(month+nperyear) + 
      +                               sgn*w*mean(ii,j,month+nperyear)
-                                write(0,*)'@@@ avemean(',month+nperyear,
-     +                               ') = ',avemean(month+nperyear)
                             endif
                             sw = sw + w
                         else

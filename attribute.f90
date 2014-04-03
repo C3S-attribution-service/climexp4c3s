@@ -214,6 +214,9 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     &       ,t,t25,t975,tx,tx25,tx975,restrain,assume,lboot,lprint,plot,lwrite)
     else if ( distribution.eq.'gpd' ) then
         ntype = 3 ! log plot
+        print *,'DEBUG'
+        lboot = .false.
+        lwrite = .true.
         if ( lwrite ) print *,'attribute_dist: calling fitgpdcov'
         call fitgpdcov(xx,yrs,ntot,a,b,xi,alpha,beta,j1,j2 &
     &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,cov1,cov2,offset &

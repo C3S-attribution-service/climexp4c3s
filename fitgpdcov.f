@@ -41,8 +41,8 @@
      +       ,tt(nmc,10,3),b25,b975,xi25,xi975,alpha25,alpha975
      +       ,t5(10,3),t1(10,3),db,dxi,f,z,ll,ll1,txtx(nmc,3)
      +       ,a25,a975,beta25,beta975,ranf,mean,sd,dalpha,dbeta
-     +       ,mindata,minindx,pmindata,snorm,s,xmin
-        real adev,var,skew,curt,aaa,siga,chi2,q
+     +       ,mindata,minindx,pmindata,snorm,s,xmin,xxyear
+        real adev,var,skew,curt,aaa,bbb,siga,chi2,q
         integer,allocatable :: ii(:)
         real,allocatable :: yy(:),ys(:),zz(:),sig(:)
         character lgt*4
@@ -354,16 +354,22 @@
                     !!!print *,'yy(',i,')  is ',yy(i)
                 end do
             end if
+            aaa = a+cov2*alpha
+            bbb = b
+            xxyear = xyear+alpha*(cov2-cov1)
         else if ( assume.eq.'scale' ) then
             if ( lchangesign ) then
                 do i=1,ncur
-                    yy(i) = yy(i)*exp(-alpha*(zz(i)-cov2))
+                    yy(i) = yy(i)*exp(alpha*(zz(i)-cov2))
                 end do
             else
                 do i=1,ncur
-                    yy(i) = yy(i)*exp(alpha*(zz(i)-cov2))
+                    yy(i) = yy(i)*exp(+alpha*(zz(i)-cov2))
                 end do
             end if
+            aaa = a*exp(alpha*cov2)
+            bbb = b*exp(alpha*cov2)
+            xxyear = xyear*exp(alpha*(cov2-cov1))
         end if
         ys(1:ncur) = yy(1:ncur)
         ! no cuts
@@ -372,16 +378,16 @@
         ! GPD fit
         nfit = 6
         call plot_ordered_points(yy,ys,yrs,ncur,ntype,nfit,
-     +       a+cov2*alpha,b,xi,j1,j2,minindx,a,threshold,
+     +       aaa,bbb,xi,j1,j2,minindx,a,threshold,
      +       year,xyear,snorm,lchangesign,lwrite)
         ! and print xyear if the distribution would be at yr1a
         print '(a)'
         print '(a)'
         f = 1 - 1/real(ntot+1)*0.9**100
         call printpoint(0,1/real(ntot+1),ntype,-999.9,
-     +       xyear+alpha*(cov2-cov1),100*yr1a)
+     +       xxyear,100*yr1a)
         call printpoint(0,f,ntype,-999.9,
-     +       xyear+alpha*(cov2-cov1),100*yr1a)
+     +       xxyear,100*yr1a)
 
         end
 *  #] fitgpdcov:
@@ -496,7 +502,7 @@
         real p(4)
 *
         integer i,n,nold,iloop
-        real x,z,xi,s,aold,dadn,aa,bb
+        real x,z,xi,s,aold,dadn,aa,bb,llold
         save dadn
         real,allocatable :: xx(:)
 *
@@ -586,6 +592,7 @@
                 llgpdcov = 3e33
                 goto 999
             endif
+            llold = llgpdcov
             if ( abs(xi).lt.1e-4 ) then
                 llgpdcov = llgpdcov - z/bb + (z/bb)**2*xi/2
 ***                print *,i,z, - z/b + (z/b)**2*xi/2 - log(b)
@@ -593,6 +600,8 @@
                 llgpdcov = llgpdcov - (1+1/xi)*log(1+xi*z/bb)
 ***                print *,i,z, - (1+1/xi)*log(1+xi*z/b) - log(b)
             endif
+            if ( llwrite ) print *,i,data(1,i),data(2,i),z,bb,
+     +           llgpdcov-llold
             llgpdcov = llgpdcov - log(bb)
         enddo
 *       normalization is not 1 in case of cut-offs
