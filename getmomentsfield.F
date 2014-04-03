@@ -76,7 +76,8 @@
 *       process arguments
         call getarg(2,line)
         if ( line(1:4).eq.'perc' .or. line(1:6).eq.'pot_rt' .or.
-     +       line(1:6).eq.'gev_rt' .or. line(1:7).eq.'norm_rt' ) then
+     +       line(1:6).eq.'gev_rt' .or. line(1:7).eq.'norm_rt' .or.
+     +       line(1:6).eq.'norm_z' ) then
             i = 4
         else
             i = 3
@@ -120,7 +121,8 @@
         elseif ( line(1:2).eq.'sd' .or. line(1:4).eq.'s.d.' .or.
      +           line(1:4).eq.'norm' ) then
             imoment = 2
-            if ( line(1:7).eq.'norm_rt' ) then
+            if ( line(1:7).eq.'norm_rt' .or. line(1:6).eq.'norm_z' )
+     +           then
                 call getarg(3,line)
                 read(line,*,err=905) year
             endif
@@ -491,24 +493,33 @@
                             res(jx,jy,jz,m,8) = maxval(ddata(1:n))
                             nvars = 8
                             if ( year.ne.0 ) then
-                                nvars = 9
+                                nvars = 10
                                 if ( xyear.lt.1e33 ) then
-                                    call fitgau(ddata,n,xmom(1),xmom(2)
-     +                                   ,a,b,minindx,maxindx,3,j1,j2
-     +                                   ,year,xyear,t,t25,t975,tx,tx25
-     +                                   ,tx975,.false.,.false.,lweb,
-     +                                   .true.,lwrite)
-                                    do i=1,n
-                                        ddata(i) = -ddata(i)
-                                    end do
-                                    call fitgau(ddata,n,-xmom(1),xmom(2)
-     +                                   ,a,b,minindx,maxindx,3,j1,j2
-     +                                   ,year,-xyear,t,t25,t975,tx1
-     +                                   ,tx25,tx975,.false.,.false.
-     +                                   ,lweb,.false.,lwrite)
-                                    res(jx,jy,jz,m,9) = max(tx,tx1)
+                                    if ( .not.lchangesign ) then
+                                        call fitgau(ddata,n,
+     +                                       xmom(1),xmom(2),a,b,
+     +                                       minindx,maxindx,3,j1,j2,
+     +                                       year,xyear,t,t25,t975,
+     +                                       tx,tx25,tx975,.false.,
+     +                                       .false.,lweb,.false.,
+     +                                       lwrite)
+                                    else
+                                        do i=1,n
+                                            ddata(i) = -ddata(i)
+                                        end do
+                                        call fitgau(ddata,n,
+     +                                       -xmom(1),xmom(2),a,b,
+     +                                       minindx,maxindx,3,j1,j2,
+     +                                       year,-xyear,t,t25,t975,
+     +                                       tx,tx25,tx975,.false.,
+     +                                       .false.,lweb,.true.,lwrite)
+                                    end if
+                                    res(jx,jy,jz,m,9) = tx
+                                    res(jx,jy,jz,m,10) =
+     +                                   (xyear-xmom(1))/xmom(2)
                                 else
                                     res(jx,jy,jz,m,9) = 3e33
+                                    res(jx,jy,jz,m,10) = 3e33
                                 end if
                             endif
                         elseif ( imoment.eq.200 ) then
@@ -610,7 +621,8 @@
             saveunits = units(1)
             do i=1,nvars
                 if ( .not. ( abs(imoment).le.100 .and. 
-     +               (i.eq.3 .or. i.eq.4 .or. i.eq.6 .or. i.eq.9 ) )
+     +               (i.eq.3 .or. i.eq.4 .or. i.eq.6 .or. i.eq.9
+     +               .or. i.eq.10 ) )
      +               .and. .not. ( imoment.eq.200 .and. i.eq.2 ) ) then
                     units(i) = saveunits
                     call makestandardfield(res(1,1,1,1,i),nx,ny,1,12,0,0
@@ -635,7 +647,7 @@
             endif
         endif
 *
-*       write output field in GrADS format
+*       write output field in GrADS or netcdf format
 *
         call savestartstop(yrstart,yrstop)
         call getenv('DIR',dir)
@@ -677,6 +689,10 @@
                 write(lvars(9),'(a,i4,a)') 'return time of year ',
      +               year,' in the context of the other years'
                 units(9) = 'yr'
+                write(vars(10),'(a,i4.4)') 'z_',year
+                write(lvars(10),'(a,i4,a)') 'z-value of year ',
+     +               year,' in the context of the other years'
+                units(10) = '1'
             endif
         elseif ( imoment.eq.200 ) then
             svars(1:2) = ' '
@@ -844,6 +860,6 @@
         if ( year.gt.9999 .or. year.lt.-999 ) then
             write(0,*) 'getmomentsfield: error: year = ',year
             write(*,*) 'getmomentsfield: error: year = ',year
-            year = 2006
+            call abort
         endif
         end
