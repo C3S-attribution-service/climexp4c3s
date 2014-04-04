@@ -23,7 +23,7 @@
         character infile*255,datfile*255,string*20,lz(3)*20,ltime*100,
      +       title*1000,history*10000,vars(nvarmax)*40,
      +       lvars(nvarmax)*200,svars(nvarmax)*200,units(nvarmax)*100,
-     +       cell_methods(nvarmax)*128
+     +       cell_methods(nvarmax)*128,all*6
         logical xrev,yrev,xwrap
         integer iargc
         real df,pcut
@@ -40,6 +40,7 @@
      +           'lon1 x1 lon2 x2 lat1 y1 lat2 y2'
             call abort
         end if
+        all = string
         if ( string(1:3).eq.'all' ) then
             pcut = -1
         else
@@ -65,7 +66,15 @@
         end if
         do ivar=1,nvars
             if ( vars(ivar)(1:4).eq.'prob' .or.
-     +           index(vars(ivar),'_rt').ne.0 ) goto 101
+     +           index(vars(ivar),'_rt').ne.0 ) then
+                if ( all.eq.'all_lo' ) then
+                    if ( vars(ivar)(1:3).eq.'lo_' ) goto 101
+                else if ( all.eq.'all_hi' ) then
+                    if ( vars(ivar)(1:3).eq.'hi_' ) goto 101
+                else
+                    goto 101
+                end if
+            end if
         end do
         write(*,*) 'fieldsignficance: error: cannot find variable '//
      +       'prob* or *_rt*'
