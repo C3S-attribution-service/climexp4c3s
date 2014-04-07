@@ -113,6 +113,8 @@
 *               calendar type
                 call gettextattopt(ncid,varid,'calendar',calendar,lwrite
      +               )
+                if ( lwrite ) print *,'iperyear,nperyear = '
+     +               ,iperyear,nperyear
                 if ( calendar.eq.' ' ) then
                     iperyear = 366*nint(iperyear/366.) ! gregorian
                 else
@@ -127,10 +129,12 @@
                     elseif ( calendar(1:6).eq.'noleap' .or. 
      +                       calendar(1:7).eq.'365_day' ) then
                         iperyear = 365*nint(iperyear/365.)
-                        nperyear = 365*nint(nperyear/365.)
+                        if ( nperyear.ge.365 )
+     +                       nperyear = 365*nint(nperyear/365.)
                     elseif ( calendar(1:7).eq.'360_day' ) then
                         iperyear = 360*nint(iperyear/360.)
-                        nperyear = 360*nint(nperyear/360.)
+                        if ( nperyear.ge.360 )
+     +                       nperyear = 360*nint(nperyear/360.)
                     else
                         write(0,*)'getperyear: error: unknown calendar '
      +                       ,trim(calendar)
