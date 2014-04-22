@@ -167,7 +167,7 @@
             area = s0
             if ( s.eq.0 ) then
                 write(0,'(2a)') 'Cannot find enough data to compute ',
-     +               'field significance '
+     +               'field significance<br>'
                 goto 999
             end if
             p = s/s0
