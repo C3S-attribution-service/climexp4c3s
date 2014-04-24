@@ -295,49 +295,11 @@
         end if
         call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb)
         call printcovreturntime(year,xyear,tx,tx25,tx975,yr1a,yr2a,lweb)
-!       plot fit for present-day climate
-        call plotreturnvalue(ntype,t25(1,2),t975(1,2),j2-j1+1)
 
         if ( plot ) then
             call plot_tx_cdfs(txtx,nmc,ntype)
         end if
 
-        if ( assume.eq.'both' ) then
-            write(0,*) 'fitgevcov: error: cannot handle plotting yet '
-     +           //'for assume = both'
-            write(*,*) 'fitgevcov: error: cannot handle plotting yet '
-     +           //'for assume = both'
-            stop
-        end if
-        ! compute distribution at year and plot it
-        if ( assume.eq.'shift' ) then
-            if ( lchangesign ) then
-                do i=1,ntot
-                    yy(i) = yy(i) + alpha*(zz(i)-cov2)
-                end do
-            else
-                do i=1,ntot
-                    yy(i) = yy(i) - alpha*(zz(i)-cov2)
-                end do
-            end if
-            aaa = a+cov2*alpha
-            bbb = b
-            xxyear = xyear+alpha*(cov2-cov1)
-        else if ( assume.eq.'scale' ) then
-            if ( lchangesign ) then
-                do i=1,ntot
-                    yy(i) = yy(i)*exp(alpha*(zz(i)-cov2))
-                end do
-            else
-                do i=1,ntot
-                    yy(i) = yy(i)*exp(-alpha*(zz(i)-cov2))
-                end do
-            end if
-            aaa = a*exp(alpha*cov2)
-            bbb = b*exp(alpha*cov2)
-            xxyear = xyear*exp(alpha*(cov2-cov1))
-        end if
-        ys(1:ntot) = yy(1:ntot)
         ! no cuts
         mindata = -2e33
         minindx = -2e33
@@ -345,17 +307,28 @@
         snorm = 1
         ! GEV fit
         nfit = 5
+
+        ! compute distribution at past year and plot it
+        call adjustyy(ntot,xx,assume,a,b,alpha,beta,cov1,
+     +       yy,zz,aaa,bbb,lchangesign,lwrite)
+        ys(1:ntot) = yy(1:ntot)
+        print '(a,i5)','# distribution in year ',yr1a
+        call plotreturnvalue(ntype,t25(1,1),t975(1,1),j2-j1+1)
         call plot_ordered_points(yy,ys,yrs,ntot,ntype,nfit,
      +       aaa,bbb,xi,j1,j2,minindx,mindata,pmindata,
-     +       year,xyear,snorm,lchangesign,lwrite)
-        ! and print xyear if the distribution would be at yr1a
+     +       year,xyear,snorm,lchangesign,lwrite,.false.)
+
+        ! compute distribution at present year and plot it
+        call adjustyy(ntot,xx,assume,a,b,alpha,beta,cov2,
+     +       yy,zz,aaa,bbb,lchangesign,lwrite)
+        ys(1:ntot) = yy(1:ntot)
         print '(a)'
         print '(a)'
-        f = 1 - 1/real(ntot+1)*0.9**100
-        call printpoint(0,1/real(ntot+1),ntype,-999.9,
-     +       xxyear,100*yr1a)
-        call printpoint(0,f,ntype,-999.9,
-     +       xxyear,100*yr1a)
+        print '(a,i5)','# distribution in year ',yr2a
+        call plotreturnvalue(ntype,t25(1,2),t975(1,2),j2-j1+1)
+        call plot_ordered_points(yy,ys,yrs,ntot,ntype,nfit,
+     +       aaa,bbb,xi,j1,j2,minindx,mindata,pmindata,
+     +       year,xyear,snorm,lchangesign,lwrite,.true.)
 
         end
 *  #] fitgevcov:

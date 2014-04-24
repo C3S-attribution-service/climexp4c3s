@@ -176,27 +176,32 @@
 *       print return value at a few times
 *
         implicit none
-        integer ntype,n
+        integer n
         real t25(10),t975(10)
         logical lweb
-        integer i
+        integer i,ntype,init
+        save init
         real x,f
         character fx*10,ff*10
+        data init /0/
 *
         if ( ntype.eq.2 .or. ntype.eq.3 .or. ntype.eq.4 ) then ! extreme value  plot
-            if ( ntype.eq.2 ) then
-                fx = 'Gumbel(T)'
-            else if ( ntype.eq.3 ) then
-                fx = 'log(T)'
-            else if ( ntype.eq.4 ) then
-                fx = 'sqrtlog(T)'
-            else
-                fx = '???'
+            if ( init.eq.0 ) then
+                init = 1
+                if ( ntype.eq.2 ) then
+                    fx = 'Gumbel(T)'
+                else if ( ntype.eq.3 ) then
+                    fx = 'log(T)'
+                else if ( ntype.eq.4 ) then
+                    fx = 'sqrtlog(T)'
+                else
+                    fx = '???'
+                end if
+                ff = 'fit'      ! maybe later propagate nfit and make beautiful...
+                print '(5a)','#     n            ',fx,
+     +               '            Y                     ',ff,
+     +               '            T              date'
             end if
-            ff = 'fit' ! maybe later propagate nfit and make beautiful...
-            print '(5a)','#     n            ',fx,
-     +           '            Y                     ',ff,
-     +           '            T              date'
             do i=1,10
                 if ( mod(i,3).eq.1 ) then
                     x = 1 + i/3
@@ -249,7 +254,7 @@
 *  #[ plot_ordered_points:
         subroutine plot_ordered_points(xx,xs,yrs,ntot,ntype,nfit,
      +       a,b,xi,j1,j2,minindx,mindata,pmindata,
-     +       yr2a,xyear,snorm,lchangesign,lwrite)
+     +       yr2a,xyear,snorm,lchangesign,lwrite,last)
 *
 *       Gumbel or (sqrt) logarithmic plot
 *
@@ -258,7 +263,7 @@
         integer yrs(0:ntot)
         real xx(ntot),xs(ntot),a,b,xi
         real minindx,mindata,pmindata,xyear,snorm
-        logical lchangesign,lwrite
+        logical lchangesign,lwrite,last
         integer i,j,ier,it
         real f,ff,s,x,z,sqrt2,tmax
         character string*100
@@ -373,19 +378,20 @@
      +           goto 800
         enddo
  800    continue
-        print '(a)'
-        print '(a)'
-        if ( xyear.ne.3e33 ) then
-            call printpoint(0,1/real(ntot+1),ntype,-999.9,xyear
-     +           ,100*yr2a)
-            call printpoint(0,f,ntype,-999.9,xyear,100*yr2a)
-        else
-            call printpoint(0,1/real(ntot+1),ntype,-999.9,-999.9
-     +           ,100*yr2a)
-            call printpoint(0,f,ntype,-999.9,-999.9,100*yr2a)
-        endif
-        call print_xtics(6,ntype,ntot,j1,j2)
-
+        if ( last ) then
+            print '(a)'
+            print '(a)'
+            if ( xyear.ne.3e33 ) then
+                call printpoint(0,1/real(ntot+1),ntype,-999.9,xyear
+     +               ,100*yr2a)
+                call printpoint(0,f,ntype,-999.9,xyear,100*yr2a)
+            else
+                call printpoint(0,1/real(ntot+1),ntype,-999.9,-999.9
+     +               ,100*yr2a)
+                call printpoint(0,f,ntype,-999.9,-999.9,100*yr2a)
+            endif
+            call print_xtics(6,ntype,ntot,j1,j2)
+        end if
         end
 *  #] plot_ordered_points:
 *  #[ print_bootstrap_message:
@@ -692,3 +698,59 @@
         end if
         end
 *  #] printab:
+*  #[ adjustyy:
+        subroutine adjustyy(ntot,xx,assume,a,b,alpha,beta,cov,
+     +       yy,zz,aaa,bbb,lchangesign,lwrite)
+!
+!       input: xx,assume,a,b,alpha,beta,cov
+!       output: yy,zz,aaa,bbb
+!       flag: lwrite
+!
+        implicit none
+        integer ntot
+        real xx(2,ntot),yy(ntot),zz(ntot)
+        real a,b,alpha,beta,cov,aaa,bbb
+        character assume*(*)
+        logical lchangesign,lwrite
+        integer i
+!
+        do i=1,ntot
+            yy(i) = xx(1,i)
+            zz(i) = xx(2,i)
+        end do
+        if ( assume.eq.'shift' ) then
+            if ( lchangesign ) then
+                do i=1,ntot
+                    yy(i) = yy(i) + alpha*(zz(i)-cov)
+                end do
+            else
+                do i=1,ntot
+                    yy(i) = yy(i) - alpha*(zz(i)-cov)
+                end do
+            end if
+            aaa = a+cov*alpha
+            bbb = b
+        else if ( assume.eq.'scale' ) then
+            if ( lchangesign ) then
+                do i=1,ntot
+                    yy(i) = yy(i)*exp(alpha*(zz(i)-cov))
+                end do
+            else
+                do i=1,ntot
+                    yy(i) = yy(i)*exp(-alpha*(zz(i)-cov))
+                end do
+            end if
+            aaa = a*exp(alpha*cov)
+            bbb = b*exp(alpha*cov)
+        else if ( assume.eq.'both' ) then
+            write(0,*) 'adjustyy: error: not yet ready'
+            write(*,*) 'adjustyy: error: not yet ready'
+            call abort
+        else
+            write(0,*) 'adjustyy: error: unknown assumption ',assume
+            write(*,*) 'adjustyy: error: unknown assumption ',assume
+            call abort            
+        end if
+
+        end
+*  #] adjustyy:

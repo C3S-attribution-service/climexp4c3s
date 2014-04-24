@@ -23,7 +23,7 @@
      +       ,z,x,f,txtx(nmc,3),alphaalpha(nmc),betabeta(nmc)
      +       ,mean,sd,ranf,mindata,minindx,pmindata,snorm,s
         real a25,a975,b25,b975,alpha25,alpha975,beta25,beta975
-        real adev,var,skew,curt,aaa,siga,chi2,q
+        real adev,var,skew,curt,aaa,bbb,siga,chi2,q
         real,allocatable :: yy(:),ys(:),zz(:),sig(:)
         character lgt*4
         external gaucovreturnlevel,gaucovreturnyear
@@ -233,30 +233,11 @@
         endif
         call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb)
         call printcovreturntime(year,xyear,tx,tx25,tx975,yr1a,yr2a,lweb)
-        call plotreturnvalue(ntype,t25(1,2),t975(1,2),j2-j1+1)
 
         if ( plot ) then
             call plot_tx_cdfs(txtx,nmc,ntype)
         end if
 
-        if ( cassume.eq.'both' ) then
-            write(0,*) 'fitgaucov: error: cannot handle plottng yet for'
-     +           //'assume = both'
-            write(*,*) 'fitgevcov: error: cannot handle plottng yet for'
-     +           //'assume = both'
-            stop
-        end if
-        ! compute distribution at year and plot it
-        if ( lchangesign ) then
-            do i=1,ntot
-                yy(i) = yy(i) + alpha*(zz(i)-cov2)
-            end do
-        else
-            do i=1,ntot
-                yy(i) = yy(i) - alpha*(zz(i)-cov2)
-            end do
-        end if
-        ys(1:ntot) = yy(1:ntot)
         ! no cuts
         mindata = -2e33
         minindx = -2e33
@@ -264,19 +245,29 @@
         snorm = 1
         ! fit to gauss (normal distribution)
         nfit = 2
-        aa = a+cov2*alpha
         if ( lchangesign ) b = -b
+
+        ! compute distribution at past year and plot it
+        call adjustyy(ntot,xx,assume,a,b,alpha,beta,cov1,
+     +       yy,zz,aaa,bbb,lchangesign,lwrite)
+        ys(1:ntot) = yy(1:ntot)
+        print '(a,i5)','# distribution in year ',yr1a
+        call plotreturnvalue(ntype,t25(1,1),t975(1,1),j2-j1+1)
         call plot_ordered_points(yy,ys,yrs,ntot,ntype,nfit,
-     +       aa,b,dum,j1,j2,minindx,mindata,pmindata,
-     +       year,xyear,snorm,lchangesign,lwrite)
-        ! and print xyear if the distribution would be at yr1a
+     +       aaa,bbb,dum,j1,j2,minindx,mindata,pmindata,
+     +       year,xyear,snorm,lchangesign,lwrite,.false.)
+
+        ! compute distribution at present year and plot it
+        call adjustyy(ntot,xx,assume,a,b,alpha,beta,cov2,
+     +       yy,zz,aaa,bbb,lchangesign,lwrite)
+        ys(1:ntot) = yy(1:ntot)
         print '(a)'
         print '(a)'
-        f = 1 - 1/real(ntot+1)*0.9**100
-        call printpoint(0,1/real(ntot+1),ntype,-999.9,
-     +       xyear+alpha*(cov2-cov1),100*yr1a)
-        call printpoint(0,f,ntype,-999.9,
-     +       xyear+alpha*(cov2-cov1),100*yr1a)
+        print '(a,i5)','# distribution in year ',yr2a
+        call plotreturnvalue(ntype,t25(1,2),t975(1,2),j2-j1+1)
+        call plot_ordered_points(yy,ys,yrs,ntot,ntype,nfit,
+     +       aaa,bbb,dum,j1,j2,minindx,mindata,pmindata,
+     +       year,xyear,snorm,lchangesign,lwrite,.true.)
 
         end
 *  #] fitgaucov:
