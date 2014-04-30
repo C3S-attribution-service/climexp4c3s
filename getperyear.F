@@ -528,8 +528,10 @@
         call checkstring(cell_methods(ntvars))
 *       get fill value
         call getrealattopt(ncid,varid,'_FillValue',undef,lwrite)
+        if ( lwrite ) print *,'found _FillValue ',undef
 *       get missing value
         call getrealattopt(ncid,varid,'missing_value',x,lwrite)
+        if ( lwrite ) print *,'found missing_value ',x
         if ( undef.eq.3e33 .and. x.ne.3e33 ) undef = x
         if ( lwrite ) print *,'addonevariable: found undef = ',undef
 *       get max range
@@ -692,7 +694,8 @@
             status = nf_get_att_real(ncid,varid,name,value)
             if ( status.ne.nf_noerr ) call handle_err(status,name)
         endif
-        if ( isnan(value) ) value = 3e33
+        !!! makes 1e20 equal to 3e33 for some reason, hope it is no longer needed
+        !!!if ( isnan(value) ) value = 3e33
 *       
         end
 *  #] getrealattopt:
