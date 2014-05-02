@@ -17,10 +17,10 @@ program attribute
 
     if ( iargc().lt.8 ) then
         write(0,*) 'usage: attribute series covariate_series ', &
-        & '(GEV)|(Gumbel)|(GPD gt threshold)|(Gauss) assume shift|scale', &
+        & 'GEV|Gumbel|GPD|Gauss assume shift|scale', &
         & 'mon n [sel m] [ave N] [log|sqrt] ', &
         & 'begin2 past_climate_year end2 year_under_study', &
-        & 'plot FAR_plot_file'
+        & 'plot FAR_plot_file [dgt threshold%]'
         write(0,*) 'note that n and m are in months even if the series is daily.'
         write(0,*) 'N is always in the same units as the series.'
         write(0,*) 'the covariate series is averaged to the same time scale.'
@@ -130,7 +130,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     real a,b,xi,alpha,beta,xyear,cov1,cov2,offset
     real t(10,3),t25(10,3),t975(10,3),tx(3),tx25(3),tx975(3)
     real,allocatable :: xx(:,:),yrseries(:,:),yrcovariate(:,:),yy(:)
-    logical lboot,lprint
+    logical lboot,lprint,subtract_offset
     character operation*4,file*1024
 
     fyr = yr1
@@ -189,8 +189,13 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     &   '</td><td>&nbsp;</td></tr>'
     print '(a,i4,a,g19.5,a)','# <tr><td>&nbsp;</td><td>',yr2a,'</td><td>',cov2, &
     &   '</td><td>&nbsp;</td></tr>'
-    if ( lwrite ) print *,'attribute_dist: calling subtract_constant'
-    call subtract_constant(yrcovariate,yrseries,npernew,fyr,lyr,cov1,cov2,offset,lwrite)
+    subtract_offset = .true.
+    if ( subtract_offset ) then
+        if ( lwrite ) print *,'attribute_dist: calling subtract_constant'
+        call subtract_constant(yrcovariate,yrseries,npernew,fyr,lyr,cov1,cov2,offset,lwrite)
+    else
+        offset = 0
+    end if
     if ( lwrite ) print *,'attribute_dist: calling fill_linear_array'
     call fill_linear_array(yrseries,yrcovariate,npernew,j1,j2,fyr,lyr,xx,yrs,nmax,ntot)
     if ( distribution.eq.'gpd' .and. nperyear.ge.360 ) then
@@ -214,9 +219,9 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     &       ,t,t25,t975,tx,tx25,tx975,restrain,assume,lboot,lprint,plot,lwrite)
     else if ( distribution.eq.'gpd' ) then
         ntype = 3 ! log plot
-        print *,'DEBUG'
-        lboot = .false.
-        lwrite = .true.
+        !!!print *,'DEBUG'
+        !!!lboot = .false.
+        !!!lwrite = .true.
         if ( lwrite ) print *,'attribute_dist: calling fitgpdcov'
         call fitgpdcov(xx,yrs,ntot,a,b,xi,alpha,beta,j1,j2 &
     &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,cov1,cov2,offset &

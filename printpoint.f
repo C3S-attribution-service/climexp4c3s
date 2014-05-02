@@ -589,7 +589,7 @@
         real a,b,xi,alpha,beta,cov1,cov2,t(10,3)
         real,external :: covreturnlevel
         integer i
-        real x
+        real x,xx
         do i=1,10
             if ( mod(i,3).eq.1 ) then
                 x = 1 + i/3
@@ -599,8 +599,10 @@
                 x = log10(5.) + i/3
             endif
             x = x + log10(real(j2-j1+1))
-            t(i,1) = covreturnlevel(a,b,xi,alpha,beta,x,cov1)
-            t(i,2) = covreturnlevel(a,b,xi,alpha,beta,x,cov2)
+            xx = x ! some routines modify x :-(
+            t(i,1) = covreturnlevel(a,b,xi,alpha,beta,xx,cov1)
+            xx = x
+            t(i,2) = covreturnlevel(a,b,xi,alpha,beta,xx,cov2)
             t(i,3) = t(i,2) - t(i,1)
         enddo
         end
@@ -648,7 +650,7 @@
             aa = a + alpha*cov
             bb = b
         else if ( cassume.eq.'scale' ) then
-            aa = a*exp(alpha*cov)
+            aa = a*exp(alpha*cov/a)
             bb = b*aa/a
         else if ( cassume.eq.'both' ) then
             aa = a + alpha*cov
@@ -674,8 +676,8 @@
      +               'and b'' = b</td></tr>'
             else if ( cassume.eq.'scale' ) then
                 print '(a)','# <tr><td colspan="4">'//
-     +               'with a'' = a exp(&alpha;T) '//
-     +               'and b'' = b exp(&alpha;T)</td></tr>'
+     +               'with a'' = a exp(&alpha;T/a) '//
+     +               'and b'' = b exp(&alpha;T/a)</td></tr>'
             else if ( cassume.eq.'both' ) then
                 print '(a)','# <tr><td colspan="4">'//
      +               'with a''= a+&alpha;T '//
@@ -688,7 +690,7 @@
             if ( cassume.eq.'shift' ) then
                 print '(a)','a'' = a+alpha*T, b''= b'
             else if ( cassume.eq.'scale' ) then
-                print '(a)','a'' = a*exp(alpha*T), b''= b*a''/a'
+                print '(a)','a'' = a*exp(alpha*T/a), b''= b*a''/a'
             else if ( cassume.eq.'both' ) then
                 print '(a)','a'' = a+alpha*T, b''= b+beta*T'
             else
@@ -733,15 +735,15 @@
         else if ( assume.eq.'scale' ) then
             if ( lchangesign ) then
                 do i=1,ntot
-                    yy(i) = yy(i)*exp(alpha*(zz(i)-cov))
+                    yy(i) = yy(i)*exp(alpha*(zz(i)-cov)/a)
                 end do
             else
                 do i=1,ntot
-                    yy(i) = yy(i)*exp(-alpha*(zz(i)-cov))
+                    yy(i) = yy(i)*exp(-alpha*(zz(i)-cov)/a)
                 end do
             end if
-            aaa = a*exp(alpha*cov)
-            bbb = b*exp(alpha*cov)
+            aaa = a*exp(alpha*cov/a)
+            bbb = b*exp(alpha*cov/a)
         else if ( assume.eq.'both' ) then
             write(0,*) 'adjustyy: error: not yet ready'
             write(*,*) 'adjustyy: error: not yet ready'
