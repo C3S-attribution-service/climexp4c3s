@@ -152,6 +152,7 @@ OBJS	      = makeabsent.o \
 		fitgumcov.o \
 		fitpoisson.o \
 		fitgamma.o \
+		attribute_dist.o \
 		printpoint.o \
 		printval.o \
 		statmodel1.o \
