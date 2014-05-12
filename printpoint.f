@@ -253,7 +253,7 @@
 *  #] val_or_inf:
 *  #[ plot_ordered_points:
         subroutine plot_ordered_points(xx,xs,yrs,ntot,ntype,nfit,
-     +       a,b,xi,j1,j2,minindx,mindata,pmindata,
+     +       frac,a,b,xi,j1,j2,minindx,mindata,pmindata,
      +       yr2a,xyear,snorm,lchangesign,lwrite,last)
 *
 *       Gumbel or (sqrt) logarithmic plot
@@ -261,7 +261,7 @@
         implicit none
         integer ntot,ntype,nfit,j1,j2,yr2a
         integer yrs(0:ntot)
-        real xx(ntot),xs(ntot),a,b,xi
+        real xx(ntot),xs(ntot),frac,a,b,xi
         real minindx,mindata,pmindata,xyear,snorm
         logical lchangesign,lwrite,last
         integer i,j,ier,it
@@ -298,6 +298,7 @@
                 if ( abs(f-1).lt.1e-6 ) goto 800
                 x = -999.9
             endif
+            if ( frac.ne.1 ) f = 1-(1-f)*frac
             if ( nfit.eq.0 ) then
                 s = -999.9
             elseif ( nfit.eq.1 ) then

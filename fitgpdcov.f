@@ -41,9 +41,9 @@
      +       ,tt(nmc,10,3),b25,b975,xi25,xi975,alpha25,alpha975
      +       ,t5(10,3),t1(10,3),db,dxi,f,z,ll,ll1,txtx(nmc,3)
      +       ,a25,a975,beta25,beta975,ranf,mean,sd,dalpha,dbeta
-     +       ,mindata,minindx,pmindata,snorm,s,xmin,xxyear
+     +       ,mindata,minindx,pmindata,snorm,s,xmin,xxyear,frac
         real adev,var,skew,curt,aaa,bbb,siga,chi2,q,p(4)
-        integer,allocatable :: ii(:)
+        integer,allocatable :: ii(:),yyrs(:)
         real,allocatable :: yy(:),ys(:),zz(:),sig(:)
         character lgt*4
 *
@@ -94,17 +94,20 @@
 *       compute first-guess parameters
 *
         allocate(ii(ncur))
+        allocate(yyrs(0:ncur))
         allocate(yy(ncur))
         allocate(ys(ncur))
         allocate(zz(ncur))
         allocate(sig(ncur))
         j = 0
+        yyrs(0) = yrs(0)
         do i=1,ntot
             if ( xx(1,i).gt.xmin ) then
                 j = j + 1
                 ii(j) = i
                 yy(j) = xx(1,i)
                 zz(j) = xx(2,i)
+                yyrs(j) = yrs(i)
             end if
         end do
         if ( j.ne.ncur ) then
@@ -148,6 +151,13 @@
      +           'threshold: ',nthreshold
             call abort
         end if
+        if ( nthreshold.ge.ncur ) then
+            write(0,*) 'fitgpdcov: error: nthreshold &gt ncur ',
+     +           nthreshold,ncur
+            write(0,*) 'fitgpdcov: error: nthreshold &gt ncur ',
+     +           nthreshold,ncur
+            nthreshold = ncur -1
+        end if
         do i=1,ncur
             data(:,i) = xx(:,ii(i))
         enddo
@@ -159,6 +169,8 @@
         ys(1:ncur) = yy(1:ncur)
         call nrsort(ncur,yy)
         athreshold = (yy(ncur-nthreshold) + yy(ncur-nthreshold+1))/2
+        if ( lwrite ) print *,'fitgpdcov: nthreshold,athreshold = ',
+     +       nthreshold,athreshold
         ! needed later on...
         yy(1:ncur) = ys(1:ncur)
         b = sd/3 ! should set the scale roughly right...
@@ -210,7 +222,7 @@
             bb(iens) = b
             xixi(iens) = xi
             alphaalpha(iens) = alpha
-            !!!llwrite = .false.
+            llwrite = .false.
             if ( assume.eq.'shift' .or. assume.eq.'scale' ) then
                 betabeta(iens) = 3e33
                 call fit1gpdcov(aa(iens),bb(iens),xixi(iens),
@@ -340,33 +352,36 @@
         minindx = -2e33
         pmindata = threshold
         snorm = 1
+        frac = ncur/real(ntot)
         ! GPD fit
         nfit = 6
 
+        do i=1,ncur
+            data(:,i) = xx(:,ii(i))
+        enddo
         ! compute distribution at past year and plot it
-        call adjustyy(ntot,xx,assume,a,b,alpha,beta,cov1,
+        call adjustyy(ncur,data,assume,a,b,alpha,beta,cov1,
      +       yy,zz,aaa,bbb,lchangesign,lwrite)
-        ys(1:ntot) = yy(1:ntot)
+        ys(1:ncur) = yy(1:ncur)
         mindata = aaa
         print '(a,i5)','# distribution in year ',yr1a
         call plotreturnvalue(ntype,t25(1,1),t975(1,1),j2-j1+1)
-        call plot_ordered_points(yy,ys,yrs,ntot,ntype,nfit,
-     +       aaa,bbb,xi,j1,j2,minindx,mindata,pmindata,
+        call plot_ordered_points(yy,ys,yyrs,ncur,ntype,nfit,
+     +       frac,aaa,bbb,xi,j1,j2,minindx,mindata,pmindata,
      +       year,xyear,snorm,lchangesign,lwrite,.false.)
 
         ! compute distribution at present year and plot it
-        call adjustyy(ntot,xx,assume,a,b,alpha,beta,cov2,
+        call adjustyy(ncur,data,assume,a,b,alpha,beta,cov2,
      +       yy,zz,aaa,bbb,lchangesign,lwrite)
-        ys(1:ntot) = yy(1:ntot)
+        ys(1:ncur) = yy(1:ncur)
         mindata = aaa
         print '(a)'
         print '(a)'
         print '(a,i5)','# distribution in year ',yr2a
         call plotreturnvalue(ntype,t25(1,2),t975(1,2),j2-j1+1)
-        call plot_ordered_points(yy,ys,yrs,ntot,ntype,nfit,
-     +       aaa,bbb,xi,j1,j2,minindx,mindata,pmindata,
+        call plot_ordered_points(yy,ys,yyrs,ncur,ntype,nfit,
+     +       frac,aaa,bbb,xi,j1,j2,minindx,mindata,pmindata,
      +       year,xyear,snorm,lchangesign,lwrite,.true.)
-
 
         end
 *  #] fitgpdcov:
@@ -521,7 +536,14 @@
             if ( llwrite ) xxunsorted = xx
             call nrsort(ncur,xx)
             athreshold = (xx(ncur-nthreshold) + xx(ncur-nthreshold+1))/2
-            if ( llwrite ) print *,'athreshold = ',athreshold
+            if ( llwrite ) then
+                print *,'llgpdcov: nthreshold,athreshold = ',nthreshold,
+     +               athreshold
+                print *,'          xx(',ncur-nthreshold,') = ',
+     +               xx(ncur-nthreshold)
+                print *,'          xx(',ncur-nthreshold+1,') = ',
+     +               xx(ncur-nthreshold+1)
+            end if
             xx = xx - athreshold
             if ( llwrite ) xxunsorted = xxunsorted - athreshold
         else

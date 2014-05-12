@@ -18,7 +18,7 @@
         logical lastvalid,lprinted
         logical,allocatable :: lf(:)
         real,allocatable :: data(:,:,:),xx(:),xs(:)
-        real mindat,maxdat
+        real mindat,maxdat,frac
      +       ,d,a,b,c,da,db,dc,xi,dxi,yy(maxbin)
      +       ,x,x1,x2,s,sqrt2,snorm,f,ff,offset,xn(maxbin),xy(maxbin),df
      +       ,chsq,prob,lon,lat,elev,threshold,z,xyear,tx,tx25
@@ -1018,6 +1018,7 @@
                     write(11,'(3g16.4)') tx,tx25,tx975
                 endif
                 if ( lchangesign ) xyear = -xyear
+                frac = 1
                 call plot_ordered_points(xx,xs,yrs,ntot,ntype,nfit,
      +               a,b,xi,j1,j2,minindx,mindata,pmindata,
      +               yr2a,xyear,snorm,lchangesign,lwrite,.true.)

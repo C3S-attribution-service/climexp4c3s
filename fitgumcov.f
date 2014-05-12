@@ -33,7 +33,7 @@
      +       ,alphaalpha(nmc),betabeta(nmc)
      +       ,a25,a975,b25,b975,alpha25,alpha975,beta25,beta975
      +       ,ranf,mean,sd,dalpha,dbeta,mindata,minindx,pmindata
-     +       ,snorm,s
+     +       ,snorm,s,frac
         real adev,var,skew,curt,aaa,bbb,siga,chi2,q
         real,allocatable :: yy(:),ys(:),zz(:),sig(:)
         character lgt*4
@@ -278,6 +278,7 @@
         minindx = -2e33
         pmindata = -1
         snorm = 1
+        frac = 1
         ! gumbel fit
         nfit = 4
 
@@ -288,7 +289,7 @@
         print '(a,i5)','# distribution in year ',yr1a
         call plotreturnvalue(ntype,t25(1,1),t975(1,1),j2-j1+1)
         call plot_ordered_points(yy,ys,yrs,ntot,ntype,nfit,
-     +       aaa,bbb,xi,j1,j2,minindx,mindata,pmindata,
+     +       frac,aaa,bbb,xi,j1,j2,minindx,mindata,pmindata,
      +       year,xyear,snorm,lchangesign,lwrite,.false.)
 
         ! compute distribution at past year and plot it
@@ -300,7 +301,7 @@
         print '(a,i5)','# distribution in year ',yr2a
         call plotreturnvalue(ntype,t25(1,2),t975(1,2),j2-j1+1)
         call plot_ordered_points(yy,ys,yrs,ntot,ntype,nfit,
-     +       aaa,bbb,xi,j1,j2,minindx,mindata,pmindata,
+     +       frac,aaa,bbb,xi,j1,j2,minindx,mindata,pmindata,
      +       year,xyear,snorm,lchangesign,lwrite,.true.)
 
         end

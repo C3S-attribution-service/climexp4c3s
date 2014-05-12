@@ -1,4 +1,4 @@
-# FFLAGS = -g -Dlinux -fbounds-check -fbackslash #-fsecond-underscore
+# FFLAGS = -g -m64 -Dlinux -fbounds-check -fbackslash #-fsecond-underscore
 FFLAGS = -O3 -m64 -Dlinux -fbackslash # -fno-backtrace
 
 CFLAGS = -O -m64

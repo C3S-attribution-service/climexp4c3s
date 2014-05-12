@@ -1,4 +1,4 @@
-*  #[ fitgau:
+*  #[ fitgaucov:
         subroutine fitgaucov(xx,yrs,ntot,a,b,alpha,beta,j1,j2
      +       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,cov1,cov2,offset
      +       ,t,t25,t975,tx,tx25,tx975,assume,lboot,lprint,plot,lwrite)
@@ -21,7 +21,7 @@
         integer i,j,nx,iter,iens,nfit,imc,ier,year
         real xmin,aa(nmc),bb(nmc),tt(nmc,10,3),dalpha,dbeta
      +       ,z,x,f,txtx(nmc,3),alphaalpha(nmc),betabeta(nmc)
-     +       ,mean,sd,ranf,mindata,minindx,pmindata,snorm,s
+     +       ,mean,sd,ranf,mindata,minindx,pmindata,snorm,s,frac
         real a25,a975,b25,b975,alpha25,alpha975,beta25,beta975
         real adev,var,skew,curt,aaa,bbb,siga,chi2,q
         real,allocatable :: yy(:),ys(:),zz(:),sig(:)
@@ -243,6 +243,7 @@
         minindx = -2e33
         pmindata = -1
         snorm = 1
+        frac = 1
         ! fit to gauss (normal distribution)
         nfit = 2
         if ( lchangesign ) b = -b
@@ -254,7 +255,7 @@
         print '(a,i5)','# distribution in year ',yr1a
         call plotreturnvalue(ntype,t25(1,1),t975(1,1),j2-j1+1)
         call plot_ordered_points(yy,ys,yrs,ntot,ntype,nfit,
-     +       aaa,bbb,dum,j1,j2,minindx,mindata,pmindata,
+     +       frac,aaa,bbb,dum,j1,j2,minindx,mindata,pmindata,
      +       year,xyear,snorm,lchangesign,lwrite,.false.)
 
         ! compute distribution at present year and plot it
@@ -266,7 +267,7 @@
         print '(a,i5)','# distribution in year ',yr2a
         call plotreturnvalue(ntype,t25(1,2),t975(1,2),j2-j1+1)
         call plot_ordered_points(yy,ys,yrs,ntot,ntype,nfit,
-     +       aaa,bbb,dum,j1,j2,minindx,mindata,pmindata,
+     +       frac,aaa,bbb,dum,j1,j2,minindx,mindata,pmindata,
      +       year,xyear,snorm,lchangesign,lwrite,.true.)
 
         end
