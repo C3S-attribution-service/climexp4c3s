@@ -31,6 +31,12 @@
         real erfcc
         lstandardunits = .true.
         lwrite = .false.
+        do i=1,iargc()
+            call getarg(i,string)
+            if ( string.eq.'debug' .or. string.eq.'lwrite' ) then
+                lwrite = .true.
+            end if
+        end do
 *
         if ( iargc().lt.3 ) then
             print *,'usage: difffield field1 field2 '//
