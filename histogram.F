@@ -1020,7 +1020,7 @@
                 if ( lchangesign ) xyear = -xyear
                 frac = 1
                 call plot_ordered_points(xx,xs,yrs,ntot,ntype,nfit,
-     +               a,b,xi,j1,j2,minindx,mindata,pmindata,
+     +               frac,a,b,xi,j1,j2,minindx,mindata,pmindata,
      +               yr2a,xyear,snorm,lchangesign,lwrite,.true.)
             else
                 write(0,*) 'Unknown plot type ',ntype
