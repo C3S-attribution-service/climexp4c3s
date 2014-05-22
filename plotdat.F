@@ -13,9 +13,9 @@
         logical lanomal,lskip,lexist,lopened
         character line*255,ensfile*255,var*40,units*40,lvar*100,
      +       title*1000,name*512
-	integer iargc,llen
+        integer iargc,llen
         lwrite = .FALSE.
-	lskip = .FALSE.
+        lskip = .FALSE.
         call getenv('LWRITE_PLOTDAT',line)
         if ( line(1:1).eq.'t' .or. line(1:1).eq.'T' ) then
             lwrite = .true.

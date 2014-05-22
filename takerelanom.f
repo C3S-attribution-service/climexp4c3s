@@ -12,7 +12,7 @@
         real s
 !
         minfac = 0.6 ! require at least this many months with data to give a value for a season...
-        if ( mon.eq.0 ) then
+        if ( mon.eq.0 .and. nperyear.gt.1 ) then
             ! special case for the IPCC WG1 AR5 Annex I Atlas - should never have made it's way into
             ! the general Climate Explorer programs, but it was a quick solution at a deadline :-(
             if ( lsum.eq.12 ) then
@@ -52,6 +52,8 @@
             else
                 goto 903
             end if
+        else if ( nperyear.eq.1 ) then
+            if ( lwrite ) print *,'do nothing'
         else
             ! more general solution for the KNMI Atlas
             s = 0
@@ -82,8 +84,8 @@
             end do
         end do
         goto 999
- 903    write(0,*) 'plotdat: error: cannot take relative anoamlies with'
-     +       ,' nperyear = ',nperyear,' and lsum = ',lsum,' yet'
+ 903    write(0,*) 'takerelanom: error: cannot take relative anoamlies '
+     +       ,'with nperyear = ',nperyear,' and lsum = ',lsum,' yet'
         call abort
  999    continue
         end
