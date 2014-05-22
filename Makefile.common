@@ -328,7 +328,8 @@ PROGRAMS      = scientific2decimal \
 		makesnow \
 		polygon2mask \
 		polygon2box \
-		extremeseries
+		extremeseries \
+		transform
 
 SHLIBS =	rkillfile.so \
        		rkeepalive.so
@@ -685,6 +686,9 @@ del_dimension:	del_dimension.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
 
 list2kml:	list2kml.o $(LIBRARY)
+		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
+
+transform:	transform.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
 
 nc2varlist:	nc2varlist.o $(LIBRARY)
