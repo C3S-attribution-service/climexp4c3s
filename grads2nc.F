@@ -6,7 +6,7 @@
 #include "params.h"
 #include "netcdf.inc"
         integer nvarmax,ntmax
-        parameter(nvarmax=100,ntmax=366*1000)
+        parameter(nvarmax=1000,ntmax=366*1000)
         integer nx,ny,nz,nt,nperyear,yrbegin,mobegin,endian,nvars
      +        ,ivars(2,nvarmax)
         integer status,ncid,i,j,k,itimeaxis(ntmax),dpm(12,2),
