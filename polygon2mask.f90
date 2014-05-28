@@ -10,7 +10,8 @@ program polygon2mask
     integer i,j,npol,mens,mens1,ncid,nx,ny,nz,nt,nperyear,firstyr,firstmo,endian,nvars,jvars(6,nvarmax),ntvarid
     integer nens1,nens2,ntmax,itimeaxis(1),iarg,ncoords
     real xx(nxmax),yy(nymax),zz(nzmax),undef,xxls(nxmax),yyls(nymax)
-    real polygon(2,npolmax),mask(nxmax,nymax),coords(3,npolmax)
+    double precision polygon(2,npolmax),coords(3,npolmax)
+    real mask(nxmax,nymax)
     character infile*255,datfile*255,maskfile*255,lz(3)*20,ltime*120,title*1047,history*4095, &
         & string*80,lsmasktype*4
     character vars(nvarmax)*50,lvars(nvarmax)*100,svars(nvarmax)*100,units(nvarmax)*100 &
@@ -160,7 +161,7 @@ subroutine read_polygon(datfile,npol,npolmax,polygon,lwrite)
     ! In the (linear) output a line with 3e33,3e33 denotes the start of a new polygon
     implicit none
     integer npol,npolmax
-    real polygon(2,npolmax)
+    double precision polygon(2,npolmax)
     character datfile*(*)
     integer ipol
     character string*100
@@ -228,7 +229,8 @@ subroutine fillmask(polygon,npol,pole,xx,nx,yy,ny,mask,nxmax,nymax,lwrite)
   !
   implicit none
   integer npol,nx,ny,nxmax,nymax
-  real polygon(2,npol),xx(nx),yy(ny),mask(nxmax,nymax)
+  double precision polygon(2,npol)
+  real xx(nx),yy(ny),mask(nxmax,nymax)
   character pole*2
   logical lwrite
   integer ipol,ix,iy,ixmin,ixmax,iymin,iymax
@@ -370,13 +372,14 @@ real function in_polygon(polygon,npol,x,y,pole,lwrite)
   !
   implicit none
   integer npol
-  real polygon(2,npol),x,y
+  double precision polygon(2,npol)
+  real x,y
   character pole*(*)
   logical lwrite
   integer ipol
   real ynull,result,partial
   real segments_crossed
-  logical foundtouch
+  logical foundtouch,llwrite
 
   foundtouch = .false.
   ynull = -90
@@ -395,8 +398,12 @@ real function in_polygon(polygon,npol,x,y,pole,lwrite)
      ! skip "segments" that include the polygon-separating marker 3e33,3e33
      if ( polygon(1,ipol).gt.1e33 ) cycle
      if ( polygon(1,ipol+1).gt.1e33 ) cycle
-     partial = segments_crossed(polygon(1:2,ipol),polygon(1:2,ipol+1),x,y,ynull,.false.)
-     if ( lwrite .and. partial.ne.0 ) print *,'in_polygon: segments_crossed returns ',ipol,partial
+     llwrite = .false.
+     !!!if ( x.eq.14.75 .and. y.gt.48.5 .and. &
+     !!!& (polygon(1,ipol)-x)*(polygon(1,ipol+1)-x).lt.0 ) llwrite = .true.
+     partial = segments_crossed(polygon(1:2,ipol),polygon(1:2,ipol+1),x,y,ynull,llwrite)
+     if ( lwrite .and. partial.ne.0 ) print '(a,i6,f3.0,4f10.5)','in_polygon: segments_crossed returns ', &
+     & ipol,partial,polygon(1:2,ipol),polygon(1:2,ipol+1)
      if ( partial.eq.0.5 ) then
         result = partial
         if ( lwrite ) print *,'end point on line ',result
@@ -404,7 +411,7 @@ real function in_polygon(polygon,npol,x,y,pole,lwrite)
      end if
      if ( partial.eq.1 ) then
         result = 1-result
-        if ( lwrite ) print *,'flipped from ',1-result,' to ',result
+        if ( .false. .and. lwrite ) print *,'flipped from ',1-result,' to ',result
      else if ( partial.eq.3e33 ) then
         if ( lwrite ) then
         	print *,'undefined ',result
@@ -420,7 +427,7 @@ real function in_polygon(polygon,npol,x,y,pole,lwrite)
   end if
 end function in_polygon
 
-real function segments_crossed(p1,p2,xin,y,ynull,lwrite)
+real function segments_crossed(p1,p2,xin,yin,ynull,lwrite)
   !
   ! determines whther the two line segments p1 - p2 and (x,ynull) - (x,y) cross or not
   ! 0: no cross
@@ -429,9 +436,10 @@ real function segments_crossed(p1,p2,xin,y,ynull,lwrite)
   ! 3e33: touched at another point
   !
   implicit none
-  real p1(2),p2(2),xin,y,ynull
+  double precision p1(2),p2(2)
+  real xin,yin,ynull
   logical lwrite
-  real x,x1,y1,x2,y2,lam,mu
+  double precision x,y,x1,y1,x2,y2,lam,mu
   !
   if ( lwrite ) then
      print *,'segments_crossed: input:'
@@ -449,6 +457,7 @@ real function segments_crossed(p1,p2,xin,y,ynull,lwrite)
   x1 = p1(1)
   x2 = p2(1)
   x = xin
+  y = yin
   if ( abs(x2-x1).gt.abs(x2-360-x1) .and. abs(x2-360-x1).gt.0.01 ) then
      x2 = x2 - 360
   end if
@@ -474,7 +483,7 @@ real function segments_crossed(p1,p2,xin,y,ynull,lwrite)
   if ( lwrite ) then
      print *,'special case? x1,x2,x = ',x1,x2,x
   end if
-  if ( abs(x1-x2).lt.0.001 ) then
+  if ( abs(x1-x2).lt.0.00000001 ) then
      if ( x.ne.x1 ) then
         segments_crossed = 0
      else if ( ynull.eq.-90 .and. min(y1,y2).gt.y ) then
@@ -526,7 +535,7 @@ subroutine getcoordspolygon(polygon,npol,coords,ncoords,lwrite)
   !
   implicit none
   integer npol,nmax,ncoords
-  real polygon(2,npol),coords(3,npol)
+  double precision polygon(2,npol),coords(3,npol)
   logical lwrite
   integer ipol,i
   real xmin,xmax,ymin,ymax,x,xold,area
@@ -592,7 +601,8 @@ subroutine setmasknonzero(coords,ncoords,xx,nx,yy,ny,xwrap,mask,nxmax,nymax,lwri
     !
     implicit none
     integer ncoords,nx,ny,nxmax,nymax
-    real coords(3,ncoords),xx(nx),yy(ny),mask(nxmax,nymax)
+    double precision coords(3,ncoords)
+    real xx(nx),yy(ny),mask(nxmax,nymax)
     logical xwrap,lwrite
     integer icoords,ix,iy
     real x,dist,pi,dx,dy
