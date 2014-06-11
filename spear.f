@@ -81,8 +81,12 @@ CU    USES betai,crank,erfcc,sort2
       aved=en3n/6.-(sf+sg)/12.
       fac=(1.-sf/en3n)*(1.-sg/en3n)
       vard=((en-1.)*en**2*(en+1.)**2/36.)*fac
-      zd=(d-aved)/sqrt(vard)
-	if ( sum.ge.1e33 ) then
+        if ( vard.eq.0 ) then
+            zd = 3e33
+        else
+            zd=(d-aved)/sqrt(vard)
+        end if
+	if ( sum.ge.1e33 .or. zd.gt.1e33 ) then
 	    probd = 3e33
 	else
 	    probd=erfcc(abs(zd)/1.4142136)
