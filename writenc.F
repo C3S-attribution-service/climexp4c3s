@@ -7,9 +7,9 @@
         real xx(nx),yy(ny),zz(nz),undef
         character file*(*),title*(*),vars(nvars)*(*),lvars(nvars)*(*),
      +       units(nvars)*(*),history*100,cell_methods(nvars)*100
-        character svars(100)*1,ltime*10,lz(3)*20
-        if ( nvars.gt.100 ) then
-            write(0,*) 'writenc: can only handle up to 100 variables'
+        character svars(1000)*1,ltime*10,lz(3)*20
+        if ( nvars.gt.1000 ) then
+            write(0,*) 'writenc: can only handle up to 1000 variables'
             call abort
         endif
         svars(1:nvars) = ' '
