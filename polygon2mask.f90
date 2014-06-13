@@ -234,7 +234,7 @@ subroutine fillmask(polygon,npol,pole,xx,nx,yy,ny,mask,nxmax,nymax,lwrite)
   character pole*2
   logical lwrite
   integer ipol,ix,iy,ixmin,ixmax,iymin,iymax
-  real xmin,xmax,ymin,ymax,res(2),epsilon
+  double precision xmin,xmax,ymin,ymax,res(2),epsilon
   real in_polygon
 
   mask = 0
@@ -317,7 +317,8 @@ subroutine fillmask(polygon,npol,pole,xx,nx,yy,ny,mask,nxmax,nymax,lwrite)
   do ix=ixmin,ixmax
      do iy=iymin,iymax
         mask(ix,iy) = in_polygon(polygon,npol,xx(ix),yy(iy),pole,lwrite)
-        if ( lwrite ) print *,'Found point ',ix,xx(ix),iy,yy(iy),mask(ix,iy)
+        if ( lwrite ) print '(a,i5,f9.3,i5,f8.3,f4.1)', &
+        &   'Found point ',ix,xx(ix),iy,yy(iy),mask(ix,iy)
         if ( mask(ix,iy).eq.3e33 ) then
            ! ambiguous - shift point by epsilon
            ! I expect this to happen a lot as both polygons and grids tend to be on integer numbers
@@ -393,7 +394,7 @@ real function in_polygon(polygon,npol,x,y,pole,lwrite)
      return
   end if
 !
-  if ( lwrite ) print *,'started with ',result
+  if ( .false. .and. lwrite ) print *,'started with ',result
   do ipol=1,npol-1
      ! skip "segments" that include the polygon-separating marker 3e33,3e33
      if ( polygon(1,ipol).gt.1e33 ) cycle
@@ -538,7 +539,7 @@ subroutine getcoordspolygon(polygon,npol,coords,ncoords,lwrite)
   double precision polygon(2,npol),coords(3,npol)
   logical lwrite
   integer ipol,i
-  real xmin,xmax,ymin,ymax,x,xold,area
+  double precision xmin,xmax,ymin,ymax,x,xold,area
 
   xmin = 3e33
   xmax = -3e33
