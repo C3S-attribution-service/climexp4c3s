@@ -9,7 +9,7 @@
 #include "param.inc"
         integer nmax,nyearmin,mpermax
         parameter(nmax=1000,nyearmin=10,mpermax=366)
-        integer i,j,k,n,nseries,nperyear,nl,yr1,yr2
+        integer i,j,k,l,n,nseries,nperyear,nl,yr1,yr2
         real w
         real,allocatable :: data(:,:,:),means(:),weights(:,:)
         character string(nmax)*80,firstline*10000,var*40,units*20,
@@ -46,7 +46,7 @@
         else if ( weigh(1:5).eq.'weigh' ) then
             lweigh = .true.
         else
-            write(0,*) 'error: expaecting const|weigh, not ',weigh
+            write(0,*) 'error: expecting const|weigh, not ',weigh
             stop
         end if
         do k=1,nseries
@@ -81,6 +81,9 @@
                     call abort
                 endif
             enddo
+            if ( nperyear.ge.360 ) then
+                call averageseries_smooth(means,nperyear,5)
+            end if
 *           
 *           compute weights
 *           
@@ -100,6 +103,10 @@
                         weights(j,k) = 3e33
                     endif
                 enddo
+                if ( nperyear.ge.360 ) then
+                    ! smooth twice with a 5-day running mean filter
+                    call averageseries_smooth(weights(1,k),nperyear,5)
+                end if
             enddo
             open(1,file='weights.dat')
             write(1,'(a)') '# weights for the summation'
@@ -144,3 +151,42 @@
      +       yr1,yr2)
         end
 
+        subroutine averageseries_smooth(weights,nperyear,nsmooth)
+!
+!       smooth weights by applying an  N-day runnng mean twice (i.e., a trinagle)
+!
+        implicit none
+        integer nperyear,nsmooth
+        real weights(nperyear),weights1(nperyear)
+        real,allocatable :: array(:)
+
+        allocate(array(nperyear))
+        call averageseries_smooth1(weights,array,nperyear,nsmooth)
+        call averageseries_smooth1(array,weights,nperyear,nsmooth)
+        deallocate(array)
+        end
+
+        subroutine averageseries_smooth1(weights,array,nperyear,nsmooth)
+!
+!       put an 5-day smoothed version of weights into array
+!
+        implicit none
+        integer nperyear,nsmooth
+        real weights(nperyear),array(nperyear)
+        integer j,k,l,n
+
+        do j=1,nperyear
+            n = 0
+            array(j) = 0
+            do k=-nsmooth/2,nsmooth/2
+                l = j+k
+                if ( l.lt.1 ) l = l + nperyear
+                if ( l.gt.nperyear) l = l - nperyear
+                if ( weights(l).lt.1e33 ) then
+                    n = n + 1
+                    array(j) = array(j) + weights(l)
+                end if
+            end do
+            array(j) = array(j)/n
+        end do
+        end
