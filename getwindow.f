@@ -168,6 +168,14 @@
                     lon2c = lon2c - 360
                 endif
             endif
+            if ( lon1c.lt.2*xx(1)-xx(2) .or. lon2c.gt.2*xx(nx)-xx(nx-1) 
+     +           ) then
+                write(0,*) 'getlonwindow: error: cannot extraplate to ',
+     +               lon1c,lon2c
+                lon1c = 3e33
+                lon2c = 3e33
+                return
+            end if
             if ( lwrite ) then
                 print *,'getlonwindow: input:     ',lon1,lon2
                 print *,'              reduced to ',lon1c,lon2c
@@ -320,6 +328,20 @@
             lat2c = lat2
         endif
         if ( yy(2).gt.yy(1) ) then
+            if ( lat1c.lt.2*yy(1)-yy(2) ) then
+                write(0,*) 'getlatwindow: error: cannot extraplate to ',
+     +               lat1c
+                lat1c = 3e33
+                lat2c = 3e33
+                return
+            end if
+            if ( lat2c.gt.2*yy(ny)-yy(ny-1) ) then
+                write(0,*) 'getlatwindow: error: cannot extraplate to ',
+     +               lat2c
+                lat1c = 3e33
+                lat2c = 3e33
+                return
+            end if
             do y1=1,ny
                 if ( yy(y1).ge.lat1c ) goto 210
             enddo
@@ -344,6 +366,20 @@
             call getlon(y1,yy,ny,lat1c)
             call getlon(y2+1,yy,ny,lat2c)
         else
+            if ( lat1c.lt.2*yy(ny)-yy(ny-1) ) then
+                write(0,*) 'getlatwindow: error: cannot extraplate to ',
+     +               lat1c
+                lat1c = 3e33
+                lat2c = 3e33
+                return
+            end if
+            if ( lat2c.gt.2*yy(1)-yy(2) ) then
+                write(0,*) 'getlatwindow: error: cannot extraplate to ',
+     +               lat2c
+                lat1c = 3e33
+                lat2c = 3e33
+                return
+            end if
             do y1=1,ny
                 if ( yy(y1).le.lat2c ) goto 230
             enddo
