@@ -742,6 +742,9 @@ test_fitcross:	test_fitcross.o $(LIBRARY)
 testfitgevcov:	testfitgevcov.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)		
 
+testshiftseries:	testshiftseries.o $(LIBRARY)
+		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)		
+
 rkillfile.so:	rkillfile.f
 		R CMD SHLIB ../rkillfile.f
 
