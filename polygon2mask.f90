@@ -316,7 +316,7 @@ subroutine fillmask(polygon,npol,pole,xx,nx,yy,ny,mask,nxmax,nymax,lwrite)
   !
   do ix=ixmin,ixmax
      do iy=iymin,iymax
-        mask(ix,iy) = in_polygon(polygon,npol,xx(ix),yy(iy),pole,lwrite)
+        mask(ix,iy) = in_polygon(polygon,npol,dble(xx(ix)),dble(yy(iy)),pole,lwrite)
         if ( lwrite ) print '(a,i5,f9.3,i5,f8.3,f4.1)', &
         &   'Found point ',ix,xx(ix),iy,yy(iy),mask(ix,iy)
         if ( mask(ix,iy).eq.3e33 ) then
@@ -327,23 +327,23 @@ subroutine fillmask(polygon,npol,pole,xx,nx,yy,ny,mask,nxmax,nymax,lwrite)
            res(2) = +3e33
            do while ( res(1).ne.res(2) )
               if ( lwrite ) print *,'Found undefined point, trying with offset ',epsilon
-              res(1) = in_polygon(polygon,npol,xx(ix)-epsilon,yy(iy),pole,lwrite)
+              res(1) = in_polygon(polygon,npol,dble(xx(ix))-epsilon,dble(yy(iy)),pole,lwrite)
               if ( lwrite ) print *,'   x- point ',ix,xx(ix)-epsilon,iy,yy(iy),res(1)
               if ( res(1).eq.3e33 ) then
-                 res(1) = in_polygon(polygon,npol,xx(ix)-epsilon,yy(iy)-epsilon/sqrt(3.),pole,lwrite)
+                 res(1) = in_polygon(polygon,npol,dble(xx(ix))-epsilon,dble(yy(iy))-epsilon/sqrt(3.),pole,lwrite)
                  if ( lwrite ) print *,'  xy- point ',ix,xx(ix)-epsilon,iy,yy(iy)-epsilon/sqrt(3.),res(1)
                  if ( res(1).eq.3e33 ) then
-                    res(1) = in_polygon(polygon,npol,xx(ix),yy(iy)-epsilon/sqrt(3.),pole,lwrite)
+                    res(1) = in_polygon(polygon,npol,dble(xx(ix)),dble(yy(iy))-epsilon/sqrt(3.),pole,lwrite)
                     if ( lwrite ) print *,'   y- point ',ix,xx(ix),iy,yy(iy)-epsilon/sqrt(3.),res(1)
                  end if
               end if
-              res(2) = in_polygon(polygon,npol,xx(ix)+epsilon,yy(iy),pole,lwrite)
+              res(2) = in_polygon(polygon,npol,dble(xx(ix))+epsilon,dble(yy(iy)),pole,lwrite)
               if ( lwrite ) print *,'   x+ point ',ix,xx(ix)+epsilon,iy,yy(iy),res(2)
               if ( res(2).eq.3e33 ) then
-                 res(2) = in_polygon(polygon,npol,xx(ix)+epsilon,yy(iy)+epsilon/sqrt(3.),pole,lwrite)
+                 res(2) = in_polygon(polygon,npol,dble(xx(ix))+epsilon,dble(yy(iy))+epsilon/sqrt(3.),pole,lwrite)
                  if ( lwrite ) print *,'  xy+ point ',ix,xx(ix)+epsilon,iy,yy(iy)+epsilon/sqrt(3.),res(2)
                  if ( res(2).eq.3e33 ) then
-                    res(2) = in_polygon(polygon,npol,xx(ix),yy(iy)+epsilon/sqrt(3.),pole,lwrite)
+                    res(2) = in_polygon(polygon,npol,dble(xx(ix)),dble(yy(iy))+epsilon/sqrt(3.),pole,lwrite)
                     if ( lwrite ) print *,'   y+ point ',ix,xx(ix),iy,yy(iy)+epsilon/sqrt(3.),res(2)
                  end if
               end if
@@ -374,11 +374,12 @@ real function in_polygon(polygon,npol,x,y,pole,lwrite)
   implicit none
   integer npol
   double precision polygon(2,npol)
-  real x,y
+  double precision x,y
   character pole*(*)
   logical lwrite
   integer ipol
-  real ynull,result,partial
+  double precision ynull
+  real result,partial
   real segments_crossed
   logical foundtouch,llwrite
 
@@ -438,7 +439,7 @@ real function segments_crossed(p1,p2,xin,yin,ynull,lwrite)
   !
   implicit none
   double precision p1(2),p2(2)
-  real xin,yin,ynull
+  double precision xin,yin,ynull
   logical lwrite
   double precision x,y,x1,y1,x2,y2,lam,mu
   !

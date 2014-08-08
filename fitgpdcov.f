@@ -191,6 +191,9 @@
         if ( xyear.lt.1e33 ) then
             call getreturnyears(a,b,xi,alpha,beta,xyear,cov1,cov2,
      +           gpdcovreturnyear,j1,j2,tx,lwrite)
+            print '(a,9f10.2)','# tx was ',tx
+            tx(1:2) = tx(1:2)*ncur/real(ntot)
+            print '(a,9f10.2)','# tx  is ',tx
         endif
 *
 *       bootstrap to find error estimates
@@ -247,9 +250,10 @@
                 call getreturnyears(aa(iens),bb(iens),xixi(iens),
      +               alphaalpha(iens),betabeta(iens),xyear,cov1,cov2,
      +               gpdcovreturnyear,j1,j2,txtxtx,lwrite)
-                do j=1,3
-                    txtx(iens,j) = txtxtx(j)
+                do j=1,2
+                    txtx(iens,j) = txtxtx(j)*ncur/real(ntot)
                 end do
+                txtx(iens,3) = txtxtx(3)
             endif
         enddo
         if ( lchangesign ) then
@@ -763,6 +767,11 @@
                 write(0,*) 'fitgpd: tx > 1e20: ',tx
                 write(0,*) 'z,xi = ',z,xi
             end if
+            if ( llwrite ) then
+                print *,'gpdcovreturnyear: tx from GPD fit = ',tx
+                print *,'  aa,pthreshold = ',aa,pthreshold
+                print *,'  x,z = ',x,z
+            end if
         else
             n = 0
             if ( cassume.eq.'shift' ) then
@@ -789,6 +798,10 @@
             ! approximately... I do not have this information here.
             ntot = nint(nthreshold/(1-pthreshold/100))
             tx = real(ntot+1)/real(n)
+            if ( llwrite ) then
+                print *,'gpdcovreturnyear: interpolated tx = ',tx
+                print *,'  n,ntot = ',n,ntot
+            end if
         endif
         if ( .false. .and. tx.gt.1e20 ) then
             write(0,*) 'gpdcovreturnyear: tx > 1e20: ',tx
