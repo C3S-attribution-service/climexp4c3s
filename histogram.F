@@ -8,24 +8,25 @@
 #include "param.inc"
 #include "getopts.inc"
         integer maxbin,maxldat,nboot
-        parameter (maxbin=1000,maxldat=100000,nboot=800)
+        parameter (maxbin=1000,maxldat=10000000,nboot=800)
 
         integer i,ii,j,jj,j1,j2,n,m,nperyear,nbin,month,yr,nn(maxbin)
      +       ,Nless,nfit,ntot,ntype,ier,iens,mens1,mens,l,nnn
      +       ,iboot,mboot,ndecor,nfitted,it,tmax,off,yrstart,yrstop
-     +       ,dy,mo
+     +       ,dy,mo,iret,jmax,iensmax
         integer,allocatable :: yrs(:)
-        logical lastvalid,lprinted
+        logical lastvalid,lprinted,lexist
         logical,allocatable :: lf(:)
         real,allocatable :: data(:,:,:),xx(:),xs(:)
         real mindat,maxdat,frac
      +       ,d,a,b,c,da,db,dc,xi,dxi,yy(maxbin)
      +       ,x,x1,x2,s,sqrt2,snorm,f,ff,offset,xn(maxbin),xy(maxbin),df
-     +       ,chsq,prob,lon,lat,elev,threshold,z,xyear,tx,tx25
-     +       ,tx975,t(10),t25(10),t975(10)
+     +       ,chsq,prob,lon,lat,elev,threshold,z,tx,tx25
+     +       ,tx975,t(10),t25(10),t975(10),xmax
         real mean(0:nboot),sd(0:nboot),skew(0:nboot)
         character file*255,string*100,var*20,units*20,prog*100,
-     +       number*100,line*255
+     +       number*100,line*255,command*255,extraargs*100,
+     +       extraargs_*100
 
         integer iargc
         real gammln,erf,erfcc,gammq,gammp,invcumpois,invcumgamm
@@ -33,6 +34,7 @@
         external gammln,erf,erfcc,gammp,gammq,invcumpois
      +        ,invcumgamm,ranf
 *
+        call killfile(string,line,file,0)
         allocate(yrs(0:maxldat))
         allocate(lf(maxldat))
         allocate(xx(maxldat))
@@ -46,7 +48,7 @@
             stop
         endif
 !
-!       getopts comes way too lat for these options...
+!       getopts comes way too late for these options...
         do i=4,iargc()
             call getarg(i,string)
             if ( string.eq.'debug' .or. string.eq.'lwrite' ) then
@@ -61,50 +63,13 @@
         if ( file.ne.'file' ) then
 *           simple data file (possibly an ensemble)
             off = 0
-            print '(2a)','# file ',file(1:index(file,' ')-1)
+            print '(2a)','# file ',trim(file)
             call readensseries(file,data,npermax,yrbeg,yrend,nensmax
      +           ,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
         else
-*           set of data files in a list in the old stupid getstaions
-*           output format; after a line with coordinates there is a line
-*           with after the colon a 'number', which is used by the program
-*           (the next argument) to retrieve the data and store it in 
-*           data/prognumber.dat
             off = 2
-            call getarg(3,prog)
-            call getarg(2,file)
-            open(1,file=file,status='old')
-            mens = 0
-            mens1 = 0
- 1          continue
-            call readcoord(1,lon,lat,elev)
-            if ( lon.gt.1e33 ) goto 2
-            read(1,'(a)',err=1,end=1) line
-            call readcodename(line,number,string,lwrite)
-            file = './data/'//trim(prog)//trim(number)//'.dat'
-!           this assumes that it is not an ensemble!
-            if ( lwrite ) print *,'reading ',trim(file)
-            call readseries(file,data(1,yrbeg,mens),npermax,yrbeg,yrend
-     +           ,m,var,units,lstandardunits,lwrite)
-            if ( m.eq.0 ) goto 1
-            if ( mens.eq.0 ) then
-                nperyear = m
-            else
-                if ( m.ne.nperyear ) then
-                    write(0,*)
-     +                   'histogram: error: different time scales ',m
-     +                   ,nperyear
-                    call abort
-                endif
-            endif
-            mens = mens + 1
-            if ( mens.gt.nensmax ) then
-                write(0,*) 'histogram: error: increase nensmax'
-                call abort
-            endif
-            goto 1
- 2          continue
-            mens = mens - 1
+            call readsetseries(data,npermax,yrbeg,yrend,nensmax,
+     +           nperyear,mens1,mens,var,units,lstandardunits,lwrite)
         endif
         call getarg(2+off,string)
         read(string,*) nbin
@@ -327,13 +292,32 @@
             mindat = +3e33
             maxdat = -3e33
             offset = 0
-            xyear = 3e33
             tx = 3e33
             tx25 = 3e33
             tx975 = 3e33
             t = 3e33
             t25 = 3e33
             t975 = 3e33
+            ! first find the largest value in the year under study
+            xmax = -3e33
+            do iens=nens1,nens2
+                do yr=yr1-1,yr2
+                    do jj=j1,j2
+                        j = jj
+                        call normon(j,yr,i,nperyear)
+                        if ( i.ge.yr1 .and. i.le.yr2) then
+                            if ( i.eq.yr2a .and. data(j,i,iens).lt.1e33
+     +                           ) then
+                                if ( xmax.lt.data(j,i,iens) ) then
+                                    jmax = j
+                                    iensmax = iens
+                                    xmax = data(j,i,iens)
+                                end if ! largest value?
+                            end if ! year to be taken out?
+                        end if ! in range?
+                    end do  ! jj
+                end do ! yr
+            end do ! iens
             do iens=nens1,nens2
                 lastvalid = .false.
                 do yr=yr1-1,yr2
@@ -344,26 +328,16 @@
                         j = jj
                         call normon(j,yr,i,nperyear)
                         if ( i.ge.yr1 .and. i.le.yr2) then
-                            if ( i.eq.yr2a .and. data(j,i,iens).lt.1e33
-     +                           ) then
-                                if ( nens1.ne.nens2 ) then
-                                    write(0,*)'histogram: error: cannot'
-     +                                   //' handle ensembles',i
-                                    write(*,*)'histogram: error: cannot'
-     +                                   //' handle ensembles',i
-                                    call abort
-                                endif
-                                if ( j1.ne.j2 ) then
-                                    write(0,*)'histogram: error: can '
-     +                                   //'only handle annual data'
-                                    write(*,*)'histogram: error: can '
-     +                                   //'only handle annual data'
-                                    call abort
-                                endif
-                                xyear = data(j,i,iens)
+                            if ( i.eq.yr2a .and. j.eq.jmax ) then
+                                ! set xyear to the largest value
+                                if ( iens.eq.iensmax ) then
+                                    xyear = data(j,i,iens)
+                                end if
+                                ! and set all ensemble members to undef
+                                ! to avoid possibly dependent data
                                 data(j,i,iens) = 3e33
                             endif
-                            if (  data(j,i,iens).lt.1e33 ) then
+                            if ( data(j,i,iens).lt.1e33 ) then
                                 ntot = ntot + 1
                                 if ( ntot.gt.maxldat ) then
                                     print *,'# histogram error '//
@@ -428,6 +402,7 @@
                 ndecor = 1+nint(decor)
             endif
             do iboot=1,mboot
+                call keepalive1('Bootstrapping',iboot,mboot)
                 n = ntot/ndecor
                 do i=1,n
                     ii = 0

@@ -45,7 +45,8 @@
             if ( month.gt.nperyear ) then
                 month = month - nperyear
                 year = year + 1
-                call keepalive(year,yrbegin+nt/nperyear)
+                call keepalive1('Computing mean of ',
+     +               year,yrbegin+nt/nperyear)
             endif
             if ( lwrite ) print *,'month,year = ',month,year
             do j=y1,y2

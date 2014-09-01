@@ -160,7 +160,7 @@
                 nzf = max(nz1,nz)
                 allocate(ave2(nxf,nyf,nzf,nperyear,2))
                 if ( nxf.ne.nx1 .or. nyf.ne.ny1 .or. nzf.ne.nz1 ) then
-!                   make sure ave1 has teh same size as ave2
+!                   make sure ave1 has the same size as ave2
                     ave2(1:nx1,1:ny1,1:nz1,:,:) =
      +                   ave1(1:nx1,1:ny1,1:nz1,:,:)
                     if ( lwrite )print *,'resizing ave1 to ',nxf,nyf,nzf
@@ -358,6 +358,8 @@
                                 if ( abs(ave1(jx,jy,jz,j,1)).gt.1e-10
      +                               .and.
      +                               abs(ave2(jx,jy,jz,j,1)).gt.1e-10
+     +                               .and.
+     +                               abs(ave2(jx,jy,jz,j,1)).gt.mindata
      +                               ) then
                                     s = ave1(jx,jy,jz,j,1)
      +                                   /ave2(jx,jy,jz,j,1)
@@ -371,27 +373,36 @@
                                     ave1(jx,jy,jz,j,:) = 3e33
                                 end if
                             else
-                                ave1(jx,jy,jz,j,1) = 
-     +                               ave1(jx,jy,jz,j,1)
-     +                               - ave2(jx,jy,jz,j,1)
-                                if ( ave1(jx,jy,jz,j,2).lt.0 ) then
-                                    write(0,*) 'difffield: error: ave1('
-     +                                   ,jx,jy,jz,j,',2) < 0 ',
-     +                                   ave1(jx,jy,jz,j,2)
-                                    ave1(jx,jy,jz,j,2) = 3e33
-                                else if ( ave2(jx,jy,jz,j,2).lt.0 ) then
-                                    write(0,*) 'difffield: error: ave2('
-     +                                   ,jx,jy,jz,j,',2) < 0 ',
-     +                                   ave2(jx,jy,jz,j,2)
-                                    ave1(jx,jy,jz,j,2) = 3e33
-                                else if ( ave1(jx,jy,jz,j,2).gt.1e30 .or
-     +                                   .ave2(jx,jy,jz,j,2).gt.1e30 )
-     +                                   then
-                                    ave1(jx,jy,jz,j,2) = 3e33
+                                if ( abs(ave1(jx,jy,jz,j,1)).gt.mindata
+     +                               .and.
+     +                               abs(ave2(jx,jy,jz,j,1)).gt.mindata
+     +                               ) then
+                                    ave1(jx,jy,jz,j,1) = 
+     +                                   ave1(jx,jy,jz,j,1)
+     +                                   - ave2(jx,jy,jz,j,1)
+                                    if ( ave1(jx,jy,jz,j,2).lt.0 ) then
+                                        write(0,*) 'difffield: error: ',
+     +                                       'ave1(',jx,jy,jz,j,',2)<0 '
+     +                                       ,ave1(jx,jy,jz,j,2)
+                                        ave1(jx,jy,jz,j,2) = 3e33
+                                    else if ( ave2(jx,jy,jz,j,2).lt.0 )
+     +                                       then
+                                        write(0,*) 'difffield: error: ',
+     +                                       'ave2(',jx,jy,jz,j,',2)<0 '
+     +                                       ,ave2(jx,jy,jz,j,2)
+                                        ave1(jx,jy,jz,j,2) = 3e33
+                                    else if ( ave1(jx,jy,jz,j,2).gt.1e30
+     +                                       .or.
+     +                                        ave2(jx,jy,jz,j,2).gt.1e30
+     +                                       ) then
+                                        ave1(jx,jy,jz,j,2) = 3e33
+                                    else
+                                        ave1(jx,jy,jz,j,2) = sqrt(
+     +                                       ave1(jx,jy,jz,j,2)
+     +                                       + ave2(jx,jy,jz,j,2))
+                                    end if
                                 else
-                                    ave1(jx,jy,jz,j,2) = sqrt(
-     +                                   ave1(jx,jy,jz,j,2)
-     +                                   + ave2(jx,jy,jz,j,2))
+                                    ave1(jx,jy,jz,j,:) = 3e33
                                 end if
                             end if
                         else

@@ -9,10 +9,11 @@
         integer ncut
         parameter(ncut=5)
         integer i,j,k,l,yr,mo,dy,nperyear,yr1,yr2,smooth,times,
-     +       nn(npermax),dpm(12),nens1,nens2,iens,lsum,firstyr,lastyr
+     +       nn(npermax),dpm(12),mens1,mens,nens1,nens2,iens,lsum,
+     +       firstyr,lastyr
         real data(npermax,yrbeg:yrend,0:nensmax),mean(npermax,0:ncut),
      +        x(yrend-yrbeg+1),pcut(ncut)
-        logical ensemble,lexist,lwrite
+        logical lexist,lstandardunits,lwrite
         character file*256,ensfile*255,string*10,oper*1,var*40,units*20
         integer iargc,llen
         data pcut /.025,.17,.5,.83,.975/
@@ -24,7 +25,7 @@
      +            ' [ave|sum n ] [smooth n [times m]]'
             stop
         endif
-*       
+*
         yr1 = yrbeg
         yr2 = yrend
         firstyr = 9999
@@ -75,33 +76,11 @@
 *       read data
 *
         call getarg(1,file)
-        nens1 = 0
-        if ( index(file,'%%').eq.0 .and. index(file,'++').eq.0 ) then
-            ensemble = .FALSE.
-            nens2 = 0
-        else
-            ensemble = .TRUE.
-            do nens2=0,nensmax
-                ensfile=file
-                call filloutens(ensfile,nens2)
-                inquire(file=ensfile,exist=lexist)
-                if ( .not.lexist ) then
-                    if ( nens2.eq.0 ) then
-                        nens1 = 1
-                    else
-                        goto 10
-                    endif
-                endif
-            enddo
-   10       continue
-            nens2 = nens2 - 1
-        endif
-        do iens=nens1,nens2
-            ensfile = file
-            if ( ensemble ) call filloutens(ensfile,iens)
-            call readseries(ensfile,data(1,yrbeg,iens),npermax,yrbeg
-     +           ,yrend,nperyear,var,units,.false.,lwrite)
-        enddo
+        lstandardunits = .false.
+        call readensseries(file,data,npermax,yrbeg,yrend,nensmax
+     +        ,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
+        nens1 = mens1
+        nens2 = mens
 *
 *       average
 *
@@ -141,6 +120,7 @@
 *       compute percentiles
 *       
         do j=1,nperyear
+            call keepalive1('Computing percentiles',j,nperyear)
             do i=1,ncut
                 if ( (i.ge.2.or.i.le.ncut-1) .and. nn(j).gt.2 .or.
      +                (i.eq.1.or.i.eq.ncut) .and. nn(j).gt.20 ) then

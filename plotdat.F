@@ -30,13 +30,15 @@
         endif
 *
         iarg = 1
+        ayr1 = yrbeg
+        ayr2 = yrend
+        lanomal = .false.
+        iarg = 1
         if ( iargc().gt.1 ) then
             call getarg(1,line)
             if ( line(1:4).eq.'anom' ) then
                 lanomal = .TRUE.
                 if ( iargc().lt.3 ) then
-                    ayr1 = yrbeg
-                    ayr2 = yrend
                     iarg = 2
                 else
                     call getarg(2,line)

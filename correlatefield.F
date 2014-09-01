@@ -331,7 +331,8 @@
             yr2a = yr2
         endif
         do iens=nens1,nens2
-            call keepalive(iens-nens1+1,nens2-nens1+1)
+            call keepalive1('Reading ensemble member',
+     +           iens-nens1+1,nens2-nens1+1)
             if ( ncid.eq.-1 ) then
                 call getarg(1,infile)
                 if ( ensemble ) then
@@ -654,10 +655,13 @@
                 do jx=1,nx
                     if ( nyrwindow.eq.0 ) then
                         if ( mod(jx,10).eq.1 ) 
-     +                       call keepalive(jy+(jz-1)*ny,ny*nz)
+     +                       call keepalive1(
+     +                       'Computing correlations for latitude ',
+     +                       jy+(jz-1)*ny,ny*nz)
                     else
-                        call keepalive(jx+(jy-1)*nx+(jy-1)*(jz-1)*nx*ny
-     +                       ,nx*ny*nz)
+                        call keepalive1(
+     +                       'Computing correlations for point ',
+     +                       jx+(jy-1)*nx+(jy-1)*(jz-1)*nx*ny,nx*ny*nz)
                     endif
                     do month=0,nperyear
                         r(jx,jy,jz,month) = absent

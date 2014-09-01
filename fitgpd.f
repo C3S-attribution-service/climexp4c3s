@@ -30,7 +30,7 @@
         data iweird,nweird /0,1/
 *
         integer nmax,ncur
-        parameter(nmax=100000)
+        parameter(nmax=1000000)
         real data(nmax),restrain
         logical llwrite
         common /fitdata1/ data
@@ -39,6 +39,11 @@
         real llgpd
         external llgpd
 *
+        if ( ntot.gt.nmax ) then
+            write(0,*) 'fitgpd: error: recompile with nmax at least ',
+     +           ntot
+            call abort
+        end if
         llwrite = lwrite
         if ( lwrite ) then
             print *,'fitgpd: input:'
@@ -158,6 +163,8 @@
                 enddo
                 tx = real(ntot+1)/real(n)
             endif
+            ! convert to years
+            tx = tx/(j2-j1+1)
             if ( lwrite ) then
                 print *,'return time = ',tx
             end if
@@ -175,6 +182,7 @@
         if ( .not.lweb ) print '(a,i6,a)','# doing a ',nmc
      +        ,'-member bootstrap to obtain error estimates'
         do iens=1,nmc
+            call keepalive1('Bootstrapping',iens,nmc)
             if ( .not.lweb .and. mod(iens,100).eq.0 )
      +           print '(a,i6)','# ',iens
             do i=1,ntot
@@ -246,6 +254,8 @@
                     enddo
                     txtx(iens) = real(ntot+1)/real(n)
                 endif
+                ! convert to years
+                txtx(iens) = txtx(iens)/(j2-j1+1)
                 if ( lwrite ) print *,'return time ',iens,txtx(iens)
             endif
         enddo
@@ -282,8 +292,10 @@
         if ( .not.lprint .and. .not.lwrite ) return
         if ( lweb ) then
             print '(a)','# <tr><td colspan="3">Fitted to GPD '//
-     +           'distribution H(x) = 1 - (1+&xi;*x/b)^(-1/&xi;)'
+     +           'distribution H(x) = 1 - (1+&xi;*(x-a)/b)^(-1/&xi;)'
      +           //'</td></tr>'
+            print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>a:</td><td>'
+     +           ,threshold,'</td><td>(',pthreshold,'%)</td></tr>'
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>b:</td><td>'
      +           ,b,'</td><td>',b25,'...',b975,'</td></tr>'
             print '(a,f16.3,a,f16.3,a,f16.3,a)'
@@ -292,7 +304,9 @@
         else
             print '(a,i5,a)','# Fitted to GPD distribution in ',iter
      +           ,' iterations'
-            print '(a)','# H(x) = 1-(1+xi*x/b)**(-1/xi) with'
+            print '(a)','# H(x) = 1-(1+xi*(x-a)/b)**(-1/xi) with'
+            print '(a,f16.3,a,f16.3,a,f16.3)','# a = ',threshold,
+     +           ' (',pthreshold,'%)'
             print '(a,f16.3,a,f16.3,a,f16.3)','# b = ',b,' \\pm ',b975
      +           -b25
             print '(a,f16.3,a,f16.3,a,f16.3)','# xi= ',xi,' \\pm ',xi975

@@ -77,7 +77,8 @@
                 if ( month.gt.nperyear ) then
                     month = month - nperyear
                     year = year + 1
-                    call keepalive(year,yrbegin+nt/nperyear)
+                    call keepalive1('Computing mean of year',
+     +                   year,yrbegin+nt/nperyear)
                 endif
                 do k=1,nz
                     do j=1,ny

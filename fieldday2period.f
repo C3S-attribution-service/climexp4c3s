@@ -234,7 +234,7 @@
         endif
 *
         do yr=yrbeg,yrend
-            call keepalive(yr-yrbeg+1,yrend-yrbeg+1)
+            call keepalive1('Year ',yr-yrbeg+1,yrend-yrbeg+1)
             do jy=1,ny
                 do jx=1,nx
                     if ( (oper.eq.'sd' .or. oper.eq.'var' ) .and. 

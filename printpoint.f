@@ -115,12 +115,19 @@
         
         if ( xyear.lt.1e33 ) then
             if ( lweb ) then
-                print '(a,i5,a,g16.5,a,g16.5,a,g16.5,a)'
-     +               ,'# <tr><td>return period ',year,'</td><td>',tx
-     +               ,'</td><td>',tx25,' ... ',tx975,'</td></tr>'
+                if ( year.eq.9999 ) then
+                    print '(a,g16.5,a,g16.5,a,g16.5,a,g16.5,a)'
+     +                   ,'# <tr><td>return period ',xyear,'</td><td>'
+     +                   ,tx,'</td><td>',tx25,' ... ',tx975,'</td></tr>'
+                else
+                    print '(a,g16.5,a,i5,a,g16.5,a,g16.5,a,g16.5,a)'
+     +                   ,'# <tr><td>return period ',xyear,'(',year
+     +                   ,')</td><td>'
+     +                   ,tx,'</td><td>',tx25,' ... ',tx975,'</td></tr>'
+                end if
             else
-                print '(a,i4,a,f16.5,a,2f16.5)','# return time ',year
-     +               ,' = ',tx,' 95% CI ',tx25,tx975
+                print '(a,f16.5,a,i4,a,f16.5,a,2f16.5)','# return time '
+     +               ,xyear,' (',year,') = ',tx,' 95% CI ',tx25,tx975
             endif
         endif
         end
@@ -274,8 +281,10 @@
         if ( lwrite ) then
             print *,'plot_ordered_points: xyear = ',xyear
         end if
+        call keepalive1('Output',0,ntot+100)
         call nrsort(ntot,xx)
         do i=1,ntot+100
+            if ( mod(i,1000).eq.0 ) call keepalive1('Output',i,ntot+100)
 *
 *           search unsorted year that belongs to this point
 *           attention: quadratic algorithm!
@@ -384,12 +393,12 @@
             print '(a)'
             if ( xyear.ne.3e33 ) then
                 call printpoint(0,1/real(ntot+1),ntype,-999.9,xyear
-     +               ,100*yr2a)
-                call printpoint(0,f,ntype,-999.9,xyear,100*yr2a)
+     +               ,10000*yr2a)
+                call printpoint(0,f,ntype,-999.9,xyear,10000*yr2a)
             else
                 call printpoint(0,1/real(ntot+1),ntype,-999.9,-999.9
-     +               ,100*yr2a)
-                call printpoint(0,f,ntype,-999.9,-999.9,100*yr2a)
+     +               ,10000*yr2a)
+                call printpoint(0,f,ntype,-999.9,-999.9,10000*yr2a)
             endif
             call print_xtics(6,ntype,ntot,j1,j2)
         end if
@@ -514,11 +523,11 @@
         end
 *  #] print_xtics:
 *  #[ plot_tx_cdfs:
-        subroutine plot_tx_cdfs(txtx,nmc,ntype)
+        subroutine plot_tx_cdfs(txtx,nmc,ntype,j1,j2)
 !
 !       make a file to plot CDFs
 !
-        integer nmc,ntype
+        integer nmc,ntype,j1,j2
         real txtx(nmc,3)
         integer iens,j
         real logtxtx(3)
@@ -548,7 +557,7 @@
                 if ( ntype.eq.2 ) then
                     if ( txtx(iens,j).lt.1e20 .and. txtx(iens,j).gt.1 )
      +                   then
-                        logtxtx(j) = -log(1-1/txtx(iens,j))
+                        logtxtx(j) = -log(1-1/((j1+j2+1)*txtx(iens,j)))
                         if ( logtxtx(j).gt.0 ) then
                             logtxtx(j) = -log(logtxtx(j))
                         else
@@ -560,14 +569,14 @@
                 else if ( ntype.eq.3 ) then
                     if ( txtx(iens,j).lt.1e20 .and. txtx(iens,j).gt.0 )
      +                   then
-                        logtxtx(j) = log(txtx(iens,j))
+                        logtxtx(j) = log(txtx(iens,j)*(j1+j2+1))
                     else
                         logtxtx(j) = 1e20
                     end if                        
                 else if ( ntype.eq.4 ) then
                     if ( txtx(iens,j).lt.1e20 .and. txtx(iens,j).gt.1 )
      +                   then
-                        logtxtx(j) = sqrt(log(txtx(iens,j)))
+                        logtxtx(j) = sqrt(log(txtx(iens,j)*(j1+j2+1)))
                     else
                         logtxtx(j) = 1e20
                     end if                        
@@ -628,7 +637,7 @@
             if ( tx(1).gt.1e19 ) then
                 tx(3) = 1e-20
             else
-                tx(3) = tx(2) / tx(1)
+                tx(3) = tx(1) / tx(2)
             end if
         end if
         if ( lwrite ) then

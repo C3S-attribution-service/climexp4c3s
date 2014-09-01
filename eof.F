@@ -482,13 +482,14 @@
         do month=m1,m2
 !           memory corruption or bug in gfortran - but it happens...
             if ( month.gt.m2 ) exit
-            print *,'month,m1,m2 = ',month,m1,m2
+            !!!print *,'month,m1,m2 = ',month,m1,m2
             call getj1j2(mm1,mm2,month,nperyear,.false.)
             write(0,'(a,i3,a,i3,a,f8.2,a)')
      +            'Computing covariance for periods ',mm1,'-',
      +            1+mod(mm2-1,nperyear),', time: ',etime(tarray),'<p>'
             do n2=1,nxy
-                call keepalive(n2,nxy)
+                call keepalive1('Computing covariance matrix entry',
+     +               n2,nxy)
                 i2 = indx(1,n2)
                 j2 = indx(2,n2)
 		if ( lwrite ) print '(a,i5,a,i5,2i4)',
@@ -599,7 +600,7 @@
                 if ( retval.ne.0 ) then
                     write(0,*) 'eof: error: ',trim(line),' failed: '
      +                   ,retval
-                end if                    
+                end if
             endif
 *
 *           and call lapack

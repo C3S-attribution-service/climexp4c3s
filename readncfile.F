@@ -184,7 +184,7 @@
                             j = j + nn
                             noleap = noleap + nn
                         endif
-                        call keepalive(l,ck)
+                        call keepalive1('Reading day ',l,ck)
                         if ( lwrite ) print *,'reading ',start(k),i,j
                         status = nf_get_vara_real(ncid,jvars(1)
      +                           ,start,count,field(1,1,j,i))

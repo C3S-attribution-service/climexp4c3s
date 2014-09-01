@@ -36,26 +36,35 @@
             do iens=0,nensmax
                 ensfile = file
                 call filloutens(ensfile,iens)
-                if ( lwrite) print *,'looking for file ',trim(ensfile)
+                !!!if ( lwrite) print *,'looking for file ',trim(ensfile)
                 inquire(file=ensfile,exist=lexist)
                 if ( .not.lexist ) then
-                    if ( mens.eq.-1 ) mens1 = iens + 1
-                    cycle
-                endif
-                if ( lwrite) print *,'reading file '
-     +                ,ensfile(1:index(ensfile,' ')-1)
-                mens = iens
-                if ( lwrite ) print *
-     +               ,'calling readseries for ensemble member ',mens
-                call readseries(ensfile,data(1,yrbeg,mens),npermax
-     +               ,yrbeg,yrend,nperyear,var,units,lstandardunits
-     +               ,lwrite)
-            enddo
+                    if ( mens.eq.-1 ) then
+                        mens1 = iens + 1
+                    end if
+                else
+                    mens = iens
+                end if
+            end do
             if ( mens.lt.0 ) then
                 write(0,*)
      +                'readensseries: error: could not find ensemble '
-     +                ,file(1:llen(file)),ensfile(1:llen(ensfile))
+     +                ,trim(file),trim(ensfile)
                 call abort
             endif
+            do iens=mens1,mens
+                ensfile = file
+                call filloutens(ensfile,iens)
+                inquire(file=ensfile,exist=lexist)
+                if ( .not.lexist ) then
+                    data(:,:,iens) = 3e33
+                else
+                    if ( lwrite) print *,'reading file ',trim(ensfile)
+                    call keepalive1('Reading ensemble member',iens,mens)
+                    call readseries(ensfile,data(1,yrbeg,iens),npermax
+     +                   ,yrbeg,yrend,nperyear,var,units,lstandardunits
+     +                   ,.false.)
+                end if
+            enddo
         endif
         end

@@ -7,7 +7,7 @@
 *       code lon lat value name
 *       code lon lat value name
 *
-*       should do this in C or perl...
+*       should do this in python...
 *
         implicit none
         integer nmax
@@ -88,6 +88,9 @@
             if ( options(j:j+3).eq.'runc' .or. options(j:j+3).eq.'runr'
      +           ) then
                 call getarg(i+2,runfile)
+            endif
+            if ( options(j:j+4).eq.'debug' ) then
+                lwrite = .true.
             endif
             j = min(len(options)-10,llen(options)+2)
         enddo

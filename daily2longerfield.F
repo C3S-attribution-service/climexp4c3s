@@ -42,7 +42,7 @@
 *
 *       read data
 *
-        call keepalive(0,0)
+        call keepalive1('Reading field',0,0)
         call getarg(1,file)
         if ( lwrite ) print *,'daily2longerfield: nf_opening file '
      +       ,trim(file)
@@ -92,7 +92,7 @@
         else
             allocate(cut(1,1,nperyear))
         endif
-        call keepalive(0,0)
+        call keepalive1('Reading field',0,0)
         if ( ncid.eq.-1 ) then
             call zreaddatfile(datfile,oldfield,nx,ny,nz,nx,ny,nz
      +           ,nperyear,firstyr,lastyr,firstyr,firstmo,nt,undef
@@ -106,7 +106,7 @@
      +               ,lastyr,firstyr,firstmo,ntp,nt,tdefined,lwrite)
             endif
         end if
-        call keepalive(0,0)
+        call keepalive1('Starting computation',0,0)
 *
 *       read operation
 *
@@ -224,7 +224,8 @@
      +                                       ,firstyr,lastyr,j,j,0)
                                     end do
                                 end do
-                                call keepalive(jy,ny)
+                                call keepalive1('Normals for latitude',
+     +                               jy,ny)
                             end do
                             deallocate(oldseries)
                         else

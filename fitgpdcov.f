@@ -169,8 +169,10 @@
         ys(1:ncur) = yy(1:ncur)
         call nrsort(ncur,yy)
         athreshold = (yy(ncur-nthreshold) + yy(ncur-nthreshold+1))/2
-        if ( lwrite ) print *,'fitgpdcov: nthreshold,athreshold = ',
-     +       nthreshold,athreshold
+        if ( lwrite ) then
+            print *,'fitgpdcov: nthreshold,ncur,ntot,athreshold = ',
+     +           nthreshold,ncur,ntot,athreshold
+        end if
         ! needed later on...
         yy(1:ncur) = ys(1:ncur)
         b = sd/3 ! should set the scale roughly right...
@@ -191,9 +193,8 @@
         if ( xyear.lt.1e33 ) then
             call getreturnyears(a,b,xi,alpha,beta,xyear,cov1,cov2,
      +           gpdcovreturnyear,j1,j2,tx,lwrite)
-            print '(a,9f10.2)','# tx was ',tx
-            tx(1:2) = tx(1:2)*ncur/real(ntot)
-            print '(a,9f10.2)','# tx  is ',tx
+            ! convert to years
+            tx(1:2) = tx(1:2)/(j2-j1+1)
         endif
 *
 *       bootstrap to find error estimates
@@ -210,6 +211,7 @@
         if ( .not.lweb ) print '(a,i6,a)','# doing a ',nmc
      +        ,'-member bootstrap to obtain error estimates'
         do iens=1,nmc
+            call keepalive1('Bootstrapping',iens,nmc)
             if ( .not.lweb .and. mod(iens,100).eq.0 )
      +           print '(a,i6)','# ',iens
             do i=1,ncur
@@ -251,7 +253,8 @@
      +               alphaalpha(iens),betabeta(iens),xyear,cov1,cov2,
      +               gpdcovreturnyear,j1,j2,txtxtx,lwrite)
                 do j=1,2
-                    txtx(iens,j) = txtxtx(j)*ncur/real(ntot)
+                    ! convert to years
+                    txtx(iens,j) = txtxtx(j)/(j2-j1+1)
                 end do
                 txtx(iens,3) = txtxtx(3)
             endif
@@ -348,7 +351,7 @@
         call plotreturnvalue(ntype,t25(1,2),t975(1,2),j2-j1+1)
 
         if ( plot ) then
-            call plot_tx_cdfs(txtx,nmc,ntype)
+            call plot_tx_cdfs(txtx,nmc,ntype,j1,j2)
         end if
 
        ! no cuts

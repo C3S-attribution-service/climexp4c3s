@@ -318,6 +318,7 @@
 *
 *       read file
 *
+        call keepalive1('Reading file',0,5)
         do j=len(file),1,-1
             if ( file(j:j).eq.'/' ) goto 101
         enddo
@@ -332,7 +333,7 @@
      +            ,lastyr,firstyr,firstmo,nt,undef,lwrite,firstyr,lastyr
      +            ,jvars)
         endif
-        call keepalive(0,5)
+        call keepalive1('Reading file',1,5)
 *
 *       manage units - I convert them at the end to save time
 *
@@ -344,7 +345,7 @@
         else
             newunits = units(1)
         endif
-        call keepalive(2,5)
+        call keepalive1('Converted units',2,5)
         do yr=firstyr,lastyr
             do mo=1,nperyear
                 do j=1,ny
@@ -441,7 +442,7 @@
      +            ,nperyear,firstyr,lastyr,nx,ny,firstyr,firstmo,nt
      +            ,lwrite)
         endif
-        call keepalive(3,5)
+        call keepalive1('Computed climatology',3,5)
 *
 *       compute weights
 *
@@ -668,7 +669,7 @@
      +                   ,y2
                 endif
             endif
-            call keepalive(4,5)
+            call keepalive1('Computed weights',4,5)
 *
 *           get mean of just the requested area if only one point is
 *           requested
@@ -678,7 +679,7 @@
      +                ,nperyear,firstyr,lastyr,nx,ny,firstyr,firstmo,nt
      +                ,x1,x2,y1,y2,lwrite)
             endif
-            call keepalive(5,5)
+            call keepalive1('Computed area mean',5,5)
 *
 *           cut out region
 *
@@ -828,7 +829,7 @@
      +                       sw
                     endif
                 endif
-                call keepalive(k-k1+1,nt+firstmo-k1)
+                call keepalive1('Time step',k-k1+1,nt+firstmo-k1)
             enddo               ! loop over all months in file
 *           print last (possibly incomplete) record
             call outputave(out,year,ave,nperyear,lstandardunits,
@@ -851,7 +852,7 @@
                 close(out)
             endif
   900       continue
-            call keepalive(ipoints,npoints)
+            call keepalive1('Writing grid points',ipoints,npoints)
         enddo
         goto 999
  901    write(0,*) 'get_index: error reading lon1 from ',trim(string)

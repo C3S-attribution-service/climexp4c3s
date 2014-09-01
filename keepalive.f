@@ -1,4 +1,9 @@
         subroutine keepalive(i,n)
+        implicit none
+        integer i,n
+        call keepalive1('Still computing, ',i,n)
+        end
+        subroutine keepalive1(string,i,n)
 *
 *       print out something every half minute to keep the httpd happy
 *       secold is set at the last call to keepalive to figure out
@@ -7,6 +12,7 @@
 *
         implicit none
         integer i,n
+        character string*(*)
         integer iarray(8),sec,secold,sec0
         save secold,sec0
         real tarray(2)
@@ -23,6 +29,7 @@
            secold = secold - 24*60*60
            sec0 = sec0 - 24*60*60
         endif
+        !!!write(0,*) 'keepalive: delta(sec) = ',sec-secold
         if ( sec-secold.gt.30 ) then
             secold = sec
             sec = sec - sec0
@@ -31,9 +38,10 @@
             iarray(6) = sec/60
             sec = sec - iarray(6)*60
             iarray(7) = sec
-            write(0,'(a,i8,a,i8,a,f8.1,a,i4,a,i2.2,a,i2.2,a)')
-     +           'Still computing, ',i,'/',n,' (CPU time ',etime(tarray)
+            write(0,'(2a,i8,a,i8,a,f8.1,a,i4,a,i2.2,a,i2.2,a)')
+     +           trim(string),' ',i,'/',n,' (CPU time ',etime(tarray)
      +           ,'s, wall time ',iarray(5),':',iarray(6),':',iarray(7),
      +           ')<p>'
+            flush(0)
         endif
         end

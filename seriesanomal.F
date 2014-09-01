@@ -5,7 +5,7 @@
         implicit none
 #include "param.inc"
         integer yr1,yr2,nperyear,mens1,mens,iens
-        real data(npermax,yrbeg:yrend,0:nensmax)
+        real,allocatable :: data(:,:,:)
         logical lwrite,lstandardunits
         character file*255,outfile*255,ensfile*255,var*20,units*40,
      +       line*255
@@ -13,6 +13,7 @@
         lwrite = .false.
         lstandardunits = .false.
 
+        allocate(data(npermax,yrbeg:yrend,0:nensmax))
         if ( iargc().lt.2 ) then
             print *,'usage: seriesanomal [yr1 yr2] infile outfile'
             call abort

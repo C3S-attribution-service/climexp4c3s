@@ -160,7 +160,7 @@
         sd = sqrt(s2)
         if ( lwrite ) print *,'alpha = ',alpha
         do imc=1,nmc
-            call keepalive(imc,nmc)
+            call keepalive1('Bootstrapping',imc,nmc)
 !!!            if ( mod(imc,10).eq.0 ) print '(a,i6)','# ',imc
             call make1mcseries(alpha,sd,data,npermax,nperyear,yrbeg
      +           ,yrend,nens1,nens2,j1,j2,yrstart,yrstop,lwrite)

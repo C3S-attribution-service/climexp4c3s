@@ -11,7 +11,7 @@
         if ( iargc().ne.3 ) then
             write(0,*)
      +           'usage: untransform true|false true|false true|false'
-            write(0,*) '       transforms a log|sqtr|square back'
+            write(0,*) '       transforms a log|sqrt|square back'
             stop
         endif
 !
@@ -21,7 +21,7 @@
             if ( flag.ne.'false' .and. flag.ne.'off' ) then
                 if ( itrans.ne.0 ) then
                     write(0,*) 'untransform: error: can only handle'//
-     +                   ' one transformation at a a time'
+     +                   ' one transformation at a time'
                     call abort
                 endif
                 itrans = i
@@ -58,7 +58,7 @@
                 if ( xx(2).ge.0 ) then
                     xx(2) = sqrt(xx(2))
                 else
-                    write(0,*) 'untransform: error: neagtive number: '
+                    write(0,*) 'untransform: error: negative number: '
      +                   ,xx(2)
                 endif
             endif
@@ -66,15 +66,15 @@
                 if ( xx(3).ge.0 ) then
                     xx(3) = sqrt(xx(3))
                 else
-                    write(0,*) 'untransform: error: neagtive number: '
+                    write(0,*) 'untransform: error: negative number: '
      +                   ,xx(3)
                 endif
             endif
         endif
         if ( nwords.eq.5 ) then
-            write(*,'(i8,4g22.6,i9)') i,xx
+            write(*,'(i8,4g22.6,i10)') i,xx
         elseif ( nwords.eq.6 ) then
-            write(*,'(i8,4g22.6,i9)') i,xx,yyyymm
+            write(*,'(i8,4g22.6,i10)') i,xx,yyyymm
         endif
         goto 100
  800    continue

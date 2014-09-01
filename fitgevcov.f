@@ -42,7 +42,8 @@
      +       ,db,dxi,f,threshold,thens,z,ll,ll1,txtx(nmc,3)
      +       ,a25,a975,ranf,mean,sd,dalpha,dbeta
      +       ,mindata,minindx,pmindata,snorm,s,xxyear,frac
-        real adev,var,skew,curt,aaa,bbb,siga,chi2,q
+        real adev,var,skew,curt,aaa,bbb,aa25,aa975,bb25,bb975,
+     +       siga,chi2,q
         real,allocatable :: yy(:),ys(:),zz(:),sig(:)
         character lgt*4
 *
@@ -155,6 +156,7 @@
         if ( .not.lweb ) print '(a,i6,a)','# doing a ',nmc
      +        ,'-member bootstrap to obtain error estimates'
         do iens=1,nmc
+            call keepalive1('Bootstrapping',iens,nmc)
             if ( .not.lweb .and. mod(iens,100).eq.0 )
      +           print '(a,i6)','# ',iens
             do i=1,ntot
@@ -257,12 +259,24 @@
      +           'distribution P(x) = exp(-(1+&xi;(x-a'')'//
      +               '/b'')^(-1/&xi;))</td></tr>'
             call printab(lweb)
-            print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'//
-     +           'a:</td><td>',a-alpha*offset,'</td><td>',
-     +           a25-alpha*offset,'...',a975-alpha*offset,'</td></tr>'
-            print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'//
-     +           'b:</td><td>',b,'</td><td>',b25,'...',
-     +           b975,'</td></tr>'
+            call getabfromcov(a25,b25,alpha,beta,cov1,aa25,bb25)
+            call getabfromcov(a975,b975,alpha,beta,cov1,aa975,bb975)
+            call getabfromcov(a,b,alpha,beta,cov1,aaa,bbb)
+            print '(a,i5,a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>'//
+     +           'a'':</td><td>',yr1a,'</td><td>',aaa,'</td><td>',
+     +           aa25,'...',aa975,'</td></tr>'
+            print '(a,i5,a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>'//
+     +           'b'':</td><td>',yr1a,'</td><td>',bbb,'</td><td>',
+     +           bb25,'...',bb975,'</td></tr>'
+            call getabfromcov(a25,b25,alpha,beta,cov2,aa25,bb25)
+            call getabfromcov(a975,b975,alpha,beta,cov2,aa975,bb975)
+            call getabfromcov(a,b,alpha,beta,cov2,aaa,bbb)
+            print '(a,i5,a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>'//
+     +           'a'':</td><td>',yr2a,'</td><td>',aaa,'</td><td>',
+     +           aa25,'...',aa975,'</td></tr>'
+            print '(a,i5,a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>'//
+     +           'b'':</td><td>',yr2a,'</td><td>',bbb,'</td><td>',
+     +           bb25,'...',bb975,'</td></tr>'
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'//
      +           '&xi;:</td><td>',xi,'</td><td>',xi25,'...',xi975,
      +           '</td></tr>'
@@ -297,7 +311,7 @@
         call printcovreturntime(year,xyear,tx,tx25,tx975,yr1a,yr2a,lweb)
 
         if ( plot ) then
-            call plot_tx_cdfs(txtx,nmc,ntype)
+            call plot_tx_cdfs(txtx,nmc,ntype,j1,j2)
         end if
 
         ! no cuts

@@ -80,6 +80,7 @@
         pmaxindx = -1
         pmindata = -1
         pmaxdata = -1
+        xyear = 3e33
         minfacinit = -1
         minfac = minfacinit
         minfacsum = minfacinit
@@ -393,6 +394,13 @@
                     if ( lout ) print '(a,f8.2,a)'
      +                    ,'# using minimum data ',pmindata,'%'
                 endif
+                lskip = 1
+            elseif ( line(1:5).eq.'xyear' ) then
+                call getarg(i+1,line)
+                read(line,*,err=908) xyear
+                if ( lout ) print '(a,g20.4)',
+     +               '# computing return value for ',xyear
+                yr2a = 9999
                 lskip = 1
             elseif ( line(1:3).eq.'sum' ) then
                 oper = '+'

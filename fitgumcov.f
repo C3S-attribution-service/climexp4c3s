@@ -270,7 +270,7 @@
         call printcovreturntime(year,xyear,tx,tx25,tx975,yr1a,yr2a,lweb)
 
         if ( plot ) then
-            call plot_tx_cdfs(txtx,nmc,ntype)
+            call plot_tx_cdfs(txtx,nmc,ntype,j1,j2)
         end if
 
         ! no cuts

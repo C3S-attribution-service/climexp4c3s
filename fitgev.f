@@ -116,6 +116,7 @@
         if ( .not.lweb ) print '(a,i6,a)','# doing a ',nmc
      +        ,'-member bootstrap to obtain error estimates'
         do iens=1,nmc
+            call keepalive1('Bootstrapping',iens,nmc)
             if ( .not.lweb .and. mod(iens,100).eq.0 )
      +           print '(a,i6)','# ',iens
             do i=1,ntot

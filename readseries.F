@@ -1,4 +1,4 @@
-        subroutine readseries(file,data,npermax,yrbeg,yrend,nperyear,
+        subroutine readseries(infile,data,npermax,yrbeg,yrend,nperyear,
      +       var,units,lstandardunits,lwrite)
 *
 *       file (in) filename to read.
@@ -22,13 +22,13 @@
 #include "netcdf.inc"
         integer npermax,nperyear,yrbeg,yrend
         real data(npermax,yrbeg:yrend)
-        character file*(*),units*(*),var*(*)
+        character infile*(*),units*(*),var*(*)
         logical lstandardunits,lwrite
         integer i,j,k,m,year,month,day,unit,status,ncid,dpm(12),
      +       dpm0(12),imonth,year1
-        logical lagain
+        logical lagain,lexist
         real*8 x,y,x1,y1,val12(366)
-        character line*10000
+        character file*1023,line*10000
         integer getnumwords,monthinline
         save dpm,dpm0        
         data dpm0 /31,29,31,30,31,30,31,31,30,31,30,31/
@@ -37,16 +37,31 @@
         enddo
 *
         if ( lwrite ) then
-            print *,'readseries: opening file ',trim(file)
+            print *,'readseries: opening file ',trim(infile)
             print *,'npermax,yrbeg,yrend = ',npermax,yrbeg,yrend
         endif
         call makeabsent(data,npermax,yrbeg,yrend)
 *
 *       also handle netCDF time series
 *
+        file = infile
         if ( file.eq.'-' ) then
             unit = 5
         else
+            ! check whether there is a netcdf file with the same name
+            ! as that is read orders of magnitude faster
+            i = index(file,'.dat')
+            if ( i.ne.0 ) then
+                file = file(:i-1)//'.nc'
+                inquire(file=trim(file),exist=lexist)
+                if ( .not.lexist ) then
+                    file = infile
+                else
+                    if ( lwrite ) then
+                        print *,'readseries: using file ',trim(file)
+                    end if
+                end if
+            end if
             status = nf_open(file,nf_nowrite,ncid)
             if ( status.ne.nf_noerr ) then
                 call rsunit(unit)
@@ -73,7 +88,7 @@
 !           it is either seasonal data: yr valDJF valMAM valJJA valSON
 !           or hourly data: yr mo dy hr val
             read(line,*) year
-            read(unit,*) year1
+            read(unit,*,end=801) year1
             if ( year.eq.year1 ) then
                 if ( lwrite ) print *,'hourly data'
                 nperyear = 366*24
@@ -81,6 +96,7 @@
                 if ( lwrite ) print *,'seasonal data'
             endif
             backspace(unit)
+ 801        continue
         endif
 *       often there is a yearly mean/sum at the end
         if ( nperyear.eq.13 ) nperyear = 12
@@ -374,7 +390,7 @@
                 if ( val12(j).lt.1e33 ) data(j,year) = val12(j)
             enddo
         endif
-        read(unit,*,err=904,end=300) year,(val12(j),j=1,nperyear)
+        read(unit,*,err=300,end=300) year,(val12(j),j=1,nperyear)
         goto 100
  300    continue
         deallocate(val12)

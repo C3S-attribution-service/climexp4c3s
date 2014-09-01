@@ -23,7 +23,7 @@
         logical lexist
         real xx(nxmax),yy(nymax),zz(nzmax),undef,xxls(nxmax),yyls(nymax)
      +       ,a,b,xi,t(10),t25(10),t975(10),tx,tx1,tx25,tx975,sx,sy,s
-        real xmom(5),var,perc,xyear,z
+        real xmom(5),var,perc,z
         real,allocatable :: field(:,:,:,:,:,:),res(:,:,:,:,:)
         real,allocatable :: fxy(:,:,:),ddata(:)
         character infile*255,datfile*255,outfile*255,line*255,lz(3)*20
@@ -178,7 +178,8 @@
 *       read field, change absent values to our convention
 *
         do iens=nens1,nens2
-            call keepalive(iens-nens1+1,nens2-nens1+1)
+            call keepalive1('Reading ensemble member',
+     +           iens-nens1+1,nens2-nens1+1)
             if ( ncid.eq.-1 ) then
                 call getarg(1,infile)
                 if ( index(infile,'%').gt.0 .or. 
@@ -282,7 +283,8 @@
 *
         do jz=1,nz
             do jy=1,ny
-                call keepalive(jy+(jz-1)*ny,ny*nz)
+                call keepalive1('Computing latitude ',
+     +               jy+(jz-1)*ny,ny*nz)
                 do jx=1,nx
                     do month=0,min(12,nperyear)
                         res(jx,jy,jz,month,1:nvarmax) = 3e33

@@ -22,6 +22,7 @@ OBJS	      = makeabsent.o \
 		readdat.o \
 		readseries.o \
 		readensseries.o \
+		readsetseries.o \
 		readensdat.o \
 		readncseries.o \
 		printdatfile.o \
@@ -135,6 +136,7 @@ OBJS	      = makeabsent.o \
 		checkgridequal.o \
 		polint.o \
 		mysystem.o \
+		getfiletime.o \
 		checkstring.o \
 		getfileunits.o \
 		manipulatetimeseries.o \
