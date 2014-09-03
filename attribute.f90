@@ -9,7 +9,7 @@ program attribute
     include 'param.inc'
     include 'getopts.inc'
     integer nperyear,nperyear1,mens1,mens,iens
-    integer i,yr,mo,n,j1,j2
+    integer i,yr,mo,n,j1,j2,off
     real,allocatable :: series(:,:,:),covariate(:,:,:)
     character seriesfile*1024,covariatefile*1024,distribution*6,assume*5,string*80
     character var*40,units*80,var1*40,units1*80
@@ -32,9 +32,15 @@ program attribute
     call killfile(string,units,units1,0) ! random strings
 !   the usual call to getopts comes way too late for these options...
     nperyear = 12
-    call getopts(6,iargc(),nperyear,yrbeg,yrend,.false.,0,nensmax)
+    call getarg(1,seriesfile)
+    if ( seriesfile /= 'file' ) then
+        off = 0
+    else
+        off = 2
+    end if
+    call getopts(6+off,iargc(),nperyear,yrbeg,yrend,.false.,0,nensmax)
 
-    call getarg(3,distribution)
+    call getarg(3+off,distribution)
     call tolower(distribution)
     if ( distribution.ne.'gev' .and. distribution.ne.'gumbel' .and. &
     &    distribution.ne.'gpd' .and. distribution.ne.'gauss' ) then
@@ -42,12 +48,12 @@ program attribute
         call abort
     end if
 
-    call getarg(4,string)
+    call getarg(4+off,string)
     if ( string(1:4).ne.'assu' ) then
         write(0,*) 'attribute: error: expecting "assume", not ',trim(string)
         call abort
     end if
-    call getarg(5,assume)
+    call getarg(5+off,assume)
     call tolower(assume)
     if ( assume.ne.'shift' .and. assume.ne.'scale' .and. assume.ne.'both' ) then
         write(0,*) 'attribute: error: only shift, scale or both supported, not ',assume
@@ -56,10 +62,16 @@ program attribute
 
     call getarg(1,seriesfile)
     allocate(series(npermax,yrbeg:yrend,0:nensmax))
-    call readensseries(seriesfile,series,npermax,yrbeg,yrend &
-    & ,nensmax,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
-    
-    call getarg(2,covariatefile)
+    if ( seriesfile /= 'file' ) then
+        ! simple data
+        call readensseries(seriesfile,series,npermax,yrbeg,yrend &
+        & ,nensmax,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
+    else
+        ! set of stations
+        call readsetseries(series,npermax,yrbeg,yrend &
+        & ,nensmax,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
+    end if
+    call getarg(2+off,covariatefile)
     allocate(covariate(npermax,yrbeg:yrend,0:nensmax))
     if ( index(covariatefile,'%%') == 0 .and. &
     &    index(covariatefile,'++') == 0 ) then
@@ -73,7 +85,7 @@ program attribute
         & ,nperyear1,var1,units1,lstandardunits,lwrite)
     end if
     
-    call getopts(6,iargc(),nperyear,yrbeg,yrend,.true.,mens1,mens)
+    call getopts(6+off,iargc(),nperyear,yrbeg,yrend,.true.,mens1,mens)
     if ( yr1a.lt.yr1 .or. yr1a.lt.yrbeg ) then
         write(0,*) 'attribute: error: reference year should be after start of series ',yr1,yr1a
         call abort

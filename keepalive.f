@@ -38,10 +38,17 @@
             iarray(6) = sec/60
             sec = sec - iarray(6)*60
             iarray(7) = sec
-            write(0,'(2a,i8,a,i8,a,f8.1,a,i4,a,i2.2,a,i2.2,a)')
+            if ( n.lt.0 ) then
+                write(0,'(2a,i8,a,f8.1,a,i4,a,i2.2,a,i2.2,a)')
+     +           trim(string),' ',i,' (CPU time ',etime(tarray)
+     +           ,'s, wall time ',iarray(5),':',iarray(6),':',iarray(7),
+     +           ')<p>'
+            else
+                write(0,'(2a,i8,a,i8,a,f8.1,a,i4,a,i2.2,a,i2.2,a)')
      +           trim(string),' ',i,'/',n,' (CPU time ',etime(tarray)
      +           ,'s, wall time ',iarray(5),':',iarray(6),':',iarray(7),
      +           ')<p>'
+            end if
             flush(0)
         endif
         end

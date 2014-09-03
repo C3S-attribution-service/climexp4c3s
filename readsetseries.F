@@ -24,7 +24,7 @@
      +        index(prog,'/').ne.0 .or.
      +        index(prog,';').ne.0 .or. index(prog,'`').ne.0 .or.
      +        index(prog,'&').ne.0 .or. index(prog,'|').ne.0 ) then
-            print *,'stationlist: invalid argument ',prog
+            print *,'readsetlist: invalid argument ',prog
             call abort
         endif
         ! one prog has underscores in its name, which conflicts with the convention to put the extra 
@@ -55,7 +55,6 @@
         mens = 0
         mens1 = 0
  1      continue
-        call keepalive1('Reading series',mens,-1)
         call readcoord(1,lon,lat,elev)
         if ( lon.gt.1e33 ) goto 2
         read(1,'(a)',err=1,end=1) line
@@ -100,6 +99,7 @@
             file = string
         end if
         if ( lwrite ) print *,'reading ',trim(file)
+        call keepalive1('Reading series',mens,-1)
         call readseries(file,data(1,yrbeg,mens),npermax,yrbeg,yrend
      +       ,m,var,units,lstandardunits,.false.)
         if ( m.eq.0 ) goto 1
