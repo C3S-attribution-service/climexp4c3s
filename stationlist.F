@@ -66,7 +66,15 @@
             call abort
         endif
         if ( lwrite ) print *,'stationlist: prog = ',prog(1:llen(prog))
-        i = index(prog,'_')
+        ! one prog has underscores in its name, which conflicts with the convention to put the extra 
+        ! arguments there
+        i = index(prog,'getdutchprecip_')
+        if ( i == 0 ) then
+            i = index(prog,'_')
+        else
+            i = index(prog,'2009_')
+            if ( i /= 0 ) i = i + 4
+        end if
         if ( i.ne.0 ) then
 *           the output has to be filtered
             filterext = prog(i:)

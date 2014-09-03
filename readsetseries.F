@@ -18,7 +18,24 @@
         integer,external :: getfiletime
 
         call getarg(3,prog)
-        i = index(prog,'_')
+        if ( (prog(1:3).ne.'get' .and. prog(1:3).ne.'eca' .and. 
+     +       prog(1:4).ne.'beca' .and. prog(1:4).ne.'gdcn' .and.
+     +       prog(1:4).ne.'grid' ) .or. 
+     +        index(prog,'/').ne.0 .or.
+     +        index(prog,';').ne.0 .or. index(prog,'`').ne.0 .or.
+     +        index(prog,'&').ne.0 .or. index(prog,'|').ne.0 ) then
+            print *,'stationlist: invalid argument ',prog
+            call abort
+        endif
+        ! one prog has underscores in its name, which conflicts with the convention to put the extra 
+        ! arguments there
+        i = index(prog,'getdutchprecip_')
+        if ( i == 0 ) then
+            i = index(prog,'_')
+        else
+            i = index(prog,'2009_')
+            if ( i /= 0 ) i = i + 4
+        end if
         if ( i.ne.0 ) then
             extraargs = prog(i+1:)
             prog = prog(:i-1)
