@@ -428,24 +428,26 @@
      +                       ,command(1:llen(command))
                     endif
                 endif
-                command(llen(command)+2:) = '|tr -c -d "\n\r[:print:]"'
+                command(llen(command)+2:)= '|tr -c -d "\\n\\r[:print:]"'
                 if ( oper(1:2).eq.'hi' ) then
                     if ( .not.first ) then
-                        if ( oper(1:3).eq.'hig' .or. 
+                        if ( oper.eq.'higa' ) then
+                            command(llen(command)+2:) = 
+     +                           '|egrep  ''(&chi;|th colspan)'''
+                        elseif ( oper(1:3).eq.'hig' .or. 
      +                       oper(1:3).eq.'hip' ) then
                             command(llen(command)+2:) = 
      +                           '|egrep  ''(return perio|th colspan)'''
                         elseif ( oper.eq.'higa' ) then
                             command(llen(command)+2:) = 
-     +                           '|egrep  ''(ch|prob|stationname)'''//
-     +                           '|sed -e ''s/%.*/%/'''
-                        elseif ( oper.eq. 'hisd' ) then
+     +                           '|egrep  ''(&chi;|th colspan)'''
+                        elseif ( oper.eq.'hisd' ) then
                             command(llen(command)+2:) = '|egrep  '//
-     +                           '''(^# <tr><td>s.d.|stationname)'''
+     +                           '''(^# <tr><td>s.d..n-1|th colspan)'''
                         else
                             command(llen(command)+2:) = 
      +                           '|egrep  ''(^# <tr><td>'//oper(3:4)
-     +                           //'|stationname)'''
+     +                           //'|th colspan)'''
                         endif
                     else
                         command(llen(command)+2:) = 
