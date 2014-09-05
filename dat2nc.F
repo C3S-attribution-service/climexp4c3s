@@ -1,7 +1,7 @@
         program dat2nc
 !
 !       program to convert a .dat-style time series into a netCDF file 
-!       using Camiel's classes
+!       using the climexp libraries
 !
         implicit none
 #include "param.inc"
@@ -24,6 +24,7 @@
         call getarg(1,file)
         call makeabsent(data,npermax,yrbeg,yrend)
         if ( lwrite ) print *,'reading from ',trim(file)
+        lstandardunits = .false.
         call readseries(file,data,npermax,yrbeg,yrend,nperyear,var,
      +           units,lstandardunits,lwrite)
         open(1,file=file)

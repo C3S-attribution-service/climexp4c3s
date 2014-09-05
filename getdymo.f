@@ -74,8 +74,9 @@
         data dpm    /31,29,31,30,31,30,31,31,30,31,30,31/
         data dpm365 /31,28,31,30,31,30,31,31,30,31,30,31/
 !
-        if ( nperyear.lt.12 ) then
+        if ( nperyear.le.12 ) then
             firstmo = mo
+            dy = 1
         else if ( nperyear.eq.360 ) then
             firstmo = 30*(mo-1) + dy
         else if ( nperyear.eq.365 ) then

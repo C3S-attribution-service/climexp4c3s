@@ -50,7 +50,7 @@
         call invgetdymo(day0,m1,m,nperyear)
         if ( lwrite ) then
             print *,'getval: dy,mo  ',day0,m1
-            print *,'getval: period ',m,data(m,yr2a)
+            print *,'getval: data(',m,yr2a,') ',data(m,yr2a)
         end if
         if ( data(m,yr2a).lt.1e30 ) then
             write(*,'(3a,g16.4,3a)')

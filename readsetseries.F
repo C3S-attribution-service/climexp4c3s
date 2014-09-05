@@ -14,7 +14,7 @@
         real lon,lat,elev
         logical lexist
         character prog*100,extraargs*100,extraargs_*100,file*255,
-     +       line*255,number*10,string*255,command*1023
+     +       line*255,number*20,string*255,command*1023
         integer,external :: getfiletime
 
         call getarg(3,prog)
@@ -63,16 +63,21 @@
 !       first generate original timescale file
         file = './data/'//trim(prog)//trim(number)//'.dat'
         inquire(file=trim(file),exist=lexist)
-        ! the getducth* programs check themselves whether the file
-        ! needs to be regenerated
-        if ( .not.lexist .or. prog(1:8).eq.'getdutch' ) then
+        ! the getdutch* , gdcn*, eca* and GHCN get* programs 
+        ! check themselves whether the file needs to be regenerated
+        if ( prog(1:8).eq.'getdutch' .or.
+     +       prog(1:4).eq.'gdcn' .or.
+     +       prog(1:3).eq.'eca' .or. prog(1:4).eq.'beca' .or.
+     +       prog(1:7).eq.'getprcp' .or. prog(1:7).eq.'gettemp' .or.
+     +       prog(1:6).eq.'getmin' .or. prog(1:6).eq.'getmax' .or.
+     +       prog(1:6).eq.'getslp' ) then
             ! generate it
-            i = index(prog,'/')
-            if ( i.ne.0 ) then
-                write(0,*) 'histogram: error: prog cannot '//
-     +               'contain / ',trim(prog)
-                call abort
-            end if
+            write(command,'(10a)') './bin/',trim(prog),
+     +           ' ',trim(number),' ',trim(file)
+            if ( lwrite ) print *,trim(command),'<br>'
+            call mysystem(trim(command),iret)
+        else if ( .not.lexist ) then
+            ! generate it
             write(command,'(10a)') './bin/',trim(prog),
      +           ' ',trim(number),' ',trim(file),' > ',trim(file)
             if ( lwrite ) print *,trim(command),'<br>'

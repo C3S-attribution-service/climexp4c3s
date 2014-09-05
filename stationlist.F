@@ -120,6 +120,7 @@
         options(llen(options)+2:) = 'plot '//tmpfile
         loptions = llen(options)
         call getenv('DIR',dir)
+        if ( dir.eq.' ' ) dir = '.'
         ldir = llen(dir)
         if ( lwrite ) print *,'DIR = ',dir(1:max(1,ldir))
         if ( ldir.eq.0 ) then
@@ -291,6 +292,14 @@
             do i=1,llen(datfile)
                 if ( datfile(i:i).eq.' ' ) datfile(i:i) = '_'
             enddo
+!           the getdutch* and gdcn* script check themselves
+!           whether the files need to be regenerated
+            if ( prog(1:8).eq.'getdutch' .or. prog(1:4).eq.'gdcn' .or.
+     +           prog(1:3).eq.'eca' .or. prog(1:4).eq.'beca' .or.
+     +           prog(1:7).eq.'getprcp' .or. prog(1:7).eq.'gettemp' .or.
+     +           prog(1:6).eq.'getmin' .or. prog(1:6).eq.'getmax' .or.
+     +           prog(1:6).eq.'getslp') 
+     +           goto 300
 *           check whether the file exists and has length >0
             open(3,file=datfile,err=300)
             read(3,'(a)',err=300,end=300) line
@@ -307,9 +316,18 @@
      +               ,' should have been generated already'
                 call abort
             endif
-            write(command,'(6a)') dir(1:ldir)//'bin/',prog,
-     +                ' ',code(1:llen(code)),' > ',datfile
-            if ( lwrite ) print *, command(1:llen(command))
+            if ( prog(1:8).eq.'getdutch' .or. prog(1:4).eq.'gdcn' .or.
+     +           prog(1:3).eq.'eca' .or. prog(1:4).eq.'beca' .or.
+     +       prog(1:7).eq.'getprcp' .or. prog(1:7).eq.'gettemp' .or.
+     +       prog(1:6).eq.'getmin' .or. prog(1:6).eq.'getmax' .or.
+     +       prog(1:6).eq.'getslp' ) then
+                write(command,'(6a)') trim(dir)//'bin/',trim(prog),
+     +                ' ',trim(code),' ',trim(datfile)
+            else
+                write(command,'(6a)') trim(dir)//'bin/',trim(prog),
+     +                ' ',trim(code),' > ',trim(datfile)
+            end if
+            if ( lwrite ) print *,trim(command)
             call mysystem(command,retval)
             call checkval(retval,command)
   310       continue
@@ -416,7 +434,7 @@
                         if ( oper(1:3).eq.'hig' .or. 
      +                       oper(1:3).eq.'hip' ) then
                             command(llen(command)+2:) = 
-     +                           '|egrep  ''(return|stationname)'''
+     +                           '|egrep  ''(return perio|th colspan)'''
                         elseif ( oper.eq.'higa' ) then
                             command(llen(command)+2:) = 
      +                           '|egrep  ''(ch|prob|stationname)'''//
