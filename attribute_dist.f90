@@ -171,6 +171,10 @@ subroutine make_annual_values(series,nperyear,npermax,yrbeg,yrend,mens1,mens, &
     integer j1,j2,yy,yr,mm,mo,dd,dy,k,m,mtot,n,dpm(12),iens
     real s
 
+    if ( lwrite ) then
+        print *,'make_annual_values: taking ',trim(operation)
+        print *,'nperyear,npermax = ',nperyear,npermax
+    end if
     if ( nperyear == 1 ) then
         do iens=mens1,mens
             do yy=yr1,yr2
@@ -179,7 +183,7 @@ subroutine make_annual_values(series,nperyear,npermax,yrbeg,yrend,mens1,mens, &
         end do
     else if ( nperyear < 12 ) then
         do iens=mens1,mens
-            do yy=yr1,yr2
+            do yr=yr1,yr2
                 m = 0
                 if ( operation.eq.'max' ) then
                     s = -3e33
@@ -188,8 +192,8 @@ subroutine make_annual_values(series,nperyear,npermax,yrbeg,yrend,mens1,mens, &
                 else
                     s = 0
                 end if
-                do mm=1,nperyear
-                    if ( series(mm,yy,iens).lt.1e33 ) then
+                do dy=1,nperyear
+                    if ( series(dy,yr,iens).lt.1e33 ) then
                         m = m + 1
                         if ( operation.eq.'max' ) then
                             s = max(s,series(dy,yr,iens))
@@ -205,15 +209,15 @@ subroutine make_annual_values(series,nperyear,npermax,yrbeg,yrend,mens1,mens, &
                 end do
                 if ( m.gt.minfac*nperyear ) then
                     if ( operation.eq.'min' .or. operation.eq.'max' ) then
-                        yrseries(1,yy,iens) = s
+                        yrseries(1,yr,iens) = s
                     else if ( operation.eq.'mean' ) then
-                        yrseries(1,yy,iens) = s/m
+                        yrseries(1,yr,iens) = s/m
                     else
                         write(0,*) 'make_annual_values: unknown operation ',trim(operation)
                         call abort
                     end if
                 end if
-            end do ! yy
+            end do ! yr
         end do ! iens                
     else if ( nperyear >= 12 ) then
         call getj1j2(j1,j2,m1,12,lwrite)
