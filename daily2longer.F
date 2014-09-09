@@ -106,6 +106,10 @@
                 lgt = ' '
             endif
         end if
+        if ( lsum.gt.1 ) then
+            print '(a,i3,a)','# ',lsum,' running average'
+            call sumit(olddata,mpermax,nperyear,yrbeg,yrend,lsum,'v')
+        end if
         if ( pminindx.eq.19712000 .or. pmaxindx.eq.19712000 ) then
             if ( lwrite ) print *,'take normals wrt 1971-2000'
             do j=1,nperyear

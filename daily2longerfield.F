@@ -239,6 +239,11 @@
                 i = 4
             end if
             call getopts(i,iargc()-1,nperyear,yrbeg,yrend,.true.,0,0)
+            if ( lsum.gt.1 ) then
+                write(0,*) 'daily2longerfield: error: running means '//
+     +               'not yet implemented'
+                call abort
+            end if
         end if
         if ( minfac.lt.0 ) minfac = 0.5
 *      
