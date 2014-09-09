@@ -19,7 +19,7 @@
      +       ,z,zz(10),x,f,txtx(nmc)
 *
         integer nmax
-        parameter(nmax=100000)
+        parameter(nmax=10000000)
         integer ncur
         real data(nmax),restrain
         logical llwrite
@@ -192,7 +192,7 @@
         real s
 *
         integer nmax,ncur
-        parameter(nmax=100000)
+        parameter(nmax=10000000)
         real data(nmax),restrain
         logical llwrite
         common /fitdata1/ data

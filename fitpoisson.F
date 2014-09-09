@@ -12,7 +12,7 @@
         real ax,bx,cx,fa,fb,fc,tol
 *
         integer nmax,ncur
-        parameter(nmax=100000)
+        parameter(nmax=10000000)
         real data(nmax),restrain
         logical llwrite
         common /fitdata1/ data
@@ -67,7 +67,7 @@
         real s
 *
         integer nmax,ncur
-        parameter(nmax=100000)
+        parameter(nmax=10000000)
         real data(nmax),restrain
         logical llwrite
         common /fitdata1/ data

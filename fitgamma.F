@@ -101,7 +101,7 @@
         integer i
 *
         integer nmax,ncur
-        parameter(nmax=100000)
+        parameter(nmax=10000000)
         real data(nmax),xrestrain
         logical llwrite
         common /fitdata1/ data
@@ -151,7 +151,7 @@
         real p1(2),p2(2),d
 *
         integer nmax,ncur
-        parameter(nmax=100000)
+        parameter(nmax=10000000)
         real data(nmax),restrain
         logical llwrite
         common /fitdata1/ data
