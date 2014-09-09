@@ -11,7 +11,7 @@
 *
         implicit none
         integer nmax
-        parameter(nmax=50000)
+        parameter(nmax=250000)
         integer i,j,k,n,ldir,nextarg,retval,nsigns,isign,loptions
         real lon,lon1,lon2,lat,lat1,lat2,val,sign,regr,x1,s1,x2,s2,
      +       signs(nmax),psigns(5),mean,sd,sd1,skew,xmin,xmax,chsq,prob,
@@ -551,6 +551,7 @@
                     elseif ( oper.eq.'higr' .or. oper.eq.'hipr' .or.
      +                       oper.eq.'hivr' ) then
                         val = tx
+                        if ( tx.lt.1e33 ) sign = 1/tx
                     elseif ( oper.eq.'higR' .or. oper.eq.'hipR' .or.
      +                       oper.eq.'hivR' ) then
                         val = tx25
