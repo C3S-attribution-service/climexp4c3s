@@ -135,6 +135,49 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
 
 end subroutine attribute_dist
 
+subroutine attribute_init(file,distribution,assume,off,nperyear,yrbeg,yrend,nensmax,lwrite)
+!
+!   initialisation common to time series and field programs
+!
+    implicit none
+    integer off,nperyear,yrbeg,yrend,nensmax
+    character file*(*),distribution*(*),assume*(*)
+    logical lwrite
+    character string*255,string1*255,string2*200   
+    integer iargc
+!
+    call killfile(string,string1,string2,0) ! random strings
+!   the usual call to getopts comes way too late for these options...
+    nperyear = 12
+    call getarg(1,file)
+    if ( file /= 'file' ) then
+        off = 0
+    else
+        off = 2
+    end if
+    call getopts(6+off,iargc(),nperyear,yrbeg,yrend,.false.,0,nensmax)
+
+    call getarg(3+off,distribution)
+    call tolower(distribution)
+    if ( distribution.ne.'gev' .and. distribution.ne.'gumbel' .and. &
+    &    distribution.ne.'gpd' .and. distribution.ne.'gauss' ) then
+        write(0,*) 'attribute: error: only GEV, GPD or Gauss supported, not ',distribution
+        call abort
+    end if
+
+    call getarg(4+off,string)
+    if ( string(1:4).ne.'assu' ) then
+        write(0,*) 'attribute: error: expecting "assume", not ',trim(string)
+        call abort
+    end if
+    call getarg(5+off,assume)
+    call tolower(assume)
+    if ( assume.ne.'shift' .and. assume.ne.'scale' .and. assume.ne.'both' ) then
+        write(0,*) 'attribute: error: only shift, scale or both supported, not ',assume
+        call abort
+    end if
+end subroutine
+
 subroutine getdpm(dpm,nperyear)
     ! make a list of number of days per month
     implicit none

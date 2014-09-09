@@ -215,7 +215,9 @@
      +           -xi25
         end if
         call printreturnvalue(ntype,t,t25,t975,lweb)
+        if ( lchangesign .and. xyear.lt.1e33 ) xyear = -xyear
         call printreturntime(year,xyear,tx,tx25,tx975,lweb)
+        if ( lchangesign .and. xyear.lt.1e33 ) xyear = -xyear
         call plotreturnvalue(ntype,t25,t975,j2-j1+1)
         end
 *  #] fitgev:

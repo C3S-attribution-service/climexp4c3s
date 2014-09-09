@@ -29,38 +29,8 @@ program attribute
 !
 !   initialisation
 !
-    call killfile(string,units,units1,0) ! random strings
-!   the usual call to getopts comes way too late for these options...
-    nperyear = 12
-    call getarg(1,seriesfile)
-    if ( seriesfile /= 'file' ) then
-        off = 0
-    else
-        off = 2
-    end if
-    call getopts(6+off,iargc(),nperyear,yrbeg,yrend,.false.,0,nensmax)
+    call attribute_init(seriesfile,distribution,assume,off,nperyear,yrbeg,yrend,nensmax,lwrite)
 
-    call getarg(3+off,distribution)
-    call tolower(distribution)
-    if ( distribution.ne.'gev' .and. distribution.ne.'gumbel' .and. &
-    &    distribution.ne.'gpd' .and. distribution.ne.'gauss' ) then
-        write(0,*) 'attribute: error: only GEV, GPD or Gauss supported, not ',distribution
-        call abort
-    end if
-
-    call getarg(4+off,string)
-    if ( string(1:4).ne.'assu' ) then
-        write(0,*) 'attribute: error: expecting "assume", not ',trim(string)
-        call abort
-    end if
-    call getarg(5+off,assume)
-    call tolower(assume)
-    if ( assume.ne.'shift' .and. assume.ne.'scale' .and. assume.ne.'both' ) then
-        write(0,*) 'attribute: error: only shift, scale or both supported, not ',assume
-        call abort
-    end if
-
-    call getarg(1,seriesfile)
     allocate(series(npermax,yrbeg:yrend,0:nensmax))
     if ( seriesfile /= 'file' ) then
         ! simple data
@@ -71,6 +41,7 @@ program attribute
         call readsetseries(series,npermax,yrbeg,yrend &
         & ,nensmax,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
     end if
+    
     call getarg(2+off,covariatefile)
     allocate(covariate(npermax,yrbeg:yrend,0:nensmax))
     if ( index(covariatefile,'%%') == 0 .and. &

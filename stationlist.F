@@ -103,8 +103,12 @@
             j = min(len(options)-10,llen(options)+2)
         enddo
         if ( oper(1:2).eq.'hi' ) then
-            if ( oper(4:4).eq.'r' .or. oper(4:4).eq.'R' ) then
+            if ( oper(3:4).eq.'gr' .or. oper(3:4).eq.'gR' ) then
                 histoptions = '20 hist sqrtlog '
+            else if ( oper(3:4).eq.'pr' .or. oper(3:4).eq.'pR' ) then
+                histoptions = '20 hist log '
+            else if ( oper(3:4).eq.'vr' .or. oper(3:4).eq.'vR' ) then
+                histoptions = '20 hist gumbel '
             else
                 histoptions = '20 hist hist '
             endif
@@ -112,6 +116,8 @@
                 histoptions(llen(histoptions)+2:) = 'fit gauss'
             elseif ( oper(1:3).eq.'hip' ) then
                 histoptions(llen(histoptions)+2:) = 'fit gpd'
+            elseif ( oper(1:3).eq.'hiv' ) then
+                histoptions(llen(histoptions)+2:) = 'fit gev'
             endif
             if ( lwrite ) print *,'histoptions are ',
      +           histoptions(1:llen(histoptions))
@@ -281,7 +287,7 @@
      +           oper.eq.'bdif' .or. 
      +           oper.eq.'hime' .or. oper.eq.'hisd' .or. 
      +           oper.eq.'hisk' .or. oper(1:3).eq.'hig' .or.
-     +           oper(1:3).eq.'hip' ) then
+     +           oper(1:3).eq.'hip' .or. oper(1:3).eq.'hiv' ) then
             if ( email.eq.'someone@somewhere' .and. n.ge.100 ) then
                 print *,'anonymous users can only use 100 stations'
                 goto 800
@@ -435,7 +441,8 @@
                             command(llen(command)+2:) = 
      +                           '|egrep  ''(&chi;|th colspan)'''
                         elseif ( oper(1:3).eq.'hig' .or. 
-     +                       oper(1:3).eq.'hip' ) then
+     +                           oper(1:3).eq.'hip' .or.
+     +                           oper(1:3).eq.'hiv' ) then
                             command(llen(command)+2:) = 
      +                           '|egrep  ''(return perio|th colspan)'''
                         elseif ( oper.eq.'higa' ) then
@@ -508,7 +515,8 @@
                         read(3,*,end=200,err=200) chsq
                         read(3,*,end=200,err=200) prob
                     elseif ( oper(1:3).eq.'hig' .or. 
-     +                       oper(1:3).eq.'hip' ) then
+     +                       oper(1:3).eq.'hip' .or. 
+     +                       oper(1:3).eq.'hiv' ) then
                         do i=1,10                            
                             read(3,*,end=200,err=200)t(i),t25(i),t975(i)
                         enddo
@@ -540,11 +548,14 @@
                     elseif ( oper.eq.'higa' ) then
                         val = chsq
                         sign = prob
-                    elseif ( oper.eq.'higr' .or. oper.eq.'hipr' ) then
+                    elseif ( oper.eq.'higr' .or. oper.eq.'hipr' .or.
+     +                       oper.eq.'hivr' ) then
                         val = tx
-                    elseif ( oper.eq.'higR' .or. oper.eq.'hipR' ) then
+                    elseif ( oper.eq.'higR' .or. oper.eq.'hipR' .or.
+     +                       oper.eq.'hivR' ) then
                         val = tx25
                     elseif ( oper(1:3).eq.'hig' .or. oper(1:3).eq.'hip'
+     +                       .or. oper(1:3).eq.'hiv'
      +                       ) then
                         read(oper(4:4),'(i1)') i
                         val = t(i+1)
