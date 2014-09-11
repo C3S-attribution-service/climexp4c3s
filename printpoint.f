@@ -51,14 +51,15 @@
         end
 *  #] printreturnvalue:
 *  #[ printcovreturnvalue:
-        subroutine printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb)
+        subroutine printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,
+     +       plot)
 *
 *       print return times
 *
         implicit none
         integer ntype,yr1a,yr2a
         real t(10,3),t25(10,3),t975(10,3)
-        logical lweb
+        logical lweb,plot
         integer i
 *
         if ( ntype.eq.2 .or. ntype.eq.3 .or. ntype.eq.4 ) then ! extreme value  plot
@@ -82,6 +83,14 @@
                     call print3untransf(t(i,1),t25(i,1),t975(i,1),yr1a)
                     call print3untransf(t(i,2),t25(i,2),t975(i,2),yr2a)
                 enddo
+                if ( plot ) then ! output for stationlist
+                    do i=1,10
+                        write(11,*) t(i,1),t25(i,1),t975(i,1),
+     +                       10**(1+i/3),yr1a,' return value'
+                        write(11,*) t(i,2),t25(i,2),t975(i,2),
+     +                       10**(1+i/3),yr2a,' return value'
+                    end do
+                end if
             else
                 do i=1,4
                     print '(a,i5,a,i4,a,f16.3,a,2f16.3)'
@@ -134,14 +143,14 @@
 *  #] printreturntime:
 *  #[ printcovreturntime:
         subroutine printcovreturntime(year,xyear,tx,tx25,tx975,yr1a,yr2a
-     +       ,lweb)
+     +       ,lweb,plot)
 *
 *       print return time of year at cov1 and cov2
 *
         implicit none
         integer year,yr1a,yr2a
         real xyear,tx(3),tx25(3),tx975(3)
-        logical lweb
+        logical lweb,plot
         integer i
         character atx(3)*16,atx25(3)*16,atx975(3)*16
 
@@ -153,16 +162,17 @@
             end do
             if ( lweb ) then
                 print '(a,i5,a,i5,7a)'
-     +               ,'# <tr><td>return period ',year,'</td><td>'
-     +               ,yr1a,'</td><td>',atx(1),
+     +               ,'# <tr><td><!--atr2-->return period ',year,
+     +               '</td><td>',yr1a,'</td><td>',atx(1),
      +               '</td><td>',atx25(1),' ... ',atx975(1),'</td></tr>'
                 print '(a,g16.5,a,i5,7a)'
-     +               ,'# <tr><td>(value ',xyear,')</td><td>'
+     +               ,'# <tr><td><!--atr1-->(value ',xyear,')</td><td>'
      +               ,yr2a,'</td><td>',atx(2),
      +               '</td><td>',atx25(2),' ... ',atx975(2),'</td></tr>'
-                print '(7a)'
-     +               ,'# <tr><td>&nbsp;</td><td>ratio</td><td>',atx(3),
-     +               '</td><td>',atx25(3),' ... ',atx975(3),'</td></tr>'
+                print '(8a)'
+     +               ,'# <tr><td><!--atra-->&nbsp;</td><td>ratio',
+     +               '</td><td>',atx(3),'</td><td>',atx25(3),
+     +               ' ... ',atx975(3),'</td></tr>'
             else
                 print '(a,i4,a,i4,5a)'
      +               ,'# return time ',year,' at yr=',yr1a
@@ -174,6 +184,11 @@
      +               ,'# return time ',year,' ratio = '
      +               ,atx(3),' 95% CI ',atx25(3),atx975(3)
             endif
+            if ( plot ) then    ! output for stationlist
+                write(11,*) tx(1),tx25(1),tx975(1),yr1a,' return time'
+                write(11,*) tx(2),tx25(2),tx975(2),yr2a,' return time'
+                write(11,*) tx(3),tx25(3),tx975(3),' ratio'
+            end if
         endif
         end
 *  #] printcovreturntime:
@@ -531,22 +546,15 @@
         real txtx(nmc,3)
         integer iens,j
         real logtxtx(3)
-        character string*1024
         integer iargc
-        string = ' '
-        do i=0,iargc()
-            l = min(len_trim(string) + 2,len(string)-2)
-            call getarg(i,string(l:))
-        enddo
-        write(11,'(2a)') '# ',trim(string)
-        write(11,'(a)') '# fraction, return values in the past '//
+        write(10,'(a)') '# fraction, return values in the past '//
      +       'climate, current climate and difference (sorted), '
         if ( ntype.eq.2 ) then
-            write(11,'(a)') '# repeated as gumbel transforms'
+            write(10,'(a)') '# repeated as gumbel transforms'
         else if ( ntype.eq.3 ) then
-            write(11,'(a)') '# repeated as logarithmic transforms'
+            write(10,'(a)') '# repeated as logarithmic transforms'
         else if ( ntype.eq.4 ) then
-            write(11,'(a)') '# repeated as sqrt-logarithmic transforms'
+            write(10,'(a)') '# repeated as sqrt-logarithmic transforms'
         else
             write(0,*) 'plot_tx_cdfs: error: unknown value for ntype ',
      +           ntype
@@ -584,11 +592,11 @@
             end do
             ! simple logscale for the time being
             logtxtx(3) = log(txtx(iens,3))
-            write(11,'(f6.4,6g16.5)') iens/real(nmc+1),
+            write(10,'(f6.4,6g16.5)') iens/real(nmc+1),
      +           (txtx(iens,j),j=1,3),(logtxtx(j),j=1,3)
         end do
         ! DO NOT write xtics in return times for easier reading of the plot
-        !!!call print_xtics(11,-ntype,ntot,j1,j2)
+        !!!call print_xtics(10,-ntype,ntot,j1,j2)
         end
 *  #] plot_tx_cdfs:
 *  #[ getreturnlevels:

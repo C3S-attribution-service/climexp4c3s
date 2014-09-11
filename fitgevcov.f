@@ -2,13 +2,13 @@
         subroutine fitgevcov(xx,yrs,ntot,a,b,xi,alpha,beta,j1,j2
      +       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,cov1,cov2,offset
      +       ,t,t25,t975,tx,tx25,tx975,inrestrain,assume
-     +       ,lboot,lprint,plot,lwrite)
+     +       ,lboot,lprint,dump,plot,lwrite)
 *
 *       fit a GEV distribution to the data, which is already assumed to be block max
 *       input:
 *       xx(2,ntot) data,covariate
 *       j1,j2    use days/months/... j1 to j2
-*       year     leave out this year from teh fit and compute return time for it
+*       year     leave out this year from the fit and compute return time for it
 *       xyear    value for year, has been set to undef in the series
 *       inrestrain restrain xi parameter by adding a normal distribution of width 0.5*inrestrain to the cost function
 *       assume   shift: only vary a, scale: vary a & b in unison, both: independently
@@ -33,7 +33,7 @@
      +       inrestrain,t(10,3),t25(10,3),t975(10,3),
      +       tx(3),tx25(3),tx975(3),ttt(10,3),txtxtx(3)
         character*(*) assume
-        logical lweb,lchangesign,lboot,lprint,plot,lwrite
+        logical lweb,lchangesign,lboot,lprint,dump,plot,lwrite
 *
         integer i,j,k,l,n,nx,iter,iens,nfit,year
         real x,aa(nmc),bb(nmc),xixi(nmc),alphaalpha(nmc),betabeta(nmc)
@@ -307,12 +307,14 @@
      +               ' \\pm ',beta975-beta25
             end if
         end if
-        call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb)
-        call printcovreturntime(year,xyear,tx,tx25,tx975,yr1a,yr2a,lweb)
+        call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot)
+        call printcovreturntime(year,xyear,tx,tx25,tx975,yr1a,yr2a,lweb,
+     +       plot)
 
-        if ( plot ) then
+        if ( dump ) then
             call plot_tx_cdfs(txtx,nmc,ntype,j1,j2)
         end if
+        if ( plot ) write(11,*) alpha,alpha25,alpha975,' alpha'
 
         ! no cuts
         mindata = -2e33

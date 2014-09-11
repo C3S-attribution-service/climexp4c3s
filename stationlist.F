@@ -13,17 +13,18 @@
         integer nmax
         parameter(nmax=250000)
         integer i,j,k,n,ldir,nextarg,retval,nsigns,isign,loptions
-        real lon,lon1,lon2,lat,lat1,lat2,val,sign,regr,x1,s1,x2,s2,
+        real lon,lon1,lon2,lat,lat1,lat2,val,sign,regr,x1,s1,x2,s2,z,
      +       signs(nmax),psigns(5),mean,sd,sd1,skew,xmin,xmax,chsq,prob,
-     +       tx,tx25,tx975,t(10),t25(10),t975(10)
+     +       tx,tx25,tx975,t(10),t25(10),t975(10),alpha,alpha25,alpha975
+     +       ,ttx(3),ttx25(3),ttx975(3),tt(10,3),tt25(10,3),tt975(10,3)
         character*20 code
         real elev
         logical lexist,first
         character line*255,file*256,prog*120,filterargs*100,
      +       filterext*100,oper*4,name*40,options*1024,datfile*256
-     +       ,rawfile*256,command*512,tmpfile*29,aveline*10000,dir*256
+     +       ,rawfile*256,command*1024,tmpfile*29,aveline*10000,dir*256
      +       ,coordlist*30,field*255,fieldfile*255,letter*1,runfile*256
-     +       ,histoptions*80,email*80
+     +       ,histoptions*80,email*80,attribute_args*1024
         logical lwrite,interp
         integer iargc,llen,getpid
         data psigns /0.1,0.05,0.01,0.005,0.001/
@@ -91,6 +92,7 @@
         call getarg(1,file)
         open(1,file=file,status='old',err=901)
         j=1
+        options = ' '
         do i=nextarg,iargc()
             call getarg(i,options(j:))
             if ( options(j:j+3).eq.'runc' .or. options(j:j+3).eq.'runr'
@@ -121,6 +123,8 @@
             endif
             if ( lwrite ) print *,'histoptions are ',
      +           histoptions(1:llen(histoptions))
+        else if ( oper(1:2).eq.'at' ) then
+            call getenv('attribute_args',attribute_args)
         endif
         write(tmpfile,'(a,i20.20)') '/tmp/corr',getpid()
         options(llen(options)+2:) = 'plot '//tmpfile
@@ -254,7 +258,7 @@
 *       get station data
 *       
         first = .TRUE.
-        if ( oper(1:2).eq.'hi' ) then
+        if ( oper(1:2).eq.'hi' .or. oper(1:2).eq.'at' ) then
             call mysystem('echo "<table class=realtable width=451 '//
      +           'border=0 cellpadding= cellspacing=0>"',retval)
         endif
@@ -286,8 +290,10 @@
      +           oper.eq.'runc' .or. oper.eq.'zdif' .or. 
      +           oper.eq.'bdif' .or. 
      +           oper.eq.'hime' .or. oper.eq.'hisd' .or. 
-     +           oper.eq.'hisk' .or. oper(1:3).eq.'hig' .or.
-     +           oper(1:3).eq.'hip' .or. oper(1:3).eq.'hiv' ) then
+     +           oper.eq.'hisk' .or.
+     +           oper(1:3).eq.'hig' .or.
+     +           oper(1:3).eq.'hip' .or. oper(1:3).eq.'hiv' .or.
+     +           oper(1:2).eq.'at' ) then
             if ( email.eq.'someone@somewhere' .and. n.ge.100 ) then
                 print *,'anonymous users can only use 100 stations'
                 goto 800
@@ -424,6 +430,15 @@
                         print *,'             command = '
      +                       ,command(1:llen(command))
                     endif
+                elseif ( oper(1:2).eq.'at' ) then
+                    write(command,'(6a)') trim(dir)//'bin/attribute ',
+     +                    trim(datfile),' ',trim(attribute_args),' ',
+     +                   trim(options)
+                    if ( lwrite ) then
+                        print *,'stationlist: attribute'
+                        print *,'             command = '
+     +                       ,command(1:llen(command))
+                    endif
                 else
                     write(command,'(4a)') dir(1:ldir)//'bin/correlate ',
      +                    datfile(1:llen(datfile)),' ',
@@ -435,7 +450,7 @@
                     endif
                 endif
                 command(llen(command)+2:)= '|tr -c -d "\\n\\r[:print:]"'
-                if ( oper(1:2).eq.'hi' ) then
+                if ( oper(1:2).eq.'hi' .or. oper(1:2).eq.'at' ) then
                     if ( .not.first ) then
                         if ( oper.eq.'higa' ) then
                             command(llen(command)+2:) = 
@@ -445,12 +460,12 @@
      +                           oper(1:3).eq.'hiv' ) then
                             command(llen(command)+2:) = 
      +                           '|egrep  ''(return perio|th colspan)'''
-                        elseif ( oper.eq.'higa' ) then
-                            command(llen(command)+2:) = 
-     +                           '|egrep  ''(&chi;|th colspan)'''
                         elseif ( oper.eq.'hisd' ) then
                             command(llen(command)+2:) = '|egrep  '//
      +                           '''(^# <tr><td>s.d..n-1|th colspan)'''
+                        elseif ( oper(1:2).eq.'at' ) then ! print the var name in a HTML comment
+                            command(llen(command)+2:) = 
+     +                           '|egrep ''('//oper//'|th colspan)'''
                         else
                             command(llen(command)+2:) = 
      +                           '|egrep  ''(^# <tr><td>'//oper(3:4)
@@ -469,8 +484,7 @@
      +                       'Month.*:|All year|Requiring)'''
                     endif
                 endif
-                if ( lwrite ) print *,
-     +               command(1:llen(command))
+                if ( lwrite ) print *,trim(command)
                 first = .FALSE.
                 call mysystem(command,retval)
 *               do not call checkval(retval,command) 
@@ -565,6 +579,64 @@
                         write(0,*) 'error: unknown operation ',oper
                         call abort
                     endif
+                elseif ( oper(1:2).eq.'at' ) then
+                    if ( lwrite ) print *,'sttaionlist: opening file '
+     +                   ,trim(tmpfile)
+                    open(3,file=trim(tmpfile),status='old',err=200)
+                    do i=1,10
+                        do j=1,2
+                            read(3,*,end=200,err=200)tt(i,j),tt25(i,j),
+     +                           tt975(i,j)
+                        enddo
+                    end do
+                    do j=1,3
+                        read(3,*,end=200,err=200) ttx(j),ttx25(j),
+     +                       ttx975(j)
+                    end do
+                    read(3,*,end=200,err=200) alpha,alpha25,alpha975
+                    if ( lwrite ) then
+                        print *,'alpha = ',alpha
+                        do i=1,10
+                            do j=1,2
+                                print *,'tt(',i,j,') = ',tt(i,j),
+     +                               tt25(i,j),tt975(i,j)
+                            end do
+                        end do
+                        do j=1,3
+                            print *,'tx(',j,')   = ',ttx(j),ttx25(j),
+     +                           ttx975(j)
+                        end do
+                        close(3)
+                    else
+                        close(3,status='delete')
+                    endif
+                    if ( oper.eq.'atal' ) then
+                        val = alpha
+                    elseif ( oper.eq.'atr2' ) then
+                        val = ttx(1)
+                        sign = 1/ttx(1)
+                    elseif ( oper.eq.'atr1' ) then
+                        val = ttx(2)
+                        sign = 1/ttx(2)
+                    elseif ( oper.eq.'atra' ) then
+                        val = ttx(3)
+                        ! assuming the PDF of log(ratio) is gaussian the 95% CI corresponds to ±2\sigma
+                        sd = (log(ttx975(3)) - log(ttx25(3)))/4
+                        z = abs(log(ttx(3))/sd)
+                        ! convert to p-value, assuming a 2-sided test, even though we 
+                        ! often know from theory which way it should go.
+                        sign = erfc(z/sqrt(2.))
+                    elseif ( ichar(oper(3:3)).ge.ichar('0') .and.
+     +                       ichar(oper(3:3)).le.ichar('9') ) then
+                        read(oper(3:3),'(i1)') i
+                        read(oper(4:4),'(i1)') j
+                        j = 3-j ! stupid clash of conventions
+                        val = tt(i+1,j)
+                    else
+                        write(*,*) 'error: unknown operation ',oper
+                        write(0,*) 'error: unknown operation ',oper
+                        call abort
+                    endif
                 else            ! correlation or getval
                     open(3,file=tmpfile,status='old',err=200)
                     read(3,*,end=700,err=700) i,j,val,sign,k,x1,s1,x2,s2
@@ -644,7 +716,9 @@
             call mysystem(aveline,retval)
             call checkval(retval,command)
         endif
-        if ( oper(1:2).eq.'hi' ) call mysystem('echo "</table>"',retval)
+        if ( oper(1:2).eq.'hi' .or. oper(1:2).eq.'at' ) then
+            call mysystem('echo "</table>"',retval)
+        end if
 *
 *       how many points are 'significant'?
 *

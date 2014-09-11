@@ -764,32 +764,36 @@
      +                line(1:llen(line))
                 lskip = 1
             elseif ( line(1:4).eq.'dump' ) then
-                dump = .TRUE.
                 if ( i.lt.iarg2 ) then
                     call getarg(i+1,plotfile)
                     lskip = 1
                 else
                     plotfile = 'dump.dat'
                 endif
-                if ( lwrite ) print '(2a)','# writing dumpfile on ',
-     +                trim(plotfile)
-                open(10,file=trim(plotfile))
-                call getarg(0,line)
-                k = index(line,'/',.true.)
-                line = line(k+1:)
-                do j=1,iargc()
-                    call getarg(j,string)
-                    k = index(string,'/',.true.)
-                    line = trim(line)//' '//string(k+1:)
-                end do
-                write(10,'(2a)') '# ',trim(line)
+                if ( .not.dump ) then
+                    dump = .TRUE.
+                    if ( lwrite ) print '(2a)','# writing dumpfile on ',
+     +                   trim(plotfile)
+                    open(10,file=trim(plotfile))
+                    call getarg(0,line)
+                    k = index(line,'/',.true.)
+                    line = line(k+1:)
+                    do j=1,iargc()
+                        call getarg(j,string)
+                        k = index(string,'/',.true.)
+                        line = trim(line)//' '//string(k+1:)
+                    end do
+                    write(10,'(2a)') '# ',trim(line)
+                end if
             elseif ( line(1:4).eq.'plot' ) then
-                plot = .TRUE.
-                call getarg(i+1,plotfile)
+                if ( .not.plot ) then
+                    plot = .TRUE.
+                    call getarg(i+1,plotfile)
+                    if ( lwrite ) print *,'Writing plotfile on ',
+     +                   plotfile(1:index(plotfile,' ')-1)
+                    open(11,file=trim(plotfile))
+                end if
                 lskip = 1
-                if ( lwrite ) print *,'Writing plotfile on ',
-     +                plotfile(1:index(plotfile,' ')-1)
-                open(11,file=trim(plotfile))
             elseif ( line(1:6).eq.'lwrite' .or. line(1:5).eq.'debug' )
      +                then
                 lwrite = .TRUE.

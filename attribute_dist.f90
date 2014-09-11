@@ -74,6 +74,11 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     end if    
     if ( lwrite ) print *,'attribute_dist: calling handle_then_now'
     call handle_then_now(yrseries,yrcovariate,npernew,fyr,lyr,j1,j2,yr1a,yr2a,mens1,mens,xyear,cov1,cov2,lwrite)
+    if ( namestring.ne.' ' ) then
+        print '(4a)','# <tr><th colspan=4>',trim(namestring),'</th></tr>'
+    endif
+    print '(8a)' ,'# <tr><th>parameter</th><th>year</th><th>value</th><th>' &
+    &   ,'95% CI</th></tr>'
     print '(a,i4,a,g16.5,a)','# <tr><td>covariate:</td><td>',yr1a,'</td><td>',cov1, &
     &   '</td><td>&nbsp;</td></tr>'
     print '(a,i4,a,g19.5,a)','# <tr><td>&nbsp;</td><td>',yr2a,'</td><td>',cov2, &
@@ -94,8 +99,6 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     end if
 
     if ( lweb ) then
-        print '(8a)' ,'# <tr><th>parameter</th><th>year</th><th>value</th><th>' &
-        &   ,'95% CI</th></tr>'
         print '(a,i9,a)','# <tr><td>N:</td><td>&nbsp;</td><td>',ntot, &
         &   '</td><td>&nbsp;</td></tr>'
     end if
@@ -107,7 +110,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         if ( lwrite ) print *,'attribute_dist: calling fitgevcov'
         call fitgevcov(xx,yrs,ntot,a,b,xi,alpha,beta,j1,j2 &
     &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,cov1,cov2,offset &
-    &       ,t,t25,t975,tx,tx25,tx975,restrain,assume,lboot,lprint,plot,lwrite)
+    &       ,t,t25,t975,tx,tx25,tx975,restrain,assume,lboot,lprint,dump,plot,lwrite)
     else if ( distribution.eq.'gpd' ) then
         ntype = 3 ! log plot
         !!!print *,'DEBUG'
@@ -116,19 +119,19 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         if ( lwrite ) print *,'attribute_dist: calling fitgpdcov'
         call fitgpdcov(xx,yrs,ntot,a,b,xi,alpha,beta,j1,j2 &
     &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,cov1,cov2,offset &
-    &       ,t,t25,t975,tx,tx25,tx975,pmindata,restrain,assume,lboot,lprint,plot,lwrite)
+    &       ,t,t25,t975,tx,tx25,tx975,pmindata,restrain,assume,lboot,lprint,dump,plot,lwrite)
     else if  ( distribution.eq.'gumbel' ) then
         ntype = 2 ! Gumbel plot
         if ( lwrite ) print *,'attribute_dist: calling fitgumcov'
         call fitgumcov(xx,yrs,ntot,a,b,alpha,beta,j1,j2 &
     &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,cov1,cov2,offset &
-    &       ,t,t25,t975,tx,tx25,tx975,assume,lboot,lprint,plot,lwrite)
+    &       ,t,t25,t975,tx,tx25,tx975,assume,lboot,lprint,dump,plot,lwrite)
     else if  ( distribution.eq.'gauss' ) then
         ntype = 4 ! sqrtlog plot
         if ( lwrite ) print *,'attribute_dist: calling fitgaucov'
         call fitgaucov(xx,yrs,ntot,a,b,alpha,beta,j1,j2 &
     &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,cov1,cov2,offset &
-    &       ,t,t25,t975,tx,tx25,tx975,assume,lboot,lprint,plot,lwrite)
+    &       ,t,t25,t975,tx,tx25,tx975,assume,lboot,lprint,dump,plot,lwrite)
     else
         write(0,*) 'attribute_dist: error: unknown distribution ',trim(distribution)
     end if

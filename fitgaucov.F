@@ -1,7 +1,8 @@
 *  #[ fitgaucov:
         subroutine fitgaucov(xx,yrs,ntot,a,b,alpha,beta,j1,j2
      +       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,cov1,cov2,offset
-     +       ,t,t25,t975,tx,tx25,tx975,assume,lboot,lprint,plot,lwrite)
+     +       ,t,t25,t975,tx,tx25,tx975,assume,lboot,lprint,dump,plot
+     +       ,lwrite)
 *
 *       a fit a gaussian distribution with mean linearly dependent on a covariate 
 *       to the data
@@ -13,7 +14,7 @@
         real xx(2,ntot),a,b,alpha,beta,xyear,cov1,cov2,offset,
      +       t(10,3),t25(10,3),t975(10,3),tx(3),tx25(3),tx975(3)
         real ttt(10,3),txtxtx(3),dum
-        logical lweb,lchangesign,lboot,lprint,plot,lwrite
+        logical lweb,lchangesign,lboot,lprint,dump,plot,lwrite
         character assume*(*)
 *
         integer nmc
@@ -231,12 +232,14 @@
      +               ' \\pm ',beta975-beta25
             end if
         endif
-        call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb)
-        call printcovreturntime(year,xyear,tx,tx25,tx975,yr1a,yr2a,lweb)
+        call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot)
+        call printcovreturntime(year,xyear,tx,tx25,tx975,yr1a,yr2a,lweb,
+     +       plot)
 
-        if ( plot ) then
+        if ( dump ) then
             call plot_tx_cdfs(txtx,nmc,ntype)
         end if
+        if ( plot ) write(11,*) alpha,alpha25,alpha975,' alpha'
 
         ! no cuts
         mindata = -2e33
@@ -269,7 +272,6 @@
         call plot_ordered_points(yy,ys,yrs,ntot,ntype,nfit,
      +       frac,aaa,bbb,dum,j1,j2,minindx,mindata,pmindata,
      +       year,xyear,snorm,lchangesign,lwrite,.true.)
-
         end
 *  #] fitgaucov:
 *  #[ fit1gaucov:

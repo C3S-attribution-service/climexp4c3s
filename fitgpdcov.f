@@ -2,7 +2,7 @@
         subroutine fitgpdcov(xx,yrs,ntot,a,b,xi,alpha,beta,j1,j2
      +       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,cov1,cov2,offset
      +       ,t,t25,t975,tx,tx25,tx975,threshold,inrestrain,assume
-     +       ,lboot,lprint,plot,lwrite)
+     +       ,lboot,lprint,dump,plot,lwrite)
 *
 *       fit a GPD distribution to the data, which is already assumed to be declustered
 *       input:
@@ -34,7 +34,7 @@
      +       inrestrain,t(10,3),t25(10,3),t975(10,3),
      +       tx(3),tx25(3),tx975(3),ttt(10,3),txtxtx(3),threshold
         character*(*) assume
-        logical lweb,lchangesign,lboot,lprint,plot,lwrite
+        logical lweb,lchangesign,lboot,lprint,dump,plot,lwrite
 *
         integer i,j,k,l,n,nx,iter,iter1,iens,nfit,year
         real x,aa(nmc),bb(nmc),xixi(nmc),alphaalpha(nmc),betabeta(nmc)
@@ -345,14 +345,16 @@
             print '(a,f16.3,a,f16.3,a,f16.3)','# alpha ',alpha,' \\pm ',
      +           alpha975-alpha25
         end if
-        call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb)
-        call printcovreturntime(year,xyear,tx,tx25,tx975,yr1a,yr2a,lweb)
+        call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot)
+        call printcovreturntime(year,xyear,tx,tx25,tx975,yr1a,yr2a,lweb,
+     +       plot)
 !       plot fit for present-day climate
         call plotreturnvalue(ntype,t25(1,2),t975(1,2),j2-j1+1)
 
-        if ( plot ) then
+        if ( dump ) then
             call plot_tx_cdfs(txtx,nmc,ntype,j1,j2)
         end if
+        if ( plot ) write(11,*) alpha,alpha25,alpha975,' alpha'
 
        ! no cuts
         mindata = -2e33
