@@ -10,7 +10,7 @@
         integer fyr,lyr
         integer,allocatable :: nn(:,:)
         real,allocatable :: data(:,:,:),mean(:,:)
-        logical lstandardunits,lwrite
+        logical lstandardunits,lset,lwrite
         character file*255,var*20,units*20,string*80,oper*3
         integer,external :: leap
         integer iargc
@@ -28,10 +28,17 @@
         lstandardunits = .false.
         lwrite = .false.
         call getarg(1,file)
+        if ( file == 'file' ) then
+            call getarg(2,file)
+            lset = .true.
+            iarg = 4
+        else
+            lset = .false.
+            iarg = 2
+        end if
         nens1 = 0
         nens2 = 999
         oper = 'mea'
-        iarg = 2
         do while ( iarg.le.iargc() )
             call getarg(iarg,string)
             if ( string.eq.'ens' ) then
@@ -60,8 +67,13 @@
                 iarg = iarg + 1
             end if
         end do
-        call readensseries(file,data,npermax,yrbeg,yrend,mensmax
-     +        ,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
+        if ( lset ) then
+            call readsetseries(data,npermax,yrbeg,yrend,mensmax
+     +           ,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
+        else
+            call readensseries(file,data,npermax,yrbeg,yrend,mensmax
+     +           ,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
+        end if
         nens1 = max(nens1,mens1)
         nens2 = min(nens2,mens)
 
@@ -144,13 +156,17 @@
         end if
 
         print '(4a)','# ensemble ',oper,' of file ',trim(file)
-        print '(a,i3,a,i3)','# using ensemble members ',nens1,' to '
+        print '(a,i3,a,i3)','# using members ',nens1,' to '
      +       ,nens2
-        call filloutens(file,mens1)
         if ( oper.eq.'num' ) then
             print '(a)','# N [1] number of series with valid data'
-        else
+        else if ( .not.lset ) then
+            call filloutens(file,mens1)
             call copyheader(file,6)
+        else
+            ! this information is lost by the time I get here...
+            print '(10a)','# ',trim(var),' [',trim(units),'] ',
+     +           trim(oper),' of ',trim(var)
         end if
         call printdatfile(6,mean,npermax,nperyear,yrbeg,yrend)
 
