@@ -1,0 +1,4 @@
+#!/bin/sh
+dir=`dirname $0`
+prog=`basename $0`
+exec $dir/$PVM_ARCH/$prog "$@"

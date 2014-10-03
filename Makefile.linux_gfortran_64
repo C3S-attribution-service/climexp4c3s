@@ -1,0 +1,17 @@
+# FFLAGS = -Ktrap=fp -g -C
+###FFLAGS = -g -Dlinux -fbounds-check -fbackslash -ffpe-trap=invalid,zero,overflow
+FFLAGS = -O -Dlinux -fbackslash -ffpe-trap=invalid,zero,overflow
+EOFFLAGS = $(FFLAGS)
+
+CFLAGS = -O2
+
+SYSLIBS = -L$(HOME)/lib -L/usr/lib64/atlas -lnetcdff -lnetcdf -lhdf5 -llapack -lblas
+FC = gfortran
+LD = gfortran
+RANLIB = echo ready with
+
+###LDBIGFLAG = -Wl,-Bstatic
+
+EXTRAOBJS = getppid.o swapbyte.o
+
+include ../Makefile.common
