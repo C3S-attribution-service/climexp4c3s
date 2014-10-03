@@ -85,10 +85,10 @@
                 enddo
                 if ( plot ) then ! output for stationlist
                     do i=1,10
-                        write(11,*) t(i,1),t25(i,1),t975(i,1),
-     +                       10**(1+i/3),yr1a,' return value'
-                        write(11,*) t(i,2),t25(i,2),t975(i,2),
-     +                       10**(1+i/3),yr2a,' return value'
+                        write(11,'(4g20.4,i6,a)') t(i,1),t25(i,1),
+     +                       t975(i,1),10**(1+i/3),yr1a,' return value'
+                        write(11,'(4g20.4,i6,a)') t(i,2),t25(i,2),
+     +                       t975(i,2),10**(1+i/3),yr2a,' return value'
                     end do
                 end if
             else
@@ -185,9 +185,11 @@
      +               ,atx(3),' 95% CI ',atx25(3),atx975(3)
             endif
             if ( plot ) then    ! output for stationlist
-                write(11,*) tx(1),tx25(1),tx975(1),yr1a,' return time'
-                write(11,*) tx(2),tx25(2),tx975(2),yr2a,' return time'
-                write(11,*) tx(3),tx25(3),tx975(3),' ratio'
+                write(11,'(3g20.4,i6,a)') tx(1),tx25(1),tx975(1),yr1a,
+     +               ' return time'
+                write(11,'(3g20.4,i6,a)') tx(2),tx25(2),tx975(2),yr2a,
+     +               ' return time'
+                write(11,'(3g20.4,a)') tx(3),tx25(3),tx975(3),' ratio'
             end if
         endif
         end

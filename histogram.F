@@ -471,9 +471,9 @@
                     print '(4a)','# <tr><th colspan=3>',trim(namestring)
      +                   ,'</th></tr>'
                 endif
-                print '(8a)'
-     +               ,'# <tr><th>parameter</th><th>value</th><th>'
-     +               ,'95% CI</th></tr>'
+                print '(9a)'
+     +               ,'# <tr><th>parameter</th><th>value&plusmn;2&sigma'
+     +               ,'</th><th>95% CI</th></tr>'
                 print '(a,i9,a)','# <tr><td>N:</td><td>',ntot,
      +               '</td><td>&nbsp;</td></tr>'
             else

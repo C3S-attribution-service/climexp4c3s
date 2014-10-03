@@ -245,7 +245,7 @@
                             j = j + nn
                             noleap = noleap + nn
                         endif
-                        call keepalive(l,ck)
+                        call keepalive1('Reading day ',l,ck)
                         if ( lwrite ) print *,'reading ',start(k),i,j
                         status = nf_get_varm_real(ncid,jvars(1),start
      +                       ,count,stride,imap,field(1,1,j,i))
@@ -304,7 +304,7 @@
                             j = j + nn
                             noleap = noleap + nn
                         endif
-                        call keepalive(l,ck)
+                        call keepalive1('Reading day ',l,ck)
                         if ( lwrite ) print *,'reading ',start(k),i,j
                         status = nf_get_varm_real(ncid,jvars(1),start
      +                       ,count,stride,imap,field(1,1,j,i))
@@ -473,7 +473,7 @@
                 if ( lwrite ) print *
      +               ,'readncfile: scaling and offsetting with ',scale
      +               ,offset
-                call keepalive(0,0)
+                call keepalive1('Applying scale and offset ',0,2)
                 do i=yr1,yr2
                     do j=1,nperyear
                         do jz=1,max(nz,1)
@@ -490,7 +490,7 @@
                 end do
             else
                 if ( lwrite ) print *,'readncfile: scaling with ',scale
-                call keepalive(0,0)
+                call keepalive1('Applying scale and offset ',1,2)
                 do i=yr1,yr2
                     do j=1,nperyear
                         do jz=1,max(nz,1)
@@ -507,7 +507,7 @@
             endif
         else if ( offset.ne.0 ) then
             if ( lwrite ) print *,'readncfile: offsetting ',offset
-            call keepalive(0,0)
+            call keepalive1('Applying scale and offset ',2,2)
             do i=yr1,yr2
                 do j=1,nperyear
                     do jz=1,max(nz,1)

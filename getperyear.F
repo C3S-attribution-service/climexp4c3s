@@ -300,7 +300,10 @@
                 firstmo = nint(0.5+real(firstdy)/iperyear*12)
             else if ( nperyear.lt.360 ) then
 *               12: this makes both 1-1 and 16-1 go to Jan...
-                firstmo = nint(0.5+real(firstdy)/iperyear*nperyear)
+!               0.6: allows for unequal-sized months that make it go a little below the integer
+                if ( lwrite ) print *,'nint(0.6+',firstdy,'/',
+     +               iperyear,'*',nperyear,')'
+                firstmo = nint(0.6+real(firstdy)/iperyear*nperyear)
             else
                 firstmo = 1 + firstdy/nint(iperyear/real(nperyear))
             endif

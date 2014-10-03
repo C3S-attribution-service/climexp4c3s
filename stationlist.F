@@ -27,6 +27,7 @@
      +       ,histoptions*80,email*80,attribute_args*1024
         logical lwrite,interp
         integer iargc,llen,getpid
+        real erfc
         data psigns /0.1,0.05,0.01,0.005,0.001/
 *       
         lwrite = .false.
@@ -619,7 +620,7 @@
                         val = ttx(2)
                         sign = 1/ttx(2)
                     elseif ( oper.eq.'atra' ) then
-                        val = ttx(3)
+                        val = log10(ttx(3))
                         ! assuming the PDF of log(ratio) is gaussian the 95% CI corresponds to ±2\sigma
                         sd = (log(ttx975(3)) - log(ttx25(3)))/4
                         z = abs(log(ttx(3))/sd)

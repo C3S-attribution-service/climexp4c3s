@@ -24,7 +24,7 @@
      +        index(prog,'/').ne.0 .or.
      +        index(prog,';').ne.0 .or. index(prog,'`').ne.0 .or.
      +        index(prog,'&').ne.0 .or. index(prog,'|').ne.0 ) then
-            print *,'readsetlist: invalid argument ',prog
+            print *,'readsetseries: invalid argument ',prog
             call abort
         endif
         ! one prog has underscores in its name, which conflicts with the convention to put the extra 
