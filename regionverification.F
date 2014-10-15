@@ -6,7 +6,7 @@
 *
 *       (c) Geert Jan van Oldenborgh, 7-nov-2005, KNMI
 *
-*       This file may be copied and modified  freely as long as the
+*       This file may be copied and modified freely as long as the
 *       above copyright notice is kept intact
 *
         implicit none

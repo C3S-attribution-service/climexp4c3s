@@ -26,7 +26,7 @@
                     do mo1=j1,j2
                         mo = mo1
                         if ( mo.gt.12 ) mo = mo - 12
-                        if ( .false. ) then
+                        if ( .true. ) then
 *                           demand at least one valid forecast
                             lvalid = .false.
                             do iens=nens1,nens2
