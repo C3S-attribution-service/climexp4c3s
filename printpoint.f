@@ -594,7 +594,7 @@
             end do
             ! simple logscale for the time being
             logtxtx(3) = log(txtx(iens,3))
-            write(10,'(f6.4,6g16.5)') iens/real(nmc+1),
+            write(10,'(f6.4,6g16.5)') iens/real(nens+1),
      +           (txtx(iens,j),j=1,3),(logtxtx(j),j=1,3)
         end do
         ! DO NOT write xtics in return times for easier reading of the plot
