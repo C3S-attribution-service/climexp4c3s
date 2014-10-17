@@ -540,11 +540,11 @@
         end
 *  #] print_xtics:
 *  #[ plot_tx_cdfs:
-        subroutine plot_tx_cdfs(txtx,nmc,ntype,j1,j2)
+        subroutine plot_tx_cdfs(txtx,nmc,nens,ntype,j1,j2)
 !
 !       make a file to plot CDFs
 !
-        integer nmc,ntype,j1,j2
+        integer nmc,nens,ntype,j1,j2
         real txtx(nmc,3)
         integer iens,j
         real logtxtx(3)
@@ -562,7 +562,7 @@
      +           ntype
             call abort
         end if
-        do iens=1,nmc
+        do iens=1,nens
             do j=1,2
                 if ( ntype.eq.2 ) then
                     if ( txtx(iens,j).lt.1e20 .and. txtx(iens,j).gt.1 )
@@ -645,7 +645,7 @@
             end if
         else
             if ( tx(1).gt.1e19 ) then
-                tx(3) = 1e-20
+                tx(3) = 1e20
             else
                 tx(3) = tx(1) / tx(2)
             end if

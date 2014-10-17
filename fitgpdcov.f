@@ -36,7 +36,7 @@
         character*(*) assume
         logical lweb,lchangesign,lboot,lprint,dump,plot,lwrite
 *
-        integer i,j,k,l,n,nx,iter,iter1,iens,nfit,year
+        integer i,j,k,l,n,nx,iter,iter1,iens,iiens,nfit,year
         real x,aa(nmc),bb(nmc),xixi(nmc),alphaalpha(nmc),betabeta(nmc)
      +       ,tt(nmc,10,3),b25,b975,xi25,xi975,alpha25,alpha975
      +       ,t5(10,3),t1(10,3),db,dxi,f,z,ll,ll1,txtx(nmc,3)
@@ -210,10 +210,12 @@
         endif
         if ( .not.lweb ) print '(a,i6,a)','# doing a ',nmc
      +        ,'-member bootstrap to obtain error estimates'
-        do iens=1,nmc
-            call keepalive1('Bootstrapping',iens,nmc)
-            if ( .not.lweb .and. mod(iens,100).eq.0 )
-     +           print '(a,i6)','# ',iens
+        iens = 0
+        do iiens=1,nmc
+            iens = iens + 1
+            call keepalive1('Bootstrapping',iiens,nmc)
+            if ( .not.lweb .and. mod(iiens,100).eq.0 )
+     +           print '(a,i6)','# ',iiens
             do i=1,ncur
                 call random_number(ranf)
                 j = 1+int(ncur*ranf)
@@ -257,6 +259,14 @@
                     txtx(iens,j) = txtxtx(j)/(j2-j1+1)
                 end do
                 txtx(iens,3) = txtxtx(3)
+                ! if the event would have been impossible in the current climate
+                ! disregard this bootstrap sample
+                if ( txtxtx(3).gt.1e19 ) then
+                    iens = iens - 1
+                else if ( txtxtx(2).lt.1e-10 ) then
+                    write(0,*) 'fitgpdcov: error: tx<1e-10: ',txtxtx,
+     +                   '<br>'
+                end if
             endif
         enddo
         if ( lchangesign ) then
@@ -273,37 +283,37 @@
             t = -t
             tt = -tt
         endif
-        call getcut( a25, 2.5,nmc,aa)
-        call getcut(a975,97.5,nmc,aa)
-        call getcut( b25, 2.5,nmc,bb)
-        call getcut(b975,97.5,nmc,bb)
-        call getcut( xi25, 2.5,nmc,xixi)
-        call getcut(xi975,97.5,nmc,xixi)
-        call getcut( alpha25, 2.5,nmc,alphaalpha)
-        call getcut(alpha975,97.5,nmc,alphaalpha)
+        call getcut( a25, 2.5,iens,aa)
+        call getcut(a975,97.5,iens,aa)
+        call getcut( b25, 2.5,iens,bb)
+        call getcut(b975,97.5,iens,bb)
+        call getcut( xi25, 2.5,iens,xixi)
+        call getcut(xi975,97.5,iens,xixi)
+        call getcut( alpha25, 2.5,iens,alphaalpha)
+        call getcut(alpha975,97.5,iens,alphaalpha)
         if ( assume.eq.'both' ) then
-            call getcut( beta25, 2.5,nmc,betabeta)
-            call getcut(beta975,97.5,nmc,betabeta)
+            call getcut( beta25, 2.5,iens,betabeta)
+            call getcut(beta975,97.5,iens,betabeta)
         end if
         do i=1,10
             do j=1,3
                 if ( lchangesign ) then
                     lgt = '&lt;'
-                    call getcut(t5(i,j),5.,nmc,tt(1,i,j))
-                    call getcut(t1(i,j),1.,nmc,tt(1,i,j))
+                    call getcut(t5(i,j),5.,iens,tt(1,i,j))
+                    call getcut(t1(i,j),1.,iens,tt(1,i,j))
                 else
                     lgt = '&gt;'
-                    call getcut(t5(i,j),95.,nmc,tt(1,i,j))
-                    call getcut(t1(i,j),99.,nmc,tt(1,i,j))
+                    call getcut(t5(i,j),95.,iens,tt(1,i,j))
+                    call getcut(t1(i,j),99.,iens,tt(1,i,j))
                 endif
-                call getcut(t25(i,j),2.5,nmc,tt(1,i,j))
-                call getcut(t975(i,j),97.5,nmc,tt(1,i,j))
+                call getcut(t25(i,j),2.5,iens,tt(1,i,j))
+                call getcut(t975(i,j),97.5,iens,tt(1,i,j))
             enddo
         end do
         do j=1,3
             if ( xyear.lt.1e33 ) then
-                call getcut(tx25(j), 2.5,nmc,txtx(1,j))
-                call getcut(tx975(j),97.5,nmc,txtx(1,j))
+                call getcut(tx25(j), 2.5,iens,txtx(1,j))
+                call getcut(tx975(j),97.5,iens,txtx(1,j))
                 if ( lchangesign ) xyear = -xyear
             endif
         end do
@@ -352,7 +362,7 @@
         call plotreturnvalue(ntype,t25(1,2),t975(1,2),j2-j1+1)
 
         if ( dump ) then
-            call plot_tx_cdfs(txtx,nmc,ntype,j1,j2)
+            call plot_tx_cdfs(txtx,nmc,iens,ntype,j1,j2)
         end if
         if ( plot ) write(11,'(3g20.4,a)') alpha,alpha25,alpha975,
      +       ' alpha'
@@ -769,7 +779,7 @@
             else
                 tx = 1e20
             end if
-            if ( tx.gt.1e20 ) then
+            if ( .false. .and. tx.gt.1e20 ) then
                 write(0,*) 'fitgpd: tx > 1e20: ',tx
                 write(0,*) 'z,xi = ',z,xi
             end if
@@ -809,8 +819,8 @@
                 print *,'  n,ntot = ',n,ntot
             end if
         endif
-        if ( .false. .and. tx.gt.1e20 ) then
-            write(0,*) 'gpdcovreturnyear: tx > 1e20: ',tx
+        if ( .true. .and. tx.lt.1e-10 ) then
+            write(0,*) 'gpdcovreturnyear: tx < 1e-10: ',tx
             write(0,*) 'a,b,xi,alpha,xyear = ',a,b,alpha,xi,xyear
         endif
         gpdcovreturnyear = tx
