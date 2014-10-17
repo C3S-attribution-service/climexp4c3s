@@ -272,7 +272,7 @@
      +       plot)
 
         if ( dump ) then
-            call plot_tx_cdfs(txtx,nmc,ntype,j1,j2)
+            call plot_tx_cdfs(txtx,nmc,nmc,ntype,j1,j2)
         end if
         if ( plot ) write(11,'(3g20.4,a)') alpha,alpha25,alpha975,
      +       ' alpha'

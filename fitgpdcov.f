@@ -263,9 +263,6 @@
                 ! disregard this bootstrap sample
                 if ( txtxtx(3).gt.1e19 ) then
                     iens = iens - 1
-                else if ( txtxtx(2).lt.1e-10 ) then
-                    write(0,*) 'fitgpdcov: error: tx<1e-10: ',txtxtx,
-     +                   '<br>'
                 end if
             endif
         enddo
