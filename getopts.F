@@ -32,6 +32,7 @@
         ldetrend = .FALSE.
         debias = 0
         normalization = 1
+        add_option = 0
 	lks = .FALSE.
 	lconting = .FALSE.
         lbootstrap = .FALSE.
@@ -216,6 +217,28 @@
      +                ,'# computing significances with decorrelation '
      +                ,decor
                 lskip = 1
+            else if ( line(1:4).eq.'add_' ) then
+                if ( line(1:8).eq.'add_anom' ) then
+                    add_option = 0
+                    if ( lwrite ) print '(a)',
+     +                   '# filling missing data with anomalies'
+                else if ( line(1:8).eq.'add_clim' ) then
+                    add_option = 1
+                    if ( lwrite ) print '(a)',
+     +                   '# filling missing data with climatology'
+                else if ( line(1:9).eq.'add_trend' ) then
+                    add_option = 2
+                    if ( lwrite ) print '(a)',
+     +                   '# filling missing data with climatology '//
+     +                   'plus trend'
+                else if ( line(1:8).eq.'add_damp' ) then
+                    add_option = 3
+                    if ( lwrite ) print '(a)',
+     +                   '# filling missing data with damped '//
+     +                   'persistence'
+                else
+                    write(0,*) 'getopts: unknown option ',trim(line)
+                end if
             elseif ( line(1:2).eq.'ks' ) then
                 lks = .TRUE.
                 call getarg(i+1,line)

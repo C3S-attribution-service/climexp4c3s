@@ -14,7 +14,7 @@
         lwrite = .false.
         if ( iargc().lt.4 ) then
             write(0,*) 'usage: filteryearseries hi|lo filtertype nyr '//
-     +           ' [minfac N] file garbage'
+     +           ' file [minfac N]'
             stop
         endif
         call getarg(1,hilo)

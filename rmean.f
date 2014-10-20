@@ -71,3 +71,32 @@
         return
         end
 
+        subroutine runmean(xx,yy,nperyear,k)
+!
+!       even more simple subroutine to take the k-day running mean of xx into yy
+!
+        implicit none
+        integer nperyear,k
+        real xx(nperyear),yy(nperyear)
+        integer i,ii,j,n
+        real s
+        
+        do ii=1,nperyear
+            s = 0
+            n = 0
+            do j=-k/2,k/2
+                i = ii + j
+                if ( i.le.0 ) i = i + nperyear
+                if ( i.gt.nperyear) i = i - nperyear
+                if ( xx(i).lt.1e33 ) then
+                    n = n + 1
+                    s = s + xx(i)
+                end if
+            end do
+            if ( n.ge.k/2 ) then
+                yy(ii) = s/n
+            else
+                yy(ii) = 3e33
+            end if
+        end do
+        end

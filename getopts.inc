@@ -6,7 +6,7 @@
      &      ndiff,ndiff2,indxuse,avex,avey,nfittime,minnum,intertype,    &
      &      mdiff,mdiff2,nens1,nens2,nyrwindow,lead1,lead2,irunvar,      &
      &      noisetype,debias,normalization,fitfunc,altavex,altavey,      &
-     &      ncrossvalidate,day0
+     &      ncrossvalidate,day0,add_option
         logical logscale,sqrtscale,lrank,ldetrend,lsubtract,lwrite,      &
      &      lincl(19),lks,dump,plot,lconting,fix2,lnormsd,lbootstrap,    &
      &      anom,composite,ensemble,squarescale,leads,logfield,          &
@@ -31,6 +31,6 @@
      &      sqrtfield,lfitnoise,lrandom,lrmse,                           &
      &      lchangesign,lmakeensfull,lweb,lstandardunits,lallobs,        &
      &      lstartstop,lnomissing,lensanom,lnooverlap,ncrossvalidate,    &
-     &      day0,minfacsum,lmae,xyear
+     &      day0,minfacsum,lmae,xyear,add_option
         common /cc_getopts/ oper,strindx,plotfile,indexfiles,            &
      &      plotrunfile,corrmonths,namestring,bbfile
