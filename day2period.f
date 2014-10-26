@@ -413,3 +413,155 @@
   100       continue
         enddo
         end
+
+        subroutine fillmissingdata(data,npermax,yrbeg,yrend,nperyear,
+     +           add_option,lclim,lwrite)
+!
+!       fill in missing data using teh climatology, climatology plus trend, 
+!       or (not yet ready) damped persistence
+!
+        implicit none
+        integer npermax,yrbeg,yrend,nperyear,add_option
+        real data(npermax,yrbeg:yrend)
+        logical lclim,lwrite
+        integer yr,mo,yr1,yr2,n,k
+        real,allocatable :: refs(:),xx(:),yy(:),sig(:),aa(:),bb(:),
+     +       clim(:)
+        real s,siga,sigb,chi2,q
+        character reffile*1023,dir*1023,refvar*20,refunits*20
+
+        reffile = 'NASAData/giss_al_gl_a_4yrlo.dat'
+        call getenv('DIR',dir)
+        if ( dir.ne.' ' ) then
+            reffile = trim(dir)//'/'//trim(reffile)
+        end if
+        if ( lwrite ) then
+            print *,'fillmissingdata: yrbeg,yrend = ',yrbeg,yrend
+            print *,'            npermax,nperyear = ',npermax,nperyear
+        end if
+
+        if ( add_option.gt.0 ) then
+!
+!           first get first and last year with data
+!           
+            yr1 = yrend
+            yr2 = yrbeg
+            do yr=yrbeg,yrend
+                do mo=1,nperyear
+                    if ( data(mo,yr).lt.1e30 ) then
+                        yr1 = min(yr1,yr)
+                        yr2 = max(yr2,yr)
+                    end if
+                end do
+            end do
+            if ( lwrite ) print *,'fillmissingdata: yr1,yr2 = ',yr1,yr2
+!           
+!           fill in missing data
+!           
+            if ( add_option.eq.1 ) then
+                print '(a)','# filled in missing data with '//
+     +               'climatology'
+                if ( lclim) then
+                    ! already anomalies
+                    do yr=yr1,yr2
+                        do mo=1,nperyear
+                            if ( data(mo,yr).gt.1e33 ) then
+                                data(mo,yr) = 0
+                            end if
+                        end do
+                    end do
+                else
+                    allocate(clim(nperyear))
+                    do mo=1,nperyear
+                        s = 0
+                        n = 0
+                        do yr=yr1,yr1
+                            if ( data(mo,yr).lt.1e33 ) then
+                                n = n + 1
+                                s = s + data(mo,yr)
+                            end if
+                        end do
+                        if ( n.gt.2 ) then
+                            clim(mo) = s/n    
+                        else
+                            clim(mo) = 3e33
+                        end if
+                    end do                        
+                    do yr=yr1,yr2
+                        do mo=1,nperyear
+                            if ( data(mo,yr).gt.1e33 ) then
+                                data(mo,yr) = clim(mo)
+                            end if
+                        end do
+                    end do
+                    deallocate(clim)
+                end if
+            else if ( add_option.eq.2 ) then
+                allocate(refs(yrbeg:yrend))
+                allocate(xx(yr2-yr1+1),yy(yr2-yr1+1),sig(yr2-yr1+1))
+                allocate(aa(nperyear),bb(nperyear))
+                print '(a)','# filled in missing data with '//
+     +               'climatology plus trend (regression on '//
+     +               'low-pass filtered Tglobal)'
+                call readseries(reffile,refs,1,yrbeg,yrend,n,
+     +               refvar,refunits,.false.,lwrite)
+                do mo=1,nperyear
+                    n = 0
+                    do yr=yr1,yr2
+                        if ( data(mo,yr).lt.1e33 .and. 
+     +                       refs(yr).lt.1e33 ) then
+                            n = n + 1
+                            xx(n) = refs(yr)
+                            yy(n) = data(mo,yr)
+                        end if
+                    end do
+                    call fit(xx,yy,n,sig,0,aa(mo),bb(mo),siga,sigb,
+     +                   chi2,q)
+                    if ( lwrite ) then
+                        print *,'fit values for mo=',mo,n
+                        print *,'a,b = ',aa(mo),bb(mo)
+                    end if
+                end do
+                k = 1
+!               smooth twice with a k-dy running mean
+                if ( nperyear.gt.40 ) then
+                    k = 7
+                else if ( nperyear.ge.12 ) then
+                    k = 3
+                end if
+                if ( k.gt.1 ) then
+                    call runmean(aa,xx,nperyear,k)
+                    call runmean(xx,aa,nperyear,k)
+                    call runmean(bb,xx,nperyear,k)
+                    call runmean(xx,bb,nperyear,k)
+                end if
+                do mo=1,nperyear
+                    if ( lwrite ) then
+                        print *,'fit values for mo=',mo,n
+                        print *,'a,b = ',aa(mo),bb(mo)
+                    end if
+                end do
+                do yr=yr1,yr2
+                    if ( lwrite ) then
+                        print *,'refs(',yr,') = ',refs(yr)
+                    end if
+                    do mo=1,nperyear
+                        if ( data(mo,yr).gt.1e33 .and. 
+     +                       refs(yr).lt.1e33 .and.
+     +                       aa(mo).lt.1e33 .and. bb(mo).lt.1e33
+     +                       ) then
+                            data(mo,yr) =
+     +                           bb(mo)*refs(yr) + aa(mo)
+                        end if
+                    end do
+                end do
+                deallocate(refs)
+                deallocate(xx,yy,sig)
+                deallocate(aa,bb)
+            else
+                write(0,*) 'daily2longer: error: add_option ',
+     +               add_option,' not yet implemented'
+                call abort
+            end if
+        end if                  ! add_option > 0
+        end

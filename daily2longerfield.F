@@ -19,7 +19,7 @@
         real pcut,s
         real,allocatable :: cut(:,:,:),normfield(:,:,:),oldseries(:,:)
         real xx(nxmax),yy(nymax),zz(nzmax),undef
-        real,allocatable :: oldfield(:,:,:,:),newfield(:,:,:,:)
+        real,allocatable :: oldfield(:,:,:,:),newfield(:,:,:,:),fxy(:,:)
         character file*256,datfile*256,string*40,lgt*1,opera*3
         character vars(nvmax)*20,lvars(nvmax)*255,title*200,
      +       history*10000,units(nvmax)*20,cell_methods(nvmax)*200,
@@ -248,7 +248,24 @@
         if ( minfac.lt.0 ) minfac = 0.5
 *      
 *       no climatology -- too expensive, only very limited usefulness.
-*
+!
+!       fill in missing data when requested
+!
+        if ( add_option.gt.0 ) then
+            allocate(fxy(nperyear,firstyr:lastyr))
+            do j=1,ny
+                do i=1,nx
+                    do mo=1,nperyear
+                        do yr=yr1,yr2
+                            fxy(mo,yr) = oldfield(i,j,mo,yr)
+                        end do
+                    end do
+                    call fillmissingdata(fxy,nperyear,firstyr,lastyr,
+     +                   nperyear,add_option,.false.,lwrite)
+                end do
+            end do
+            deallocate(fxy)
+        end if
 *
 *       perform operation
 *

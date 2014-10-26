@@ -9,25 +9,18 @@
 #include "getopts.inc"
         integer mpermax
         parameter(mpermax=24*366)
-        integer nperyear,nperyearnew,yr,mo,dy,i,j,n,itype,nperyear2,k
+        integer nperyear,nperyearnew,yr,mo,dy,i,j,n,itype,nperyear2
         integer*2 nn(mpermax)
         real olddata(mpermax,yrbeg:yrend),newdata(npermax,yrbeg:yrend),
      +       cut(mpermax),pcut,normdata(npermax),s,oldclim(mpermax),
-     +       oldclim2(mpermax),newclim(npermax),newclim2(mpermax),
-     +       refs(yrbeg:yrend),xx(yrend-yrbeg+1),yy(yrend-yrbeg+1),
-     +       sig(yrend-yrbeg+1),aa(npermax),bb(npermax),siga,sigb,chi2,q
+     +       oldclim2(mpermax),newclim(npermax),newclim2(mpermax)
         character file*1023,string*512,lgt*1,moper*3,var*20,units*20,
-     +       climunits*10,reffile*1023,dir*1023,refvar*20,refunits*20
+     +       climunits*10
         integer iargc,leap
         external leap
         lwrite = .false.
         lstandardunits = .true.
         lnomissing=.false.
-        reffile = 'NASAData/giss_al_gl_a_4yrlo.dat'
-        call getenv('DIR',dir)
-        if ( dir.ne.' ' ) then
-            reffile = trim(dir)//'/'//trim(reffile)
-        end if
 *
         if ( iargc().lt.3 ) then
             print *,'usage: daily2longer infile nperyearnew'//
@@ -174,8 +167,8 @@
 *
 *       compute climatology and anomalies
 *
-        if ( moper.eq.'mea' .and. lgt.eq.' ' .and. .not.lnomissing )
-     +       then
+        if ( ( moper.eq.'mea' .or. moper.eq.'sum' )
+     +       .and. lgt.eq.' ' .and. .not.lnomissing ) then
             do j=1,nperyear
                 oldclim(j) = 0
             enddo
@@ -231,95 +224,8 @@
 !
 !           fill in missing data when requested
 !
-            if ( add_option.gt.0 ) then
-!
-!               first get first and last year with data
-!
-                yr1 = yrend
-                yr2 = yrbeg
-                do yr=yrbeg,yrend
-                    do mo=1,nperyear
-                        if ( olddata(mo,yr).lt.1e30 ) then
-                            yr1 = min(yr1,yr)
-                            yr2 = max(yr2,yr)
-                        end if
-                    end do
-                end do
-!               
-!               fill in missing data
-!
-                if ( add_option.eq.1 ) then
-                    print '(a)','# filled in missing data with '//
-     +                   'climatology'
-                    do yr=yr1,yr2
-                        do mo=1,nperyear
-                            if ( olddata(mo,yr).gt.1e33 ) then
-                                olddata(mo,yr) = 0 ! anomalies
-                            end if
-                        end do
-                    end do
-                else if ( add_option.eq.2 ) then
-                    print '(a)','# filled in missing data with '//
-     +                   'climatology plus trend (regression on '//
-     +                   'low-pass filtered Tglobal)'
-                    call readseries(reffile,refs,1,yrbeg,yrend,n,
-     +                   refvar,refunits,.false.,lwrite)
-                    do mo=1,nperyear
-                        n = 0
-                        do yr=yr1,yr2
-                            if ( olddata(mo,yr).lt.1e33 .and. 
-     +                           refs(yr).lt.1e33 ) then
-                                n = n + 1
-                                xx(n) = refs(yr)
-                                yy(n) = olddata(mo,yr)
-                            end if
-                        end do
-                        call fit(xx,yy,n,sig,0,aa(mo),bb(mo),siga,sigb,
-     +                       chi2,q)
-                        if ( lwrite ) then
-                            print *,'fit values for mo=',mo,n
-                            print *,'a,b = ',aa(mo),bb(mo)
-                        end if
-                    end do
-                    k = 1
-!                   smooth twice with a k-dy running mean
-                    if ( nperyear.gt.40 ) then
-                        k = 7
-                    else if ( nperyear.ge.12 ) then
-                        k = 3
-                    end if
-                    if ( k.gt.1 ) then
-                        call runmean(aa,xx,nperyear,k)
-                        call runmean(xx,aa,nperyear,k)
-                        call runmean(bb,xx,nperyear,k)
-                        call runmean(xx,bb,nperyear,k)
-                    end if
-                    do mo=1,nperyear
-                        if ( lwrite ) then
-                            print *,'fit values for mo=',mo,n
-                            print *,'a,b = ',aa(mo),bb(mo)
-                        end if
-                    end do
-                    do yr=yr1,yr2
-                        if ( lwrite ) then
-                            print *,'refs(',yr,') = ',refs(yr)
-                        end if
-                        do mo=1,nperyear
-                            if ( olddata(mo,yr).gt.1e33 .and. 
-     +                           refs(yr).lt.1e33 .and.
-     +                           aa(mo).lt.1e33 .and. bb(mo).lt.1e33
-     +                           ) then
-                                olddata(mo,yr) =
-     +                               bb(mo)*refs(yr) + aa(mo)
-                            end if
-                        end do
-                    end do
-                else
-                    write(0,*) 'daily2longer: error: add_option ',
-     +                   add_option,' not yet implemented'
-                    call abort
-                end if
-            end if              ! add_option > 0
+            call fillmissingdata(olddata,mpermax,yrbeg,yrend,nperyear,
+     +           add_option,.true.,lwrite)
         else
             do j=1,abs(nperyearnew)
                 newclim(j) = 0
@@ -361,6 +267,7 @@
         open(1,file=file)
         do
             read(1,'(a)') file
+            if ( file(1:2).eq.' #' ) file = file(2:)
             if ( file(1:1).ne.'#' ) exit
             call adjustunitstring(file,units,var)
             print '(a)',trim(file)
