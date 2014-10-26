@@ -1,4 +1,4 @@
-        program addseries
+        program averageseries
 *
 *       add a few timeseries under the assumption that they represent the
 *       same signal with independent noise and a station- and seasondependent
@@ -143,7 +143,7 @@
 *
 *       output
 *
-        print '(a)','# addseries: added the time series'
+        print '(a)','# averageseries: averaged time series'
         print '(2a)','# ',trim(firstline)
         if ( lweigh ) print '(a)','# with weights in weights.dat'
         call copyheader(string(1),6)
