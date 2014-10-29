@@ -475,7 +475,7 @@
                     do mo=1,nperyear
                         s = 0
                         n = 0
-                        do yr=yr1,yr1
+                        do yr=yr1,yr2
                             if ( data(mo,yr).lt.1e33 ) then
                                 n = n + 1
                                 s = s + data(mo,yr)
