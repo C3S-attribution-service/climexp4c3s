@@ -16,7 +16,7 @@
      +       cell_methods(nvarmax)*(*)
         logical lwrite
         integer nensmax,ntmax
-        parameter(nensmax=120,ntmax=60000)
+        parameter(nensmax=230,ntmax=60000)
         integer status,i,nens1,nens2,it
         character file*255
         logical ensemble,lexist,tdefined(60000)

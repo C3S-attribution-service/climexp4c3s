@@ -6,7 +6,7 @@
 *
         implicit none
         integer ntmax,nensmax
-        parameter (ntmax=500000,nensmax=120)
+        parameter (ntmax=500000,nensmax=230)
         integer ncid,nxmax,nymax,nzmax,nx,ny,nz,nt,nperyear,firstyr
      +       ,firstmo,nvarmax,ntvars,ivars(6,nvarmax)
         real xx(nxmax),yy(nymax),zz(nzmax),undef
@@ -40,7 +40,7 @@
         implicit none
 #include "netcdf.inc"
         integer nensmax
-        parameter (nensmax=120)
+        parameter (nensmax=230)
 *       arguments
         integer ncid,nxmax,nymax,nzmax,nx,ny,nz,nt,nperyear,firstyr
      +       ,firstmo,ntmax,nens1,nens2,nvarmax,ntvars,ivars(6,nvarmax)

@@ -9,7 +9,7 @@
      +        ,nensmax,ntmax
         parameter (nxmax=1801,nymax=912,nzmax=95,
      +       yrbeg=1700,yrend=2300,nvmax=1,npermax=73,
-     +       ndata=npermax*(yrend-yrbeg+1),nensmax=120,ntmax=500000)
+     +       ndata=npermax*(yrend-yrbeg+1),nensmax=230,ntmax=500000)
 *
         integer i,n,nx,ny,nz,nt,nperyear,firstyr,firstmo,nvars,ivars(2
      +       ,nvmax),jvars(6,nvmax),ncid,endian,status,iens,nens1,

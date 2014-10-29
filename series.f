@@ -12,7 +12,7 @@
 *
         implicit none
         integer yrbeg,yrend,npermax,nensmax
-        parameter (yrbeg=1600,yrend=2300,npermax=366,nensmax=120)
+        parameter (yrbeg=1600,yrend=2300,npermax=366,nensmax=230)
         integer i,j,k,nperyear,itype,iens,mens1,mens,n,m,ilast
         real data(npermax,yrbeg:yrend,0:nensmax),s(41,yrbeg:yrend)
      +       ,absent,ss,a1,sx,sy,w,t(41)
