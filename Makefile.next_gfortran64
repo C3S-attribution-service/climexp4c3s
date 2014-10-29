@@ -4,7 +4,7 @@ FFLAGS = -O3 -m64 -Dlinux -fbackslash # -fno-backtrace
 CFLAGS = -O -m64
 
 FC = gfortran
-LD = $(FC) $(FFLAGS) -Wl,-framework -Wl,vecLib
+LD = $(FC) $(FFLAGS) -Wl,-framework -Wl,Accelerate
 SYSLIBS=-L/sw/lib -lnetcdff -lnetcdf
 
 RANLIB = ranlib
