@@ -417,7 +417,7 @@
         subroutine fillmissingdata(data,npermax,yrbeg,yrend,nperyear,
      +           add_option,lclim,lwrite)
 !
-!       fill in missing data using teh climatology, climatology plus trend, 
+!       fill in missing data using the climatology, climatology plus trend, 
 !       or (not yet ready) damped persistence
 !
         implicit none
@@ -426,7 +426,7 @@
         logical lclim,lwrite
         integer yr,mo,yr1,yr2,n,k
         real,allocatable :: refs(:),xx(:),yy(:),sig(:),aa(:),bb(:),
-     +       clim(:)
+     +       cc(:),clim(:)
         real s,siga,sigb,chi2,q
         character reffile*1023,dir*1023,refvar*20,refunits*20
 
@@ -497,9 +497,14 @@
                     deallocate(clim)
                 end if
             else if ( add_option.eq.2 ) then
+                if ( yr1.lt.yrbeg .or. yr2.gt.yrend ) then
+                    write(0,*) 'fillmissingdata: internal error: ',
+     +                   yrbeg,yrend,yr1,yr2
+                    call abort
+                end if
                 allocate(refs(yrbeg:yrend))
                 allocate(xx(yr2-yr1+1),yy(yr2-yr1+1),sig(yr2-yr1+1))
-                allocate(aa(nperyear),bb(nperyear))
+                allocate(aa(nperyear),bb(nperyear),cc(nperyear))
                 print '(a)','# filled in missing data with '//
      +               'climatology plus trend (regression on '//
      +               'low-pass filtered Tglobal)'
@@ -513,6 +518,7 @@
                             n = n + 1
                             xx(n) = refs(yr)
                             yy(n) = data(mo,yr)
+                            sig(n) = 1
                         end if
                     end do
                     call fit(xx,yy,n,sig,0,aa(mo),bb(mo),siga,sigb,
@@ -530,10 +536,10 @@
                     k = 3
                 end if
                 if ( k.gt.1 ) then
-                    call runmean(aa,xx,nperyear,k)
-                    call runmean(xx,aa,nperyear,k)
-                    call runmean(bb,xx,nperyear,k)
-                    call runmean(xx,bb,nperyear,k)
+                    call runmean(aa,cc,nperyear,k)
+                    call runmean(cc,aa,nperyear,k)
+                    call runmean(bb,cc,nperyear,k)
+                    call runmean(cc,bb,nperyear,k)
                 end if
                 do mo=1,nperyear
                     if ( lwrite ) then
@@ -557,7 +563,7 @@
                 end do
                 deallocate(refs)
                 deallocate(xx,yy,sig)
-                deallocate(aa,bb)
+                deallocate(aa,bb,cc)
             else
                 write(0,*) 'daily2longer: error: add_option ',
      +               add_option,' not yet implemented'

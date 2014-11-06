@@ -226,6 +226,7 @@
 !
             call fillmissingdata(olddata,mpermax,yrbeg,yrend,nperyear,
      +           add_option,.true.,lwrite)
+            if ( lwrite ) print *,'back from fillmissingdata'
         else
             do j=1,abs(nperyearnew)
                 newclim(j) = 0
