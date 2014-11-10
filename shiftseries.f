@@ -110,6 +110,7 @@
                                 cycle
                             end if
                         end if
+                        k = dy
                         if ( dy+d.lt.1 ) then
                             j = dy+d+nperyear
                             series(j,yr+dyr-1)=series(dy,yr)
@@ -124,7 +125,6 @@
      +                           ' to ',j,yr+dyr+1
                         else
                             j = dy+d+dtemp
-                            k = dy
                             if ( j.eq.60 .and. k.ne.60 
      +                           .and. leap(yr+dyr).eq.1 ) then
                                 j = j+d
