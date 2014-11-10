@@ -432,7 +432,18 @@
             call abort
         end if
         j = scan(line(i:),' ')
-        if ( index(line(i:i+j),'.').ne.0 ) then
+        if ( j.eq.0 ) j = 9999
+        k = scan(line(i:),achar(9))
+        if ( k.eq.0 ) k = 9999
+        j = min(j,k)
+        if ( j.eq.9999 ) then
+            write(0,*) 'readyrfracval: error: cannot find space or '//
+     +           'tab in ',trim(line(i:))
+            call abort
+        end if
+        if ( lwrite ) print *,'looking for decimal point in ',
+     +       line(i:i+j-2)
+        if ( index(line(i:i+j-2),'.').ne.0 ) then
             lfrac = .true.
             if ( lwrite ) print *,'readyrfracval: reading data as '//
      +           'yyyy.frac val'

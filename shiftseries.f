@@ -41,11 +41,12 @@
         integer npermax,nperyear,yrbeg,yrend,dyr
         real series(npermax,yrbeg:yrend)
         logical lwrite
-        integer j,dy,yr,d,dtemp
+        integer k,j,dy,yr,d,dtemp
         logical allundef
         integer leap
         external leap
 !
+        !!!lwrite = .true.
         dtemp = 0
         if ( dyr.eq.0 ) then
             return
@@ -63,10 +64,16 @@
                 allundef = .true.
                 do yr=yrend-dyr,yrbeg,-1
                     do dy=nperyear,1,-1
-                        ! start with a straight copy
+                        ! start with a straight copy if the final year is less than 2100
                         if ( allundef .and. series(dy,yr).lt.1e33 ) then
                             allundef = .false.
-                            d = 0
+                            if ( yr+dyr.lt.2100 ) then
+                                d = 0
+                            else
+                                ! but with an offset of 1 if the year is above 2100, 
+                                ! which is not a leap year
+                                d = 1
+                            end if
                         end if
                         if ( dy.eq.60 ) then
                             if ( leap(yr).eq.2 .and. leap(yr+dyr).ne.2 ) 
@@ -117,25 +124,26 @@
      +                           ' to ',j,yr+dyr+1
                         else
                             j = dy+d+dtemp
-                            if ( j.lt.1 .or. j.gt.366 ) then
-                                write(0,*) 'shiftseries: j out of '//
-     +                               'bounds: ',j,dy,d,dtemp
-                            end if
-                            if ( j.eq.60 .and. dy.ne.60 
+                            k = dy
+                            if ( j.eq.60 .and. k.ne.60 
      +                           .and. leap(yr+dyr).eq.1 ) then
-                                series(j,yr+dyr) = series(dy-1,yr)
-                            else
-                                series(j,yr+dyr) = series(dy,yr)
+                                j = j+d
                             end if
-                            if ( j.lt.3 .or. j.gt.363 .or. 
-     +                           abs(j-60).lt.3 ) then
-                                if ( lwrite .and. series(dy,yr).lt.1e33)
-     +                               print *,'copying from ',
-     +                               dy,yr,' to ',j,yr+dyr
+                            if ( j.ne.60 .and. k.eq.60 
+     +                           .and. leap(yr).eq.1 ) then
+                                k = k-d
+                            end if
+                            if ( series(k,yr).lt.1e33 ) then
+                                series(j,yr+dyr) = series(k,yr)
+                                if ( lwrite .and. (j.lt.3 .or. j.gt.363
+     +                               .or. abs(j-60).lt.3 ) ) then
+                                    print *,'copying from ',
+     +                                   k,yr,' to ',j,yr+dyr
+                                end if
                             end if
                         end if
                         dtemp = 0
-                        series(dy,yr) = 3e33
+                        series(k,yr) = 3e33
                     end do
                 end do
             end if

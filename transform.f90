@@ -5,7 +5,7 @@ program transform
 !
     implicit none
     integer npermax,yrbeg,yrend
-    parameter(npermax=366,yrbeg=1800,yrend=2200)
+    parameter(npermax=366,yrbeg=1800,yrend=2300)
     integer horizon,nperyear
     real,allocatable :: series(:,:),newseries(:,:)
     real deltas(5,12)
@@ -49,9 +49,9 @@ program transform
         write(*,*) 'transform: error: can only handle variables rr,tx,tg,tn at he moment, not ',trim(variable)
         call abort
     end if
-    ! only the 30 years 1981-2010
-    series(:,yrbeg:1980) = 3e33
-    series(:,2011:yrend) = 3e33
+    ! NOT only the 30 years 1981-2010
+    !!!series(:,yrbeg:1980) = 3e33
+    !!!series(:,2011:yrend) = 3e33
     if ( variable == 'tg' .or. variable == 'tn' .or. variable == 'tx' ) then
         call read_deltas(variable,horizon,scenario,region,deltas,scaling,lwrite)
         call lintransform(series,npermax,yrbeg,yrend,horizon,deltas,newseries,lwrite)
@@ -250,8 +250,9 @@ end subroutine read_deltas
 
 subroutine lintransform(series,npermax,yrbeg,yrend,horizon,deltas,newseries,lwrite)
 !
-!   transform series over 1981-2010 into newseries over 30 years centered
-!   on horizon using the deltas of the 5,50,95 percentiles
+!   transform series (not only over 1981-2010) into newseries offset by the 
+!   difference between 1981-2010 and the horizon using the deltas of the 5,50,95 
+!   percentiles
 !   Based on transform_temperatuur.R by Alexander Bakker
 !
     implicit none
@@ -266,15 +267,18 @@ subroutine lintransform(series,npermax,yrbeg,yrend,horizon,deltas,newseries,lwri
         call get_quantiles(series,npermax,yrbeg,yrend,mo,Xp(1,mo))
     end do ! mo
     Yp = Xp + deltas
-    do yr=max(1981,yrbeg),min(2010,yrend)
+    !!!do yr=max(1981,yrbeg),min(2010,yrend)
+    do yr=yrbeg,yrend
         do d=1,366
-            call getdymo(dy,mo,d,366)
-            do ip=2,4-1
-                if ( series(d,yr).lt.Xp(ip,mo) ) exit
-            end do
-            a = (Yp(ip,mo)-Yp(ip-1,mo))/(Xp(ip,mo)-Xp(ip-1,mo))
-            b = Yp(ip,mo) - a*Xp(ip,mo)
-            newseries(d,yr+horizon-1995) = a*series(d,yr) + b
+            if ( series(d,yr).lt.1e33 .and. yr+horizon-1995.le.yrend ) then
+                call getdymo(dy,mo,d,366)
+                do ip=2,4-1
+                    if ( series(d,yr).lt.Xp(ip,mo) ) exit
+                end do
+                a = (Yp(ip,mo)-Yp(ip-1,mo))/(Xp(ip,mo)-Xp(ip-1,mo))
+                b = Yp(ip,mo) - a*Xp(ip,mo)
+                newseries(d,yr) = a*series(d,yr) + b
+            end if
         end do ! dy
     end do ! yr
     
@@ -298,7 +302,7 @@ subroutine rrtransform(oldseries,npermax,yrbeg,yrend,horizon,deltas,series,lwrit
     real,external :: rr_transform_f,zbrent
     ! to the fit routine to determine b
     integer nXmax
-    parameter(nXmax=31*30) ! 30 years, 31 days per month
+    parameter(nXmax=31*150) ! max 150 years, 31 days per month
     integer nXm
     real qfut,mfut,qobs,mobs,XXm(nXmax)
     common /crr_transform_f/ qfut,mfut,qobs,mobs,nXm,XXm
@@ -320,7 +324,7 @@ subroutine rrtransform(oldseries,npermax,yrbeg,yrend,horizon,deltas,series,lwrit
     
     series = oldseries ! transform in-place
 
-    nmax = 31*30
+    nmax = nXmax
     allocate(X(nmax,12),Xw(nmax,12),Xm(nmax),X1m(nmax),precwet(nmax),aa(nmax))
     allocate(dyr(2,nmax,12))
     allocate(tvalues(nmax))
@@ -331,7 +335,8 @@ subroutine rrtransform(oldseries,npermax,yrbeg,yrend,horizon,deltas,series,lwrit
     nntot = 0
     mean_obs = 0
     mwet_obs = 0
-    do yr=max(1981,yrbeg),min(2010,yrend)
+    !!!do yr=max(1981,yrbeg),min(2010,yrend)
+    do yr=yrbeg,yrend
         do d=1,366
             call getdymo(dy,mo,d,366)
             if ( series(d,yr).lt.1e33 ) then
@@ -398,7 +403,8 @@ subroutine rrtransform(oldseries,npermax,yrbeg,yrend,horizon,deltas,series,lwrit
             ! select target values/days
             nn = 0
             nntot = 0
-            do yr=max(1981,yrbeg),min(2010,yrend)
+            !!!do yr=max(1981,yrbeg),min(2010,yrend)
+            do yr=yrbeg,yrend
                 do d=1,366
                     if ( series(d,yr) > 1e33 ) cycle
                     call getdymo(dy,mo,d,366)
@@ -472,7 +478,8 @@ subroutine rrtransform(oldseries,npermax,yrbeg,yrend,horizon,deltas,series,lwrit
                         d1 = d1 + 366
                         yr1 = yr1 - 1
                     endif
-                    if ( yr1 >= max(1981,yrbeg) ) then
+                    !!!if ( yr1 >= max(1981,yrbeg) ) then
+                    if ( yr1 >= yrbeg ) then
                         if ( series(d1,yr1).gt.1e33 ) then
                             d1 = d1 - 1
                             goto 10
@@ -488,7 +495,8 @@ subroutine rrtransform(oldseries,npermax,yrbeg,yrend,horizon,deltas,series,lwrit
                         d1 = d1 - 366
                         yr1 = yr1 + 1
                     endif
-                    if ( yr1 <= min(2010,yrend) ) then
+                    !!!if ( yr1 <= min(2010,yrend) ) then
+                    if ( yr1 <= yrend ) then
                         if ( series(d1,yr1).gt.1e33 ) then
                             d1 = d1 + 1
                             goto 20
@@ -531,7 +539,8 @@ subroutine rrtransform(oldseries,npermax,yrbeg,yrend,horizon,deltas,series,lwrit
         if ( deltas(1,im) > 0 ) then
             n = 0
             ntot = 0
-            do yr=max(1981,yrbeg),min(2010,yrend)
+            !!!do yr=max(1981,yrbeg),min(2010,yrend)
+            do yr=yrbeg,yrend
                 do d=1,366
                     if ( series(d,yr).gt.1e33 ) cycle
                     call getdymo(dy,mo,d,366)
@@ -547,7 +556,8 @@ subroutine rrtransform(oldseries,npermax,yrbeg,yrend,horizon,deltas,series,lwrit
                             d1 = d1 + 366
                             yr1 = yr1 - 1
                         end if
-                        if ( yr1 < max(1981,yrbeg) ) then
+                        !!!if ( yr1 < max(1981,yrbeg) ) then
+                        if ( yr1 < yrbeg ) then
                             X1m(ntot) = 1
                         else
                             if ( oldseries(d1,yr1).gt.1e33 ) then
@@ -630,7 +640,8 @@ subroutine rrtransform(oldseries,npermax,yrbeg,yrend,horizon,deltas,series,lwrit
     ! determine coefficients
     do im=1,12
         nXm = 0
-        do yr=max(1981,yrbeg),min(2010,yrend)
+        !!!do yr=max(1981,yrbeg),min(2010,yrend) Janette wants all data transformed
+        do yr=yrbeg,yrend
             do d=1,366
                 if ( series(d,yr).gt.1e33 ) cycle
                 call getdymo(dy,mo,d,366)
@@ -666,7 +677,8 @@ subroutine rrtransform(oldseries,npermax,yrbeg,yrend,horizon,deltas,series,lwrit
 
         ! transformeer
     
-        do yr=max(1981,yrbeg),min(2010,yrend)
+        !!!do yr=max(1981,yrbeg),min(2010,yrend) Janette wants all data transformed
+        do yr=yrbeg,yrend
             do d=1,366
                 if ( series(d,yr).gt.1e33 ) cycle
                 call getdymo(dy,mo,d,366)
@@ -693,7 +705,7 @@ real function rr_transform_f(b)
     real mean
 
     integer nXmax
-    parameter(nXmax=31*30) ! 30 years, 31 days per month
+    parameter(nXmax=31*150) ! 150 years, 31 days per month
     integer nXm
     real qfut,mfut,qobs,mobs,XXm(nXmax)
     common /crr_transform_f/ qfut,mfut,qobs,mobs,nXm,XXm
@@ -712,7 +724,7 @@ end function
 
 subroutine get_quantiles(series,npermax,yrbeg,yrend,mo,Xp)
 !
-!   compute the 1%,5%,50%,95%,99% quantiles of series in month mo in 1981-2010
+!   compute the 1%,5%,50%,95%,99% quantiles of series in month mo in the whole series !!! 1981-2010
 !
     implicit none
     integer npermax,yrbeg,yrend,mo
@@ -725,13 +737,14 @@ subroutine get_quantiles(series,npermax,yrbeg,yrend,mo,Xp)
     lwrite = .false.
 
     pcut = (/ 1., 5., 50., 95., 99. /)
-    allocate(a(30*31))
+    allocate(a(150*31))
     offset = 0
     do m=1,mo-1
         offset = offset + get_dpm(m,2000)
     end do ! m
     n = 0
-    do yr=max(1981,yrbeg),min(2010,yrend)
+    !!!do yr=max(1981,yrbeg),min(2010,yrend) take quantiles over all data, climate change is less important than the sampling accuracy
+    do yr=yrbeg,yrend
         dpm = get_dpm(mo,yr)
         do dy=offset+1,offset+dpm
             if ( series(dy,yr).lt.1e33 ) then
