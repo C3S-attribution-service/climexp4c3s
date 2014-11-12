@@ -1,47 +1,47 @@
-        program getmomentsfield
-*
-*       compute the first four moments of a field, or a percentile, or
-*       the min or max, and write them out as GrADS files
-*       9-nov-2006 added GPD fits
-*
+program getmomentsfield
+!
+!       compute the first four moments of a field, or a percentile, or
+!       the min or max, and write them out as GrADS files
+!       9-nov-2006 added GPD fits
+!
         use lsdata
         implicit none
-#include "params.h"
-#include "netcdf.inc"
-#include "getopts.inc"
-#include "recfac.h"
+        include 'params.h'
+        include 'netcdf.inc'
+        include 'getopts.inc'
+        include 'recfac.inc'
         real absent
         parameter (absent=3e33)
         integer nvarmax,ntmax
         parameter(nvarmax=14,ntmax=13)
-        integer nx,ny,nz,nt,firstyr,lastyr,firstmo,nvars,
-     +       ivars(2,nvarmax),jvars(6,nvarmax),ncid,endian,
-     +       status,nperyear,mens,mens1
-        integer jx,jy,jz,i,j,jj,j1,j2,k,m,n,month,yr,imoment,ldir,
-     +       iens,yrstart,yrstop,f,irec,year,ntvarid,itimeaxis(ntmax),
-     +       itype
+        integer nx,ny,nz,nt,firstyr,lastyr,firstmo,nvars, &
+     &       ivars(2,nvarmax),jvars(6,nvarmax),ncid,endian, &
+     &       status,nperyear,mens,mens1
+        integer jx,jy,jz,i,j,jj,j1,j2,k,m,n,month,yr,imoment,ldir, &
+     &       iens,yrstart,yrstop,f,irec,year,ntvarid,itimeaxis(ntmax), &
+     &       itype
         logical lexist
-        real xx(nxmax),yy(nymax),zz(nzmax),undef,xxls(nxmax),yyls(nymax)
-     +       ,a,b,xi,t(10),t25(10),t975(10),tx,tx1,tx25,tx975,sx,sy,s
+        real xx(nxmax),yy(nymax),zz(nzmax),undef,xxls(nxmax),yyls(nymax) &
+     &       ,a,b,xi,t(10),t25(10),t975(10),tx,tx1,tx25,tx975,sx,sy,s
         real xmom(5),var,perc,z
         real,allocatable :: field(:,:,:,:,:,:),res(:,:,:,:,:)
         real,allocatable :: fxy(:,:,:),ddata(:)
-        character infile*255,datfile*255,outfile*255,line*255,lz(3)*20
-     +       ,vars(nvarmax)*15,lvars(nvarmax)*255,svars(nvarmax)*80
-     +       ,title*255,history*10000,units(nvarmax)*20,
-     +       cell_methods(nvarmax)*100,lsmasktype*4,ltime*120
+        character infile*255,datfile*255,outfile*255,line*255,lz(3)*20 &
+     &       ,vars(nvarmax)*15,lvars(nvarmax)*255,svars(nvarmax)*80 &
+     &       ,title*255,history*10000,units(nvarmax)*20, &
+     &       cell_methods(nvarmax)*100,lsmasktype*4,ltime*120
         character yesno*1,dir*255,string*15,saveunits*20,format*10
         integer iargc,llen,rindex
-*
-*       process command line
-*
+!
+!       process command line
+!
         n = iargc()
         if ( n.lt.3 ) then
-            write(0,*) 'usage: getmomentsfield infile.[ctl|nc] [1234] '
-     +            //'[month m[:n] [sum|ave|max|min|sel n] [log|sqrt] '
-     +            //'[minfac r] [minnum n] [begin yr] [end yr] '
-     +            //'[lt cut] [gt cut] [diff [nyr]] [detrend] '
-     +            //'outfile.[ctl|nc]'
+            write(0,*) 'usage: getmomentsfield infile.[ctl|nc] [1234] ' &
+     &            //'[month m[:n] [sum|ave|max|min|sel n] [log|sqrt] ' &
+     &            //'[minfac r] [minnum n] [begin yr] [end yr] ' &
+     &            //'[lt cut] [gt cut] [diff [nyr]] [detrend] ' &
+     &            //'outfile.[ctl|nc]'
             stop
         endif
         lwrite = .false.
@@ -52,10 +52,10 @@
             end if
         end do
         call getarg(1,infile)
-        call getmetadata(infile,mens1,mens,ncid,datfile,nxmax,nx
-     +       ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo
-     +       ,ltime,undef,endian,title,history,nvarmax,nvars,vars,jvars
-     +       ,lvars,svars,units,cell_methods,lwrite)
+        call getmetadata(infile,mens1,mens,ncid,datfile,nxmax,nx &
+     &       ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo &
+     &       ,ltime,undef,endian,title,history,nvarmax,nvars,vars,jvars &
+     &       ,lvars,svars,units,cell_methods,lwrite)
         lastyr = firstyr + (firstmo+nt-2)/nperyear
 !       co-ordinate with adjustunits, adjustvar
 !       this catches the time of year of min, max occurrence
@@ -68,16 +68,16 @@
             else if ( units(1).eq.'season' ) then
                 itype = 4
             else if ( units(1).eq.'period' ) then
-                write(0,*) 'getomomentsfield: error: cannot determine ',
-     +               'length of period'
+                write(0,*) 'getomomentsfield: error: cannot determine ', &
+     &               'length of period'
                 call abort
             end if
         end if
-*       process arguments
+!       process arguments
         call getarg(2,line)
-        if ( line(1:4).eq.'perc' .or. line(1:6).eq.'pot_rt' .or.
-     +       line(1:6).eq.'gev_rt' .or. line(1:7).eq.'norm_rt' .or.
-     +       line(1:6).eq.'norm_z' ) then
+        if ( line(1:4).eq.'perc' .or. line(1:6).eq.'pot_rt' .or. &
+     &       line(1:6).eq.'gev_rt' .or. line(1:7).eq.'norm_rt' .or. &
+     &       line(1:6).eq.'norm_z' .or. line(1:4).eq.'rank' ) then
             i = 4
         else
             i = 3
@@ -88,28 +88,28 @@
         endif
         call getopts(i,n-1,nperyear,yrbeg,yrend,.true.,mens1,mens)
         call getarg(1,infile)
-        if ( index(infile,'%').gt.0 .or. 
-     +       index(infile,'++').gt.0 ) then
-            write(0,*) 'Using ensemble members ',nens1,' to ',nens2
-     +           ,'<br>'
+        if ( index(infile,'%').gt.0 .or. &
+     &       index(infile,'++').gt.0 ) then
+            write(0,*) 'Using ensemble members ',nens1,' to ',nens2 &
+     &           ,'<br>'
         endif
         yr1 = max(yr1,firstyr)
         yr2 = min(yr2,lastyr)
         firstyr = yr1
         lastyr = yr2
-*
-*       allocate fields
-*
-        if ( lwrite ) print *,'allocating ',nx*ny*nz*nperyear*
-     +       (lastyr-firstyr+1)*(nens2-nens1+1),' reals'
+!
+!       allocate fields
+!
+        if ( lwrite ) print *,'allocating ',nx*ny*nz*nperyear* &
+     &       (lastyr-firstyr+1)*(nens2-nens1+1),' reals'
         allocate(field(nx,ny,nz,nperyear,firstyr:lastyr,nens1:nens2))
         allocate(res(nx,ny,nz,0:12,nvarmax))
         allocate(fxy(nperyear,yr1:yr2,0:nens2))
         allocate(ddata(1+nperyear*(yr2-yr1+1)*(nens2-nens1+1)))
         call getarg(2,line)
         year = 0
-        if (  ichar(line(1:1)).ge.ichar('0') .and. 
-     +        ichar(line(1:1)).le.ichar('9') ) then
+        if (  ichar(line(1:1)).ge.ichar('0') .and. &
+     &        ichar(line(1:1)).le.ichar('9') ) then
             read(line,*,err=901) imoment
             if ( imoment.lt.-2 .or. imoment.gt.4 ) goto 901
         elseif ( line(1:4).eq.'adev' ) then
@@ -118,11 +118,11 @@
             imoment = 1
         elseif ( line(1:3).eq.'sdm' .or. line(1:6).eq.'s.d./m' ) then
             imoment = -2
-        elseif ( line(1:2).eq.'sd' .or. line(1:4).eq.'s.d.' .or.
-     +           line(1:4).eq.'norm' ) then
+        elseif ( line(1:2).eq.'sd' .or. line(1:4).eq.'s.d.' .or. &
+     &           line(1:4).eq.'norm' ) then
             imoment = 2
-            if ( line(1:7).eq.'norm_rt' .or. line(1:6).eq.'norm_z' )
-     +           then
+            if ( line(1:7).eq.'norm_rt' .or. line(1:6).eq.'norm_z' ) &
+     &           then
                 call getarg(3,line)
                 read(line,*,err=905) year
             endif
@@ -150,62 +150,66 @@
                 read(line,*,err=905) year
             endif
             imoment = 300
+        elseif ( line(1:4).eq.'rank' ) then
+            call getarg(3,line)
+            read(line,*,err=905) year
+            imoment = 1000
         else
             goto 901
         endif
-        if ( lag1.ne.0 .or. lag2.ne.0 ) print *
-     +        ,'getmomentsfield: lags do not make sense'
+        if ( lag1.ne.0 .or. lag2.ne.0 ) print * &
+     &        ,'getmomentsfield: lags do not make sense'
         if ( dump ) print *,'getmomentsfield: dump not supported'
         if ( plot ) print *,'getmomentsfield: plot not supported'
         if ( lks ) print *,'getmomentsfield: K-S not supported'
-        if ( lconting ) print *,'getmomentsfield: contingency '//
-     +        'tables not supported'
+        if ( lconting ) print *,'getmomentsfield: contingency '// &
+     &        'tables not supported'
         do i=1,indxuse
-            if ( lincl(i) ) print *,'getmomentsfield: what do ',
-     +          'you mean with ',strindx(i),'?'
+            if ( lincl(i) ) print *,'getmomentsfield: what do ', &
+     &          'you mean with ',strindx(i),'?'
         enddo
         if ( itype.ne.0 .and. imoment.ne.1 ) then
-            write(0,*) 'getmomemntsfield: error: can only compute ',
-     +           'mean of cyclical data, not ',trim(line)
+            write(0,*) 'getmomemntsfield: error: can only compute ', &
+     &           'mean of cyclical data, not ',trim(line)
             call abort
         end if
-*       range of years
+!       range of years
         yr1 = max(yr1,firstyr)
         yr2 = min(yr2,firstyr + (firstmo+nt-2)/nperyear)
         yrstart = yr2
         yrstop  = yr1
-*
-*       read field, change absent values to our convention
-*
+!
+!       read field, change absent values to our convention
+!
         do iens=nens1,nens2
-            call keepalive1('Reading ensemble member',
-     +           iens-nens1+1,nens2-nens1+1)
+            call keepalive1('Reading ensemble member', &
+     &           iens-nens1+1,nens2-nens1+1)
             if ( ncid.eq.-1 ) then
                 call getarg(1,infile)
-                if ( index(infile,'%').gt.0 .or. 
-     +               index(infile,'++').gt.0 ) then
+                if ( index(infile,'%').gt.0 .or. &
+     &               index(infile,'++').gt.0 ) then
                     call filloutens(infile,iens)
-                    if ( lwrite ) print *,'calling parsectl on ',
-     +                   trim(infile)
+                    if ( lwrite ) print *,'calling parsectl on ', &
+     &                   trim(infile)
                 endif
-                call parsectl(infile,datfile,nxmax,nx,xx,nymax,ny,yy
-     +               ,nzmax,nz,zz,nt,nperyear,f,firstmo,undef
-     +               ,endian,title,1,nvars,vars,ivars,lvars,units)
+                call parsectl(infile,datfile,nxmax,nx,xx,nymax,ny,yy &
+     &               ,nzmax,nz,zz,nt,nperyear,f,firstmo,undef &
+     &               ,endian,title,1,nvars,vars,ivars,lvars,units)
                 if (lwrite) print '(2a)','# looking for ',trim(datfile)
                 inquire(file=datfile,exist=lexist)
                 if ( .not.lexist ) then
-                    if (lwrite) print '(3a)','# looking for '
-     +                   ,trim(datfile),'.gz'
+                    if (lwrite) print '(3a)','# looking for ' &
+     &                   ,trim(datfile),'.gz'
                     inquire(file=trim(datfile)//'.gz',exist=lexist)
                     if ( .not.lexist ) then
                         nens2 = iens-1
                         if ( nens2.ge.nens1 ) then
-                            write(0,*) 'Found ensemble 0 to ',nens2
-     +                           ,'<br>'
+                            write(0,*) 'Found ensemble 0 to ',nens2 &
+     &                           ,'<br>'
                             goto 5
                         else
-                            write(0,*) 'Cannot locate file '
-     +                            ,datfile(1:llen(dir))
+                            write(0,*) 'Cannot locate file ' &
+     &                            ,datfile(1:llen(dir))
                             call abort
                         endif
                     endif
@@ -213,44 +217,44 @@
                 if ( lwrite ) then
                     print *,'opening file ',trim(datfile)
                 endif
-                call zreaddatfile(datfile,field(1,1,1,1,firstyr,iens),
-     +                nx,ny,nz,nx,ny,nz,nperyear,firstyr,lastyr,
-     +                f,firstmo,nt,undef,endian,lwrite,yr1,yr2,1,1
-     +                )
+                call zreaddatfile(datfile,field(1,1,1,1,firstyr,iens), &
+     &                nx,ny,nz,nx,ny,nz,nperyear,firstyr,lastyr, &
+     &                f,firstmo,nt,undef,endian,lwrite,yr1,yr2,1,1 &
+     &                )
             else
                 call getarg(1,infile)
-                if ( index(infile,'%').gt.0 .or. 
-     +               index(infile,'++').gt.0 ) then
+                if ( index(infile,'%').gt.0 .or. &
+     &               index(infile,'++').gt.0 ) then
                     call filloutens(infile,iens)
-                    if ( lwrite ) print *,'calling parsenc on ',
-     +                   infile(1:llen(infile))
+                    if ( lwrite ) print *,'calling parsenc on ', &
+     &                   infile(1:llen(infile))
                     status = nf_open(infile,nf_nowrite,ncid)
                 endif
-                call parsenc(infile,ncid,nxmax,nx,xx,nymax,ny,yy
-     +               ,nzmax,nz,zz,nt,nperyear,f,firstmo
-     +               ,undef,title,1,nvars,vars,jvars,lvars,units)
-                call zreadncfile(ncid,field(1,1,1,1,firstyr,iens)
-     +               ,nx,ny,nz,nx,ny,nz,nperyear,firstyr,lastyr,f
-     +               ,firstmo,nt,undef,lwrite,yr1,yr2,jvars)
+                call parsenc(infile,ncid,nxmax,nx,xx,nymax,ny,yy &
+     &               ,nzmax,nz,zz,nt,nperyear,f,firstmo &
+     &               ,undef,title,1,nvars,vars,jvars,lvars,units)
+                call zreadncfile(ncid,field(1,1,1,1,firstyr,iens) &
+     &               ,nx,ny,nz,nx,ny,nz,nperyear,firstyr,lastyr,f &
+     &               ,firstmo,nt,undef,lwrite,yr1,yr2,jvars)
             endif
         enddo
     5   continue
-*
-*       apply land/sea mask
-*
-        call applylsmask(field,lsmask,nx,ny,nz,nperyear,firstyr,lastyr,
-     +       nens1,nens2,lsmasktype,lwrite)
-*
-*       open output file
-*
+!
+!       apply land/sea mask
+!
+        call applylsmask(field,lsmask,nx,ny,nz,nperyear,firstyr,lastyr, &
+     &       nens1,nens2,lsmasktype,lwrite)
+!
+!       open output file
+!
         call getarg(iargc(),outfile)
         inquire(file=outfile,exist=lexist)
         if ( lexist ) then
-            print *,'output file ',outfile(1:index(outfile,' ')-1),
-     +            ' already exists, overwrite? [y/n]'
+            print *,'output file ',outfile(1:index(outfile,' ')-1), &
+     &            ' already exists, overwrite? [y/n]'
             read(*,'(a)') yesno
-            if (  yesno.ne.'y' .and. yesno.ne.'Y' .and. 
-     +            yesno.ne.'j' .and. yesno.ne.'J' ) then
+            if (  yesno.ne.'y' .and. yesno.ne.'Y' .and. &
+     &            yesno.ne.'j' .and. yesno.ne.'J' ) then
                 stop
             endif            
             open(2,file=outfile)
@@ -263,71 +267,71 @@
             else
                 datfile = outfile
             endif
-            open(unit=2,file=datfile,form='unformatted',access='direct'
-     +            ,recl=recfac*nx*ny*nz,err=920)
+            open(unit=2,file=datfile,form='unformatted',access='direct' &
+     &            ,recl=recfac*nx*ny*nz,err=920)
         endif
-*
-*       compute minfac if it has not been set explicitly
-*
+!
+!       compute minfac if it has not been set explicitly
+!
         if ( minfac.lt.0 .and. minnum.lt.0 ) then
-*           heuristic, gives 0.25 for 150 yrs, 0.5 for 50 yrs, 0.75 for 20yrs
-            minfac = max(0.1,
-     +            min(0.6,
-     +            1.5-log(1+real(min(nt,nperyear*(yr2-yr1+1))-1)
-     +            /nperyear)/4))
+!           heuristic, gives 0.25 for 150 yrs, 0.5 for 50 yrs, 0.75 for 20yrs
+            minfac = max(0.1, &
+     &            min(0.6, &
+     &            1.5-log(1+real(min(nt,nperyear*(yr2-yr1+1))-1) &
+     &            /nperyear)/4))
         endif
-        write(0,'(a,i2,a)') 'Requiring at least ',
-     +            nint(100*minfac),'% valid points'
-*
-*       loop over gridpoints
-*
+        write(0,'(a,i2,a)') 'Requiring at least ', &
+     &            nint(100*minfac),'% valid points'
+!
+!       loop over gridpoints
+!
         do jz=1,nz
             do jy=1,ny
-                call keepalive1('Computing latitude ',
-     +               jy+(jz-1)*ny,ny*nz)
+                call keepalive1('Computing latitude ', &
+     &               jy+(jz-1)*ny,ny*nz)
                 do jx=1,nx
                     do month=0,min(12,nperyear)
                         res(jx,jy,jz,month,1:nvarmax) = 3e33
                     enddo
                     xyear = 3e33
-*
-*                   create 1-D series from field
-*
+!
+!                   create 1-D series from field
+!
                     n = 0
                     do iens=nens1,nens2
                         do i=yr1,yr2
                             do j=1,nperyear
-                                fxy(j,i,iens) = 
-     +                                  field(jx,jy,jz,j,i,iens)
-                                if ( fxy(j,i,iens).lt.0.9*absent )
-     +                                  n = n+1
+                                fxy(j,i,iens) = &
+     &                                  field(jx,jy,jz,j,i,iens)
+                                if ( fxy(j,i,iens).lt.0.9*absent ) &
+     &                                  n = n+1
                             enddo
                         enddo
                     enddo
                     if ( n.lt.3 ) then
-                        if ( lwrite ) print '(a,3i5)',
-     +                          'no valid points at ',jx,jy,jz
+                        if ( lwrite ) print '(a,3i5)', &
+     &                          'no valid points at ',jx,jy,jz
                         goto 800
                     endif
                     do iens=nens1,nens2
-*
-*                       sum
-*
+!
+!                       sum
+!
                         if ( lsum.gt.1 ) then
-                            call sumit(fxy(1,yr1,iens),nperyear,
-     +                          nperyear,yr1,yr2,lsum,oper)
+                            call sumit(fxy(1,yr1,iens),nperyear, &
+     &                          nperyear,yr1,yr2,lsum,oper)
                         endif
-*
-*                       log,sqrt
-*
+!
+!                       log,sqrt
+!
                         if ( logscale ) then
                             do i=yr1,yr2
                                 do j=1,nperyear
-                                    if ( fxy(j,i,iens).lt.1e33 .and.
-     +                                   fxy(j,i,iens).gt.0 )
-     +                                  then
-                                        fxy(j,i,iens) =
-     +                                          log10(fxy(j,i,iens))
+                                    if ( fxy(j,i,iens).lt.1e33 .and. &
+     &                                   fxy(j,i,iens).gt.0 ) &
+     &                                  then
+                                        fxy(j,i,iens) = &
+     &                                          log10(fxy(j,i,iens))
                                     else
                                         fxy(j,i,iens) = 3e33
                                     endif
@@ -337,68 +341,68 @@
                         if ( sqrtscale ) then
                             do i=yr1,yr2
                                 do j=1,nperyear
-                                    if ( fxy(j,i,iens).lt.1e33 .and. 
-     +                                   fxy(j,i,iens).ge.0 )
-     +                                  then
-                                        fxy(j,i,iens) =
-     =                                          sqrt(fxy(j,i,iens))
+                                    if ( fxy(j,i,iens).lt.1e33 .and. &
+     &                                   fxy(j,i,iens).ge.0 ) &
+     &                                  then
+                                        fxy(j,i,iens) = &
+     &                                          sqrt(fxy(j,i,iens))
                                     else
                                         fxy(j,i,iens) = 3e33
                                     endif
                                 enddo
                             enddo
                         endif
-*
-*                       detrend
-*
+!
+!                       detrend
+!
                         if ( ldetrend ) then
                             if ( lwrite ) print *,'Detrending field'
-                            call detrend(fxy(1,yr1,iens),nperyear,
-     +                           nperyear,yr1,yr2,yr1,yr2,m1,m2,lsel
-     +                           )
+                            call detrend(fxy(1,yr1,iens),nperyear, &
+     &                           nperyear,yr1,yr2,yr1,yr2,m1,m2,lsel &
+     &                           )
                         endif
-*
-*                       differentiate
-*
+!
+!                       differentiate
+!
                         if ( ndiff.ne.0 ) then
                             if ( lwrite ) print *,'Taking differences'
-                            call diffit(fxy(1,yr1,iens),nperyear,
-     +                          nperyear,yr1,yr2,ndiff)
+                            call diffit(fxy(1,yr1,iens),nperyear, &
+     &                          nperyear,yr1,yr2,ndiff)
                         endif
-*
-*                       anomalies
-*
-                        if ( anom .or. lsel.gt.1 .and. ndiff.le.0 )
-     +                      then
-                            call anomal(fxy(1,yr1,iens),nperyear,
-     +                          nperyear,yr1,yr2,yr1,yr2)
+!
+!                       anomalies
+!
+                        if ( anom .or. lsel.gt.1 .and. ndiff.le.0 ) &
+     &                      then
+                            call anomal(fxy(1,yr1,iens),nperyear, &
+     &                          nperyear,yr1,yr2,yr1,yr2)
                         endif
                     enddo
 !
 !                   anomalies wrt ensemble mean
 !
                     if ( nens2.gt.nens1 .and. lensanom ) then
-                        call anomalensemble(fxy,nperyear,nperyear,
-     +                       yr1,yr2,yr1,yr2,nens1,nens2)
+                        call anomalensemble(fxy,nperyear,nperyear, &
+     &                       yr1,yr2,yr1,yr2,nens1,nens2)
                     endif
-*
-*                   normalize to s.d.
-*
+!
+!                   normalize to s.d.
+!
                     do iens=nens1,nens2
                         if ( lnormsd ) then
-                            call normsd(fxy(1,yr1,iens),nperyear,
-     +                          nperyear,yr1,yr2,yr1,yr2)
+                            call normsd(fxy(1,yr1,iens),nperyear, &
+     &                          nperyear,yr1,yr2,yr1,yr2)
                         endif
                     enddo       ! iens
-*
-*                   get moments or other properties
-*
+!
+!                   get moments or other properties
+!
                     do month=m1,m2
                         call getj1j2(j1,j2,month,nperyear,.false.)
-*
-*                       fill linear arrays without absent values
-*                       and compute moment
-*
+!
+!                       fill linear arrays without absent values
+!                       and compute moment
+!
                         n = 0
                         do iens=nens1,nens2
                             do yr=yr1-1,yr2
@@ -407,31 +411,31 @@
                                     call normon(j,yr,i,nperyear)
                                     if ( yr.eq.year ) then
                                         if ( nens1.ne.nens2 ) then
-                                            write(0,*)'getmomentsfield'
-     +                                           //': error: cannot '
-     +                                           //'handle ensembles'
-                                            write(*,*)'getmomentsfield'
-     +                                           //': error: cannot '
-     +                                           //'handle ensembles'
+                                            write(0,*)'getmomentsfield' &
+     &                                           //': error: cannot ' &
+     &                                           //'handle ensembles'
+                                            write(*,*)'getmomentsfield' &
+     &                                           //': error: cannot ' &
+     &                                           //'handle ensembles'
                                             call abort
                                         endif
                                         if ( j1.ne.j2 ) then
-                                            write(0,*)'getmomentsfield'
-     +                                           //': error: can only '
-     +                                           //'handle annual data'
-                                            write(*,*)'getmomentsfield'
-     +                                           //': error: can only '
-     +                                           //'handle annual data'
+                                            write(0,*)'getmomentsfield' &
+     &                                           //': error: can only ' &
+     &                                           //'handle annual data'
+                                            write(*,*)'getmomentsfield' &
+     &                                           //': error: can only ' &
+     &                                           //'handle annual data'
                                             call abort
                                         endif
                                         xyear = fxy(j,i,iens)
                                         fxy(j,i,iens) = absent
                                     endif
-                                    if ( i.lt.yr1 .or.i.gt.yr2 )
-     +                                  goto 710
-                                    if (  fxy(j,i,iens).lt.absent/3.and. 
-     +                                    fxy(j,i,iens).lt.maxindx .and. 
-     +                                    fxy(j,i,iens).gt.minindx) then
+                                    if ( i.lt.yr1 .or.i.gt.yr2 ) &
+     &                                  goto 710
+                                    if (  fxy(j,i,iens).lt.absent/3.and. &
+     &                                    fxy(j,i,iens).lt.maxindx .and. &
+     &                                    fxy(j,i,iens).gt.minindx) then
                                         n = n+1
                                         ddata(n) = fxy(j,i,iens)
                                         yrstart = min(yrstart,i)
@@ -441,19 +445,19 @@
                                 enddo
                             enddo
                         enddo
-                        if ( month.eq.0 .and. 
-     +                        n.lt.minfac*min(nt,nperyear*(yr2-yr1+1))
-     +                        .or. 
-     +                        month.ne.0 .and.
-     +                        n.lt.minfac*min(nt/nperyear,yr2-yr1+1)
-     +                        .or.
-     +                        n.lt.minnum ) then
-                            if ( lwrite ) print '(a,3i5,i3,a,2i6)'
-     +                          ,'not enough valid points at ',jx,jy,jz
-     +                          ,month,': ',n,nt
+                        if ( month.eq.0 .and. &
+     &                        n.lt.minfac*min(nt,nperyear*(yr2-yr1+1)) &
+     &                        .or. &
+     &                        month.ne.0 .and. &
+     &                        n.lt.minfac*min(nt/nperyear,yr2-yr1+1) &
+     &                        .or. &
+     &                        n.lt.minnum ) then
+                            if ( lwrite ) print '(a,3i5,i3,a,2i6)' &
+     &                          ,'not enough valid points at ',jx,jy,jz &
+     &                          ,month,': ',n,nt
                             goto 790
                         endif
-*
+!
                         m = month-m1
                         if ( itype.gt.0 ) then
                             ! remember, only mean is supported
@@ -469,20 +473,20 @@
                             if ( s.lt.0 ) s = s + itype
                             res(jx,jy,jz,m,1) = s
                         else if ( imoment.eq.-1 ) then
-*
-*                           sort results and find perc-th percentile
-*                           using the routine already written for the
-*                           contingency table
-*
+!
+!                           sort results and find perc-th percentile
+!                           using the routine already written for the
+!                           contingency table
+!
                             call nrsort(n,ddata)
                             call getcut(res(jx,jy,jz,m,1),perc,n,ddata)
                             nvars = 1
                         elseif ( abs(imoment).le.100 ) then
-*
-*                           call Numerical Recipes routine
-*
-                            call moment(ddata,n,xmom(1),xmom(5),xmom(2),
-     +                          var,xmom(3),xmom(4))
+!
+!                           call Numerical Recipes routine
+!
+                            call moment(ddata,n,xmom(1),xmom(5),xmom(2), &
+     &                          var,xmom(3),xmom(4))
                             do i=1,5
                                 res(jx,jy,jz,m,i) = xmom(i)
                             enddo
@@ -498,55 +502,55 @@
                                 nvars = 10
                                 if ( xyear.lt.1e33 ) then
                                     if ( .not.lchangesign ) then
-                                        call fitgau(ddata,n,
-     +                                       xmom(1),xmom(2),a,b,
-     +                                       minindx,maxindx,3,j1,j2,
-     +                                       year,xyear,t,t25,t975,
-     +                                       tx,tx25,tx975,.false.,
-     +                                       .false.,lweb,.false.,
-     +                                       lwrite)
+                                        call fitgau(ddata,n, &
+     &                                       xmom(1),xmom(2),a,b, &
+     &                                       minindx,maxindx,3,j1,j2, &
+     &                                       year,xyear,t,t25,t975, &
+     &                                       tx,tx25,tx975,.false., &
+     &                                       .false.,lweb,.false., &
+     &                                       lwrite)
                                     else
                                         do i=1,n
                                             ddata(i) = -ddata(i)
                                         end do
-                                        call fitgau(ddata,n,
-     +                                       -xmom(1),xmom(2),a,b,
-     +                                       minindx,maxindx,3,j1,j2,
-     +                                       year,-xyear,t,t25,t975,
-     +                                       tx,tx25,tx975,.false.,
-     +                                       .false.,lweb,.true.,lwrite)
+                                        call fitgau(ddata,n, &
+     &                                       -xmom(1),xmom(2),a,b, &
+     &                                       minindx,maxindx,3,j1,j2, &
+     &                                       year,-xyear,t,t25,t975, &
+     &                                       tx,tx25,tx975,.false., &
+     &                                       .false.,lweb,.true.,lwrite)
                                     end if
                                     res(jx,jy,jz,m,9) = tx
-                                    res(jx,jy,jz,m,10) =
-     +                                   (xyear-xmom(1))/xmom(2)
+                                    res(jx,jy,jz,m,10) = &
+     &                                   (xyear-xmom(1))/xmom(2)
                                 else
                                     res(jx,jy,jz,m,9) = 3e33
                                     res(jx,jy,jz,m,10) = 3e33
                                 end if
                             endif
                         elseif ( imoment.eq.200 ) then
-*
-*                           GPD fit requested
-*
+!
+!                           GPD fit requested
+!
                             if ( lchangesign ) then
                                 do i=1,n
                                     ddata(i) = -ddata(i)
                                 enddo
                                 xyear = -xyear
                             endif
-                            if ( pmindata.le.0 .or. pmindata.ge.100 )
-     +                           then
-                                write(0,*) 'getmomentsfield: error: '//
-     +                               'threshold invalid: ',pmindata
+                            if ( pmindata.le.0 .or. pmindata.ge.100 ) &
+     &                           then
+                                write(0,*) 'getmomentsfield: error: '// &
+     &                               'threshold invalid: ',pmindata
                                 call abort
                             endif
-                            call moment(ddata,n,xmom(1),xmom(5),xmom(2),
-     +                          var,xmom(3),xmom(4))
-                            call fitgpd(ddata,n,xmom(1),xmom(2),b,xi,
-     +                           j1,j2,lweb,2,lchangesign,pmindata,
-     +                           mindata,year,xyear,t,t25,t975,
-     +                           tx,tx25,tx975,restrain,.false.,.false.,
-     +                           lwrite)
+                            call moment(ddata,n,xmom(1),xmom(5),xmom(2), &
+     &                          var,xmom(3),xmom(4))
+                            call fitgpd(ddata,n,xmom(1),xmom(2),b,xi, &
+     &                           j1,j2,lweb,2,lchangesign,pmindata, &
+     &                           mindata,year,xyear,t,t25,t975, &
+     &                           tx,tx25,tx975,restrain,.false.,.false., &
+     &                           lwrite)
                             res(jx,jy,jz,m,1) = b
                             res(jx,jy,jz,m,2) = xi
                             do i=1,10
@@ -562,21 +566,21 @@
                                 endif
                             endif
                         elseif ( imoment.eq.300 ) then
-*
-*                           GEV fit requested
-*
+!
+!                           GEV fit requested
+!
                             if ( lchangesign ) then
                                 do i=1,n
                                     ddata(i) = -ddata(i)
                                 enddo
                                 xyear = -xyear
                             endif
-                            call moment(ddata,n,xmom(1),xmom(5),xmom(2),
-     +                          var,xmom(3),xmom(4))
-                            call fitgev(ddata,n,xmom(1),xmom(2),a,b,xi,
-     +                           j1,j2,lweb,4,lchangesign,year,xyear,t
-     +                           ,t25,t975,tx,tx25,tx975,restrain,
-     +                           .false.,.false.,lwrite)
+                            call moment(ddata,n,xmom(1),xmom(5),xmom(2), &
+     &                          var,xmom(3),xmom(4))
+                            call fitgev(ddata,n,xmom(1),xmom(2),a,b,xi, &
+     &                           j1,j2,lweb,4,lchangesign,year,xyear,t &
+     &                           ,t25,t975,tx,tx25,tx975,restrain, &
+     &                           .false.,.false.,lwrite)
                             res(jx,jy,jz,m,1) = a
                             res(jx,jy,jz,m,2) = b
                             res(jx,jy,jz,m,3) = xi
@@ -592,15 +596,36 @@
                                     res(jx,jy,jz,m,14) = 3e33
                                 endif
                             endif
+                        elseif ( imoment.eq.1000 ) then
+!
+!                           rank requested
+!
+                            if ( xyear.gt.1e33 ) then
+                                res(jx,jy,jz,m,1) = 3e33
+                            else
+                                if ( lchangesign ) then
+                                    do i=1,n
+                                        ddata(i) = -ddata(i)
+                                    enddo
+                                    xyear = -xyear
+                                endif
+                                call nrsort(n,ddata)
+                                do i=1,n
+                                    print *,'@@@ comparing ',i,n,ddata(n-i+1),xyear
+                                    if ( ddata(n-i+1).lt.xyear ) exit
+                                end do
+                                res(jx,jy,jz,m,1) = real(i)
+                            end if
+                            nvars = 1
                         else
                             write(0,*) 'error: unknow imoment ',imoment
                             call abort
                         endif
                         if ( lwrite ) then
                             do i=1,nvars
-                                print '(a,3i5,2i3,a,g23.6)',
-     +                               'res(',jx,jy,jz,m,i,') = ',
-     +                               res(jx,jy,jz,m,i)
+                                print '(a,3i5,2i3,a,g23.6)', &
+     &                               'res(',jx,jy,jz,m,i,') = ', &
+     &                               res(jx,jy,jz,m,i)
                             enddo
                         endif    
   790                   continue    ! valid point/month
@@ -609,29 +634,30 @@
                 enddo               ! nx
             enddo                   ! ny
         enddo                       ! nz
-*
-*       convert to standard units
-*
+!
+!       convert to standard units
+!
         if ( lstandardunits ) then
             if ( nz.gt.1 ) then
-                write(0,*) 'getmomentsfield: error: cannot convert '//
-     +               '3D fields to standard units yet'
-                write(*,*) 'getmomentsfield: error: cannot convert '//
-     +               '3D fields to standard units yet'
+                write(0,*) 'getmomentsfield: error: cannot convert '// &
+     &               '3D fields to standard units yet'
+                write(*,*) 'getmomentsfield: error: cannot convert '// &
+     &               '3D fields to standard units yet'
                 call abort
             endif
             saveunits = units(1)
             do i=1,nvars
-                if ( .not. ( abs(imoment).le.100 .and. 
-     +               (i.eq.3 .or. i.eq.4 .or. i.eq.6 .or. i.eq.9
-     +               .or. i.eq.10 ) )
-     +               .and. .not. ( imoment.eq.200 .and. i.eq.2 ) ) then
+                if ( .not. ( abs(imoment).le.100 .and. &
+     &               (i.eq.3 .or. i.eq.4 .or. i.eq.6 .or. i.eq.9 &
+     &               .or. i.eq.10 ) ) &
+     &               .and. .not. ( imoment.eq.200 .and. i.eq.2 ) &
+     &               .and. .not. imoment.eq.1000 ) then
                     units(i) = saveunits
-                    call makestandardfield(res(1,1,1,1,i),nx,ny,1,12,0,0
-     +                   ,nx,ny,1,12,0,0,vars(1),units(i),lwrite)
+                    call makestandardfield(res(1,1,1,1,i),nx,ny,1,12,0,0 &
+     &                   ,nx,ny,1,12,0,0,vars(1),units(i),lwrite)
                     units(i) = saveunits
-                    call makestandardfield(res(1,1,1,0,i),nx,ny,1,1,0,0
-     +                   ,nx,ny,1,1,0,0,vars(1),units(i),lwrite)
+                    call makestandardfield(res(1,1,1,0,i),nx,ny,1,1,0,0 &
+     &                   ,nx,ny,1,1,0,0,vars(1),units(i),lwrite)
                 else
                     units(i) = "1"
                 endif
@@ -648,9 +674,9 @@
                 units(3:12) = units(1)
             endif
         endif
-*
-*       write output field in GrADS or netcdf format
-*
+!
+!       write output field in GrADS or netcdf format
+!
         call savestartstop(yrstart,yrstop)
         call getenv('DIR',dir)
         ldir = llen(dir)
@@ -665,6 +691,11 @@
         if ( imoment.eq.-1 ) then
             vars(1) = 'perc'
             write(lvars(1),'(f5.2,a)') perc,'% percentile'
+        elseif ( imoment.eq.1000 ) then
+            vars(1) = 'rank'
+            write(lvars(1),'(a,i4,a)') 'rank of year ', &
+     &               year,' in the context of the other years'
+            units(1) = '1'
         elseif ( abs(imoment).le.100 ) then
             vars(1) = 'mean'
             lvars(1) = 'mean'
@@ -688,12 +719,12 @@
             if ( year.ne.0 ) then
                 call check4(year)
                 write(vars(9),'(a,i4.4)') 'norm_rt_',year
-                write(lvars(9),'(a,i4,a)') 'return time of year ',
-     +               year,' in the context of the other years'
+                write(lvars(9),'(a,i4,a)') 'return time of year ', &
+     &               year,' in the context of the other years'
                 units(9) = 'yr'
                 write(vars(10),'(a,i4.4)') 'z_',year
-                write(lvars(10),'(a,i4,a)') 'z-value of year ',
-     +               year,' in the context of the other years'
+                write(lvars(10),'(a,i4,a)') 'z-value of year ', &
+     &               year,' in the context of the other years'
                 units(10) = '1'
             endif
         elseif ( imoment.eq.200 ) then
@@ -707,35 +738,35 @@
                 write(format,'(a,i1,a)') '(a,i',i+1,',a)'
                 write(vars(3*i),format) 't',10**i
                 if ( j1.eq.j2 ) then
-                    write(lvars(3*i),format) 'return value at ',
-     +                   10**i,' years'
+                    write(lvars(3*i),format) 'return value at ', &
+     &                   10**i,' years'
                 else
-                    write(lvars(3*i),'(a)')
-     +                   'not quite sure what this number means'
+                    write(lvars(3*i),'(a)') &
+     &                   'not quite sure what this number means'
                 endif
                 if ( i.eq.4 ) cycle
                 write(vars(3*i+1),format) 't',2*10**i
                 if ( j1.eq.j2 ) then
-                    write(lvars(3*i+1),format) 'return value at ',
-     +                   2*10**i,' years'
+                    write(lvars(3*i+1),format) 'return value at ', &
+     &                   2*10**i,' years'
                 else
-                    write(lvars(3*i+1),'(a)')
-     +                   'not quite sure what this number means'
+                    write(lvars(3*i+1),'(a)') &
+     &                   'not quite sure what this number means'
                 endif
                 write(vars(3*i+2),format) 't',5*10**i
                 if ( j1.eq.j2 ) then
-                    write(lvars(3*i+2),format) 'return value at ',
-     +                   5*10**i,' years'
+                    write(lvars(3*i+2),format) 'return value at ', &
+     &                   5*10**i,' years'
                 else
-                    write(lvars(3*i+2),'(a)')
-     +                   'not quite sure what this number means'
+                    write(lvars(3*i+2),'(a)') &
+     &                   'not quite sure what this number means'
                 endif
             enddo
             if ( year.ne.0 ) then
                 call check4(year)
                 write(vars(13),'(a,i4.4)') 'pot_rt_',year
-                write(lvars(13),'(a,i4,a)') 'return time of year ',
-     +               year,' in the context of the other years'
+                write(lvars(13),'(a,i4,a)') 'return time of year ', &
+     &               year,' in the context of the other years'
                 units(13) = 'yr'
             endif
         elseif ( imoment.eq.300 ) then
@@ -751,35 +782,35 @@
                 write(format,'(a,i1,a)') '(a,i',i+1,',a)'
                 write(vars(3*i+1),format) 't',10**i
                 if ( j1.eq.j2 ) then
-                    write(lvars(3*i+1),format) 'return value at ',
-     +                   10**i,' years'
+                    write(lvars(3*i+1),format) 'return value at ', &
+     &                   10**i,' years'
                 else
-                    write(lvars(3*i+1),'(a)')
-     +                   'not quite sure what this number means'
+                    write(lvars(3*i+1),'(a)') &
+     &                   'not quite sure what this number means'
                 endif
                 if ( i.eq.4 ) cycle
                 write(vars(3*i+2),format) 't',2*10**i
                 if ( j1.eq.j2 ) then
-                    write(lvars(3*i+2),format) 'return value at ',
-     +                   2*10**i,' years'
+                    write(lvars(3*i+2),format) 'return value at ', &
+     &                   2*10**i,' years'
                 else
-                    write(lvars(3*i+2),'(a)')
-     +                   'not quite sure what this number means'
+                    write(lvars(3*i+2),'(a)') &
+     &                   'not quite sure what this number means'
                 endif
                 write(vars(3*i+3),format) 't',5*10**i
                 if ( j1.eq.j2 ) then
-                    write(lvars(3*i+3),format) 'return value at ',
-     +                   5*10**i,' years'
+                    write(lvars(3*i+3),format) 'return value at ', &
+     &                   5*10**i,' years'
                 else
-                    write(lvars(3*i+3),'(a)')
-     +                   'not quite sure what this number means'
+                    write(lvars(3*i+3),'(a)') &
+     &                   'not quite sure what this number means'
                 endif
             enddo
             if ( year.ne.0 ) then
                 call check4(year)
                 write(vars(14),'(a,i4.4)') 'gev_rt_',year
-                write(lvars(14),'(a,i4,a)') 'return time of year ',
-     +               year,' in the context of the other years'
+                write(lvars(14),'(a,i4,a)') 'return time of year ', &
+     &               year,' in the context of the other years'
                 units(14) = 'yr'
             endif
         else
@@ -790,7 +821,7 @@
             ivars(1,i) = nz
             ivars(2,i) = 99
         enddo
-*       give correlations dates in 0-1
+!       give correlations dates in 0-1
         if ( m1.eq.0 ) then
             i = 0
             j = nperyear
@@ -800,63 +831,63 @@
         endif
         if ( index(outfile,'.ctl').ne.0 ) then
             if ( lwrite ) print '(a)','# writing ctl file'
-            call writectl(outfile,datfile,nx,xx,ny,yy,nz,zz
-     +           ,1+(m2-m1),nperyear,i,j,absent,title,nvars,vars,ivars
-     +           ,lvars,units)
+            call writectl(outfile,datfile,nx,xx,ny,yy,nz,zz &
+     &           ,1+(m2-m1),nperyear,i,j,absent,title,nvars,vars,ivars &
+     &           ,lvars,units)
             print '(a)','# writing output'
             irec = 0
             do month=m1,m2
                 m = month-m1
                 do i=1,nvars
                     irec = irec + 1
-                    write(2,rec=irec) (((res(jx,jy,jz,m,i),jx=1,nx),jy=1
-     +                   ,ny),jz=1,nz)
+                    write(2,rec=irec) (((res(jx,jy,jz,m,i),jx=1,nx),jy=1 &
+     &                   ,ny),jz=1,nz)
                 enddo
             enddo
             close(2)
         else
             if ( lwrite ) print '(a)','# writing netcdf metadata'
-            call enswritenc(outfile,ncid,ntvarid,itimeaxis,ntmax,nx,xx
-     +           ,ny,yy,nz,zz,lz,1+(m2-m1),nperyear,i,j,ltime,absent
-     +           ,title,history,nvars,vars,ivars,lvars,svars,units
-     +           ,cell_methods,0,0)
+            call enswritenc(outfile,ncid,ntvarid,itimeaxis,ntmax,nx,xx &
+     &           ,ny,yy,nz,zz,lz,1+(m2-m1),nperyear,i,j,ltime,absent &
+     &           ,title,history,nvars,vars,ivars,lvars,svars,units &
+     &           ,cell_methods,0,0)
             do month=m1,m2
                 m = month-m1
                 do i=1,nvars
                     print '(a,2i3)','# writing netcdf data',m,i
-                    call writencslice(ncid,ntvarid,itimeaxis,ntmax,
-     +                   ivars(1,i),res(1,1,1,m,i),nx,ny,nz,nx,ny,nz,
-     +                   m+1,1)
+                    call writencslice(ncid,ntvarid,itimeaxis,ntmax, &
+     &                   ivars(1,i),res(1,1,1,m,i),nx,ny,nz,nx,ny,nz, &
+     &                   m+1,1)
                 enddo
             enddo
             i = nf_close(ncid)  ! do not forget to close file!!!!
         endif
-*
-*       error messages
-*
+!
+!       error messages
+!
         goto 999
-  901   print *,'getmomentsfield: error reading moment [1-4] from '
-     +        ,line(1:llen(line))
+  901   print *,'getmomentsfield: error reading moment [1-4] from ' &
+     &        ,line(1:llen(line))
         call abort
-  902   print *,'getmomentsfield: error reading percentile from '
-     +        ,line(1:llen(line))
+  902   print *,'getmomentsfield: error reading percentile from ' &
+     &        ,line(1:llen(line))
         call abort
-  903   print *,'error reading date from file ',line(1:index(line,' ')-1
-     +        ),' at record ',k
+  903   print *,'error reading date from file ',line(1:index(line,' ')-1 &
+     &        ),' at record ',k
         call abort
-  904   print *,'error cannot locate field file file ',line(1:index(line
-     +        ,' ')-1)
+  904   print *,'error cannot locate field file file ',line(1:index(line &
+     &        ,' ')-1)
         call abort
-  905   print *,'getmomentsfield: error reading year from '
-     +        ,line(1:llen(line))
+  905   print *,'getmomentsfield: error reading year from ' &
+     &        ,line(1:llen(line))
         call abort
-  920   print *,'error cannot open new correlations file '
-     +        ,datfile(1:index(datfile,' ')-1)
+  920   print *,'error cannot open new correlations file ' &
+     &        ,datfile(1:index(datfile,' ')-1)
         call abort
   999   continue
-        end
+ end program
 
-        subroutine check4(year)
+ subroutine check4(year)
         implicit none
         integer year
         if ( year.gt.9999 .or. year.lt.-999 ) then
@@ -864,4 +895,4 @@
             write(*,*) 'getmomentsfield: error: year = ',year
             call abort
         endif
-        end
+end subroutine
