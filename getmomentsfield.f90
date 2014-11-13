@@ -12,17 +12,17 @@ program getmomentsfield
         include 'recfac.inc'
         real absent
         parameter (absent=3e33)
-        integer nvarmax,ntmax
-        parameter(nvarmax=14,ntmax=13)
+        integer nvarmax,ntmax,nyears
+        parameter(nvarmax=14,ntmax=13,nyears=1000)
         integer nx,ny,nz,nt,firstyr,lastyr,firstmo,nvars, &
      &       ivars(2,nvarmax),jvars(6,nvarmax),ncid,endian, &
-     &       status,nperyear,mens,mens1
+     &       status,nperyear,mens,mens1,years(nyears),iyear
         integer jx,jy,jz,i,j,jj,j1,j2,k,m,n,month,yr,imoment,ldir, &
      &       iens,yrstart,yrstop,f,irec,year,ntvarid,itimeaxis(ntmax), &
      &       itype
         logical lexist
         real xx(nxmax),yy(nymax),zz(nzmax),undef,xxls(nxmax),yyls(nymax) &
-     &       ,a,b,xi,t(10),t25(10),t975(10),tx,tx1,tx25,tx975,sx,sy,s
+     &       ,a,b,xi,t(10),t25(10),t975(10),tx,tx1,tx25,tx975,sx,sy,s,xtreme
         real xmom(5),var,perc,z
         real,allocatable :: field(:,:,:,:,:,:),res(:,:,:,:,:)
         real,allocatable :: fxy(:,:,:),ddata(:)
@@ -154,6 +154,8 @@ program getmomentsfield
             call getarg(3,line)
             read(line,*,err=905) year
             imoment = 1000
+        elseif ( line(1:5).eq.'timex' ) then
+            imoment = 1001
         else
             goto 901
         endif
@@ -617,8 +619,42 @@ program getmomentsfield
                                 res(jx,jy,jz,m,1) = real(i)
                             end if
                             nvars = 1
+                        elseif ( imoment.eq.1001 ) then
+                            call nrsort(n,ddata)
+                            if ( lchangesign ) then
+                                xtreme = ddata(1)
+                            else
+                                xtreme = ddata(n)
+                            end if
+                            years = -9999
+                            iyear = 0
+                            do iens=nens1,nens2
+                                do yr=yrstart-1,yrstop
+                                    do jj=j1,j2
+                                        j = jj
+                                        call normon(j,yr,i,nperyear)
+                                        if ( i.ge.yrstart .and. i.le.yrstop ) then
+                                            if ( fxy(j,i,iens).eq.xtreme ) then
+                                                if ( iyear.lt.nyears ) iyear = iyear + 1
+                                                years(iyear) = i
+                                            end if
+                                        end if
+                                    end do
+                                end do
+                            end do
+                            if ( iyear.eq.0 ) then
+                                res(jx,jy,jz,m,1) = 3e33
+                            else if ( iyear.eq.1 ) then
+                                res(jx,jy,jz,m,1) = years(iyear)
+                            else
+                                ! take random choice of equal years
+                                call random_number(s)
+                                i = 1 + int(iyear*s)
+                                res(jx,jy,jz,m,1) = years(i)
+                            end if
+                            nvars = 1
                         else
-                            write(0,*) 'error: unknow imoment ',imoment
+                            write(0,*) 'error: unknown imoment ',imoment
                             call abort
                         endif
                         if ( lwrite ) then
@@ -651,7 +687,7 @@ program getmomentsfield
      &               (i.eq.3 .or. i.eq.4 .or. i.eq.6 .or. i.eq.9 &
      &               .or. i.eq.10 ) ) &
      &               .and. .not. ( imoment.eq.200 .and. i.eq.2 ) &
-     &               .and. .not. imoment.eq.1000 ) then
+     &               .and. .not. imoment.eq.1000 .and. .not. imoment.eq.1001 ) then
                     units(i) = saveunits
                     call makestandardfield(res(1,1,1,1,i),nx,ny,1,12,0,0 &
      &                   ,nx,ny,1,12,0,0,vars(1),units(i),lwrite)
@@ -695,6 +731,10 @@ program getmomentsfield
             vars(1) = 'rank'
             write(lvars(1),'(a,i4,a)') 'rank of year ', &
      &               year,' in the context of the other years'
+            units(1) = '1'
+        elseif ( imoment.eq.1001 ) then
+            vars(1) = 'timex'
+            lvars(1) = 'year of extreme'
             units(1) = '1'
         elseif ( abs(imoment).le.100 ) then
             vars(1) = 'mean'
