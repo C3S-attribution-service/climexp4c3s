@@ -288,6 +288,7 @@ PROGRAMS      = scientific2decimal \
 		runningmoments \
 		scaleseries \
 		patchseries \
+		patchfield \
 		dat2grads \
 		get_depth \
 		yearly2shorter \
@@ -594,6 +595,9 @@ scaleseries:	scaleseries.o $(LIBRARY)
 patchseries:	patchseries.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBRARY) $(LIBS)
 
+patchfield:	patchfield.o $(LIBRARY)
+		$(LD) $(FFLAGS) -o $@ $@.o $(LIBRARY) $(LIBS)
+
 diffdat:	diffdat.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBRARY) $(LIBS)
 
@@ -752,6 +756,9 @@ rkillfile.so:	rkillfile.f
 
 rkeepalive.so:	rkeepalive.f
 		R CMD SHLIB ../rkeepalive.f
+
+F2f90:  F2f90.o
+		$(LD) $(FFLAGS) -o $@ $@.o
 
 WAVEFILES = 	wave.F param.inc getopts.inc recfac.h netcdf.inc \
 		makeabsent.f readdat.F readncseries.F getopts.F \
