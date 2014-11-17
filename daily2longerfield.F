@@ -343,7 +343,8 @@
      +                   newfield(1,1,j,yr),nx,ny,nz,nx,ny,nz,i,1)
                 end do
             end do
-          endif
+            status = nf_close(ncid)
+        endif
 *
 *       error messages
 *
