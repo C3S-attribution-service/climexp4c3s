@@ -203,8 +203,6 @@ program patchfield
 !       netcdf output
         undef = 3e33
         title = trim(title)//' extended with '//trim(auxfile)
-        history = history//'\npatchfield '//trim(mainfile)//' '//trim(auxfile)// &
- &          ' '//trim(outfile)
         call enswritenc(outfile,ncid,ntvarid,itimeaxis,ndata,nx,xx,ny &
  &           ,yy,nz,zz,lz,nperyear*(lyr-fyr+1),nperyear &
  &           ,fyr,1,ltime,undef,title,history,nvars,vars,ivars &
