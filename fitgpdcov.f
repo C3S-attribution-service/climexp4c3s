@@ -1,7 +1,7 @@
 *  #[ fitgpdcov:
-        subroutine fitgpdcov(xx,yrs,ntot,a,b,xi,alpha,beta,j1,j2
+        subroutine fitgpdcov(xx,yrs,ntot,a3,b3,xi3,alpha3,beta3,j1,j2
      +       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,cov1,cov2,offset
-     +       ,t,t25,t975,tx,tx25,tx975,threshold,inrestrain,assume
+     +       ,t3,tx3,threshold,inrestrain,assume
      +       ,lboot,lprint,dump,plot,lwrite)
 *
 *       fit a GPD distribution to the data, which is already assumed to be declustered
@@ -30,18 +30,19 @@
         parameter(nmc=1000)
         integer ntot,j1,j2,ntype,yr1a,yr2a
         integer yrs(0:ntot)
-        real xx(2,ntot),a,b,xi,alpha,beta,xyear,cov1,cov2,offset,
-     +       inrestrain,t(10,3),t25(10,3),t975(10,3),
-     +       tx(3),tx25(3),tx975(3),ttt(10,3),txtxtx(3),threshold
+        real xx(2,ntot),a3(3),b3(3),xi3(3),alpha3(3),beta3(3),xyear,
+     +       cov1,cov2,offset,inrestrain,t3(3,10,3),tx3(3,3),threshold
         character*(*) assume
         logical lweb,lchangesign,lboot,lprint,dump,plot,lwrite
 *
         integer i,j,k,l,n,nx,iter,iter1,iens,iiens,nfit,year
-        real x,aa(nmc),bb(nmc),xixi(nmc),alphaalpha(nmc),betabeta(nmc)
-     +       ,tt(nmc,10,3),b25,b975,xi25,xi975,alpha25,alpha975
-     +       ,t5(10,3),t1(10,3),db,dxi,f,z,ll,ll1,txtx(nmc,3)
-     +       ,a25,a975,beta25,beta975,ranf,mean,sd,dalpha,dbeta
-     +       ,mindata,minindx,pmindata,snorm,s,xmin,xxyear,frac
+        real x,a,b,xi,alpha,beta,t(10,3),t25(10,3),t975(10,3),
+     +       tx(3),tx25(3),tx975(3),aa(nmc),bb(nmc),xixi(nmc),
+     +       alphaalpha(nmc),betabeta(nmc),tt(nmc,10,3),
+     +       b25,b975,xi25,xi975,alpha25,alpha975,t5(10,3),t1(10,3),
+     +       db,dxi,f,z,ll,ll1,txtx(nmc,3),a25,a975,beta25,beta975,
+     +       ranf,mean,sd,dalpha,dbeta,mindata,minindx,pmindata,snorm,s,
+     +       xmin,xxyear,frac,ttt(10,3),txtxtx(3)
         real adev,var,skew,curt,aaa,bbb,siga,chi2,q,p(4)
         integer,allocatable :: ii(:),yyrs(:)
         real,allocatable :: yy(:),ys(:),zz(:),sig(:)
@@ -77,6 +78,16 @@
                 enddo
             endif
         endif
+        a3 = 3e33
+        b3 = 3e33
+        xi3 = 3e33
+        alpha3 = 3e33
+        beta3 = 3e33
+        t3 = 3e33
+        tx3 = 3e33
+        if ( ntot.lt.5 ) then
+            return
+        end if
 !
 !       thin data to exclude all the values equal to xmin (result of declustering)
 !
@@ -90,6 +101,9 @@
                 ncur = ncur + 1
             end if
         end do
+        if ( ncur.lt.5 ) then
+            return
+        end if
 *
 *       compute first-guess parameters
 *
@@ -97,7 +111,7 @@
         allocate(yyrs(0:ncur))
         allocate(yy(ncur))
         allocate(ys(ncur))
-        allocate(zz(ncur))
+        allocate(zz(2*ncur))
         allocate(sig(ncur))
         j = 0
         yyrs(0) = yrs(0)
@@ -126,18 +140,7 @@
 *       ill-defined case
 *
         if ( sd.eq.0 ) then
-            a = 3e33
-            b = 3e33
-            xi = 3e33
-            alpha = 3e33
-            beta = 3e33
-            t = 3e33
-            t25 = 3e33
-            t975 = 3e33
-            tx = 3e33
-            tx25 = 3e33
-            tx975 = 3e33
-            return
+            goto 801 ! deallocate and return
         endif
 *
 *       copy to common for routine llgpdcov
@@ -145,11 +148,13 @@
 *       number of points above threshold, threshold is relative to the full set (ntot)
         nthreshold = nint(ntot*(1-threshold/100))
         if ( nthreshold.lt.10 ) then
-            write(0,*) 'fitgpdcov: error: not enough points above '//
-     +           'threshold: ',nthreshold
-            write(*,*) 'fitgpdcov: error: not enough points above '//
-     +           'threshold: ',nthreshold
-            call abort
+            if ( lprint ) then
+                write(0,*) 'fitgpdcov: error: not enough points above'//
+     +               ' threshold: ',nthreshold
+                write(*,*) 'fitgpdcov: error: not enough points above'//
+     +               ' threshold: ',nthreshold
+            end if
+            goto 801 ! deallocate and return
         end if
         if ( nthreshold.ge.ncur ) then
             write(0,*) 'fitgpdcov: error: nthreshold &gt ncur ',
@@ -201,20 +206,30 @@
 *
         if ( .not.lboot ) then
             if ( lchangesign ) then
+                a = -a
                 b = -b
                 t = -t
                 alpha = -alpha
-                if ( assume.eq.'both' ) beta = -beta
+                if ( cassume.eq.'both' ) then
+                    beta = -beta
+                end if
             endif
-            return
+            a3(1) = a
+            b3(1) = b
+            xi3(1) = xi
+            alpha3(1) = alpha
+            beta3(1) = beta
+            t3(1,:,:) = t(:,:)
+            tx3(1,:) = tx(:)
+            goto 801 ! deallocate and return
         endif
-        if ( .not.lweb ) print '(a,i6,a)','# doing a ',nmc
+        if ( lprint .and. .not.lweb ) print '(a,i6,a)','# doing a ',nmc
      +        ,'-member bootstrap to obtain error estimates'
         iens = 0
         do iiens=1,nmc
             iens = iens + 1
-            call keepalive1('Bootstrapping',iiens,nmc)
-            if ( .not.lweb .and. mod(iiens,100).eq.0 )
+            if ( lprint ) call keepalive1('Bootstrapping',iiens,nmc)
+            if ( lprint .and. .not.lweb .and. mod(iiens,100).eq.0 )
      +           print '(a,i6)','# ',iiens
             do i=1,ncur
                 call random_number(ranf)
@@ -317,7 +332,12 @@
 *
 *       output
 *
-        if ( .not.lprint .and. .not.lwrite ) return
+        if ( .not.lprint ) then
+            call copyab3etc(a3,b3,xi3,alpha3,beta3,t3,tx3,
+     +           a,a25,a975,b,b975,xi,xi,xi,alpha,alpha25,alpha975,
+     +           beta,beta25,beta975,t,t25,t975,tx,tx25,tx975)
+            if ( .not.lwrite ) goto 801 ! deallocate and return
+        end if
         if ( lweb ) then
             print '(a)','# <tr><td colspan="4">Fitted to GPD '//
      +           'distribution H(x+a'') = 1 - (1+&xi;*x/b'')^(-1/&xi;)'
@@ -399,7 +419,20 @@
         call plot_ordered_points(yy,ys,yyrs,ncur,ntype,nfit,
      +       frac,aaa,bbb,xi,j1,j2,minindx,mindata,pmindata,
      +       year,xyear,snorm,lchangesign,lwrite,.true.)
-
+ 801    continue
+        if ( lwrite ) print *,'fitgpdcov: deallocating ii'
+        deallocate(ii)
+        if ( lwrite ) print *,'fitgpdcov: deallocating yyrs'
+        deallocate(yyrs)
+        if ( lwrite ) print *,'fitgpdcov: deallocating yy'
+        deallocate(yy)
+        if ( lwrite ) print *,'fitgpdcov: deallocating ys'
+        deallocate(ys)
+        if ( lwrite ) print *,'fitgpdcov: deallocating zz'
+        deallocate(zz)
+        if ( lwrite ) print *,'fitgpdcov: deallocating sig'
+        deallocate(sig)
+        return
         end
 *  #] fitgpdcov:
 *  #[ fit1gpdcov:

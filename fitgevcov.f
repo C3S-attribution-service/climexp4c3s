@@ -1,8 +1,7 @@
 *  #[ fitgevcov:
-        subroutine fitgevcov(xx,yrs,ntot,a,b,xi,alpha,beta,j1,j2
+        subroutine fitgevcov(xx,yrs,ntot,a3,b3,xi3,alpha3,beta3,j1,j2
      +       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,cov1,cov2,offset
-     +       ,t,t25,t975,tx,tx25,tx975,inrestrain,assume
-     +       ,lboot,lprint,dump,plot,lwrite)
+     +       ,t3,tx3,inrestrain,assume,lboot,lprint,dump,plot,lwrite)
 *
 *       fit a GEV distribution to the data, which is already assumed to be block max
 *       input:
@@ -29,19 +28,21 @@
         parameter(nmc=1000)
         integer ntot,j1,j2,ntype,yr1a,yr2a
         integer yrs(0:ntot)
-        real xx(2,ntot),a,b,xi,alpha,beta,xyear,cov1,cov2,offset,
-     +       inrestrain,t(10,3),t25(10,3),t975(10,3),
-     +       tx(3),tx25(3),tx975(3),ttt(10,3),txtxtx(3)
+        real xx(2,ntot),a3(3),b3(3),xi3(3),alpha3(3),beta3(3),xyear,
+     +       cov1,cov2,offset,inrestrain,t3(3,10,3),tx3(3,3)
         character*(*) assume
         logical lweb,lchangesign,lboot,lprint,dump,plot,lwrite
 *
         integer i,j,k,l,n,nx,iter,iens,iiens,nfit,year
-        real x,aa(nmc),bb(nmc),xixi(nmc),alphaalpha(nmc),betabeta(nmc)
+        real x,a,b,xi,alpha,beta,t(10,3),t25(10,3),t975(10,3),
+     +       tx(3),tx25(3),tx975(3),
+     +       aa(nmc),bb(nmc),xixi(nmc),alphaalpha(nmc),betabeta(nmc)
      +       ,tt(nmc,10,3),b25,b975,xi25,xi975,alpha25,alpha975
      +       ,beta25,beta975,t5(10,3),t1(10,3)
      +       ,db,dxi,f,threshold,thens,z,ll,ll1,txtx(nmc,3)
      +       ,a25,a975,ranf,mean,sd,dalpha,dbeta
      +       ,mindata,minindx,pmindata,snorm,s,xxyear,frac
+        real ttt(10,3),txtxtx(3)
         real adev,var,skew,curt,aaa,bbb,aa25,aa975,bb25,bb975,
      +       siga,chi2,q
         real,allocatable :: yy(:),ys(:),zz(:),sig(:)
@@ -94,17 +95,13 @@
 *       ill-defined case
 *
         if ( sd.eq.0 ) then
-            a = 3e33
-            b = 3e33
-            xi = 3e33
-            alpha = 3e33
-            beta = 3e33
-            t = 3e33
-            t25 = 3e33
-            t975 = 3e33
-            tx = 3e33
-            tx25 = 3e33
-            tx975 = 3e33
+            a3 = 3e33
+            b3 = 3e33
+            xi3 = 3e33
+            alpha3 = 3e33
+            beta3 = 3e33
+            t3 = 3e33
+            tx3 = 3e33
             return
         endif
 *
@@ -151,15 +148,29 @@
                     beta = -beta
                 end if
             endif
+            a3(1) = a
+            a3(2:3) = 3e33
+            b3(1) = b
+            b3(2:3) = 3e33
+            xi3(1) = xi
+            xi3(2:3) = 3e33
+            alpha3(1) = alpha
+            alpha3(2:3) = 3e33
+            beta3(1) = beta
+            beta3(2:3) = 3e33
+            t3(1,:,:) = t(:,:)
+            t3(2:3,:,:) = 3e33
+            tx3(1,:) = tx(:)
+            tx3(2:3,:) = 3e33            
             return
         endif
-        if ( .not.lweb ) print '(a,i6,a)','# doing a ',nmc
+        if ( lprint .and. .not.lweb ) print '(a,i6,a)','# doing a ',nmc
      +        ,'-member bootstrap to obtain error estimates'
         iens = 0
         do iiens=1,nmc
             iens = iens + 1
             call keepalive1('Bootstrapping',iiens,nmc)
-            if ( .not.lweb .and. mod(iiens,100).eq.0 )
+            if ( lprint .and. .not.lweb .and. mod(iiens,100).eq.0 )
      +           print '(a,i6)','# ',iiens
             do i=1,ntot
                 call random_number(ranf)
@@ -187,6 +198,8 @@
                 write(0,*) 'fitgevcov: error: unknown value for assume '
      +               ,assume
             end if
+            if ( lwrite ) print *,'a,b,xi,alpha = ',aa(iens),bb(iens),
+     +           xixi(iens),alphaalpha(iens)
             call getreturnlevels(aa(iens),bb(iens),xixi(iens),
      +           alphaalpha(iens),betabeta(iens),
      +           cov1,cov2,gevcovreturnlevel,j1,j2,ttt)
@@ -205,6 +218,7 @@
                 ! if the event would have been impossible in the current climate
                 ! disregard this bootstrap sample
                 if ( txtxtx(3).gt.1e19 ) then
+                    if ( lwrite ) print*,'disregarding bootstrap sample'
                     iens = iens - 1
                 end if                
             endif
@@ -260,7 +274,12 @@
 *
 *       output
 *
-        if ( .not.lprint .and. .not.lwrite ) return
+        if ( .not.lprint ) then
+            call copyab3etc(a3,b3,xi3,alpha3,beta3,t3,tx3,
+     +           a,a25,a975,b,b975,xi,xi,xi,alpha,alpha25,alpha975,
+     +           beta,beta25,beta975,t,t25,t975,tx,tx25,tx975)
+            if ( .not.lwrite ) return
+        end if
         if ( lweb ) then
             print '(a)','# <tr><td colspan="4">Fitted to GEV '//
      +           'distribution P(x) = exp(-(1+&xi;(x-a'')'//

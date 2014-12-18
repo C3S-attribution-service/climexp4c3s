@@ -8,11 +8,15 @@ program attribute
     implicit none
     include 'param.inc'
     include 'getopts.inc'
-    integer nperyear,nperyear1,mens1,mens,iens
+    integer nresmax
+    parameter(nresmax=100)
+    integer nperyear,nperyear1,mens1,mens,iens,nresults
     integer i,yr,mo,n,j1,j2,off
+    real results(3,nresmax)
     real,allocatable :: series(:,:,:),covariate(:,:,:)
     character seriesfile*1024,covariatefile*1024,distribution*6,assume*5,string*80
     character var*40,units*80,var1*40,units1*80
+    logical lprint
     integer iargc
 
     if ( iargc().lt.8 ) then
@@ -114,8 +118,9 @@ program attribute
         if ( xyear.lt.1e33 ) xyear = xyear**2
     endif
 
+    lprint = .true.
     call attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yrend,&
-    &   mens1,mens,assume,distribution)
+    &   mens1,mens,assume,distribution,results,nresmax,nresults,lprint)
 
 end program attribute
 

@@ -30,7 +30,7 @@
         data iweird,nweird /0,1/
 *
         integer nmax,ncur
-        parameter(nmax=1000000)
+        parameter(nmax=100000)
         real data(nmax),restrain
         logical llwrite
         common /fitdata1/ data

@@ -1,8 +1,7 @@
 *  #[ fitgumcov:
-        subroutine fitgumcov(xx,yrs,ntot,a,b,alpha,beta,j1,j2
+        subroutine fitgumcov(xx,yrs,ntot,a3,b3,alpha3,beta3,j1,j2
      +       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,cov1,cov2,offset
-     +       ,t,t25,t975,tx,tx25,tx975,assume,lboot,lprint,dump,plot
-     +       ,lwrite)
+     +       ,t3,tx3,assume,lboot,lprint,dump,plot,lwrite)
 *
 *       a fit a Gumbel distribution to the data, which is already assumed to be block max
 *       input:
@@ -21,20 +20,20 @@
         parameter (nmc=1000)
         integer ntot,j1,j2,ntype,yr1a,yr2a
         integer yrs(0:ntot)
-        real xx(2,ntot),a,b,alpha,beta,xyear,cov1,cov2,offset,
-     +       t(10,3),t25(10,3),t975(10,3),tx(3),tx25(3),tx975(3),
-     +       ttt(10,3),txtxtx(3)
+        real xx(2,ntot),a3(3),b3(3),alpha3(3),beta3(3),xyear,
+     +       cov1,cov2,offset,t3(3,10,3),tx3(3,3)
         character*(*) assume
         logical lweb,lchangesign,lboot,lprint,dump,plot,lwrite
 *
         integer i,j,nx,iter,iens,nfit,year
-        real x,xi,aa(nmc),bb(nmc),xixi(nmc),tt(nmc,10,3)
+        real x,a,b,xi,alpha,beta,aa(nmc),bb(nmc),xixi(nmc),tt(nmc,10,3)
      +       ,t5(10,3),t1(10,3),db,f
      +       ,threshold,thens,z,ll,ll1,txtx(nmc,3)
      +       ,alphaalpha(nmc),betabeta(nmc)
      +       ,a25,a975,b25,b975,alpha25,alpha975,beta25,beta975
      +       ,ranf,mean,sd,dalpha,dbeta,mindata,minindx,pmindata
-     +       ,snorm,s,frac
+     +       ,snorm,s,frac,t(10,3),t25(10,3),t975(10,3)
+     +       ,tx(3),tx25(3),tx975(3),ttt(10,3),txtxtx(3),xi3(3)
         real adev,var,skew,curt,aaa,bbb,siga,chi2,q
         real,allocatable :: yy(:),ys(:),zz(:),sig(:)
         character lgt*4
@@ -85,16 +84,12 @@
 *       ill-defined case
 *
         if ( sd.eq.0 ) then
-            a = 3e33
-            b = 3e33
-            alpha = 3e33
-            beta = 3e33
-            t = 3e33
-            t25 = 3e33
-            t975 = 3e33
-            tx = 3e33
-            tx25 = 3e33
-            tx975 = 3e33
+            a3 = 3e33
+            b3 = 3e33
+            alpha3 = 3e33
+            beta3 = 3e33
+            t3 = 3e33
+            tx3 = 3e33
             return
         endif
 *
@@ -127,9 +122,9 @@
             call getreturnyears(a,b,xi,alpha,beta,xyear,cov1,cov2,
      +           gevcovreturnyear,j1,j2,tx,lwrite)
         endif
-*       
+*
 *       bootstrap to find error estimates
-*       
+*
         if ( .not.lboot ) then
             if ( lchangesign ) then
                 a = -a
@@ -138,9 +133,22 @@
                 alpha = -alpha
                 beta = -beta
             endif
+            a3(1) = a
+            a3(2:3) = 3e33
+            b3(1) = b
+            b3(2:3) = 3e33
+            xi3 = 0
+            alpha3(1) = alpha
+            alpha3(2:3) = 3e33
+            beta3(1) = beta
+            beta3(2:3) = 3e33
+            t3(1,:,:) = t(:,:)
+            t3(2:3,:,:) = 3e33
+            tx3(1,:) = tx(:)
+            tx3(2:3,:) = 3e33            
             return
         endif
-        if ( .not.lweb ) print '(a,i6,a)','# Doing a ',nmc
+        if ( lprint .and. .not.lweb ) print '(a,i6,a)','# Doing a ',nmc
      +        ,'-member bootstrap to obtain error estimates'
         do iens=1,nmc
             do i=1,ncur
@@ -207,6 +215,9 @@
         if ( assume.eq.'both' ) then
             call getcut( beta25, 2.5,nmc,betabeta)
             call getcut(beta975,97.5,nmc,betabeta)
+        else
+            beta25 = 3e33
+            beta975 = 3e33
         end if
         do i=1,10
             do j=1,3
@@ -233,7 +244,12 @@
 *
 *       output
 *
-        if ( .not.lprint .and. .not.lwrite ) return
+        if ( .not.lprint ) then
+            call copyab3etc(a3,b3,xi3,alpha3,beta3,t3,tx3,
+     +           a,a25,a975,b,b975,xi,xi,xi,alpha,alpha25,alpha975,
+     +           beta,beta25,beta975,t,t25,t975,tx,tx25,tx975)
+            if ( .not.lwrite ) return
+        end if
         if ( lweb ) then
             print '(a)','# <tr><td colspan="4">Fitted to Gumbel '//
      +           'distribution P(x) = exp(-exp(-(x-a'')/b''))'//

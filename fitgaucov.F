@@ -1,8 +1,7 @@
 *  #[ fitgaucov:
-        subroutine fitgaucov(xx,yrs,ntot,a,b,alpha,beta,j1,j2
+        subroutine fitgaucov(xx,yrs,ntot,a3,b3,alpha3,beta3,j1,j2
      +       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,cov1,cov2,offset
-     +       ,t,t25,t975,tx,tx25,tx975,assume,lboot,lprint,dump,plot
-     +       ,lwrite)
+     +       ,t3,tx3,assume,lboot,lprint,dump,plot,lwrite)
 *
 *       a fit a gaussian distribution with mean linearly dependent on a covariate 
 *       to the data
@@ -11,20 +10,21 @@
 *
         integer ntot,ntype,j1,j2,yr1a,yr2a
         integer yrs(0:ntot)
-        real xx(2,ntot),a,b,alpha,beta,xyear,cov1,cov2,offset,
-     +       t(10,3),t25(10,3),t975(10,3),tx(3),tx25(3),tx975(3)
-        real ttt(10,3),txtxtx(3),dum
+        real xx(2,ntot),a3(3),b3(3),alpha3(3),beta3(3),xyear,cov1,cov2,
+     +       offset,t3(3,10,3),tx3(3,3)
         logical lweb,lchangesign,lboot,lprint,dump,plot,lwrite
         character assume*(*)
 *
         integer nmc
         parameter(nmc=1000)
         integer i,j,nx,iter,iens,nfit,imc,ier,year
-        real xmin,aa(nmc),bb(nmc),tt(nmc,10,3),dalpha,dbeta
-     +       ,z,x,f,txtx(nmc,3),alphaalpha(nmc),betabeta(nmc)
-     +       ,mean,sd,ranf,mindata,minindx,pmindata,snorm,s,frac
+        real a,b,t(10,3),t25(10,3),t975(10,3),tx(3),tx25(3),tx975(3),
+     +       aa(nmc),bb(nmc),tt(nmc,10,3),xi,alpha,beta,dalpha,dbeta,
+     +       xmin,z,x,f,txtx(nmc,3),alphaalpha(nmc),betabeta(nmc),
+     +       mean,sd,ranf,mindata,minindx,pmindata,snorm,s,frac
         real a25,a975,b25,b975,alpha25,alpha975,beta25,beta975
         real adev,var,skew,curt,aaa,bbb,siga,chi2,q
+        real ttt(10,3),txtxtx(3),dum,xi3(3)
         real,allocatable :: yy(:),ys(:),zz(:),sig(:)
         character lgt*4
         external gaucovreturnlevel,gaucovreturnyear
@@ -45,6 +45,17 @@
             print *,'year,xyear  = ',year,xyear
             print *,'cov1,cov2,offset ',cov1,cov2,offset
         end if
+        if ( ntot.eq.0 ) then
+            if ( lwrite ) print *,'fitgaucov: ntot=0'
+            a3 = 3e33
+            b3 = 3e33
+            xi3 = 0
+            alpha3 = 3e33
+            beta3 = 3e33
+            t3 = 3e33
+            tx3 = 3e33
+            return
+        endif
 *
 *       compute first-guess parameters
 *
@@ -68,16 +79,13 @@
 *
         if ( sd.eq.0 ) then
             if ( lwrite ) print *,'fitgaucov: sd=0, everything undfined'
-            a = 3e33
-            b = 3e33
-            alpha = 3e33
-            beta = 3e33
-            t = 3e33
-            t25 = 3e33
-            t975 = 3e33
-            tx = 3e33
-            tx25 = 3e33
-            tx975 = 3e33
+            a3 = 3e33
+            b3 = 3e33
+            xi3 = 0
+            alpha3 = 3e33
+            beta3 = 3e33
+            t3 = 3e33
+            tx3 = 3e33
             return
         endif
 *
@@ -117,13 +125,27 @@
                 a = -a
                 t = -t
                 alpha = -alpha
+                beta = -beta
             endif
+            a3(1) = a
+            a3(2:3) = 3e33
+            b3(1) = b
+            b3(2:3) = 3e33
+            xi3 = 0
+            alpha3(1) = alpha
+            alpha3(2:3) = 3e33
+            beta3(1) = beta
+            beta3(2:3) = 3e33
+            t3(1,:,:) = t(:,:)
+            t3(2:3,:,:) = 3e33
+            tx3(1,:) = tx(:)
+            tx3(2:3,:) = 3e33            
             return
         endif
-        if ( .not.lweb ) print '(a,i6,a)','# doing a ',nmc
+        if ( lprint .and. .not.lweb ) print '(a,i6,a)','# doing a ',nmc
      +        ,'-member bootstrap to obtain error estimates'
         do iens=1,nmc
-            if ( .not.lweb .and. mod(iens,100).eq.0 )
+            if ( lprint .and. .not.lweb .and. mod(iens,100).eq.0 )
      +           print '(a,i6)','# ',iens
             do i=1,ntot
                 call random_number(ranf)
@@ -201,6 +223,13 @@
 *
 *       output
 *
+        if ( .not.lprint ) then
+            xi = 0
+            call copyab3etc(a3,b3,xi3,alpha3,beta3,t3,tx3,
+     +           a,a25,a975,b,b975,xi,xi,xi,alpha,alpha25,alpha975,
+     +           beta,beta25,beta975,t,t25,t975,tx,tx25,tx975)
+            if ( .not.lwrite ) return
+        end if
         if ( lweb ) then
             print '(a)','# <tr><td colspan="4">Fitted to normal '//
      +           'distribution P(x) = exp(-(x-a'')&sup2;'//

@@ -1,25 +1,28 @@
 subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yrend,&
-&   mens1,mens,assume,distribution)
+&   mens1,mens,assume,distribution,results,nresmax,nresults,lprint)
 !
 !   take block maxima, convert to linear arrays and call fitgevcov / fitgumcov or
 !   take average, convert to linear arrays and call fitgaucov / fitgpdcov
+!   if ( lprint ) print the output to screen, if not return in results(1:nresults)
 !
     implicit none
     include "getopts.inc"
-    integer nperyear,nperyear1,npermax,yrbeg,yrend,mens1,mens
+    integer nperyear,nperyear1,npermax,yrbeg,yrend,mens1,mens,nresmax,nresults
     real series(npermax,yrbeg:yrend,0:mens),covariate(npermax,yrbeg:yrend,0:mens)
+    real results(3,nresmax)
     character assume*(*),distribution*(*)
-    integer fyr,lyr,ntot,i,ntype,nmax,npernew,j1,j2,iens
+    integer fyr,lyr,ntot,i,j,k,ntype,nmax,npernew,j1,j2,iens
     integer,allocatable :: yrs(:)
-    real a,b,xi,alpha,beta,cov1,cov2,offset
-    real t(10,3),t25(10,3),t975(10,3),tx(3),tx25(3),tx975(3)
+    real a(3),b(3),xi(3),alpha(3),beta(3),cov1,cov2,offset,t(3,10,3),tx(3,3)
     real,allocatable :: xx(:,:),yrseries(:,:,:),yrcovariate(:,:,:),yy(:)
     logical lboot,lprint,subtract_offset
     character operation*4,file*1024
 
+    results = 3e33
     fyr = yr1
     lyr = yr2
     nmax = nperyear*(yr2-yr1+1)*(1+mens-mens1)
+    !!!write(0,*) 'assume,distribution = ',assume,distribution
     allocate(xx(2,nmax))
     allocate(yrs(0:nmax))
     allocate(yy(nmax))
@@ -73,16 +76,22 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         call abort
     end if    
     if ( lwrite ) print *,'attribute_dist: calling handle_then_now'
-    call handle_then_now(yrseries,yrcovariate,npernew,fyr,lyr,j1,j2,yr1a,yr2a,mens1,mens,xyear,cov1,cov2,lwrite)
-    if ( namestring.ne.' ' ) then
-        print '(4a)','# <tr><th colspan=4>',trim(namestring),'</th></tr>'
-    endif
-    print '(8a)' ,'# <tr><th>parameter</th><th>year</th><th>value</th><th>' &
-    &   ,'95% CI</th></tr>'
-    print '(a,i4,a,g16.5,a)','# <tr><td>covariate:</td><td>',yr1a,'</td><td>',cov1, &
-    &   '</td><td>&nbsp;</td></tr>'
-    print '(a,i4,a,g19.5,a)','# <tr><td>&nbsp;</td><td>',yr2a,'</td><td>',cov2, &
-    &   '</td><td>&nbsp;</td></tr>'
+    call handle_then_now(yrseries,yrcovariate,npernew,fyr,lyr,j1,j2,yr1a,yr2a,mens1,mens, &
+    & xyear,cov1,cov2,lprint,lwrite)
+    if ( cov1.gt.1e33 .or. cov2.gt.1e33 ) then
+        return
+    end if
+    if ( lprint ) then
+        if ( namestring.ne.' ' ) then
+            print '(4a)','# <tr><th colspan=4>',trim(namestring),'</th></tr>'
+        endif
+        print '(8a)' ,'# <tr><th>parameter</th><th>year</th><th>value</th><th>' &
+        &   ,'95% CI</th></tr>'
+        print '(a,i4,a,g16.5,a)','# <tr><td>covariate:</td><td>',yr1a,'</td><td>',cov1, &
+        &   '</td><td>&nbsp;</td></tr>'
+        print '(a,i4,a,g19.5,a)','# <tr><td>&nbsp;</td><td>',yr2a,'</td><td>',cov2, &
+        &   '</td><td>&nbsp;</td></tr>'
+    end if
     subtract_offset = .true.
     if ( subtract_offset ) then
         if ( lwrite ) print *,'attribute_dist: calling subtract_constant'
@@ -98,19 +107,18 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         call decluster(xx,yrs,ntot,pmindata,lwrite)
     end if
 
-    if ( lweb ) then
+    if ( lprint .and. lweb ) then
         print '(a,i9,a)','# <tr><td>N:</td><td>&nbsp;</td><td>',ntot, &
         &   '</td><td>&nbsp;</td></tr>'
     end if
 
     lboot = .true.
-    lprint = .true.
     if ( distribution.eq.'gev' ) then
         ntype = 2 ! Gumbel plot
         if ( lwrite ) print *,'attribute_dist: calling fitgevcov'
         call fitgevcov(xx,yrs,ntot,a,b,xi,alpha,beta,j1,j2 &
     &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,cov1,cov2,offset &
-    &       ,t,t25,t975,tx,tx25,tx975,restrain,assume,lboot,lprint,dump,plot,lwrite)
+    &       ,t,tx,restrain,assume,lboot,lprint,dump,plot,lwrite)
     else if ( distribution.eq.'gpd' ) then
         ntype = 3 ! log plot
         !!!print *,'DEBUG'
@@ -119,21 +127,41 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         if ( lwrite ) print *,'attribute_dist: calling fitgpdcov'
         call fitgpdcov(xx,yrs,ntot,a,b,xi,alpha,beta,j1,j2 &
     &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,cov1,cov2,offset &
-    &       ,t,t25,t975,tx,tx25,tx975,pmindata,restrain,assume,lboot,lprint,dump,plot,lwrite)
+    &       ,t,tx,pmindata,restrain,assume,lboot,lprint,dump,plot,lwrite)
     else if  ( distribution.eq.'gumbel' ) then
         ntype = 2 ! Gumbel plot
+        xi = 0
         if ( lwrite ) print *,'attribute_dist: calling fitgumcov'
         call fitgumcov(xx,yrs,ntot,a,b,alpha,beta,j1,j2 &
     &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,cov1,cov2,offset &
-    &       ,t,t25,t975,tx,tx25,tx975,assume,lboot,lprint,dump,plot,lwrite)
+    &       ,t,tx,assume,lboot,lprint,dump,plot,lwrite)
     else if  ( distribution.eq.'gauss' ) then
         ntype = 4 ! sqrtlog plot
+        xi = 0
         if ( lwrite ) print *,'attribute_dist: calling fitgaucov'
         call fitgaucov(xx,yrs,ntot,a,b,alpha,beta,j1,j2 &
     &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,cov1,cov2,offset &
-    &       ,t,t25,t975,tx,tx25,tx975,assume,lboot,lprint,dump,plot,lwrite)
+    &       ,t,tx,assume,lboot,lprint,dump,plot,lwrite)
     else
         write(0,*) 'attribute_dist: error: unknown distribution ',trim(distribution)
+    end if
+    if ( .not.lprint ) then
+        results(:,1) = a
+        results(:,2) = b
+        results(:,3) = xi
+        results(:,4) = alpha
+        results(:,5) = beta
+        do i=1,3
+            results(:,5+i) = tx(:,i)
+        end do
+        k = 8
+        do j=1,3
+            do i=1,10
+                k = k + 1
+                results(:,k) = t(:,i,j)
+            end do
+        end do
+        nresults = k
     end if
 
 end subroutine attribute_dist
@@ -365,7 +393,7 @@ subroutine fill_linear_array(series,covariate,nperyear,j1,j2,fyr,lyr,mens1,mens,
 end subroutine fill_linear_array
 
 subroutine handle_then_now(series,covariate,nperyear,fyr,lyr,j1,j2,yr1a,yr2a, &
-    &   mens1,mens,xyear,cov1,cov2,lwrite)
+    &   mens1,mens,xyear,cov1,cov2,lprint,lwrite)
 
     ! handle the conversion from "then" (yr1a) and "now" (yr2a) to the variables
     ! fitgevcov expects (xyear,cov1,cov2), sets series to undef at "now".
@@ -374,22 +402,23 @@ subroutine handle_then_now(series,covariate,nperyear,fyr,lyr,j1,j2,yr1a,yr2a, &
     integer nperyear,fyr,lyr,j1,j2,yr1a,yr2a,mens1,mens
     real series(nperyear,fyr:lyr,0:mens),covariate(nperyear,fyr:lyr,0:mens)
     real xyear,cov1,cov2
-    logical lwrite
+    logical lprint,lwrite
     real dummy
 
-    call find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr1a,cov1,dummy,1,lwrite)
-    call find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr2a,cov2,xyear,2,lwrite)
+    call find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr1a,cov1,dummy,1,lprint,lwrite)
+    call find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr2a,cov2,xyear,2,lprint,lwrite)
 
 end subroutine handle_then_now
 
-subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xyear,i12,lwrite)
+subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xyear,i12,lprint,lwrite)
     implicit none
     integer nperyear,fyr,lyr,mens1,mens,j1,j2,yr,i12
     real series(nperyear,fyr:lyr,0:mens),covariate(nperyear,fyr:lyr,0:mens),cov,xyear
-    logical lchangesign,lwrite
+    logical lchangesign,lprint,lwrite
     integer i,j,mo,momax,yrmax,ensmax,iens
     real s
 
+    cov = 3e33
     if ( yr.ne.9999 ) then
         s = -3e33
         do iens=mens1,mens
@@ -411,16 +440,18 @@ subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xy
         momax = 1
         yrmax = yr
         if ( yrmax.lt.fyr .or. yrmax.gt.lyr ) then
-            write(0,*) 'find_cov: error: yr ',yr,' outside range of data'
-                call abort
+            if ( lprint ) then
+                write(0,*) 'find_cov: error: yr ',yr,' outside range of data<br>'
+            end if
         end if
         ensmax = mens1
     end if
     cov = covariate(momax,yrmax,ensmax)
     if ( cov.gt.1e33 ) then
-        write(0,*) 'find_cov: error: no valid value in cavariate(', &
-        &   momax,yrmax,iens,') = ',cov
-        call abort
+        if ( lprint ) then
+            write(0,*) 'find_cov: error: no valid value in cavariate(', &
+            &   momax,yrmax,iens,') = ',cov,'<br>'
+        end if
     end if
     if ( i12.eq.2 ) then
         if ( xyear.gt.1e33 ) xyear = series(momax,yrmax,ensmax)
@@ -428,11 +459,12 @@ subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xy
         if ( lwrite ) print *,'find_cov: xyear = ',xyear,momax,yrmax
     end if
     if ( xyear.gt.1e33 ) then
-        write(0,*) 'find_cov: error: cannot find valid data in ',yr,', periods ',j1,j2, &
-        & ', ensemble members ',mens1,mens
-        call abort
+        if ( lprint ) then
+            write(0,*) 'find_cov: error: cannot find valid data in ',yr,', periods ',j1,j2, &
+            & ', ensemble members ',mens1,mens
+        end if
+        cov = 3e33
     end if
-
 end subroutine find_cov
 
 subroutine subtract_constant(covariate,series,nperyear,fyr,lyr,mens1,mens,cov1,cov2,offset,lwrite)
@@ -603,4 +635,40 @@ subroutine decluster(xx,yrs,ntot,threshold,lwrite)
         end if
     end if
 !
-    end
+end
+    
+subroutine copyab3etc(a3,b3,xi3,alpha3,beta3,t3,tx3, &
+     &           a,a25,a975,b,b975,xi,xi25,xi975,alpha,alpha25,alpha975, &
+     &           beta,beta25,beta975,t,t25,t975,tx,tx25,tx975)
+!
+!   copy separate best fit and 95% lower and upper bounds to first dimension
+!   of *3 variables
+!
+    implicit none
+    real :: a3(3),b3(3),xi3(3),alpha3(3),beta3(3),t3(3,10,3),tx3(3,3)
+    real :: a,a25,a975,b,b25,b975,xi,xi25,xi975,alpha,alpha25,alpha975, &
+    &   beta,beta25,beta975,t(10,3),t25(10,3),t975(10,3),tx(3),tx25(3),tx975(3)
+    integer i,j
+    
+    call copy3scalar(a3,a,a25,a975)
+    call copy3scalar(b3,b,b25,b975)
+    call copy3scalar(xi3,xi,xi25,xi975)
+    call copy3scalar(alpha3,alpha,alpha25,alpha975)
+    call copy3scalar(beta3,beta,beta25,beta975)
+    do j=1,10
+        do i=1,3
+            call copy3scalar(t3(1,j,i),t(j,i),t25(j,i),t975(j,i))
+        end do
+    end do
+    do i=1,3
+        call copy3scalar(tx3(1,i),tx(i),tx25(i),tx975(i))
+    end do
+end subroutine
+
+subroutine copy3scalar(a3,a,a25,a975)
+    implicit none
+    real a3(3),a,a25,a975
+    a3(1) = a
+    a3(2) = a25
+    a3(3) = a975
+end subroutine
