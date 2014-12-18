@@ -354,7 +354,7 @@
                     if ( lwrite ) print *,j,olddata(j,i),lgt,cut(j)
                 endif
             enddo
-            if ( lwrite .and. lfirst.lt.9999 ) write(0,*)
+            if ( lwrite .and. lfirst.lt.9999 ) write(*,*)
      +           yr,'lfirst,minfac*(j2-j1+1) = ',lfirst,minfac*(j2-j1+1)
             if ( lfirst.gt.minfac*(j2-j1+1) .or.
      +           ntot.lt.minfac*nperyear/nperyearnew ) then
@@ -414,26 +414,41 @@
         enddo
         end
 
-        subroutine fillmissingdata(data,npermax,yrbeg,yrend,nperyear,
-     +           add_option,lclim,lwrite)
+        subroutine fillmissingdata(data,refs,npermax,yrbeg,yrend,
+     +       nperyear,add_option,lclim,lwrite)
 !
 !       fill in missing data using the climatology, climatology plus trend, 
 !       or (not yet ready) damped persistence
 !
         implicit none
         integer npermax,yrbeg,yrend,nperyear,add_option
-        real data(npermax,yrbeg:yrend)
+        real data(npermax,yrbeg:yrend),refs(yrbeg:yrend)
         logical lclim,lwrite
         integer yr,mo,yr1,yr2,n,k
-        real,allocatable :: refs(:),xx(:),yy(:),sig(:),aa(:),bb(:),
+        real,allocatable :: xx(:),yy(:),sig(:),aa(:),bb(:),
      +       cc(:),clim(:)
-        real s,siga,sigb,chi2,q
+        real s,siga,sigb,chi2,q,lastdata
         character reffile*1023,dir*1023,refvar*20,refunits*20
+        logical lexist,lfirst,lvalid
+        save lfirst
+        data lfirst /.true./
 
-        reffile = 'NASAData/giss_al_gl_a_4yrlo.dat'
-        call getenv('DIR',dir)
-        if ( dir.ne.' ' ) then
-            reffile = trim(dir)//'/'//trim(reffile)
+        if ( add_option.eq.2 ) then
+            reffile = 'NASAData/giss_al_gl_a_4yrlo.dat'
+            call getenv('DIR',dir)
+            if ( dir.ne.' ' ) then
+                reffile = trim(dir)//'/'//trim(reffile)
+            else
+                inquire(file=trim(reffile),exist=lexist)
+                if ( .not.lexist ) then
+                    reffile = '/Users/gj/NINO/'//trim(reffile)
+                    inquire(file=trim(reffile),exist=lexist)
+                    if ( .not.lexist ) then
+                        reffile = '/home/oldenbor/climexp/'//
+     +                       trim(reffile(16:))
+                    end if
+                end if
+            end if
         end if
         if ( lwrite ) then
             print *,'fillmissingdata: yrbeg,yrend = ',yrbeg,yrend
@@ -502,14 +517,17 @@
      +                   yrbeg,yrend,yr1,yr2
                     call abort
                 end if
-                allocate(refs(yrbeg:yrend))
                 allocate(xx(yr2-yr1+1),yy(yr2-yr1+1),sig(yr2-yr1+1))
                 allocate(aa(nperyear),bb(nperyear),cc(nperyear))
                 print '(a)','# filled in missing data with '//
      +               'climatology plus trend (regression on '//
      +               'low-pass filtered Tglobal)'
-                call readseries(reffile,refs,1,yrbeg,yrend,n,
-     +               refvar,refunits,.false.,lwrite)
+                if ( lfirst ) then
+                    lfirst = .false.
+                    call readseries(reffile,refs,1,yrbeg,yrend,n,
+     +                   refvar,refunits,.false.,lwrite)
+                end if
+                lvalid = .false.
                 do mo=1,nperyear
                     n = 0
                     do yr=yr1,yr2
@@ -521,53 +539,85 @@
                             sig(n) = 1
                         end if
                     end do
-                    call fit(xx,yy,n,sig,0,aa(mo),bb(mo),siga,sigb,
-     +                   chi2,q)
-                    if ( lwrite ) then
-                        print *,'fit values for mo=',mo,n
-                        print *,'a,b = ',aa(mo),bb(mo)
+                    if ( n.gt.10 ) then
+                        lvalid = .true.
+                        call fit(xx,yy,n,sig,0,aa(mo),bb(mo),siga,sigb,
+     +                       chi2,q)
+                        if ( lwrite ) then
+                            print *,'fit values for mo=',mo,n
+                            print *,'a,b = ',aa(mo),bb(mo)
+                        end if
+                    else
+                        aa(mo) = 3e33
+                        bb(mo) = 3e33
                     end if
                 end do
-                k = 1
-!               smooth twice with a k-dy running mean
-                if ( nperyear.gt.40 ) then
-                    k = 7
-                else if ( nperyear.ge.12 ) then
-                    k = 3
-                end if
-                if ( k.gt.1 ) then
-                    call runmean(aa,cc,nperyear,k)
-                    call runmean(cc,aa,nperyear,k)
-                    call runmean(bb,cc,nperyear,k)
-                    call runmean(cc,bb,nperyear,k)
-                end if
-                do mo=1,nperyear
-                    if ( lwrite ) then
-                        print *,'fit values for mo=',mo,n
-                        print *,'a,b = ',aa(mo),bb(mo)
+                if ( lvalid ) then
+                    k = 1
+!                   smooth twice with a k-dy running mean
+                    if ( nperyear.gt.40 ) then
+                        k = 7
+                    else if ( nperyear.ge.12 ) then
+                        k = 3
                     end if
-                end do
-                do yr=yr1,yr2
-                    if ( lwrite ) then
-                        print *,'refs(',yr,') = ',refs(yr)
+                    if ( k.gt.1 ) then
+                        call runmean(aa,cc,nperyear,k)
+                        call runmean(cc,aa,nperyear,k)
+                        call runmean(bb,cc,nperyear,k)
+                        call runmean(cc,bb,nperyear,k)
                     end if
                     do mo=1,nperyear
-                        if ( data(mo,yr).gt.1e33 .and. 
-     +                       refs(yr).lt.1e33 .and.
-     +                       aa(mo).lt.1e33 .and. bb(mo).lt.1e33
-     +                       ) then
-                            data(mo,yr) =
-     +                           bb(mo)*refs(yr) + aa(mo)
+                        if ( lwrite ) then
+                            print *,'fit values for mo=',mo,n
+                            print *,'a,b = ',aa(mo),bb(mo)
+                        end if
+                    end do
+                    do yr=yr1,yr2
+                        if ( lwrite ) then
+                            print *,'refs(',yr,') = ',refs(yr)
+                        end if
+                        do mo=1,nperyear
+                            if ( data(mo,yr).gt.1e33 .and. 
+     +                           refs(yr).lt.1e33 .and.
+     +                           aa(mo).lt.1e33 .and. bb(mo).lt.1e33
+     +                           ) then
+                                data(mo,yr) =
+     +                               bb(mo)*refs(yr) + aa(mo)
+                                if ( lwrite ) print *,'filling in ',
+     +                               mo,yr,data(mo,yr)
+                            end if
+                        end do
+                    end do
+                end if
+                deallocate(xx,yy,sig)
+                deallocate(aa,bb,cc)
+            else if ( add_option.eq.3 ) then
+                print '(a)','# filled in missing data with '//
+     +               'persistence'
+                ! get last point with valid data before start
+                lastdata = 3e33
+                do yr=yr1-1,max(yrbeg-3,yrbeg),-1
+                    do mo=nperyear,1,-1
+                        if ( data(mo,yr).lt.1e33 ) then
+                            lastdata = data(mo,yr)
+                            goto 701
                         end if
                     end do
                 end do
-                deallocate(refs)
-                deallocate(xx,yy,sig)
-                deallocate(aa,bb,cc)
+ 701            continue
+                do yr=yr1,yr2
+                    do mo=1,nperyear
+                        if ( data(mo,yr).gt.1e33 ) then
+                            data(mo,yr) = lastdata
+                        else
+                            lastdata = data(mo,yr)
+                        end if
+                    end do
+                end do
             else
                 write(0,*) 'daily2longer: error: add_option ',
      +               add_option,' not yet implemented'
                 call abort
             end if
         end if                  ! add_option > 0
-        end
+        end subroutine
