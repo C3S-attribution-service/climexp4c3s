@@ -19,7 +19,8 @@
         real pcut,s
         real,allocatable :: cut(:,:,:),normfield(:,:,:),oldseries(:,:)
         real xx(nxmax),yy(nymax),zz(nzmax),undef
-        real,allocatable :: oldfield(:,:,:,:),newfield(:,:,:,:),fxy(:,:)
+        real,allocatable :: oldfield(:,:,:,:),newfield(:,:,:,:),
+     +       fxy(:,:),refs(:)
         character file*256,datfile*256,string*40,lgt*1,opera*3
         character vars(nvmax)*20,lvars(nvmax)*255,title*200,
      +       history*10000,units(nvmax)*20,cell_methods(nvmax)*200,
@@ -246,6 +247,8 @@
             end if
         end if
         if ( minfac.lt.0 ) minfac = 0.5
+        yr1 = max(yr1,firstyr)
+        yr2 = min(yr2,lastyr)
 *      
 *       no climatology -- too expensive, only very limited usefulness.
 !
@@ -253,6 +256,7 @@
 !
         if ( add_option.gt.0 ) then
             allocate(fxy(nperyear,firstyr:lastyr))
+            allocate(refs(firstyr:lastyr))
             do j=1,ny
                 do i=1,nx
                     do mo=1,nperyear
@@ -260,8 +264,16 @@
                             fxy(mo,yr) = oldfield(i,j,mo,yr)
                         end do
                     end do
-                    call fillmissingdata(fxy,nperyear,firstyr,lastyr,
-     +                   nperyear,add_option,.false.,lwrite)
+                    call fillmissingdata(fxy,refs,nperyear,firstyr,
+     +                   lastyr,nperyear,add_option,.false.,lwrite)
+                    do mo=1,nperyear
+                        do yr=yr1,yr2
+                            if ( oldfield(i,j,mo,yr).gt.1e33 .and.
+     +                           fxy(mo,yr).lt.1e33 ) then
+                                oldfield(i,j,mo,yr) = fxy(mo,yr)
+                            end if
+                        end do
+                    end do
                 end do
             end do
             deallocate(fxy)

@@ -13,7 +13,8 @@
         integer*2 nn(mpermax)
         real olddata(mpermax,yrbeg:yrend),newdata(npermax,yrbeg:yrend),
      +       cut(mpermax),pcut,normdata(npermax),s,oldclim(mpermax),
-     +       oldclim2(mpermax),newclim(npermax),newclim2(mpermax)
+     +       oldclim2(mpermax),newclim(npermax),newclim2(mpermax),
+     +       refs(yrbeg:yrend)
         character file*1023,string*512,lgt*1,moper*3,var*20,units*20,
      +       climunits*10
         integer iargc,leap
@@ -26,7 +27,7 @@
             print *,'usage: daily2longer infile nperyearnew'//
      +           ' mean|sd|sum|abo|bel|num|min|max|mintime|maxtime'//
      +           '|firsttime|lasttime|con [<> val[%|p]'//
-     +           ' add_anom|add_clim|add_trend|add_damped]'
+     +           ' add_anom|add_clim|add_trend|add_persist|add_damped]'
             print *,'(more options will come as requested)'
             stop
         endif
@@ -224,8 +225,8 @@
 !
 !           fill in missing data when requested
 !
-            call fillmissingdata(olddata,mpermax,yrbeg,yrend,nperyear,
-     +           add_option,.true.,lwrite)
+            call fillmissingdata(olddata,refs,mpermax,yrbeg,yrend,
+     +           nperyear,add_option,.true.,lwrite)
             if ( lwrite ) print *,'back from fillmissingdata'
         else
             do j=1,abs(nperyearnew)
