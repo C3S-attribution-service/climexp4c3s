@@ -272,6 +272,7 @@ PROGRAMS      = scientific2decimal \
 		grads2nc \
 		histogram \
 		attribute \
+		attributefield \
 		selectyear \
 		filtermonthseries \
 		filteryearseries \
@@ -569,6 +570,9 @@ histogram:	histogram.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBRARY) $(LIBS)
 
 attribute:	attribute.o $(LIBRARY)
+		$(LD) $(FFLAGS) -o $@ $@.o $(LIBRARY) $(LIBS)
+
+attributefield:	attributefield.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBRARY) $(LIBS)
 
 histogram_weird:	histogram.o fitgpd_weird.o $(LIBRARY)
