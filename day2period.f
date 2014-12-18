@@ -473,15 +473,27 @@
 !           
 !           fill in missing data
 !           
-            if ( add_option.eq.1 ) then
-                print '(a)','# filled in missing data with '//
-     +               'climatology'
+            if ( add_option.eq.1 .or. add_option.eq.3 ) then
+                if ( add_option.eq.1 ) then
+                    print '(a)','# filled in missing data with '//
+     +                   'climatology'
+                else
+                    print '(a)','# filled in missing data with '//
+     +                   'persistence'
+                end if
+                lastdata = 3e33
                 if ( lclim) then
                     ! already anomalies
                     do yr=yr1,yr2
                         do mo=1,nperyear
                             if ( data(mo,yr).gt.1e33 ) then
-                                data(mo,yr) = 0
+                                if ( add_option.eq.1 ) then
+                                    data(mo,yr) = 0
+                                else
+                                    data(mo,yr) = lastdata
+                                end if
+                            else
+                                lastdata = data(mo,yr)
                             end if
                         end do
                     end do
@@ -501,11 +513,18 @@
                         else
                             clim(mo) = 3e33
                         end if
-                    end do                        
+                    end do
+                    lastdata = 3e33
                     do yr=yr1,yr2
                         do mo=1,nperyear
                             if ( data(mo,yr).gt.1e33 ) then
-                                data(mo,yr) = clim(mo)
+                                if ( add_option.eq.1 ) then
+                                    data(mo,yr) = clim(mo)
+                                else if ( lastdata.lt.1e33 ) then
+                                    data(mo,yr) = clim(mo) + lastdata
+                                end if
+                            else
+                                lastdata = data(mo,yr)
                             end if
                         end do
                     end do
@@ -591,29 +610,6 @@
                 end if
                 deallocate(xx,yy,sig)
                 deallocate(aa,bb,cc)
-            else if ( add_option.eq.3 ) then
-                print '(a)','# filled in missing data with '//
-     +               'persistence'
-                ! get last point with valid data before start
-                lastdata = 3e33
-                do yr=yr1-1,max(yrbeg-3,yrbeg),-1
-                    do mo=nperyear,1,-1
-                        if ( data(mo,yr).lt.1e33 ) then
-                            lastdata = data(mo,yr)
-                            goto 701
-                        end if
-                    end do
-                end do
- 701            continue
-                do yr=yr1,yr2
-                    do mo=1,nperyear
-                        if ( data(mo,yr).gt.1e33 ) then
-                            data(mo,yr) = lastdata
-                        else
-                            lastdata = data(mo,yr)
-                        end if
-                    end do
-                end do
             else
                 write(0,*) 'daily2longer: error: add_option ',
      +               add_option,' not yet implemented'
