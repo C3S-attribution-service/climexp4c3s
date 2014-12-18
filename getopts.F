@@ -231,8 +231,13 @@
                     if ( lwrite ) print '(a)',
      +                   '# filling missing data with climatology '//
      +                   'plus trend'
-                else if ( line(1:8).eq.'add_damp' ) then
+                else if ( line(1:8).eq.'add_pers' ) then
                     add_option = 3
+                    if ( lwrite ) print '(a)',
+     +                   '# filling missing data with '//
+     +                   'persistence'
+                else if ( line(1:8).eq.'add_damp' ) then
+                    add_option = 4
                     if ( lwrite ) print '(a)',
      +                   '# filling missing data with damped '//
      +                   'persistence'
