@@ -356,7 +356,15 @@
             else
                 if ( tt(i)-tt(i-1).eq.0 ) then
                     write(0,*) 'error: time step zero at step ',i-1,i
-                    call abort
+     +                  ,tt(i-1),tt(i)
+                    if ( nperyear.ge.12 ) then
+                        write(0,*) '       this corresponds to year ',
+     +                       firstyr + real(firstmo)/nperyear
+     +                       + tt(i-1)/iperyear,' ~ ',firstyr
+     +                       + real(firstmo)/nperyear
+     +                       + real(i-1)/nperyear
+                    end if
+                    call exit(-1)
                 end if
                 if ( tt(i)-tt(i-1).lt.0 ) then
                     write(0,*) 'error: time step negative at step ',i-1
@@ -368,7 +376,7 @@
      +                       + real(firstmo)/nperyear
      +                       + real(i-1)/nperyear
                     end if
-                    call abort
+                    call exit(-1)
                 end if
                 if ( .not.lwarn ) then
                     write(0,*) 'warning: irregular time axis'
@@ -913,7 +921,8 @@
                 else
                     write(0,*) 'getdims: ignoring duplicate lat'
                 endif
-            elseif ( ( name(1:3).eq.'lev' .or. name.eq.'z' .or.
+            elseif ( ( name(1:3).eq.'lev' .or. name.eq.'zlev' .or. 
+     +               name.eq.'z' .or.
      +               name.eq.'z1' .or. name(1:3).eq.'z1_' .or.
      +               name.eq.'z0' .or. name(1:3).eq.'z0_' .or.
      +               name(1:3).eq.'sig' .or. name(1:4).eq.'plev' .or.

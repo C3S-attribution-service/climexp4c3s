@@ -154,7 +154,7 @@
                     status = nf_get_vara_real(ncid,jvars(1),start,count
      +                   ,field(1,1,startmo,max(firstyr,yr1)))
                     if ( status.ne.nf_noerr ) call handle_err(status
-     +                   ,'readncfile: nf_get_vara_real')
+     +                   ,'readncfile: nf_get_vara_real: ')
                 else            ! leap years...
                     if ( lwrite ) then
                         print *,'leap years...'
