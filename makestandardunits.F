@@ -325,15 +325,29 @@
                 slope = 1000*slope
                 newunits = 'mm'//newunits(2:)
             endif
-            if ( newunits(1:2).eq.'cm/' .or. newunits(1:2).eq.'CM/'.or. 
-     +           newunits(1:2).eq.'cm ' .or. newunits(1:2).eq.'CM ' )
+            if ( newunits(1:3).eq.'cm/' .or. newunits(1:3).eq.'CM/'.or. 
+     +           newunits(1:3).eq.'cm ' .or. newunits(1:3).eq.'CM ' )
      +           then
                 if ( lwrite ) print *,'makestandardunits: '//
      +               'precipitation: converting from cm to mm'
                 slope = 10*slope
                 newunits = 'mm'//newunits(3:)
             endif
-*           we do not have inches...
+            if ( newunits(1:3).eq.'in/' .or. newunits(1:3).eq.'IN/' .or. 
+     +           newunits(1:3).eq.'in ' .or. newunits(1:3).eq.'IN ' .or.
+     +           newunits(1:5).eq.'inch/' .or. newunits(1:5).eq.'INCH/'
+     +           .or. newunits(1:5).eq.'inch '
+     +           .or. newunits(1:5).eq.'INCH '
+     +           .or. newunits(1:7).eq.'inches/'
+     +           .or. newunits(1:5).eq.'INCHES/'
+     +           .or. newunits(1:7).eq.'inches '
+     +           .or. newunits(1:5).eq.'INCHES ' )
+     +           then
+                if ( lwrite ) print *,'makestandardunits: '//
+     +               'precipitation: converting from in to mm'
+                slope = 254*slope
+                newunits = 'mm'//newunits(3:)
+            endif
 *           next the time units
             time = newunits(3:)
             if ( time(1:1).eq.' ' ) time = time(2:)
