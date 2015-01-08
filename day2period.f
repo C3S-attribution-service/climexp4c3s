@@ -1,5 +1,5 @@
         subroutine allday2period(
-     +       olddata,mpermax,nperyear,
+     +       olddata,mpermax,nperyear,lvalid,
      +       newdata,npermax,nperyearnew,
      +       yrbeg,yrend,oper,lgt,cut,minfac,itype,var,units,lwrite)
         implicit none
@@ -7,7 +7,7 @@
         real olddata(mpermax,yrbeg:yrend),newdata(npermax,yrbeg:yrend),
      +      cut(mpermax),minfac
         character oper*3,lgt*1,var*(*),units*(*)
-        logical lwrite
+        logical lvalid(mpermax,yrbeg:yrend),lwrite
         integer j,jj,j1,jold,mo,n,dpm(12),dpm365(12)
         data dpm   / 31,29,31,30,31,30,31,31,30,31,30,31/
         data dpm365/ 31,28,31,30,31,30,31,31,30,31,30,31/
@@ -25,13 +25,13 @@
                 call abort
             end if
             call day2period(
-     +           olddata,mpermax,nperyear,
+     +           olddata,mpermax,nperyear,lvalid,
      +           newdata,npermax,abs(nperyearnew),
      +           yrbeg,yrend,j1,j1+nperyear-1,1,oper,lgt,cut,
      +           minfac,itype,lwrite)
         else if ( nperyearnew.eq.1 ) then
             call day2period(
-     +           olddata,mpermax,nperyear,
+     +           olddata,mpermax,nperyear,lvalid,
      +           newdata,npermax,nperyearnew,
      +           yrbeg,yrend,1,nperyear,1,oper,lgt,cut,
      +           minfac,itype,lwrite)
@@ -64,7 +64,7 @@
                 if ( mo.eq.2 .or. mo.eq.5 .or. mo.eq.8 .or. mo.eq.11 )
      +               then
                     call day2period(
-     +                   olddata,mpermax,nperyear,
+     +                   olddata,mpermax,nperyear,lvalid,
      +                   newdata,npermax,nperyearnew,
      +                   yrbeg,yrend,jold+1,jj,1+mo/3,oper,lgt,cut,
      +                   minfac,itype,lwrite)
@@ -86,7 +86,7 @@
                     jj = nint(j/(366./nperyear))
                 endif
                 call day2period(
-     +               olddata,mpermax,nperyear,
+     +               olddata,mpermax,nperyear,lvalid,
      +               newdata,npermax,nperyearnew,
      +               yrbeg,yrend,jold+1,jj,mo,oper,lgt,cut,
      +               minfac,itype,lwrite)
@@ -103,7 +103,7 @@
                     jj = nint(j/(365./nperyear))
                 endif
                 call day2period(
-     +               olddata,mpermax,nperyear,
+     +               olddata,mpermax,nperyear,lvalid,
      +               newdata,npermax,nperyearnew,
      +               yrbeg,yrend,jold+1,jj,2*mo-1,oper,lgt,cut,
      +               minfac,itype,lwrite)
@@ -122,7 +122,7 @@
                     jj = nint(j/(365./nperyear))
                 endif
                 call day2period(
-     +               olddata,mpermax,nperyear,
+     +               olddata,mpermax,nperyear,lvalid,
      +               newdata,npermax,nperyearnew,
      +               yrbeg,yrend,jold+1,jj,2*mo,oper,lgt,cut,
      +               minfac,itype,lwrite)
@@ -139,7 +139,7 @@
                     jj = nint(j/(365./nperyear))
                 endif
                 call day2period(
-     +               olddata,mpermax,nperyear,
+     +               olddata,mpermax,nperyear,lvalid,
      +               newdata,npermax,nperyearnew,
      +               yrbeg,yrend,jold+1,jj,3*mo-2,oper,lgt,cut,
      +               minfac,itype,lwrite)
@@ -151,7 +151,7 @@
                     jj = nint(j/(365./nperyear))
                 endif
                 call day2period(
-     +               olddata,mpermax,nperyear,
+     +               olddata,mpermax,nperyear,lvalid,
      +               newdata,npermax,nperyearnew,
      +               yrbeg,yrend,jold+1,jj,3*mo-1,oper,lgt,cut,
      +               minfac,itype,lwrite)
@@ -170,7 +170,7 @@
                     jj = nint(j/(365./nperyear))
                 endif
                 call day2period(
-     +               olddata,mpermax,nperyear,
+     +               olddata,mpermax,nperyear,lvalid,
      +               newdata,npermax,nperyearnew,
      +               yrbeg,yrend,jold+1,jj,3*mo,oper,lgt,cut,
      +               minfac,itype,lwrite)
@@ -184,7 +184,7 @@
             end if
             do j=1,nperyearnew
                 call day2period(
-     +               olddata,mpermax,nperyear,
+     +               olddata,mpermax,nperyear,lvalid,
      +               newdata,npermax,nperyearnew,
      +               yrbeg,yrend,n*(j-1)+1,n*j,j,oper,lgt,cut,
      +               minfac,itype,lwrite)
@@ -197,7 +197,7 @@
         end
 
         subroutine day2period(
-     +       olddata,nperold,nperyear,
+     +       olddata,nperold,nperyear,lvalid,
      +       newdata,npernew,nperyearnew,
      +       yrbeg,yrend,j1,j2,jnew,oper,lgt,cut,
      +       minfac,itype,lwrite)
@@ -217,7 +217,7 @@
         real olddata(nperold,yrbeg:yrend),newdata(npernew,yrbeg:yrend),
      +          cut(nperold),minfac
         character oper*3,lgt*1
-        logical lwrite
+        logical lvalid(nperold,yrbeg:yrend),lwrite
         integer mo,yr,i,j,n,nn,offset,lfirst
         double precision s,s2,sx,sy,st,s1
 *
@@ -307,7 +307,7 @@
 ***                 newdata(jnew,i) = 3e33
                     cycle
                 endif
-                ntot = ntot + 1
+                if ( lvalid(j,i) ) ntot = ntot + 1
                 if ( lfirst.eq.9999 ) lfirst = mo-j1
                 if ( lgt.eq.' ' .or.
      +               lgt.eq.'<' .and. olddata(j,i).lt.cut(j) .or.
@@ -414,26 +414,27 @@
         enddo
         end
 
-        subroutine fillmissingdata(data,refs,npermax,yrbeg,yrend,
+        subroutine fillmissingdata(data,lvalid,refs,npermax,yrbeg,yrend,
      +       nperyear,add_option,lclim,lwrite)
 !
 !       fill in missing data using the climatology, climatology plus trend, 
-!       or (not yet ready) damped persistence
+!       persistence or (not yet ready) damped persistence
 !
         implicit none
         integer npermax,yrbeg,yrend,nperyear,add_option
         real data(npermax,yrbeg:yrend),refs(yrbeg:yrend)
+        logical lvalid(npermax,yrbeg:yrend)
         logical lclim,lwrite
         integer yr,mo,yr1,yr2,n,k
         real,allocatable :: xx(:),yy(:),sig(:),aa(:),bb(:),
      +       cc(:),clim(:)
         real s,siga,sigb,chi2,q,lastdata
         character reffile*1023,dir*1023,refvar*20,refunits*20
-        logical lexist,lfirst,lvalid
+        logical lexist,lfirst,llvalid
         save lfirst
         data lfirst /.true./
 
-        if ( add_option.eq.2 ) then
+        if ( lfirst .and. add_option.eq.2 ) then
             reffile = 'NASAData/giss_al_gl_a_4yrlo.dat'
             call getenv('DIR',dir)
             if ( dir.ne.' ' ) then
@@ -455,24 +456,27 @@
             print *,'            npermax,nperyear = ',npermax,nperyear
         end if
 
-        if ( add_option.gt.0 ) then
 !
-!           first get first and last year with data
+!       first get first and last year with data
 !           
-            yr1 = yrend
-            yr2 = yrbeg
-            do yr=yrbeg,yrend
-                do mo=1,nperyear
-                    if ( data(mo,yr).lt.1e30 ) then
-                        yr1 = min(yr1,yr)
-                        yr2 = max(yr2,yr)
-                    end if
-                end do
+        yr1 = yrend
+        yr2 = yrbeg
+        do yr=yrbeg,yrend
+            do mo=1,nperyear
+                if ( data(mo,yr).lt.1e30 ) then
+                    lvalid(mo,yr) = .true.
+                    yr1 = min(yr1,yr)
+                    yr2 = max(yr2,yr)
+                else
+                    lvalid(mo,yr) = .false.
+                end if
             end do
-            if ( lwrite ) print *,'fillmissingdata: yr1,yr2 = ',yr1,yr2
+        end do
+        if ( lwrite ) print *,'fillmissingdata: yr1,yr2 = ',yr1,yr2
 !           
 !           fill in missing data
 !           
+        if ( add_option.gt.0 ) then
             if ( add_option.eq.1 .or. add_option.eq.3 ) then
                 if ( add_option.eq.1 ) then
                     print '(a)','# filled in missing data with '//
@@ -482,7 +486,7 @@
      +                   'persistence'
                 end if
                 lastdata = 3e33
-                if ( lclim) then
+                if ( lclim ) then
                     ! already anomalies
                     do yr=yr1,yr2
                         do mo=1,nperyear
@@ -546,7 +550,7 @@
                     call readseries(reffile,refs,1,yrbeg,yrend,n,
      +                   refvar,refunits,.false.,lwrite)
                 end if
-                lvalid = .false.
+                llvalid = .false.
                 do mo=1,nperyear
                     n = 0
                     do yr=yr1,yr2
@@ -559,7 +563,7 @@
                         end if
                     end do
                     if ( n.gt.10 ) then
-                        lvalid = .true.
+                        llvalid = .true.
                         call fit(xx,yy,n,sig,0,aa(mo),bb(mo),siga,sigb,
      +                       chi2,q)
                         if ( lwrite ) then
@@ -571,7 +575,7 @@
                         bb(mo) = 3e33
                     end if
                 end do
-                if ( lvalid ) then
+                if ( llvalid ) then
                     k = 1
 !                   smooth twice with a k-dy running mean
                     if ( nperyear.gt.40 ) then

@@ -26,6 +26,7 @@
      +       history*10000,units(nvmax)*20,cell_methods(nvmax)*200,
      +       lz(3)*20,ltime*100,svars(nvmax)*50,punits*40
         logical normal,tdefined(ntmax),lexist
+        logical,allocatable :: lvalid(:,:,:,:),lvalid1(:,:)
         integer iargc,llen
         lwrite = .false.
         itype = 0               ! for the time being - no vector fields
@@ -88,6 +89,7 @@
             print *,'size = ',4*nx*ny*nperyear*(lastyr-firstyr+1)
         endif
         allocate(oldfield(nx,ny,nperyear,firstyr:lastyr))
+        allocate(lvalid(nx,ny,nperyear,firstyr:lastyr))
         if ( nperyear.le.366 ) then
             allocate(cut(nx,ny,nperyear))
         else
@@ -257,6 +259,7 @@
         if ( add_option.gt.0 ) then
             allocate(fxy(nperyear,firstyr:lastyr))
             allocate(refs(firstyr:lastyr))
+            allocate(lvalid1(nperyear,firstyr:lastyr))
             do j=1,ny
                 do i=1,nx
                     do mo=1,nperyear
@@ -264,10 +267,12 @@
                             fxy(mo,yr) = oldfield(i,j,mo,yr)
                         end do
                     end do
-                    call fillmissingdata(fxy,refs,nperyear,firstyr,
-     +                   lastyr,nperyear,add_option,.false.,lwrite)
+                    call fillmissingdata(fxy,lvalid1,refs,nperyear,
+     +                   firstyr,lastyr,nperyear,add_option,.false.,
+     +                   lwrite)
                     do mo=1,nperyear
                         do yr=yr1,yr2
+                            lvalid(i,j,mo,yr) = lvalid1(mo,yr)
                             if ( oldfield(i,j,mo,yr).gt.1e33 .and.
      +                           fxy(mo,yr).lt.1e33 ) then
                                 oldfield(i,j,mo,yr) = fxy(mo,yr)
@@ -277,6 +282,8 @@
                 end do
             end do
             deallocate(fxy)
+            deallocate(refs)
+            deallocate(lvalid1)
         end if
 *
 *       perform operation
@@ -285,7 +292,7 @@
         allocate(newfield(nx,ny,abs(nperyearnew),firstyr:lastyr))
         if ( lwrite ) print *,'calling fieldallday2period'
         call fieldallday2period(
-     +       oldfield,nperyear,
+     +       oldfield,nperyear,lvalid,
      +       newfield,nperyearnew,
      +       nx,ny,firstyr,lastyr,opera,lgt,cut,minfac,
      +       itype,vars(1),units(1),lwrite)

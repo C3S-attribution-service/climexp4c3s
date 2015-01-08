@@ -15,6 +15,8 @@
      +       cut(mpermax),pcut,normdata(npermax),s,oldclim(mpermax),
      +       oldclim2(mpermax),newclim(npermax),newclim2(mpermax),
      +       refs(yrbeg:yrend)
+        logical lvalidclim(mpermax),lvalidclim2(mpermax),
+     +       lvalid(mpermax,yrbeg:yrend)
         character file*1023,string*512,lgt*1,moper*3,var*20,units*20,
      +       climunits*10
         integer iargc,leap
@@ -211,13 +213,15 @@
             end if
             climunits = units
 !           compute new climatology
+            lvalidclim = .true.
+            lvalidclim2 = .true.
             call allday2period(
-     +           oldclim,mpermax,nperyear,
+     +           oldclim,mpermax,nperyear,lvalidclim,
      +           newclim,npermax,nperyearnew,
      +           0,0,moper,lgt,cut,minfac,itype,var,climunits,lwrite)
             if ( 366*(nperyear/366) .eq. nperyear ) then
                 call allday2period(
-     +               oldclim2,mpermax,nperyear2,
+     +               oldclim2,mpermax,nperyear2,lvalidclim2,
      +               newclim2,npermax,nperyearnew,
      +               0,0,moper,lgt,cut,minfac,itype,var,climunits,lwrite
      +               )
@@ -225,9 +229,8 @@
 !
 !           fill in missing data when requested
 !
-            call fillmissingdata(olddata,refs,mpermax,yrbeg,yrend,
-     +           nperyear,add_option,.true.,lwrite)
-            if ( lwrite ) print *,'back from fillmissingdata'
+            call fillmissingdata(olddata,lvalid,refs,mpermax,yrbeg,yrend
+     +           ,nperyear,add_option,.true.,lwrite)
         else
             do j=1,abs(nperyearnew)
                 newclim(j) = 0
@@ -239,7 +242,7 @@
 *
         call makeabsent(newdata,npermax,yrbeg,yrend)
         call allday2period(
-     +     olddata,mpermax,nperyear,
+     +     olddata,mpermax,nperyear,lvalid,
      +     newdata,npermax,nperyearnew,
      +     yrbeg,yrend,moper,lgt,cut,minfac,itype,var,units,lwrite)
         do yr=yrbeg,yrend

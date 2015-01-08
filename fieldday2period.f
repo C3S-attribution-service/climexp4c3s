@@ -1,5 +1,5 @@
         subroutine fieldallday2period(
-     +       oldfield,nperyear,
+     +       oldfield,nperyear,lvalid,
      +       newfield,nperyearnew,
      +       nx,ny,yrbeg,yrend,oper,lgt,cut,minfac,itype,var,units,
      +       lwrite)
@@ -9,7 +9,7 @@
      +       newfield(nx,ny,abs(nperyearnew),yrbeg:yrend),
      +       cut(nx,ny,nperyear),minfac
         character oper*3,lgt*1,var*(*),units*(*)
-        logical lwrite
+        logical lvalid(nx,ny,nperyear,yrbeg:yrend),lwrite
         integer j,jj,j1,jold,mo,n,dpm(12),dpm365(12)
         data dpm   / 31,29,31,30,31,30,31,31,30,31,30,31/
         data dpm365/ 31,28,31,30,31,30,31,31,30,31,30,31/
@@ -43,13 +43,13 @@
                 call abort
             end if
             call fieldday2period(
-     +           oldfield,nperyear,
+     +           oldfield,nperyear,lvalid,
      +           newfield,abs(nperyearnew),
      +           nx,ny,yrbeg,yrend,1,nperyear,1,oper,lgt,cut,
      +           minfac,itype,lwrite)
         else if ( nperyearnew.eq.1 ) then
             call fieldday2period(
-     +           oldfield,nperyear,
+     +           oldfield,nperyear,lvalid,
      +           newfield,nperyearnew,
      +           nx,ny,yrbeg,yrend,1,nperyear,1,oper,lgt,cut,
      +           minfac,itype,lwrite)
@@ -82,7 +82,7 @@
                 if ( mo.eq.2 .or. mo.eq.5 .or. mo.eq.8 .or. mo.eq.11 )
      +               then
                     call fieldday2period(
-     +                   oldfield,nperyear,
+     +                   oldfield,nperyear,lvalid,
      +                   newfield,nperyearnew,
      +                   nx,ny,yrbeg,yrend,jold+1,jj,(mo+1)/3,oper,lgt
      +                   ,cut,minfac,itype,lwrite)
@@ -104,7 +104,7 @@
                     jj = nint(j/(366./nperyear))
                 endif
                 call fieldday2period(
-     +               oldfield,nperyear,
+     +               oldfield,nperyear,lvalid,
      +               newfield,nperyearnew,
      +               nx,ny,yrbeg,yrend,jold+1,jj,mo,oper,lgt,cut,
      +               minfac,itype,lwrite)
@@ -121,7 +121,7 @@
                     jj = nint(j/(365./nperyear))
                 endif
                 call fieldday2period(
-     +               oldfield,nperyear,
+     +               oldfield,nperyear,lvalid,
      +               newfield,nperyearnew,
      +               nx,ny,yrbeg,yrend,jold+1,jj,3*mo-2,oper,lgt,cut,
      +               minfac,itype,lwrite)
@@ -133,7 +133,7 @@
                     jj = nint(j/(365./nperyear))
                 endif
                 call fieldday2period(
-     +               oldfield,nperyear,
+     +               oldfield,nperyear,lvalid,
      +               newfield,nperyearnew,
      +               nx,ny,yrbeg,yrend,jold+1,jj,3*mo-1,oper,lgt,cut,
      +               minfac,itype,lwrite)
@@ -152,7 +152,7 @@
                     jj = nint(j/(365./nperyear))
                 endif
                 call fieldday2period(
-     +               oldfield,nperyear,
+     +               oldfield,nperyear,lvalid,
      +               newfield,nperyearnew,
      +               nx,ny,yrbeg,yrend,jold+1,jj,3*mo,oper,lgt,cut,
      +               minfac,itype,lwrite)
@@ -162,7 +162,7 @@
             n = nint(real(nperyear)/real(nperyearnew))
             do j=1,nperyearnew
                 call fieldday2period(
-     +               oldfield,nperyear,
+     +               oldfield,nperyear,lvalid,
      +               newfield,nperyearnew,
      +               nx,ny,yrbeg,yrend,n*(j-1)+1,n*j,j,oper,lgt,cut,
      +               minfac,itype,lwrite)
@@ -174,7 +174,7 @@
         end
 
         subroutine fieldday2period(
-     +       oldfield,nperyear,
+     +       oldfield,nperyear,lvalid,
      +       newfield,nperyearnew,
      +       nx,ny,yrbeg,yrend,j1,j2,jnew,oper,lgt,cut,
      +       minfac,itype,lwrite)
@@ -195,7 +195,7 @@
      +       newfield(nx,ny,nperyearnew,yrbeg:yrend),
      +       cut(nx,ny,nperyear),minfac
         character oper*3,lgt*1
-        logical lwrite
+        logical lvalid(nx,ny,nperyear,yrbeg:yrend),lwrite
         integer yr,mo,i,j,n,jx,jy,ntot,offset,lfirst
         real s,s1,s2,sx,sy,mean,st
 *
@@ -319,7 +319,7 @@ C                           invalid data [this may be relaxed later...]
                             cycle
                         endif
                         if ( lfirst.eq.9999 ) lfirst = mo-j1
-                        ntot = ntot + 1
+                        if ( lvalid(jx,jy,j,i) ) ntot = ntot + 1
                         if ( lgt.eq.' ' .or.
      +                       lgt.eq.'<' .and. 
      +                       oldfield(jx,jy,j,i).lt.cut(jx,jy,j) .or.
