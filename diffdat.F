@@ -7,7 +7,7 @@
         character file*256,var*80,units*40,string*10
         logical lwrite
 
-        minfac = 0.5            ! arbitrary
+        minfac = 0.7            ! arbitrary
         call getarg(1,file)
         if ( file.eq.' ' ) then
             write(0,*) 'usage: diffdat file [n [debug]]'
