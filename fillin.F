@@ -18,7 +18,7 @@
      +       var,units,.false.,lwrite)
         call anomalclim(data,npermax,nperyear,yrbeg,yrend,yrbeg,yrend
      +       ,mean)
-!!!        lwrite = .true.
+        !!!lwrite = .true.
         do yr=yrbeg,yrend
             do mo=1,nperyear 
                 mo1 = mo + 1
@@ -28,7 +28,7 @@
      +               data(mo1,yr1).gt.1e33 ) then
                     do m=1,max
                         mo2 = mo1 + m
-                        call normon(mo2,yr,yr2,nperyear)
+                        call normon(mo2,yr1,yr2,nperyear)
                         if ( data(mo2,yr2).lt.1e33 ) then
                             do k=1,m
                                 mo1 = mo + k
@@ -54,7 +54,7 @@
             end do
         end do
         call copyheader(file,6)
-        print '(a)','# interpolated single undefined anomalies linearly'
+        print '(a)','# interpolated undefined anomalies linearly'
         call printdatfile(6,data,npermax,nperyear,yrbeg,yrend)
         goto 999
  901    continue
