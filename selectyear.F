@@ -24,15 +24,7 @@
         call copyheader(file,6)
         call readseries(file,data,npermax,yrbeg,yrend,nperyear,var,units
      +       ,.false.,lwrite)
-        do yr=yr1,yr2
-            lvalid = .FALSE.
-            do mo=1,nperyear
-                if ( data(mo,yr).lt.1e33 ) lvalid = .TRUE.
-            enddo
-            if ( lvalid ) then
-                write(6,'(i4,1000g14.6)') yr,(data(mo,yr),mo=1,nperyear)
-            endif
-        enddo
+        call printdatfile(6,data(1,yr1),npermax,nperyear,yr1,yr2)
         goto 999
   901   write(0,*) 'selectyear: error reading year from ',line
         call abort
