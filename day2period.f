@@ -239,7 +239,7 @@
                     j = mo
                     call normon(j,yr,i,nperyear)
                     if ( yrbeg.eq.0 .and. yrend.eq.0 ) i = 0
-                    if ( i.lt.yrbeg ) cycle
+                    if ( i.lt.yrbeg .or. i.gt.yrend ) cycle
                     if ( olddata(j,i).lt.1e33 ) then
                         print *,i,j,olddata(j,i)
                     endif
@@ -307,7 +307,13 @@
 ***                 newdata(jnew,i) = 3e33
                     cycle
                 endif
-                if ( lvalid(j,i) ) ntot = ntot + 1
+                if ( oper.eq.'mea' .or. oper.eq.'sum' ) then
+                    ! these measures have been filled in, only consider real data
+                    if ( lvalid(j,i) ) ntot = ntot + 1
+                else
+                    ! lvalid not used
+                    ntot = ntot + 1
+                end if
                 if ( lfirst.eq.9999 ) lfirst = mo-j1
                 if ( lgt.eq.' ' .or.
      +               lgt.eq.'<' .and. olddata(j,i).lt.cut(j) .or.
@@ -354,8 +360,12 @@
                     if ( lwrite ) print *,j,olddata(j,i),lgt,cut(j)
                 endif
             enddo
-            if ( lwrite .and. lfirst.lt.9999 ) write(*,*)
-     +           yr,'lfirst,minfac*(j2-j1+1) = ',lfirst,minfac*(j2-j1+1)
+            if ( lwrite .and. lfirst.lt.9999 ) then
+                write(*,*) yr,'lfirst,minfac*(j2-j1+1) = ',
+     +               lfirst,minfac*(j2-j1+1)
+                write(*,*) yr,'ntot,minfac*nperyear/nperyearnew = ',
+     +               ntot,minfac*nperyear/nperyearnew
+            end if
             if ( lfirst.gt.minfac*(j2-j1+1) .or.
      +           ntot.lt.minfac*nperyear/nperyearnew ) then
                 newdata(jnew,yr) = 3e33            
@@ -458,7 +468,7 @@
 
 !
 !       first get first and last year with data
-!           
+!
         yr1 = yrend
         yr2 = yrbeg
         do yr=yrbeg,yrend
