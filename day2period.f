@@ -307,7 +307,9 @@
 ***                 newdata(jnew,i) = 3e33
                     cycle
                 endif
-                if ( oper.eq.'mea' .or. oper.eq.'sum' ) then
+                ! This test should be exactly the same as in daily2longer
+                if ( ( oper.eq.'mea' .or. oper.eq.'sum' )
+     +               .and. lgt.eq.' ' ) then
                     ! these measures have been filled in, only consider real data
                     if ( lvalid(j,i) ) ntot = ntot + 1
                 else

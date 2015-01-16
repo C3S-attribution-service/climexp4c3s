@@ -256,7 +256,9 @@
 !
 !       fill in missing data when requested
 !
-        if ( add_option.gt.0 ) then
+!       this test should be exactly the same as in fieldday2period
+        if ( ( opera.eq.'mea' .or. opera.eq.'sum' )
+     +       .and. lgt.eq.' ' .and. add_option.gt.0 ) then
             allocate(fxy(nperyear,firstyr:lastyr))
             allocate(refs(firstyr:lastyr))
             allocate(lvalid1(nperyear,firstyr:lastyr))

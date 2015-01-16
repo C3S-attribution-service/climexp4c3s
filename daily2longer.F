@@ -170,8 +170,9 @@
 *
 *       compute climatology and anomalies
 *
+        ! This test should be exactly the same as in day2period
         if ( ( moper.eq.'mea' .or. moper.eq.'sum' )
-     +       .and. lgt.eq.' ' .and. .not.lnomissing ) then
+     +       .and. lgt.eq.' ' ) then
             do j=1,nperyear
                 oldclim(j) = 0
             enddo

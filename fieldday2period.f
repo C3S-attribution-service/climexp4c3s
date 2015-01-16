@@ -321,7 +321,13 @@ C                           invalid data [this may be relaxed later...]
                             cycle
                         endif
                         if ( lfirst.eq.9999 ) lfirst = mo-j1
-                        if ( lvalid(jx,jy,j,i) ) ntot = ntot + 1
+!                       this test should be exactly the same as in daily2longerfield
+                        if ( ( oper.eq.'mea' .or. oper.eq.'sum' )
+     +                       .and. lgt.eq.' ' ) then
+                            if ( lvalid(jx,jy,j,i) ) ntot = ntot + 1
+                        else
+                            ntot = ntot + 1
+                        end if
                         if ( lgt.eq.' ' .or.
      +                       lgt.eq.'<' .and. 
      +                       oldfield(jx,jy,j,i).lt.cut(jx,jy,j) .or.
