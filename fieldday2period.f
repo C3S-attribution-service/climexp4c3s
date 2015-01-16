@@ -81,6 +81,7 @@
                 endif
                 if ( mo.eq.2 .or. mo.eq.5 .or. mo.eq.8 .or. mo.eq.11 )
      +               then
+                    call keepalive1('Season',1+mo/4,4)
                     call fieldday2period(
      +                   oldfield,nperyear,lvalid,
      +                   newfield,nperyearnew,
@@ -103,6 +104,7 @@
                     j = j + dpm(mo)
                     jj = nint(j/(366./nperyear))
                 endif
+                call keepalive1('Month',mo,12)
                 call fieldday2period(
      +               oldfield,nperyear,lvalid,
      +               newfield,nperyearnew,
