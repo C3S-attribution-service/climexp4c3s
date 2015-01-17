@@ -53,7 +53,11 @@
         endif
         call getopts(5,iargc()-1,nperyear,yrbeg,yrend,.true.,mens1,mens
      +       )
-        lastyr = firstyr + nt/nperyear
+        if ( nperyear.ne.366 ) then
+            lastyr = firstyr + (nt+firstmo-2)/nperyear
+        else
+            lastyr = firstyr + int((nt+firstmo-2)/365.25)
+        end if
         allocate(data(nx,ny,nz,nperyear,firstyr:lastyr))
         allocate(fxy(nperyear,firstyr:lastyr))
         call keepalive(0,1)
