@@ -142,8 +142,8 @@
         end
 *  #] printreturntime:
 *  #[ printcovreturntime:
-        subroutine printcovreturntime(year,xyear,tx,tx25,tx975,yr1a,yr2a
-     +       ,lweb,plot)
+        subroutine printcovreturntime(year,xyear,idmax,tx,tx25,tx975,
+     +       yr1a,yr2a,lweb,plot)
 *
 *       print return time of year at cov1 and cov2
 *
@@ -151,6 +151,7 @@
         integer year,yr1a,yr2a
         real xyear,tx(3),tx25(3),tx975(3)
         logical lweb,plot
+        character idmax*(*)
         integer i
         character atx(3)*16,atx25(3)*16,atx975(3)*16
 
@@ -169,10 +170,18 @@
      +               ,'# <tr><td><!--atr1-->(value ',xyear,')</td><td>'
      +               ,yr2a,'</td><td>',atx(2),
      +               '</td><td>',atx25(2),' ... ',atx975(2),'</td></tr>'
-                print '(8a)'
+                if ( idmax.eq.' ' ) then
+                    print '(8a)'
      +               ,'# <tr><td><!--atra-->&nbsp;</td><td>ratio',
      +               '</td><td>',atx(3),'</td><td>',atx25(3),
      +               ' ... ',atx975(3),'</td></tr>'
+                else
+                    print '(10a)'
+     +               ,'# <tr><td><!--atra-->(at ',trim(idmax),
+     +               ')</td><td>ratio',
+     +               '</td><td>',atx(3),'</td><td>',atx25(3),
+     +               ' ... ',atx975(3),'</td></tr>'
+                end if
             else
                 print '(a,i4,a,i4,5a)'
      +               ,'# return time ',year,' at yr=',yr1a

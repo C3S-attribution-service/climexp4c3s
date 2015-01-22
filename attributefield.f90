@@ -21,7 +21,7 @@
     character file*1024,datfile*1024,covariatefile*1024,distribution*6,assume*5,string*80
     character var*40,var1*40,units1*80,lz(3)*20,ltime*120,title*255,history*2048
     character vars(nvarmax)*20,svars(nvarmax)*20,lvars(nvarmax)*120,units(nvarmax)*40
-    character cell_methods(nvarmax)*100,orgunits*40,outfile*1024,format*20
+    character cell_methods(nvarmax)*100,orgunits*40,outfile*1024,format*20,seriesids(0:nensmax)*10
     integer iargc
     data iyrs /10,20,50,100,200,500,1000,2000,5000,10000/
 !
@@ -167,8 +167,11 @@
             & ix,iy,iz,xx(ix),yy(iy),zz(iz)
             call keepalive1('Grid point',ix+(iy-1)*ny+(nz-1)*nx*ny,nx*ny*nz)
             lprint = .false.
+            do i=mens1,mens
+                write(seriesids(i),'(i3.3)') i
+            enddo
             call attribute_dist(series,nperyear,covariate,nperyear1,npermax,fyr,lyr,&
-            &   mens1,mens,assume,distribution,results,nresmax,nresults,lprint)
+            &   mens1,mens,assume,distribution,seriesids,results,nresmax,nresults,lprint)
             if ( lwrite ) then
                 print *,'results = '
                 do i=1,nresults

@@ -1,5 +1,5 @@
 subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yrend,&
-&   mens1,mens,assume,distribution,results,nresmax,nresults,lprint)
+&   mens1,mens,assume,distribution,seriesids,results,nresmax,nresults,lprint)
 !
 !   take block maxima, convert to linear arrays and call fitgevcov / fitgumcov or
 !   take average, convert to linear arrays and call fitgaucov / fitgpdcov
@@ -10,13 +10,13 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     integer nperyear,nperyear1,npermax,yrbeg,yrend,mens1,mens,nresmax,nresults
     real series(npermax,yrbeg:yrend,0:mens),covariate(npermax,yrbeg:yrend,0:mens)
     real results(3,nresmax)
-    character assume*(*),distribution*(*)
-    integer fyr,lyr,ntot,i,j,k,ntype,nmax,npernew,j1,j2,iens
+    character seriesids(0:mens)*(*),assume*(*),distribution*(*)
+    integer fyr,lyr,ntot,i,j,k,ntype,nmax,npernew,j1,j2,iens,ensmax
     integer,allocatable :: yrs(:)
     real a(3),b(3),xi(3),alpha(3),beta(3),cov1,cov2,offset,t(3,10,3),tx(3,3)
     real,allocatable :: xx(:,:),yrseries(:,:,:),yrcovariate(:,:,:),yy(:)
     logical lboot,lprint,subtract_offset
-    character operation*4,file*1024
+    character operation*4,file*1024,idmax*30
 
     results = 3e33
     fyr = yr1
@@ -83,9 +83,14 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     
     if ( lwrite ) print *,'attribute_dist: calling handle_then_now'
     call handle_then_now(yrseries,yrcovariate,npernew,fyr,lyr,j1,j2,yr1a,yr2a,mens1,mens, &
-    & xyear,cov1,cov2,lprint,lwrite)
+    & xyear,ensmax,cov1,cov2,lprint,lwrite)
     if ( cov1.gt.1e33 .or. cov2.gt.1e33 ) then
         return
+    end if
+    if ( ensmax.ge.mens1 ) then
+        idmax = seriesids(ensmax)
+    else
+        idmax = ' ' ! undefined
     end if
     if ( lprint ) then
         if ( namestring.ne.' ' ) then
@@ -123,7 +128,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         ntype = 2 ! Gumbel plot
         if ( lwrite ) print *,'attribute_dist: calling fitgevcov'
         call fitgevcov(xx,yrs,ntot,a,b,xi,alpha,beta,j1,j2 &
-    &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,cov1,cov2,offset &
+    &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2,offset &
     &       ,t,tx,restrain,assume,lboot,lprint,dump,plot,lwrite)
     else if ( distribution.eq.'gpd' ) then
         ntype = 3 ! log plot
@@ -132,21 +137,21 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         !!!lwrite = .true.
         if ( lwrite ) print *,'attribute_dist: calling fitgpdcov'
         call fitgpdcov(xx,yrs,ntot,a,b,xi,alpha,beta,j1,j2 &
-    &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,cov1,cov2,offset &
+    &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2,offset &
     &       ,t,tx,pmindata,restrain,assume,lboot,lprint,dump,plot,lwrite)
     else if  ( distribution.eq.'gumbel' ) then
         ntype = 2 ! Gumbel plot
         xi = 0
         if ( lwrite ) print *,'attribute_dist: calling fitgumcov'
         call fitgumcov(xx,yrs,ntot,a,b,alpha,beta,j1,j2 &
-    &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,cov1,cov2,offset &
+    &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2,offset &
     &       ,t,tx,assume,lboot,lprint,dump,plot,lwrite)
     else if  ( distribution.eq.'gauss' ) then
         ntype = 4 ! sqrtlog plot
         xi = 0
         if ( lwrite ) print *,'attribute_dist: calling fitgaucov'
         call fitgaucov(xx,yrs,ntot,a,b,alpha,beta,j1,j2 &
-    &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,cov1,cov2,offset &
+    &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2,offset &
     &       ,t,tx,assume,lboot,lprint,dump,plot,lwrite)
     else
         write(0,*) 'attribute_dist: error: unknown distribution ',trim(distribution)
@@ -399,32 +404,33 @@ subroutine fill_linear_array(series,covariate,nperyear,j1,j2,fyr,lyr,mens1,mens,
 end subroutine fill_linear_array
 
 subroutine handle_then_now(series,covariate,nperyear,fyr,lyr,j1,j2,yr1a,yr2a, &
-    &   mens1,mens,xyear,cov1,cov2,lprint,lwrite)
+    &   mens1,mens,xyear,ensmax,cov1,cov2,lprint,lwrite)
 
     ! handle the conversion from "then" (yr1a) and "now" (yr2a) to the variables
-    ! fitgevcov expects (xyear,cov1,cov2), sets series to undef at "now".
+    ! fitgevcov expects (xyear,idmax,cov1,cov2), sets series to undef at "now".
     
     implicit none
-    integer nperyear,fyr,lyr,j1,j2,yr1a,yr2a,mens1,mens
+    integer nperyear,fyr,lyr,j1,j2,yr1a,yr2a,mens1,mens,ensmax
     real series(nperyear,fyr:lyr,0:mens),covariate(nperyear,fyr:lyr,0:mens)
     real xyear,cov1,cov2
     logical lprint,lwrite
     real dummy
 
-    call find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr1a,cov1,dummy,1,lprint,lwrite)
-    call find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr2a,cov2,xyear,2,lprint,lwrite)
+    call find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr1a,cov1,dummy,ensmax,1,lprint,lwrite)
+    call find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr2a,cov2,xyear,ensmax,2,lprint,lwrite)
 
 end subroutine handle_then_now
 
-subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xyear,i12,lprint,lwrite)
+subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xyear,ensmax,i12,lprint,lwrite)
     implicit none
-    integer nperyear,fyr,lyr,mens1,mens,j1,j2,yr,i12
+    integer nperyear,fyr,lyr,mens1,mens,j1,j2,yr,ensmax,i12
     real series(nperyear,fyr:lyr,0:mens),covariate(nperyear,fyr:lyr,0:mens),cov,xyear
     logical lchangesign,lprint,lwrite
-    integer i,j,mo,momax,yrmax,ensmax,iens
+    integer i,j,mo,momax,yrmax,iens
     real s
 
     cov = 3e33
+    ensmax = -1
     if ( yr.ne.9999 ) then
         s = -3e33
         do iens=mens1,mens
@@ -450,7 +456,6 @@ subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xy
                 write(0,*) 'find_cov: error: yr ',yr,' outside range of data<br>'
             end if
         end if
-        ensmax = mens1
     end if
     cov = covariate(momax,yrmax,ensmax)
     if ( cov.gt.1e33 ) then
@@ -460,9 +465,13 @@ subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xy
         end if
     end if
     if ( i12.eq.2 ) then
-        if ( xyear.gt.1e33 ) xyear = series(momax,yrmax,ensmax)
+        if ( xyear.gt.1e33 ) then
+            xyear = series(momax,yrmax,ensmax)
+        else
+            ensmax = -1 ! xyear was given by user
+        end if
         series(momax,yrmax,mens1:mens) = 3e33 ! for GPD we should also make a few values to the sides undef
-        if ( lwrite ) print *,'find_cov: xyear = ',xyear,momax,yrmax
+        if ( lwrite ) print *,'find_cov: xyear = ',xyear,momax,yrmax,ensmax
     end if
     if ( xyear.gt.1e33 ) then
         if ( lprint ) then

@@ -1,7 +1,7 @@
 *  #[ fitgaucov:
         subroutine fitgaucov(xx,yrs,ntot,a3,b3,alpha3,beta3,j1,j2
-     +       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,cov1,cov2,offset
-     +       ,t3,tx3,assume,lboot,lprint,dump,plot,lwrite)
+     +       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2
+     +       ,offset,t3,tx3,assume,lboot,lprint,dump,plot,lwrite)
 *
 *       a fit a gaussian distribution with mean linearly dependent on a covariate 
 *       to the data
@@ -13,7 +13,7 @@
         real xx(2,ntot),a3(3),b3(3),alpha3(3),beta3(3),xyear,cov1,cov2,
      +       offset,t3(3,10,3),tx3(3,3)
         logical lweb,lchangesign,lboot,lprint,dump,plot,lwrite
-        character assume*(*)
+        character assume*(*),idmax*(*)
 *
         integer nmc
         parameter(nmc=1000)
@@ -262,8 +262,8 @@
             end if
         endif
         call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot)
-        call printcovreturntime(year,xyear,tx,tx25,tx975,yr1a,yr2a,lweb,
-     +       plot)
+        call printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a
+     +       ,lweb,plot)
 
         if ( dump ) then
             call plot_tx_cdfs(txtx,nmc,nmc,ntype,j1,j2)

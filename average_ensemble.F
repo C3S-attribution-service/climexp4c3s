@@ -11,7 +11,8 @@
         integer,allocatable :: nn(:,:)
         real,allocatable :: data(:,:,:),mean(:,:)
         logical lstandardunits,lset,lwrite
-        character file*255,var*20,units*20,string*80,oper*3
+        character file*255,var*20,units*20,string*80,oper*3,
+     +       ids(0:mensmax)*30
         integer,external :: leap
         integer iargc
         
@@ -68,7 +69,7 @@
             end if
         end do
         if ( lset ) then
-            call readsetseries(data,npermax,yrbeg,yrend,mensmax
+            call readsetseries(data,ids,npermax,yrbeg,yrend,mensmax
      +           ,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
         else
             call readensseries(file,data,npermax,yrbeg,yrend,mensmax

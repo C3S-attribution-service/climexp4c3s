@@ -1,7 +1,7 @@
 *  #[ fitgpdcov:
         subroutine fitgpdcov(xx,yrs,ntot,a3,b3,xi3,alpha3,beta3,j1,j2
-     +       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,cov1,cov2,offset
-     +       ,t3,tx3,threshold,inrestrain,assume
+     +       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2
+     +       ,offset,t3,tx3,threshold,inrestrain,assume
      +       ,lboot,lprint,dump,plot,lwrite)
 *
 *       fit a GPD distribution to the data, which is already assumed to be declustered
@@ -32,7 +32,7 @@
         integer yrs(0:ntot)
         real xx(2,ntot),a3(3),b3(3),xi3(3),alpha3(3),beta3(3),xyear,
      +       cov1,cov2,offset,inrestrain,t3(3,10,3),tx3(3,3),threshold
-        character*(*) assume
+        character assume*(*),idmax*(*)
         logical lweb,lchangesign,lboot,lprint,dump,plot,lwrite
 *
         integer i,j,k,l,n,nx,iter,iter1,iens,iiens,nfit,year
@@ -373,8 +373,8 @@
      +           alpha975-alpha25
         end if
         call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot)
-        call printcovreturntime(year,xyear,tx,tx25,tx975,yr1a,yr2a,lweb,
-     +       plot)
+        call printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a
+     +       ,lweb,plot)
 !       plot fit for present-day climate
         call plotreturnvalue(ntype,t25(1,2),t975(1,2),j2-j1+1)
 

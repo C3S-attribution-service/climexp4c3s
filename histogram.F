@@ -26,7 +26,7 @@
         real mean(0:nboot),sd(0:nboot),skew(0:nboot)
         character file*255,string*100,var*20,units*20,prog*100,
      +       number*100,line*255,command*255,extraargs*100,
-     +       extraargs_*100
+     +       extraargs_*100,ids(0:nensmax)*30
 
         integer iargc
         real gammln,erf,erfcc,gammq,gammp,invcumpois,invcumgamm
@@ -68,7 +68,7 @@
      +           ,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
         else
             off = 2
-            call readsetseries(data,npermax,yrbeg,yrend,nensmax,
+            call readsetseries(data,ids,npermax,yrbeg,yrend,nensmax,
      +           nperyear,mens1,mens,var,units,lstandardunits,lwrite)
         endif
         call getarg(2+off,string)

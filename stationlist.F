@@ -311,7 +311,7 @@
      +           prog(1:3).eq.'eca' .or. prog(1:4).eq.'beca' .or.
      +           prog(1:7).eq.'getprcp' .or. prog(1:7).eq.'gettemp' .or.
      +           prog(1:6).eq.'getmin' .or. prog(1:6).eq.'getmax' .or.
-     +           prog(1:6).eq.'getslp') 
+     +           prog(1:6).eq.'getslp' .or. prog(1:9).eq.'getfrench' ) 
      +           goto 300
 *           check whether the file exists and has length >0
             open(3,file=datfile,err=300)
@@ -333,7 +333,7 @@
      +           prog(1:3).eq.'eca' .or. prog(1:4).eq.'beca' .or.
      +       prog(1:7).eq.'getprcp' .or. prog(1:7).eq.'gettemp' .or.
      +       prog(1:6).eq.'getmin' .or. prog(1:6).eq.'getmax' .or.
-     +       prog(1:6).eq.'getslp' ) then
+     +       prog(1:6).eq.'getslp' .or. prog(1:9).eq.'getfrench' ) then
                 write(command,'(6a)') trim(dir)//'bin/',trim(prog),
      +                ' ',trim(code),' ',trim(datfile)
             else

@@ -1,7 +1,7 @@
 *  #[ fitgumcov:
         subroutine fitgumcov(xx,yrs,ntot,a3,b3,alpha3,beta3,j1,j2
-     +       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,cov1,cov2,offset
-     +       ,t3,tx3,assume,lboot,lprint,dump,plot,lwrite)
+     +       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2
+     +       ,offset,t3,tx3,assume,lboot,lprint,dump,plot,lwrite)
 *
 *       a fit a Gumbel distribution to the data, which is already assumed to be block max
 *       input:
@@ -22,7 +22,7 @@
         integer yrs(0:ntot)
         real xx(2,ntot),a3(3),b3(3),alpha3(3),beta3(3),xyear,
      +       cov1,cov2,offset,t3(3,10,3),tx3(3,3)
-        character*(*) assume
+        character assume*(*),idmax*(*)
         logical lweb,lchangesign,lboot,lprint,dump,plot,lwrite
 *
         integer i,j,nx,iter,iens,nfit,year
@@ -284,8 +284,8 @@
             end if
         endif
         call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot)
-        call printcovreturntime(year,xyear,tx,tx25,tx975,yr1a,yr2a,lweb,
-     +       plot)
+        call printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a
+     +       ,lweb,plot)
 
         if ( dump ) then
             call plot_tx_cdfs(txtx,nmc,nmc,ntype,j1,j2)

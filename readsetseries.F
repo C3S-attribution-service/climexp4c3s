@@ -1,4 +1,4 @@
-        subroutine readsetseries(data,npermax,yrbeg,yrend,nensmax,
+        subroutine readsetseries(data,ids,npermax,yrbeg,yrend,nensmax,
      +       nperyear,mens1,mens,var,units,lstandardunits,lwrite)
 *       read set of data files in a list in the old stupid getstations
 *       output format; after a line with coordinates there is a line
@@ -9,7 +9,7 @@
         integer npermax,yrbeg,yrend,nensmax,nperyear,mens1,mens
         real data(npermax,yrbeg:yrend,0:nensmax)
         logical lwrite,lstandardunits
-        character var*(*),units*(*)
+        character ids(0:mens)*(*),var*(*),units*(*)
         integer i,m,iret,filetime,stringtime
         real lon,lat,elev
         logical lexist
@@ -107,6 +107,7 @@
         call keepalive1('Reading series',mens,-1)
         call readseries(file,data(1,yrbeg,mens),npermax,yrbeg,yrend
      +       ,m,var,units,lstandardunits,.false.)
+        ids(mens) = number
         if ( m.eq.0 ) goto 1
         if ( mens.eq.0 ) then
             nperyear = m

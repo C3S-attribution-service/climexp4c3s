@@ -15,7 +15,7 @@ program attribute
     real results(3,nresmax)
     real,allocatable :: series(:,:,:),covariate(:,:,:)
     character seriesfile*1024,covariatefile*1024,distribution*6,assume*5,string*80
-    character var*40,units*80,var1*40,units1*80
+    character var*40,units*80,var1*40,units1*80,seriesids(0:nensmax)*30
     logical lprint
     integer iargc
 
@@ -40,9 +40,16 @@ program attribute
         ! simple data
         call readensseries(seriesfile,series,npermax,yrbeg,yrend &
         & ,nensmax,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
+        if ( mens.gt.mens1 ) then
+            do i=mens1,mens
+                write(seriesids(i),'(i3.3)') i
+            enddo
+        else
+            seriesids(mens) = ' '
+        end if
     else
         ! set of stations
-        call readsetseries(series,npermax,yrbeg,yrend &
+        call readsetseries(series,seriesids,npermax,yrbeg,yrend &
         & ,nensmax,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
     end if
     
@@ -120,7 +127,7 @@ program attribute
 
     lprint = .true.
     call attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yrend,&
-    &   mens1,mens,assume,distribution,results,nresmax,nresults,lprint)
+    &   mens1,mens,assume,distribution,seriesids,results,nresmax,nresults,lprint)
 
 end program attribute
 
