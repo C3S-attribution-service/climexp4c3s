@@ -74,7 +74,13 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         write(*,*) 'attribute_dist: error: unknown distribution ',trim(distribution)
         write(0,*) 'attribute_dist: error: unknown distribution ',trim(distribution)
         call abort
-    end if    
+    end if
+    
+    if ( lnormsd .and. mens.gt.mens1 ) then
+        if ( lwrite ) print *,'attrbute_dist: normalising all series'
+        call normaliseseries(yrseries,npernew,fyr,lyr,mens1,mens,j1,j2,assume,lwrite)
+    end if
+    
     if ( lwrite ) print *,'attribute_dist: calling handle_then_now'
     call handle_then_now(yrseries,yrcovariate,npernew,fyr,lyr,j1,j2,yr1a,yr2a,mens1,mens, &
     & xyear,cov1,cov2,lprint,lwrite)
@@ -671,4 +677,85 @@ subroutine copy3scalar(a3,a,a25,a975)
     a3(1) = a
     a3(2) = a25
     a3(3) = a975
+end subroutine
+
+subroutine normaliseseries(series,nperyear,fyr,lyr,mens1,mens,j1,j2,assume,lwrite)
+!
+!   normalise all ensemble time series in series to have the same mean
+!
+    implicit none
+    integer nperyear,fyr,lyr,mens1,mens,j1,j2
+    real series(nperyear,fyr:lyr,0:mens)
+    logical lwrite
+    character assume*(*)
+    integer iens
+    real mean,ensmean
+
+    if ( mens1.eq.mens ) return
+
+    if ( assume.eq.'shift' ) then
+        ! compute overall mean
+        call getmeanseries(series,nperyear,mens1,mens,fyr,lyr,j1,j2,.false.,ensmean)
+        do iens=mens1,mens
+            ! compute mean of this member
+            call getmeanseries(series,nperyear,iens,iens,fyr,lyr,j1,j2,.false.,mean)
+            ! shift series so that it has the same mean as the ensemble mean
+            series(:,:,iens) = series(:,:,iens) - mean + ensmean
+        end do
+    else if ( assume.eq.'scale' ) then
+        ! compute overall multiplicative mean
+        call getmeanseries(series,nperyear,mens1,mens,fyr,lyr,j1,j2,.true.,ensmean)
+        do iens=mens1,mens
+            ! compute mean of this member
+            call getmeanseries(series,nperyear,iens,iens,fyr,lyr,j1,j2,.true.,mean)
+            ! scale series so that it has the same mean as the ensemble mean
+            series(:,:,iens) = series(:,:,iens) / mean * ensmean
+        end do 
+    else if ( assume.eq.'both'  ) then
+        write(0,*) 'normaliseseries: error: cannot normalise with assumption "both"'
+        write(*,*) 'normaliseseries: error: cannot normalise with assumption "both"'
+        call exit(-1)
+    else
+        write(0,*) 'normaliseseries: error: unknown assumption ',trim(assume)
+        write(*,*) 'normaliseseries: error: unknown assumption ',trim(assume)
+        call exit(-1)
+    end if
+end subroutine
+
+subroutine getmeanseries(series,nperyear,mens1,mens,fyr,lyr,j1,j2,lmult,mean)
+    implicit none
+    integer nperyear,fyr,lyr,mens1,mens,j1,j2
+    real series(nperyear,fyr:lyr,0:mens),mean
+    logical lmult
+    integer iens,n,yr,yy,mo,mm
+    real s
+
+    n = 0
+    s = 0
+    do iens=mens1,mens
+        do yy=fyr,lyr
+            do mm=j1,j2
+                mo = mm
+                call normon(mo,yy,yr,nperyear)
+                if ( yr.ge.fyr .and. yr.le.lyr ) then
+                    if ( lmult ) then
+                        if ( series(mo,yr,iens).lt.1e33 .and. series(mo,yr,iens).gt.0 ) then
+                            n = n + 1
+                            s = s + log(series(mo,yr,iens))
+                        end if
+                    else
+                        if ( series(mo,yr,iens).lt.1e33 ) then
+                            n = n + 1
+                            s = s + series(mo,yr,iens)
+                        end if
+                    end if
+                end if
+            end do
+        end do
+    end do
+    if ( lmult ) then
+        mean = exp(s/n)
+    else
+        mean = s/n
+    end if    
 end subroutine
