@@ -20,8 +20,8 @@
         external llen,lastslash,get_endian
 *       date
         data months /
-     +        '???','JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG'
-     +        ,'SEP','OCT','NOV','DEC','???','jan','feb','mar','apr'
+     +        'JAN','JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG'
+     +        ,'SEP','OCT','NOV','DEC','jan','jan','feb','mar','apr'
      +        ,'may','jun','jul','aug','sep','oct','nov','dec'/
         data dpm /31,28,31,30,31,30,31,31,30,31,30,31/
         lwrite = .false.
