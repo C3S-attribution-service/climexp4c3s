@@ -241,7 +241,8 @@
 *       read fields
 *
         do iens=nens11,nens21
-            call keepalive(1+iens-nens11,2+nens21-nens11+nens22-nens12)
+            call keepalive1('Reading field1 ensemble member',
+     +          iens-nens11,2+nens21-nens11+nens22-nens12)
             if ( ncid1.eq.-1 ) then
                 if ( iens.gt.nens11 ) then
                     file = infile1
@@ -279,7 +280,8 @@
             field2 = field1
         else
             do iens=nens12,nens22
-                call keepalive(1+iens-nens12+1+nens21-nens11,
+                call keepalive1('Reading field2 ensemble member',
+     +               iens-nens12+1+nens21-nens11,
      +               2+nens21-nens11+nens22-nens12)
                 if ( ncid2.eq.-1 ) then
                     if ( iens.gt.nens12 ) then
@@ -362,7 +364,7 @@
         yrstop  = yr1
         do jz=1,nz
             do jy=1,ny
-                call keepalive(jy+(jz-1)*ny,ny*nz)
+                call keepalive('Computing latitude ',jy+(jz-1)*ny,ny*nz)
                 do jx=1,nx
                     do mo=0,npermax
                         r(jx,jy,jz,mo) = 3e33
