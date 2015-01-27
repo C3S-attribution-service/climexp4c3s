@@ -439,7 +439,7 @@
 *  #[ gauscovnorm:
         subroutine gauscovnorm(a,b,s)
         implicit none
-#include "getopts.inc"
+        include 'getopts.inc'
         real a,b,s
         real z1,z2,sqrt2
         real erfcc
