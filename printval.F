@@ -61,10 +61,12 @@
         real xin
         real x
         x = xin
-        if ( logscale .or. sqrtscale .or. squarescale ) then
+        if ( logscale .or. sqrtscale .or. squarescale .or. twothirdscale
+     +       ) then
             if ( logscale ) x = 10.**(x)
             if ( sqrtscale ) x = x**2
             if ( squarescale ) x = sqrt(x)
+            if ( twothirdscale ) x = x**(3./2.)
             if ( lweb ) then
                 print '(a,f16.2)','# w/o transf.',x
             else
@@ -82,7 +84,8 @@
         real x1in,x2in,x3in
         real x(3)
         integer i
-        if ( logscale .or. sqrtscale .or. squarescale ) then
+        if ( logscale .or. sqrtscale .or. squarescale .or.
+     +       twothirdscale ) then
             do i=1,3
                 if ( i.eq.1 ) then
                     x(i) = x1in
@@ -94,6 +97,7 @@
                 if ( logscale ) x(i) = 10.**(x(i))
                 if ( sqrtscale ) x(i) = x(i)**2
                 if ( squarescale ) x(i) = sqrt(x(i))
+                if ( twothirdscale ) x(i) = x(i)**(3./2.)
             enddo
             if ( .not.lweb ) then
                 print '(a,f16.3,a,f16.3,a,f16.3,a)','# w/o transf.',x(1)

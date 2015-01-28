@@ -25,6 +25,7 @@
         logfield = .FALSE.
         sqrtfield = .FALSE.
         squarescale = .FALSE.
+        twothirdscale = .FALSE.
         lnormsd = .FALSE.
         lnomissing = .FALSE.
         lrank = .FALSE.
@@ -163,6 +164,9 @@
             elseif ( line(1:6).eq.'square' ) then
                 squarescale = .TRUE.
                 if ( lout ) print '(a)','# set square on'
+            elseif ( line(1:8).eq.'twothird' ) then
+                twothirdscale = .TRUE.
+                if ( lout ) print '(a)','# set two-third power on'
             elseif ( line(1:10).eq.'changesign' ) then
                 lchangesign = .TRUE.
                 if ( lout ) print '(a)','# change sign of data'

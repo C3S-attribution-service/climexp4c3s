@@ -124,6 +124,13 @@ program attribute
         end do
         if ( xyear.lt.1e33 ) xyear = xyear**2
     endif
+    if ( twothirdscale ) then
+        print '(a)','# taking power two-third'
+        do iens=mens1,mens
+            call taketwothird(series(1,yrbeg,iens),npermax,nperyear,yrbeg,yrend)
+        end do
+        if ( xyear.lt.1e33 ) xyear = xyear**(2/3.)
+    endif
 
     lprint = .true.
     call attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yrend,&
