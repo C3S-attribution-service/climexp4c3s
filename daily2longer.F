@@ -23,7 +23,7 @@
         external leap
         lwrite = .false.
         lstandardunits = .true.
-        lnomissing=.false.
+        lnomissing = .false.
 *
         if ( iargc().lt.3 ) then
             print *,'usage: daily2longer infile nperyearnew'//

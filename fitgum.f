@@ -132,7 +132,7 @@
                 xixi(iens) = 0
                 tt(iens,i) = gevreturnlevel(aa(iens),bb(iens),xixi(iens)
      +               ,x)
-                if ( tt(iens,i).lt.10 ) then
+                if ( .false. .and. tt(iens,i).lt.10 ) then
                     print *,'gevreturnlevel(',aa(iens),bb(iens),
      +                   xixi(iens),x,' = ',tt(iens,i),iens,i
                 end if

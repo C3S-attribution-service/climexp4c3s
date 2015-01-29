@@ -152,7 +152,7 @@
             if ( xyear.lt.1e33 ) then
                 txtx(iens) = gevreturnyear(aa(iens),bb(iens),xixi(iens)
      +               ,xyear)
-                if ( txtx(iens).lt.1 ) then
+                if ( .false. .and. txtx(iens).lt.1 ) then
                     print *,'gevreturnyear(',aa(iens),bb(iens),
      +                   xixi(iens),xyear,') = ',txtx(iens),iens
                 end if

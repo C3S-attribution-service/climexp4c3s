@@ -170,6 +170,12 @@
                 call takesquare(data(1,yrbeg,iens),npermax
      +               ,nperyear,yrbeg,yrend)
             endif
+            if ( twothirdscale ) then
+                if ( iens.eq.nens1 ) print '(a)',
+     +               '# taking power twothird'
+                call taketwothird(data(1,yrbeg,iens),npermax
+     +               ,nperyear,yrbeg,yrend)
+            endif
         enddo
 *
 *       apply minindx, maxindx cuts;
