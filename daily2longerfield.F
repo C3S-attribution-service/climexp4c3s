@@ -242,11 +242,6 @@
                 i = 4
             end if
             call getopts(i,iargc()-1,nperyear,yrbeg,yrend,.true.,0,0)
-            if ( lsum.gt.1 ) then
-                write(0,*) 'daily2longerfield: error: running means '//
-     +               'not yet implemented'
-                call abort
-            end if
         end if
         if ( minfac.lt.0 ) minfac = 0.5
         yr1 = max(yr1,firstyr)
@@ -286,6 +281,30 @@
             deallocate(fxy)
             deallocate(refs)
             deallocate(lvalid1)
+        end if
+!
+!       take running mean if requested
+!
+        if ( lsum.gt.1 ) then
+            allocate(fxy(nperyear,firstyr:lastyr))
+            do j=1,ny
+                call keepalive1('Summing latitude',j,ny)
+                do i=1,nx
+                    do mo=1,nperyear
+                        do yr=yr1,yr2
+                            fxy(mo,yr) = oldfield(i,j,mo,yr)
+                        end do
+                    end do
+                    call sumit(fxy,nperyear,nperyear,firstyr,lastyr,
+     +                   lsum,'v')
+                    do mo=1,nperyear
+                        do yr=yr1,yr2
+                            oldfield(i,j,mo,yr) = fxy(mo,yr)
+                        end do
+                    end do
+                end do
+            end do
+            deallocate(fxy)
         end if
 *
 *       perform operation

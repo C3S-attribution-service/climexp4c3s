@@ -214,7 +214,7 @@
                         noleap = noleap + 1
                     endif
                     if ( l.gt.ck-noleap ) exit
-                    call keepalive(l,ck)
+                    call keepalive1("Reading day",l,ck)
                     if ( lwrite ) print *,'reading ',start(k),i,j
                     status = nf_get_vara_real(ncid,jvars(1),start,count
      +                   ,field(1,1,1,j,i))
@@ -283,7 +283,7 @@
                         j = j + 1
                         noleap = noleap + 1
                     endif
-                    call keepalive(l,ck)
+                    call keepalive1('Reading day',l,ck)
                     if ( lwrite ) print *,'reading ',start(k),i,j
                     status = nf_get_varm_real(ncid,jvars(1),start
      +                   ,count,stride,imap,field(1,1,1,j,i))
@@ -317,7 +317,7 @@
             i = max(firstyr,yr1)
             j = startmo
             do l=1,ck
-                call keepalive(l,ck)
+                call keepalive1('Reading time step',l,ck)
                 if ( lwrite ) then
                     print *,'start  = ',start
                     print *,'count  = ',count

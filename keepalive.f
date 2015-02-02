@@ -2,8 +2,16 @@
         implicit none
         integer i,n
         call keepalive1('Still computing, ',i,n)
-        end
+        end subroutine
+
         subroutine keepalive1(string,i,n)
+        implicit none
+        integer i,n
+        character string*(*)
+        call keepalive2(string,i,n,.false.)
+        end subroutine
+
+        subroutine keepalive2(string,i,n,lforce)
 *
 *       print out something every half minute to keep the httpd happy
 *       secold is set at the last call to keepalive to figure out
@@ -13,11 +21,16 @@
         implicit none
         integer i,n
         character string*(*)
+        logical lforce
         integer iarray(8),sec,secold,sec0
-        save secold,sec0
+        character laststring*50
+        save secold,sec0,laststring
         real tarray(2)
         real etime
         data sec0 /99999/
+        if ( sec0 == 99999 ) then
+            laststring = ' '
+        end if
 *
         call date_and_time(values=iarray)
         if ( sec0.eq.99999 ) then
@@ -30,8 +43,10 @@
            sec0 = sec0 - 24*60*60
         endif
         !!!write(0,*) 'keepalive: delta(sec) = ',sec-secold
-        if ( sec-secold.gt.30 ) then
+        if ( sec-secold.gt.30 .or. (lforce .and. laststring /= string) )
+     +       then
             secold = sec
+            laststring = string
             sec = sec - sec0
             iarray(5) = sec/(60*60)
             sec = sec - iarray(5)*60*60

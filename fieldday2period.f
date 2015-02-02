@@ -81,7 +81,7 @@
                 endif
                 if ( mo.eq.2 .or. mo.eq.5 .or. mo.eq.8 .or. mo.eq.11 )
      +               then
-                    call keepalive1('Season',1+mo/4,4)
+                    call keepalive2('Season',1+mo/4,4,.true.)
                     call fieldday2period(
      +                   oldfield,nperyear,lvalid,
      +                   newfield,nperyearnew,
@@ -104,7 +104,7 @@
                     j = j + dpm(mo)
                     jj = nint(j/(366./nperyear))
                 endif
-                call keepalive1('Month',mo,12)
+                call keepalive2('Month',mo,12,.true.)
                 call fieldday2period(
      +               oldfield,nperyear,lvalid,
      +               newfield,nperyearnew,
@@ -116,6 +116,7 @@
             j = 0
             jold = 0
             do mo=1,12
+                call keepalive2('Month',mo,12,.true.)
                 j = j + 10
                 if ( nperyear.eq.360 .or. nperyear.eq.366 ) then
                     jj = j
@@ -163,6 +164,7 @@
         else
             n = nint(real(nperyear)/real(nperyearnew))
             do j=1,nperyearnew
+                call keepalive2('Period',j,nperyearnew,.true.)
                 call fieldday2period(
      +               oldfield,nperyear,lvalid,
      +               newfield,nperyearnew,
@@ -236,7 +238,7 @@
         endif
 *
         do yr=yrbeg,yrend
-            call keepalive1('Year ',yr-yrbeg+1,yrend-yrbeg+1)
+            call keepalive1('Year',yr-yrbeg+1,yrend-yrbeg+1)
             do jy=1,ny
                 do jx=1,nx
                     if ( (oper.eq.'sd' .or. oper.eq.'var' ) .and. 

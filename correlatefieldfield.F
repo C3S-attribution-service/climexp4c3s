@@ -364,7 +364,7 @@
         yrstop  = yr1
         do jz=1,nz
             do jy=1,ny
-                call keepalive('Computing latitude ',jy+(jz-1)*ny,ny*nz)
+                call keepalive1('Computing latitude',jy+(jz-1)*ny,ny*nz)
                 do jx=1,nx
                     do mo=0,npermax
                         r(jx,jy,jz,mo) = 3e33
