@@ -460,8 +460,8 @@ subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xy
     cov = covariate(momax,yrmax,ensmax)
     if ( cov.gt.1e33 ) then
         if ( lprint ) then
-            write(0,*) 'find_cov: error: no valid value in cavariate(', &
-            &   momax,yrmax,iens,') = ',cov,'<br>'
+            write(0,*) '<p>find_cov: error: no valid value in covariate(', &
+            &   momax,yrmax,ensmax,') = ',cov,'<br>'
         end if
     end if
     if ( i12.eq.2 ) then
