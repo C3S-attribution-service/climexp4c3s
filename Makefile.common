@@ -70,6 +70,7 @@ OBJS	      = makeabsent.o \
 		readncfile.o \
 		zreadncfile.o \
 		readfield.o \
+		readncslice.o \
 		writenc.o \
 		writencseries.o \
 		tolower.o \
