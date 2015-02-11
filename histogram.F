@@ -477,9 +477,16 @@
                     print '(4a)','# <tr><th colspan=3>',trim(namestring)
      +                   ,'</th></tr>'
                 endif
-                print '(9a)'
-     +               ,'# <tr><th>parameter</th><th>value&plusmn;2&sigma'
-     +               ,'</th><th>95% CI</th></tr>'
+                if ( abs(nint(confidenceinterval)-confidenceinterval)
+     +               .lt. 0.001 ) then
+                    print '(2a,i2,a)','# <tr><th>parameter</th><th>',
+     +                   'value&plusmn;2&sigma;</th><th>',
+     +                   nint(confidenceinterval),'% CI</th></tr>'
+                else
+                    print '(2a,f6.3,a)','# <tr><th>parameter</th><th>',
+     +                   'value&plusmn;2&sigma;</th><th>',
+     +                   confidenceinterval,'% CI</th></tr>'
+                end if
                 print '(a,i9,a)','# <tr><td>N:</td><td>',ntot,
      +               '</td><td>&nbsp;</td></tr>'
             else
@@ -524,7 +531,8 @@
 *               Gaussian distribution
                 call fitgau(xx,ntot,mean(0),sd(0),a,b,minindx,maxindx,
      +               ntype,j1,j2,yr2a,xyear,t,t25,t975,tx,tx25,tx975,
-     +               .true.,.true.,lweb,lchangesign,lwrite)
+     +               confidenceinterval,.true.,.true.,lweb,lchangesign,
+     +               lwrite)
                 call gausnorm(a,b,snorm)
                 nfitted = 3
             elseif ( nfit.eq.3 ) then
@@ -551,9 +559,9 @@
                     write(0,*) 'Warning: data do not appear to be block'
      +                   //' maxima or minima.<p>'
                 endif
-                call fitgum(xx,ntot,mean(0),sd(0),a,b,j1,j2,lweb,ntype
-     +               ,lchangesign,yr2a,xyear,t,t25,t975,tx
-     +               ,tx25,tx975,.true.,.true.,lwrite)
+                call fitgum(xx,ntot,mean(0),sd(0),a,b,j1,j2,lweb,ntype,
+     +               lchangesign,yr2a,xyear,t,t25,t975,tx,
+     +               tx25,tx975,confidenceinterval,.true.,.true.,lwrite)
                 call gumbnorm(a,b,snorm)
                 nfitted = 3
             elseif ( nfit.eq.5 ) then
@@ -565,15 +573,16 @@
                 endif
                 call fitgev(xx,ntot,mean(0),sd(0),a,b,xi,j1,j2,lweb
      +               ,ntype,lchangesign,yr2a,xyear,t,t25,t975,tx
-     +               ,tx25,tx975,restrain,.true.,.true.,lwrite)
+     +               ,tx25,tx975,restrain,confidenceinterval,.true.
+     +               ,.true.,lwrite)
                 call gevnorm(a,b,xi,snorm)
                 nfitted = 4
             elseif ( nfit.eq.6 ) then
 *               GPD distribution
                 call fitgpd(xx,ntot,mean(0),sd(0),b,xi,j1,j2,lweb,
      +               ntype,lchangesign,pmindata,threshold,yr2a,xyear,
-     +               t,t25,t975,tx,tx25,tx975,restrain,.true.,.true.,
-     +               lwrite)
+     +               t,t25,t975,tx,tx25,tx975,restrain,
+     +               confidenceinterval,.true.,.true.,lwrite)
 ***                print *,'mindata,threshold = ',mindata,threshold
                 snorm = 1
                 nfitted = 3

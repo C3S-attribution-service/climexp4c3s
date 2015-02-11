@@ -1,8 +1,8 @@
 *  #[ fitgevcov:
         subroutine fitgevcov(xx,yrs,ntot,a3,b3,xi3,alpha3,beta3,j1,j2
      +       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2
-     +       ,offset,t3,tx3,inrestrain,assume,lboot,lprint,dump,plot
-     +       ,lwrite)
+     +       ,offset,t3,tx3,inrestrain,assume,confidenceinterval,lboot
+     +       ,lprint,dump,plot,lwrite)
 *
 *       fit a GEV distribution to the data, which is already assumed to be block max
 *       input:
@@ -19,9 +19,9 @@
 *                       a(cov) = a*exp(alpha*cov), b(cov) = b*exp(alpha*cov)
 *                both:  a(cov) = a + alpha*cov, b(cov) = b + beta*cov
 *       t(10,3)    return values for 10, 20, 50, ..., 10000 years for cov=cov1,cov2 and the difference
-*       t25,t975   2.5%, 97.5% quantiles of these return values
+*       t25,t975   (100-confidenceinterval)/2%, (100+confidenceinterval)/2% quantiles of these return values
 *       tx(3)      return time of the value of year (xyear) in the context of the other values and difference
-*       tx25,tx975 2.5%, 97.5% quantiles of these return times and their differences
+*       tx25,tx975 (100-confidenceinterval)/2%, (100+confidenceinterval)/2% quantiles of these return times and their differences
 *
         implicit none
 *
@@ -30,7 +30,8 @@
         integer ntot,j1,j2,ntype,yr1a,yr2a
         integer yrs(0:ntot)
         real xx(2,ntot),a3(3),b3(3),xi3(3),alpha3(3),beta3(3),xyear,
-     +       cov1,cov2,offset,inrestrain,t3(3,10,3),tx3(3,3)
+     +       cov1,cov2,offset,inrestrain,t3(3,10,3),tx3(3,3),
+     +       confidenceinterval
         character assume*(*),idmax*(*)
         logical lweb,lchangesign,lboot,lprint,dump,plot,lwrite
 *
@@ -238,17 +239,19 @@
             t = -t
             tt = -tt
         endif
-        call getcut( a25, 2.5,iens,aa)
-        call getcut(a975,97.5,iens,aa)
-        call getcut( b25, 2.5,iens,bb)
-        call getcut(b975,97.5,iens,bb)
-        call getcut( xi25, 2.5,iens,xixi)
-        call getcut(xi975,97.5,iens,xixi)
-        call getcut( alpha25, 2.5,iens,alphaalpha)
-        call getcut(alpha975,97.5,iens,alphaalpha)
+        call getcut( a25,(100-confidenceinterval)/2,iens,aa)
+        call getcut(a975,(100+confidenceinterval)/2,iens,aa)
+        call getcut( b25,(100-confidenceinterval)/2,iens,bb)
+        call getcut(b975,(100+confidenceinterval)/2,iens,bb)
+        call getcut( xi25,(100-confidenceinterval)/2,iens,xixi)
+        call getcut(xi975,(100+confidenceinterval)/2,iens,xixi)
+        call getcut( alpha25,(100-confidenceinterval)/2,iens,alphaalpha)
+        call getcut(alpha975,(100+confidenceinterval)/2,iens,alphaalpha)
         if ( assume.eq.'both' ) then
-            call getcut( beta25, 2.5,iens,betabeta)
-            call getcut(beta975,97.5,iens,betabeta)
+            call getcut( beta25,(100-confidenceinterval)/2,iens,
+     +           betabeta)
+            call getcut(beta975,(100+confidenceinterval)/2,iens,
+     +           betabeta)
         end if
         do i=1,10
             do j=1,3
@@ -261,14 +264,18 @@
                     call getcut(t5(i,j),95.,iens,tt(1,i,j))
                     call getcut(t1(i,j),99.,iens,tt(1,i,j))
                 endif
-                call getcut(t25(i,j),2.5,iens,tt(1,i,j))
-                call getcut(t975(i,j),97.5,iens,tt(1,i,j))
+                call getcut( t25(i,j),(100-confidenceinterval)/2,iens,
+     +               tt(1,i,j))
+                call getcut(t975(i,j),(100+confidenceinterval)/2,iens,
+     +               tt(1,i,j))
             enddo
         end do
         do j=1,3
             if ( xyear.lt.1e33 ) then
-                call getcut(tx25(j), 2.5,iens,txtx(1,j))
-                call getcut(tx975(j),97.5,iens,txtx(1,j))
+                call getcut( tx25(j),(100-confidenceinterval)/2,iens,
+     +               txtx(1,j))
+                call getcut(tx975(j),(100+confidenceinterval)/2,iens,
+     +               txtx(1,j))
                 if ( lchangesign ) xyear = -xyear
             endif
         end do

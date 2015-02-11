@@ -322,8 +322,8 @@
                                 f1(n) = 3e33
                                 w1(n) = 3e33
                             else
-                                f1(n) = f1(n) + factor*field1(jx,jy,m,y)
-                                w1(n) = w1(n) + factor*wx(jx)*wy(jy)
+                                f1(n) = f1(n) + field1(jx,jy,m,y)
+                                w1(n) = w1(n) + wx(jx)*wy(jy)
                             endif
                         enddo
                         f2(n) = 0

@@ -1,7 +1,8 @@
 *  #[ fitgaucov:
         subroutine fitgaucov(xx,yrs,ntot,a3,b3,alpha3,beta3,j1,j2
      +       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2
-     +       ,offset,t3,tx3,assume,lboot,lprint,dump,plot,lwrite)
+     +       ,offset,t3,tx3,assume,confidenceinterval,lboot,lprint,dump
+     +       ,plot,lwrite)
 *
 *       a fit a gaussian distribution with mean linearly dependent on a covariate 
 *       to the data
@@ -11,7 +12,7 @@
         integer ntot,ntype,j1,j2,yr1a,yr2a
         integer yrs(0:ntot)
         real xx(2,ntot),a3(3),b3(3),alpha3(3),beta3(3),xyear,cov1,cov2,
-     +       offset,t3(3,10,3),tx3(3,3)
+     +       offset,t3(3,10,3),tx3(3,3),confidenceinterval
         logical lweb,lchangesign,lboot,lprint,dump,plot,lwrite
         character assume*(*),idmax*(*)
 *
@@ -197,26 +198,30 @@
             t = -t
             tt = -tt
         endif
-        call getcut( a25, 2.5,nmc,aa)
-        call getcut(a975,97.5,nmc,aa)
-        call getcut( b25, 2.5,nmc,bb)
-        call getcut(b975,97.5,nmc,bb)
-        call getcut( alpha25, 2.5,nmc,alphaalpha)
-        call getcut(alpha975,97.5,nmc,alphaalpha)
+        call getcut( a25,(100-confidenceinterval)/2,nmc,aa)
+        call getcut(a975,(100+confidenceinterval)/2,nmc,aa)
+        call getcut( b25,(100-confidenceinterval)/2,nmc,bb)
+        call getcut(b975,(100+confidenceinterval)/2,nmc,bb)
+        call getcut( alpha25,(100-confidenceinterval)/2,nmc,alphaalpha)
+        call getcut(alpha975,(100+confidenceinterval)/25,nmc,alphaalpha)
         if ( assume.eq.'both' ) then
-            call getcut( beta25, 2.5,nmc,betabeta)
-            call getcut(beta975,97.5,nmc,betabeta)
+            call getcut( beta25,(100-confidenceinterval)/2,nmc,betabeta)
+            call getcut(beta975,(100+confidenceinterval)/2,nmc,betabeta)
         end if
         do i=1,10
             do j=1,3
-                call getcut(t25(i,j),2.5,nmc,tt(1,i,j))
-                call getcut(t975(i,j),97.5,nmc,tt(1,i,j))
+                call getcut( t25(i,j),(100-confidenceinterval)/2,nmc,
+     +               tt(1,i,j))
+                call getcut(t975(i,j),(100+confidenceinterval)/2,nmc,
+     +               tt(1,i,j))
             enddo
         end do
         do j=1,3
             if ( xyear.lt.1e33 ) then
-                call getcut(tx25(j), 2.5,nmc,txtx(1,j))
-                call getcut(tx975(j),97.5,nmc,txtx(1,j))
+                call getcut( tx25(j),(100-confidenceinterval)/2,nmc,
+     +               txtx(1,j))
+                call getcut(tx975(j),(100+confidenceinterval)/2,nmc,
+     +               txtx(1,j))
                 if ( lchangesign ) xyear = -xyear
             endif
         end do

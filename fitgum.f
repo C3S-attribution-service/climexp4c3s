@@ -1,9 +1,9 @@
 *  #[ fitgum:
         subroutine fitgum(xx,ntot,mean,sd,a,b,j1,j2,lweb,ntype
      +       ,lchangesign,year,xyear,t,t25,t975,tx
-     +       ,tx25,tx975,lboot,lprint,lwrite)
+     +       ,tx25,tx975,confidenceinterval,lboot,lprint,lwrite)
 *
-*       a fit a Guymbel distribution to the data, which is already assumed to be block max
+*       a fit a Gumbel distribution to the data, which is already assumed to be block max
 *       input:
 *       xx(ntot) data
 *       mean,sd  for first guess parameters
@@ -18,7 +18,8 @@
         parameter (nmc=1000)
         integer ntot,j1,j2,ntype,year
         real xx(ntot),mean,sd,a,b,xyear,
-     +       t(10),t25(10),t975(10),tx,tx25,tx975
+     +       t(10),t25(10),t975(10),tx,tx25,tx975,
+     +       confidenceinterval
         logical lweb,lchangesign,lboot,lprint,lwrite
 *
         integer i,j,nx,iter,iens
@@ -152,10 +153,10 @@
             t = -t
             tt = -tt
         endif
-        call getcut( a25, 2.5,nmc,aa)
-        call getcut(a975,97.5,nmc,aa)
-        call getcut( b25, 2.5,nmc,bb)
-        call getcut(b975,97.5,nmc,bb)
+        call getcut( a25,(100-confidenceinterval)/2,nmc,aa)
+        call getcut(a975,(100+confidenceinterval)/2,nmc,aa)
+        call getcut( b25,(100-confidenceinterval)/2,nmc,bb)
+        call getcut(b975,(100+confidenceinterval)/2,nmc,bb)
         do i=1,10
             if ( lchangesign ) then
                 lgt = '&lt;'
@@ -166,12 +167,12 @@
                 call getcut(t5(i),95.,nmc,tt(1,i))
                 call getcut(t1(i),99.,nmc,tt(1,i))
             endif
-            call getcut(t25(i),2.5,nmc,tt(1,i))
-            call getcut(t975(i),97.5,nmc,tt(1,i))
+            call getcut( t25(i),(100-confidenceinterval)/2,nmc,tt(1,i))
+            call getcut(t975(i),(100+confidenceinterval)/2,nmc,tt(1,i))
         enddo
         if ( xyear.lt.1e33 ) then
-            call getcut(tx25, 2.5,nmc,txtx)
-            call getcut(tx975,97.5,nmc,txtx)
+            call getcut( tx25,(100-confidenceinterval)/2,nmc,txtx)
+            call getcut(tx975,(100+confidenceinterval)/2,nmc,txtx)
         endif
 *
 *       output

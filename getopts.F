@@ -104,7 +104,7 @@
 	altavex = 1
 	altavey = 1
         intertype = 0
-        factor = 1
+        confidenceinterval = 95
         nens1 = mens1
         nens2 = mens
         lmakeensfull = .FALSE.
@@ -593,11 +593,18 @@
                     call abort
                 endif
                 lskip = 1
-            elseif ( line(1:4).eq.'fact' ) then
+            elseif ( line(1:4).eq.'conf' ) then
                 call getarg(i+1,line)
-                read(line,*,err=926) factor
-                if ( lout ) print '(a,g12.4)','# multiplying field1 by '
-     +               ,factor
+                read(line,*,err=926) confidenceinterval
+                if ( confidenceinterval.lt.50 .or.
+     +               confidenceinterval.ge.100 ) then
+                    write(0,*) 'getopts: error: confidence interval ',
+     +                   confidenceinterval,'% does not make sense, ',
+     +                   'use a number between 50 and 100'
+                    call exit(-1)
+                end if
+                if ( lout ) print '(a,g12.4,a)','# confidence interval '
+     +               ,confidenceinterval,'%'
                 lskip = 1
             elseif ( line(1:3).eq.'sel' ) then
                 call getarg(i+1,line)

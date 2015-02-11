@@ -96,8 +96,13 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         if ( namestring.ne.' ' ) then
             print '(4a)','# <tr><th colspan=4>',trim(namestring),'</th></tr>'
         endif
-        print '(8a)' ,'# <tr><th>parameter</th><th>year</th><th>value</th><th>' &
-        &   ,'95% CI</th></tr>'
+        if ( abs(nint(confidenceinterval)-confidenceinterval).lt.0.0001 ) then
+            print '(a,i2,a)' ,'# <tr><th>parameter</th><th>year</th><th>value</th><th>' &
+        &       ,nint(confidenceinterval),'% CI</th></tr>'
+        else
+            print '(a,f6.3,a)' ,'# <tr><th>parameter</th><th>year</th><th>value</th><th>' &
+        &       ,confidenceinterval,'% CI</th></tr>'
+        end if
         print '(a,i4,a,g16.5,a)','# <tr><td>covariate:</td><td>',yr1a,'</td><td>',cov1, &
         &   '</td><td>&nbsp;</td></tr>'
         print '(a,i4,a,g19.5,a)','# <tr><td>&nbsp;</td><td>',yr2a,'</td><td>',cov2, &
@@ -129,7 +134,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         if ( lwrite ) print *,'attribute_dist: calling fitgevcov'
         call fitgevcov(xx,yrs,ntot,a,b,xi,alpha,beta,j1,j2 &
     &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2,offset &
-    &       ,t,tx,restrain,assume,lboot,lprint,dump,plot,lwrite)
+    &       ,t,tx,restrain,assume,confidenceinterval,lboot,lprint,dump,plot,lwrite)
     else if ( distribution.eq.'gpd' ) then
         ntype = 3 ! log plot
         !!!print *,'DEBUG'
@@ -138,21 +143,21 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         if ( lwrite ) print *,'attribute_dist: calling fitgpdcov'
         call fitgpdcov(xx,yrs,ntot,a,b,xi,alpha,beta,j1,j2 &
     &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2,offset &
-    &       ,t,tx,pmindata,restrain,assume,lboot,lprint,dump,plot,lwrite)
+    &       ,t,tx,pmindata,restrain,assume,confidenceinterval,lboot,lprint,dump,plot,lwrite)
     else if  ( distribution.eq.'gumbel' ) then
         ntype = 2 ! Gumbel plot
         xi = 0
         if ( lwrite ) print *,'attribute_dist: calling fitgumcov'
         call fitgumcov(xx,yrs,ntot,a,b,alpha,beta,j1,j2 &
     &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2,offset &
-    &       ,t,tx,assume,lboot,lprint,dump,plot,lwrite)
+    &       ,t,tx,assume,confidenceinterval,lboot,lprint,dump,plot,lwrite)
     else if  ( distribution.eq.'gauss' ) then
         ntype = 4 ! sqrtlog plot
         xi = 0
         if ( lwrite ) print *,'attribute_dist: calling fitgaucov'
         call fitgaucov(xx,yrs,ntot,a,b,alpha,beta,j1,j2 &
     &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2,offset &
-    &       ,t,tx,assume,lboot,lprint,dump,plot,lwrite)
+    &       ,t,tx,assume,confidenceinterval,lboot,lprint,dump,plot,lwrite)
     else
         write(0,*) 'attribute_dist: error: unknown distribution ',trim(distribution)
     end if
@@ -451,6 +456,7 @@ subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xy
     if ( abs(s).gt.1e33 ) then
         momax = 1
         yrmax = yr
+        ensmax = mens1
         if ( yrmax.lt.fyr .or. yrmax.gt.lyr ) then
             if ( lprint ) then
                 write(0,*) 'find_cov: error: yr ',yr,' outside range of data<br>'

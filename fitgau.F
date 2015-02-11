@@ -1,7 +1,7 @@
 *  #[ fitgau:
         subroutine fitgau(xx,ntot,mean,sd,a,b,minindx,maxindx,ntype,
      +       j1,j2,year,xyear,t,t25,t975,tx,tx25,tx975,
-     +       lboot,lprint,lweb,lchangesign,lwrite)
+     +       confidenceinterval,lboot,lprint,lweb,lchangesign,lwrite)
 *
 *       a fit a gaussian distribution to the data
 *
@@ -9,7 +9,7 @@
 *
         integer ntot,ntype,j1,j2,year
         real xx(ntot),mean,sd,a,b,minindx,maxindx,xyear,tx,tx25,tx975
-     +       ,t(10),t25(10),t975(10)
+     +       ,t(10),t25(10),t975(10),confidenceinterval
         logical lboot,lprint,lweb,lchangesign,lwrite
 *
         integer nmc
@@ -118,16 +118,18 @@
                 endif
             enddo               ! imc
             do i=1,10
-                call getcut(t25(i),2.5,nmc,tt(1,i))
-                call getcut(t975(i),97.5,nmc,tt(1,i))
+                call getcut( t25(i),(100-confidenceinterval)/2,nmc,
+     +               tt(1,i))
+                call getcut(t975(i),(100+confidenceinterval)/2,nmc,
+     +               tt(1,i))
             enddo
             if ( lchangesign ) then
                 t25 = -t25
                 t975 = -t975
             endif
             if ( xyear.lt.1e33 ) then
-                call getcut(tx25,2.5,nmc,txtx)
-                call getcut(tx975,97.5,nmc,txtx)
+                call getcut( tx25,(100-confidenceinterval)/2,nmc,txtx)
+                call getcut(tx975,(100+confidenceinterval)/2,nmc,txtx)
             endif
             if ( lprint ) then
                 call printreturnvalue(ntype,t,t25,t975,lweb)
