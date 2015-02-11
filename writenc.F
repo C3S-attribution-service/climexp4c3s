@@ -332,7 +332,7 @@
                 write(0,*) 'ivars= ',ivars(2,ivar)
                 string = 'def var'
                 string(9:) = vars(ivar)
-                call handle_err(status,string)
+                call handle_err(status,trim(string))
             endif
             if ( lwrite ) print *,ivars(2,ivar),(trim(vars(ivar)))
             status = nf_put_att_text(ncid,ivars(2,ivar),'long_name'
