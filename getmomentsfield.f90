@@ -522,9 +522,8 @@ program getmomentsfield
      &                                       xmom(1),xmom(2),a,b, &
      &                                       minindx,maxindx,3,j1,j2, &
      &                                       year,xyear,t,t25,t975, &
-     &                                       tx,tx25,tx975,.false., &
-     &                                       .false.,lweb,.false., &
-     &                                       lwrite)
+     &                                       tx,tx25,tx975,confidenceinterval, &
+     &                                       .false.,.false.,lweb,.false.,lwrite)
                                     else
                                         do i=1,n
                                             ddata(i) = -ddata(i)
@@ -533,8 +532,8 @@ program getmomentsfield
      &                                       -xmom(1),xmom(2),a,b, &
      &                                       minindx,maxindx,3,j1,j2, &
      &                                       year,-xyear,t,t25,t975, &
-     &                                       tx,tx25,tx975,.false., &
-     &                                       .false.,lweb,.true.,lwrite)
+     &                                       tx,tx25,tx975,confidenceinterval, &
+     &                                       .false.,.false.,lweb,.true.,lwrite)
                                     end if
                                     res(jx,jy,jz,m,9) = tx
                                     res(jx,jy,jz,m,10) = &
@@ -565,8 +564,8 @@ program getmomentsfield
                             call fitgpd(ddata,n,xmom(1),xmom(2),b,xi, &
      &                           j1,j2,lweb,2,lchangesign,pmindata, &
      &                           mindata,year,xyear,t,t25,t975, &
-     &                           tx,tx25,tx975,restrain,.false.,.false., &
-     &                           lwrite)
+     &                           tx,tx25,tx975,restrain,confidenceinterval, &
+     &                           .false.,.false.,lwrite)
                             res(jx,jy,jz,m,1) = b
                             res(jx,jy,jz,m,2) = xi
                             do i=1,10
@@ -595,8 +594,8 @@ program getmomentsfield
      &                          var,xmom(3),xmom(4))
                             call fitgev(ddata,n,xmom(1),xmom(2),a,b,xi, &
      &                           j1,j2,lweb,4,lchangesign,year,xyear,t &
-     &                           ,t25,t975,tx,tx25,tx975,restrain, &
-     &                           .false.,.false.,lwrite)
+     &                           ,t25,t975,tx,tx25,tx975,restrain &
+     &                           ,confidenceinterval,.false.,.false.,lwrite)
                             res(jx,jy,jz,m,1) = a
                             res(jx,jy,jz,m,2) = b
                             res(jx,jy,jz,m,3) = xi
