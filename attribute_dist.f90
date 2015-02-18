@@ -33,12 +33,18 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         allocate(yrcovariate(1,fyr:lyr,0:mens))
         yrseries = 3e33
         yrcovariate = 3e33
-        if ( lwrite ) print *,'attribute_dist: calling make_annual_series for series with max'
-        call make_annual_values(series,nperyear,npermax,yrbeg,yrend,mens1,mens, &
-        &   yrseries,fyr,lyr,'max')
-        if ( lwrite ) print *,'attribute_dist: calling make_annual_series for covariate with mean'
-        call make_annual_values(covariate,nperyear1,npermax,yrbeg,yrend,mens1,mens, &
-        &   yrcovariate,fyr,lyr,'mean')
+        if ( nperyear.eq.nperyear1 .and. nperyear.gt.1 ) then
+            if ( lwrite ) print *,'attribute_dist: calling make_two_annual_values with max'
+            call make_two_annual_values(series,covariate,nperyear,npermax,yrbeg,yrend,mens1,mens, &
+            &   yrseries,yrcovariate,fyr,lyr,'max')
+        else
+            if ( lwrite ) print *,'attribute_dist: calling make_annual_values for series with max'
+            call make_annual_values(series,nperyear,npermax,yrbeg,yrend,mens1,mens, &
+            &   yrseries,fyr,lyr,'max')
+            if ( lwrite ) print *,'attribute_dist: calling make_annual_values for covariate with mean'
+            call make_annual_values(covariate,nperyear1,npermax,yrbeg,yrend,mens1,mens, &
+            &   yrcovariate,fyr,lyr,'mean')
+        end if
         npernew = 1
         j1 = 1
         j2 = 1
@@ -368,6 +374,139 @@ subroutine make_annual_values(series,nperyear,npermax,yrbeg,yrend,mens1,mens, &
         end do ! iens
     end if ! nperyear >= 12
 end subroutine make_annual_values
+
+subroutine make_two_annual_values(series,covariate,nperyear,npermax,yrbeg,yrend,mens1,mens, &
+&   yrseries,yrcovariate,fyr,lyr,operation)
+    
+    ! construct two annual time series with the maxima of series and the corresponding values of covariate
+
+    implicit none
+    include 'getopts.inc'
+    integer nperyear,npermax,yrbeg,yrend,mens1,mens,fyr,lyr
+    real series(npermax,yrbeg:yrend,0:mens),covariate(npermax,yrbeg:yrend,0:mens), &
+    & yrseries(1,fyr:lyr,0:mens),yrcovariate(1,fyr:lyr,0:mens)
+    character operation*(*)
+    integer j1,j2,yy,yr,mm,mo,dd,dy,k,m,mtot,n,dpm(12),iens
+    real s
+
+    if ( lwrite ) then
+        print *,'make_two_annual_values: taking ',trim(operation)
+        print *,'nperyear,npermax = ',nperyear,npermax
+    end if
+    if ( nperyear == 1 ) then
+        do iens=mens1,mens
+            do yy=yr1,yr2
+                yrseries(1,yy,iens) = series(1,yy,iens)
+                yrcovariate(1,yy,iens) = covariate(1,yy,iens)
+            end do
+        end do
+    else if ( nperyear < 12 ) then
+        do iens=mens1,mens
+            do yr=yr1,yr2
+                m = 0
+                if ( operation.eq.'max' ) then
+                    s = -3e33
+                else if ( operation.eq.'min' ) then
+                    s = 3e33
+                else
+                    s = 0
+                    yrcovariate(1,yr,iens) = 0
+                end if
+                do dy=1,nperyear
+                    if ( series(dy,yr,iens).lt.1e33 ) then
+                        m = m + 1
+                        if ( operation.eq.'max' ) then
+                            s = max(s,series(dy,yr,iens))
+                            yrcovariate(1,yr,iens) = covariate(dy,yr,iens)
+                        else if ( operation.eq.'min' ) then
+                            s = min(s,series(dy,yr,iens))
+                            yrcovariate(1,yr,iens) = covariate(dy,yr,iens)
+                        else if ( operation.eq.'mean' ) then
+                            s = s + series(dy,yr,iens)
+                            yrcovariate(1,yr,iens) = yrcovariate(1,yr,iens) + covariate(dy,yr,iens)
+                        else
+                            write(0,*) 'make_annual_values: unknown operation ',trim(operation)
+                            call abort
+                        end if
+                    end if
+                end do
+                if ( m.gt.minfac*nperyear ) then
+                    if ( operation.eq.'min' .or. operation.eq.'max' ) then
+                        yrseries(1,yr,iens) = s
+                    else if ( operation.eq.'mean' ) then
+                        yrseries(1,yr,iens) = s/m
+                        yrcovariate(1,yr,iens) = yrcovariate(1,yr,iens)/m
+                    else
+                        write(0,*) 'make_annual_values: unknown operation ',trim(operation)
+                        call abort
+                    end if
+                end if
+            end do ! yr
+        end do ! iens                
+    else if ( nperyear >= 12 ) then
+        call getj1j2(j1,j2,m1,12,lwrite)
+        if ( lwrite ) print *,'make_annual_values: j1,j2,nperyear = ',j1,j2,nperyear
+        call getdpm(dpm,nperyear)
+        if ( lwrite ) print *,'                    dpm = ',dpm
+        do iens=mens1,mens
+            do yy=yr1,yr2
+                if ( operation.eq.'max' ) then
+                    s = -3e33
+                else if ( operation.eq.'min' ) then
+                    s = 3e33
+                else
+                    s = 0
+                    yrcovariate(1,yr,iens) = 0
+                end if
+                m = 0
+                mtot = 0
+                dd = 0
+                do mm=1,j1-1
+                    dd = dd + dpm(mm)
+                end do
+                do mm=j1,j2
+                    mo = mm
+                    call normon(mo,yy,yr,min(12,nperyear))
+                    do k=dd+1,dd+dpm(mo)
+                        dy = k
+                        call normon(dy,yy,yr,nperyear)
+                        if ( yr.le.yr2 ) then
+                            mtot = mtot + 1
+                            if ( series(dy,yr,iens).lt.1e33 ) then
+                                m = m + 1
+                                if ( operation.eq.'max' ) then
+                                    s = max(s,series(dy,yr,iens))
+                                    yrcovariate(1,yr,iens) = covariate(dy,yr,iens)
+                                else if ( operation.eq.'min' ) then
+                                    s = min(s,series(dy,yr,iens))
+                                    yrcovariate(1,yr,iens) = covariate(dy,yr,iens)
+                                else if ( operation.eq.'mean' ) then
+                                    s = s + series(dy,yr,iens)
+                                    yrcovariate(1,yr,iens) = yrcovariate(1,yr,iens) + covariate(dy,yr,iens)
+                                else
+                                    write(0,*) 'make_annual_values: unknown operation ',trim(operation)
+                                    call abort
+                                end if
+                            end if
+                        end if
+                    end do
+                    dd = dd + dpm(mo)
+                end do
+                if ( m.gt.minfac*mtot ) then
+                    if ( operation.eq.'min' .or. operation.eq.'max' ) then
+                        yrseries(1,yy,iens) = s
+                    else if ( operation.eq.'mean' ) then
+                        yrseries(1,yy,iens) = s/m
+                        yrcovariate(1,yr,iens) = yrcovariate(1,yr,iens)/m
+                    else
+                        write(0,*) 'make_annual_values: unknown operation ',trim(operation)
+                        call abort
+                    end if
+                end if
+            end do ! yy
+        end do ! iens
+    end if ! nperyear >= 12
+end subroutine make_two_annual_values
 
 subroutine fill_linear_array(series,covariate,nperyear,j1,j2,fyr,lyr,mens1,mens,&
 &   xx,yrs,nmax,ntot)
