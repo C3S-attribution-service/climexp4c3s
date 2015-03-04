@@ -1,10 +1,10 @@
         subroutine fieldallday2period(
      +       oldfield,nperyear,lvalid,
      +       newfield,nperyearnew,
-     +       nx,ny,yrbeg,yrend,oper,lgt,cut,minfac,itype,var,units,
-     +       lwrite)
+     +       nx,ny,yrbeg,yrend,oper,lgt,cut,minfac,add_option,
+     +       itype,var,units,lwrite)
         implicit none
-        integer nperyear,nx,ny,nperyearnew,yrbeg,yrend,itype
+        integer nperyear,nx,ny,nperyearnew,yrbeg,yrend,itype,add_option
         real oldfield(nx,ny,nperyear,yrbeg:yrend),
      +       newfield(nx,ny,abs(nperyearnew),yrbeg:yrend),
      +       cut(nx,ny,nperyear),minfac
@@ -46,13 +46,13 @@
      +           oldfield,nperyear,lvalid,
      +           newfield,abs(nperyearnew),
      +           nx,ny,yrbeg,yrend,1,nperyear,1,oper,lgt,cut,
-     +           minfac,itype,lwrite)
+     +           minfac,add_option,itype,lwrite)
         else if ( nperyearnew.eq.1 ) then
             call fieldday2period(
      +           oldfield,nperyear,lvalid,
      +           newfield,nperyearnew,
      +           nx,ny,yrbeg,yrend,1,nperyear,1,oper,lgt,cut,
-     +           minfac,itype,lwrite)
+     +           minfac,add_option,itype,lwrite)
         elseif ( nperyearnew.eq.4 ) then
             if ( nperyear.ne.360 ) then
                 j = -31
@@ -86,7 +86,7 @@
      +                   oldfield,nperyear,lvalid,
      +                   newfield,nperyearnew,
      +                   nx,ny,yrbeg,yrend,jold+1,jj,(mo+1)/3,oper,lgt
-     +                   ,cut,minfac,itype,lwrite)
+     +                   ,cut,minfac,add_option,itype,lwrite)
                     jold = jj
                 endif
             enddo
@@ -109,7 +109,7 @@
      +               oldfield,nperyear,lvalid,
      +               newfield,nperyearnew,
      +               nx,ny,yrbeg,yrend,jold+1,jj,mo,oper,lgt,cut,
-     +               minfac,itype,lwrite)
+     +               minfac,add_option,itype,lwrite)
                 jold = jj
             enddo
         elseif ( nperyearnew.eq.36 ) then
@@ -127,7 +127,7 @@
      +               oldfield,nperyear,lvalid,
      +               newfield,nperyearnew,
      +               nx,ny,yrbeg,yrend,jold+1,jj,3*mo-2,oper,lgt,cut,
-     +               minfac,itype,lwrite)
+     +               minfac,add_option,itype,lwrite)
                 jold = jj
                 j = j + 10
                 if ( nperyear.eq.360 .or. nperyear.eq.366 ) then
@@ -139,7 +139,7 @@
      +               oldfield,nperyear,lvalid,
      +               newfield,nperyearnew,
      +               nx,ny,yrbeg,yrend,jold+1,jj,3*mo-1,oper,lgt,cut,
-     +               minfac,itype,lwrite)
+     +               minfac,add_option,itype,lwrite)
                 jold = jj
                 if ( nperyear.eq.360 ) then
                     j = j + 10
@@ -158,7 +158,7 @@
      +               oldfield,nperyear,lvalid,
      +               newfield,nperyearnew,
      +               nx,ny,yrbeg,yrend,jold+1,jj,3*mo,oper,lgt,cut,
-     +               minfac,itype,lwrite)
+     +               minfac,add_option,itype,lwrite)
                 jold = jj
             enddo
         else
@@ -169,7 +169,7 @@
      +               oldfield,nperyear,lvalid,
      +               newfield,nperyearnew,
      +               nx,ny,yrbeg,yrend,n*(j-1)+1,n*j,j,oper,lgt,cut,
-     +               minfac,itype,lwrite)
+     +               minfac,add_option,itype,lwrite)
             enddo
         endif
 *
@@ -181,7 +181,7 @@
      +       oldfield,nperyear,lvalid,
      +       newfield,nperyearnew,
      +       nx,ny,yrbeg,yrend,j1,j2,jnew,oper,lgt,cut,
-     +       minfac,itype,lwrite)
+     +       minfac,add_option,itype,lwrite)
 *
 *       operates on oldfield (j1:j2,) to make newfield(jnew,)
 *       oper = mean|sd|var|min|max|num|sum
@@ -194,7 +194,8 @@
 *       2-nov-2005 adapted for fields
 *
         implicit none
-        integer nx,ny,nperyear,nperyearnew,yrbeg,yrend,j1,j2,jnew,itype
+        integer nx,ny,nperyear,nperyearnew,yrbeg,yrend,j1,j2,jnew,itype,
+     +       add_option
         real oldfield(nx,ny,nperyear,yrbeg:yrend),
      +       newfield(nx,ny,nperyearnew,yrbeg:yrend),
      +       cut(nx,ny,nperyear),minfac
@@ -324,8 +325,8 @@ C                           invalid data [this may be relaxed later...]
                         endif
                         if ( lfirst.eq.9999 ) lfirst = mo-j1
 !                       this test should be exactly the same as in daily2longerfield
-                        if ( ( oper.eq.'mea' .or. oper.eq.'sum' )
-     +                       .and. lgt.eq.' ' ) then
+                        if ( ( oper.eq.'mea' .or. oper.eq.'sum' ) .and.
+     +                       lgt.eq.' ' .and. add_option.gt.0 ) then
                             if ( lvalid(jx,jy,j,i) ) ntot = ntot + 1
                         else
                             ntot = ntot + 1
@@ -390,6 +391,13 @@ C                           invalid data [this may be relaxed later...]
      +                           ,cut(jx,jy,j)
                         endif
                     enddo       ! j
+                    if (.false. .and. lwrite .and. lfirst.lt.9999 ) then
+                        write(*,*) yr,'lfirst,minfac*(j2-j1+1) = ',
+     +                       lfirst,minfac*(j2-j1+1)
+                        write(*,*) yr,
+     +                       'ntot,minfac*nperyear/nperyearnew = ',
+     +                       ntot,minfac*nperyear/nperyearnew
+                    end if
                     if ( lfirst.gt.minfac*(j2-j1+1) .or. 
      +                   ntot.lt.minfac*nperyear/nperyearnew ) then
                         newfield(jx,jy,jnew,i) = 3e33

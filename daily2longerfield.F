@@ -315,7 +315,7 @@
         call fieldallday2period(
      +       oldfield,nperyear,lvalid,
      +       newfield,nperyearnew,
-     +       nx,ny,firstyr,lastyr,opera,lgt,cut,minfac,
+     +       nx,ny,firstyr,lastyr,opera,lgt,cut,minfac,add_option,
      +       itype,vars(1),units(1),lwrite)
         deallocate(oldfield)
         nperyearnew = abs(nperyearnew)
