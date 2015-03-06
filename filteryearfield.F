@@ -7,9 +7,11 @@
 #include "recfac.h"
 #include "netcdf.inc"
 #include "getopts.inc"
+        integer ntmax
+        parameter(ntmax=500*npermax)
         integer i,j,yr,mo,nyr,nperyear,ncid,nx,ny,nz,firstyr,firstmo,nt
      +       ,nvars,ivars(2,nvmax),jvars(6,nvmax),endian,lastyr,jx,jy,jz
-     +       ,iu,status,mens1,mens,n
+     +       ,iu,status,mens1,mens,n,ntvarid,itimeaxis(ntmax)
         real xx(nxmax),yy(nymax),zz(nzmax),undef
         real,allocatable :: data(:,:,:,:,:),fxy(:,:)
         character file*256,line*128,hilo*2,filtertype*12,vars(nvmax)*20
@@ -135,10 +137,6 @@
         enddo
 *
         call getarg(iargc(),file)
-        i = index(file,'.ctl')
-        if ( i.eq.0 ) i = 1 + len_trim(file)
-        datfile = file
-        datfile(i:) = '.grd'
         if ( yearmonth.eq.'year' ) then
             scale = 'yr'
         else
@@ -158,32 +156,49 @@
         write(lvars(1),'(2a,i3,7a)') trim(lvars(1)),' with a ',nyr
      +       ,'-',scale,' ',trim(filtertype),' ',hilo,'-pass filter'
         undef = 3e33
-        call rsunit(iu)
-        open(iu,file=trim(datfile),status='new',access='direct',
-     +       recl=recfa4*nx*ny*nz)
-        yr = firstyr
-        mo = firstmo
-        n = 0
-        do i=1,nt
-            if ( nperyear.eq.366 .and. mo.eq.60 .and. leap(yr).eq.1 )
-     +           then
-                if ( lwrite ) print *,'skipping Feb 29 in non-leap year'
-            else
-                n = n + 1
-                write(iu,rec=n) (((data(jx,jy,jz,mo,yr),jx=1,nx),jy=1,ny
-     +               ),jz=1,nz)
-            end if
-            mo = mo + 1
-            if ( mo.gt.nperyear ) then
-                mo = mo - nperyear
-                yr = yr + 1
-            endif
-        enddo
-        close(iu)
-        nt = n
-        call writectl(file,datfile,nx,xx,ny,yy,nz,zz,
-     +       nt,nperyear,firstyr,firstmo,undef,title,nvars,vars,ivars
-     +       ,lvars,units)
+        i = index(file,'.ctl')
+        if ( i.ne.0 ) then
+            ! grads ct/grd output
+            datfile = file
+            datfile(i:) = '.grd'
+            call writectl(file,datfile,nx,xx,ny,yy,nz,zz,
+     +           nt,nperyear,firstyr,firstmo,undef,title,nvars,vars,
+     +           ivars,lvars,units)
+            call rsunit(iu)
+            open(iu,file=trim(datfile),status='new',access='direct',
+     +           recl=recfa4*nx*ny*nz)
+            yr = firstyr
+            mo = firstmo
+            n = 0
+            do i=1,nt
+                if ( nperyear.eq.366 .and. mo.eq.60 .and. leap(yr).eq.1
+     +               ) then
+                    if ( lwrite ) print *,'skipping Feb 29 in non-leap'
+     +                   //' year'
+                else
+                    n = n + 1
+                    write(iu,rec=n) (((data(jx,jy,jz,mo,yr),jx=1,nx),
+     +                   jy=1,ny),jz=1,nz)
+                end if
+                mo = mo + 1
+                if ( mo.gt.nperyear ) then
+                    mo = mo - nperyear
+                    yr = yr + 1
+                endif
+            enddo
+            close(iu)
+            nt = n
+        else
+            ! netcdf output
+            call writenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny,yy,
+     +           nz,zz,nt,nperyear,firstyr,firstmo,undef,title,nvars,
+     +           vars,jvars,lvars,units,0,0)
+            do i=1,nt
+                call writencslice(ncid,ntvarid,itimeaxis,ntmax,jvars,
+     +               data,nx,ny,nz,nx,ny,nz,i,0)
+            end do
+            status = nf_close(ncid)
+        end if
 *
         goto 999
   901   write(0,*) 'filterseries: expcting an integer, not ',file
