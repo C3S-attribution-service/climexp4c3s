@@ -785,3 +785,90 @@
 
         end
 *  #] adjustyy:
+*  #[ write_obscov:
+        subroutine write_obscov(xx,ntot,xmin,cov2,xyear,offset,
+     +       lchangesign)
+        implicit none
+        integer ntot
+        real xx(2,ntot),xmin,cov2,xyear,offset
+        logical lchangesign
+        integer i,is
+        logical lopen
+        character string*1000,arg*250
+        integer iargc
+        inquire(unit=15,opened=lopen)
+        if ( lopen ) then
+            if ( lchangesign ) then
+                is = -1
+            else
+                is = +1
+            end if
+            string = ' '
+            do i=0,iargc()
+                call getarg(i,arg)
+                string = trim(string) // ' '
+     +               // arg(index(arg,'/',.true.)+1:)
+            end do
+            write(15,'(a)') '# ' // trim(string)
+            write(15,'(a)') '# covariate  value'
+            do i=1,ntot
+                if ( xx(1,i).gt.xmin ) then
+                    write(15,'(2g20.6)') xx(2,i)+offset,is*xx(1,i)
+                end if
+            end do
+            write(15,'(a)')
+            write(15,'(a)')
+            if ( xyear.lt.1e33 ) then
+                write(15,'(2g20.6)') cov2+offset,is*xyear
+            else
+                write(15,'(g20.6,a)') cov2+offset,'-999.900'
+            end if
+        end if
+        end subroutine
+*  #] write_obscov:
+*  #[ write_threshold
+        subroutine write_threshold(cmin,cmax,a,b,alpha,beta,offset,
+     +       lchangesign)
+        implicit none
+        real cmin,cmax,a,b,alpha,beta,offset
+        logical lchangesign
+        integer i,is
+        real c,aa,bb
+        logical lopen
+        inquire(unit=15,opened=lopen) ! no flag in getopts.inc
+        if ( lopen ) then
+            if ( lchangesign ) then
+                is = -1
+            else
+                is = +1
+            end if
+            write(15,'(a)')
+            write(15,'(a)')
+            write(15,'(a)') '# covariate threshold/position scale'
+            do i=0,100
+                c = cmin + (cmax-cmin)*i/100.
+                call getabfromcov(a,b,alpha,beta,c,aa,bb)
+                write(15,'(3g20.6)') c+offset,is*aa,is*bb
+            end do
+        endif
+        end subroutine
+*  #] write_threshold:
+*  #[ write_dthreshold
+        subroutine write_dthreshold(cov1,cov2,acov,offset,lchangesign)
+        implicit none
+        real cov1,cov2,acov(3,2),offset
+        logical lchangesign
+        integer i,j,is
+        logical lopen
+        inquire(unit=15,opened=lopen) ! no flag in getopts.inc
+        if ( lopen ) then
+            is = +1 ! pre-flipped
+            write(15,'(a)')
+            write(15,'(a)')
+            write(15,'(a)')
+     +           '# covariate threshold lowerbound upperbound'
+            write(15,'(4g20.6)') cov1+offset,(is*acov(j,1),j=1,3)
+            write(15,'(4g20.6)') cov2+offset,(is*acov(j,2),j=1,3)
+        endif
+        end subroutine
+*  #] write_threshold:

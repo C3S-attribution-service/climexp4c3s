@@ -43,7 +43,8 @@
      +       ,beta25,beta975,t5(10,3),t1(10,3)
      +       ,db,dxi,f,threshold,thens,z,ll,ll1,txtx(nmc,3)
      +       ,a25,a975,ranf,mean,sd,dalpha,dbeta
-     +       ,mindata,minindx,pmindata,snorm,s,xxyear,frac
+     +       ,mindata,minindx,pmindata,snorm,s,xxyear,frac,
+     +       acov(3,2),aacov(nmc,2),plo,phi,cmin,cmax
         real ttt(10,3),txtxtx(3)
         real adev,var,skew,curt,aaa,bbb,aa25,aa975,bb25,bb975,
      +       siga,chi2,q
@@ -82,9 +83,13 @@
         allocate(ys(ntot))
         allocate(zz(ntot))
         allocate(sig(ntot))
+        cmin = 3e33
+        cmax = -3e33
         do i=1,ntot
             yy(i) = xx(1,i)
             zz(i) = xx(2,i)
+            cmin = min(cmin,xx(2,i))
+            cmax = max(cmax,xx(2,i))
         end do
         sig = 0
         call moment(yy,ntot,mean,adev,sd,var,skew,curt)
@@ -116,6 +121,10 @@
         restrain = inrestrain
         llwrite = lwrite
         cassume = assume
+!
+!       dump (covariate,observation) pairs to plotfile on unit 15
+!
+        call write_obscov(xx,ntot,-3e33,cov2,xyear,offset,lchangesign)
 
         b = sd*sqrt(6.)/(4*atan(1.))
         a = mean - 0.57721*b
@@ -137,6 +146,12 @@
             call getreturnyears(a,b,xi,alpha,beta,xyear,cov1,cov2,
      +           gevcovreturnyear,j1,j2,tx,lwrite)
         endif
+        call getabfromcov(a,b,alpha,beta,cov1,aaa,bbb)
+        acov(1,1) = aaa
+        call getabfromcov(a,b,alpha,beta,cov2,aaa,bbb)
+        acov(1,2) = aaa
+        call write_threshold(cmin,cmax,a,b,alpha,beta,offset,
+     +       lchangesign)
 *
 *       bootstrap to find error estimates
 *
@@ -202,6 +217,12 @@
             end if
             if ( lwrite ) print *,'a,b,xi,alpha = ',aa(iens),bb(iens),
      +           xixi(iens),alphaalpha(iens)
+            call getabfromcov(aa(iens),bb(iens),
+     +           alphaalpha(iens),betabeta(iens),cov1,aaa,bbb)
+            aacov(iens,1) = aaa
+            call getabfromcov(aa(iens),bb(iens),
+     +           alphaalpha(iens),betabeta(iens),cov2,aaa,bbb)
+            aacov(iens,2) = aaa
             call getreturnlevels(aa(iens),bb(iens),xixi(iens),
      +           alphaalpha(iens),betabeta(iens),
      +           cov1,cov2,gevcovreturnlevel,j1,j2,ttt)
@@ -227,7 +248,9 @@
         enddo
         if ( lchangesign ) then
             a = -a
+            acov = -acov
             aa = -aa
+            aacov = -aacov
             b = -b
             bb = -bb
             alpha = -alpha
@@ -239,20 +262,24 @@
             t = -t
             tt = -tt
         endif
-        call getcut( a25,(100-confidenceinterval)/2,iens,aa)
-        call getcut(a975,(100+confidenceinterval)/2,iens,aa)
-        call getcut( b25,(100-confidenceinterval)/2,iens,bb)
-        call getcut(b975,(100+confidenceinterval)/2,iens,bb)
-        call getcut( xi25,(100-confidenceinterval)/2,iens,xixi)
-        call getcut(xi975,(100+confidenceinterval)/2,iens,xixi)
-        call getcut( alpha25,(100-confidenceinterval)/2,iens,alphaalpha)
-        call getcut(alpha975,(100+confidenceinterval)/2,iens,alphaalpha)
+        plo = (100-confidenceinterval)/2
+        phi = (100+confidenceinterval)/2
+        call getcut( a25,plo,iens,aa)
+        call getcut(a975,phi,iens,aa)
+        call getcut( b25,plo,iens,bb)
+        call getcut(b975,phi,iens,bb)
+        call getcut( xi25,plo,iens,xixi)
+        call getcut(xi975,phi,iens,xixi)
+        call getcut( alpha25,plo,iens,alphaalpha)
+        call getcut(alpha975,phi,iens,alphaalpha)
         if ( assume.eq.'both' ) then
-            call getcut( beta25,(100-confidenceinterval)/2,iens,
-     +           betabeta)
-            call getcut(beta975,(100+confidenceinterval)/2,iens,
-     +           betabeta)
+            call getcut( beta25,plo,iens,betabeta)
+            call getcut(beta975,phi,iens,betabeta)
         end if
+        call getcut(acov(2,1),plo,iens,aacov(1,1))
+        call getcut(acov(3,1),phi,iens,aacov(1,1))
+        call getcut(acov(2,2),plo,iens,aacov(1,2))
+        call getcut(acov(3,2),phi,iens,aacov(1,2))
         do i=1,10
             do j=1,3
                 if ( lchangesign ) then
@@ -264,18 +291,14 @@
                     call getcut(t5(i,j),95.,iens,tt(1,i,j))
                     call getcut(t1(i,j),99.,iens,tt(1,i,j))
                 endif
-                call getcut( t25(i,j),(100-confidenceinterval)/2,iens,
-     +               tt(1,i,j))
-                call getcut(t975(i,j),(100+confidenceinterval)/2,iens,
-     +               tt(1,i,j))
+                call getcut( t25(i,j),plo,iens,tt(1,i,j))
+                call getcut(t975(i,j),phi,iens,tt(1,i,j))
             enddo
         end do
         do j=1,3
             if ( xyear.lt.1e33 ) then
-                call getcut( tx25(j),(100-confidenceinterval)/2,iens,
-     +               txtx(1,j))
-                call getcut(tx975(j),(100+confidenceinterval)/2,iens,
-     +               txtx(1,j))
+                call getcut( tx25(j),plo,iens,txtx(1,j))
+                call getcut(tx975(j),phi,iens,txtx(1,j))
                 if ( lchangesign ) xyear = -xyear
             endif
         end do
@@ -350,6 +373,7 @@
         end if
         if ( plot ) write(11,'(3g20.4,a)') alpha,alpha25,alpha975,
      +       ' alpha'
+        call write_dthreshold(cov1,cov2,acov,offset,lchangesign)
 
         ! no cuts
         mindata = -2e33

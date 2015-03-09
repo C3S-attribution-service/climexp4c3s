@@ -560,6 +560,11 @@
                 if ( plotrunfile.eq.' ' ) goto 924
                 open(14,file=trim(plotrunfile))
                 lskip = 2
+            elseif ( line(1:7).eq.'obsplot' ) then
+                call getarg(i+1,plotrunfile)
+                if ( plotrunfile.eq.' ' ) goto 924
+                open(15,file=trim(plotrunfile))
+                lskip = 1
             elseif ( line(1:6).eq.'random' ) then
                 call getarg(i+1,line)
                 if ( line(1:6).eq.'series' ) then

@@ -35,6 +35,7 @@
      +       ,ranf,mean,sd,dalpha,dbeta,mindata,minindx,pmindata
      +       ,snorm,s,frac,t(10,3),t25(10,3),t975(10,3)
      +       ,tx(3),tx25(3),tx975(3),ttt(10,3),txtxtx(3),xi3(3)
+     +       ,acov(3,2),aacov(nmc,2),cmin,cmax,plo,phi
         real adev,var,skew,curt,aaa,bbb,siga,chi2,q
         real,allocatable :: yy(:),ys(:),zz(:),sig(:)
         character lgt*4
@@ -70,10 +71,16 @@
         allocate(ys(ntot))
         allocate(zz(ntot))
         allocate(sig(ntot))
+        cmin = 3e33
+        cmax = -3e33
         do i=1,ntot
             yy(i) = xx(1,i)
             zz(i) = xx(2,i)
+            cmin = min(cmin,xx(2,i))
+            cmax = max(cmax,xx(2,i))
         end do
+        call write_obscov(xx,ntot,-3e33,cov2,xyear,offset,lchangesign)
+
         sig = 0
         call moment(yy,ntot,mean,adev,sd,var,skew,curt)
         call fit(zz,yy,ntot,sig,0,aaa,alpha,siga,dalpha,chi2,q)
@@ -123,6 +130,12 @@
             call getreturnyears(a,b,xi,alpha,beta,xyear,cov1,cov2,
      +           gevcovreturnyear,j1,j2,tx,lwrite)
         endif
+        call getabfromcov(a,b,alpha,beta,cov1,aaa,bbb)
+        acov(1,1) = aaa
+        call getabfromcov(a,b,alpha,beta,cov2,aaa,bbb)
+        acov(1,2) = aaa
+        call write_threshold(cmin,cmax,a,b,alpha,beta,offset,
+     +       lchangesign)
 *
 *       bootstrap to find error estimates
 *
@@ -176,6 +189,12 @@
                 write(0,*) 'fitgumcov: cannot handle assume = ',assume
                 call abort
             end if
+            call getabfromcov(aa(iens),bb(iens),
+     +           alphaalpha(iens),betabeta(iens),cov1,aaa,bbb)
+            aacov(iens,1) = aaa
+            call getabfromcov(aa(iens),bb(iens),
+     +           alphaalpha(iens),betabeta(iens),cov2,aaa,bbb)
+            aacov(iens,2) = aaa
             xi = 0
             call getreturnlevels(aa(iens),bb(iens),xi,alphaalpha(iens),
      +           betabeta(iens),cov1,cov2,gevcovreturnlevel,j1,j2,ttt)
@@ -195,7 +214,9 @@
         enddo
         if ( lchangesign ) then
             a = -a
+            acov = -acov
             aa = -aa
+            aacov = -aacov
             b = -b
             bb = -bb
             alpha = -alpha
@@ -207,15 +228,17 @@
             t = -t
             tt = -tt
         endif
-        call getcut( a25,(100-confidenceinterval)/2,nmc,aa)
-        call getcut(a975,(100+confidenceinterval)/2,nmc,aa)
-        call getcut( b25,(100-confidenceinterval)/2,nmc,bb)
-        call getcut(b975,(100+confidenceinterval)/2,nmc,bb)
-        call getcut( alpha25,(100-confidenceinterval)/2,nmc,alphaalpha)
-        call getcut(alpha975,(100+confidenceinterval)/2,nmc,alphaalpha)
+        plo = (100-confidenceinterval)/2
+        phi = (100+confidenceinterval)/2
+        call getcut( a25,plo,nmc,aa)
+        call getcut(a975,phi,nmc,aa)
+        call getcut( b25,plo,nmc,bb)
+        call getcut(b975,phi,nmc,bb)
+        call getcut( alpha25,plo,nmc,alphaalpha)
+        call getcut(alpha975,phi,nmc,alphaalpha)
         if ( assume.eq.'both' ) then
-            call getcut( beta25,(100-confidenceinterval)/2,nmc,betabeta)
-            call getcut(beta975,(100+confidenceinterval)/2,nmc,betabeta)
+            call getcut( beta25,plo,nmc,betabeta)
+            call getcut(beta975,phi,nmc,betabeta)
         else
             beta25 = 3e33
             beta975 = 3e33
@@ -231,21 +254,22 @@
                     call getcut(t5(i,j),95.,nmc,tt(1,i,j))
                     call getcut(t1(i,j),99.,nmc,tt(1,i,j))
                 endif
-                call getcut( t25(i,j),(100-confidenceinterval)/2,nmc,
-     +               tt(1,i,j))
-                call getcut(t975(i,j),(100+confidenceinterval)/2,nmc,
-     +               tt(1,i,j))
+                call getcut( t25(i,j),plo,nmc,tt(1,i,j))
+                call getcut(t975(i,j),phi,nmc,tt(1,i,j))
             end do
         enddo
         do j=1,3
             if ( xyear.lt.1e33 ) then
-                call getcut( tx25(j),(100-confidenceinterval)/2,nmc,
-     +               txtx(1,j))
-                call getcut(tx975(j),(100+confidenceinterval)/2,nmc,
-     +               txtx(1,j))
+                call getcut( tx25(j),plo,nmc,txtx(1,j))
+                call getcut(tx975(j),phi,nmc,txtx(1,j))
                 if ( lchangesign ) xyear = -xyear
             endif
         end do
+        call getcut(acov(2,1),plo,iens,aacov(1,1))
+        call getcut(acov(3,1),phi,iens,aacov(1,1))
+        call getcut(acov(2,2),plo,iens,aacov(1,2))
+        call getcut(acov(3,2),phi,iens,aacov(1,2))
+        call write_dthreshold(cov1,cov2,acov,offset,lchangesign)
 *
 *       output
 *
