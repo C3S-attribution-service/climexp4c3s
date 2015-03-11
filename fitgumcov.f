@@ -79,7 +79,8 @@
             cmin = min(cmin,xx(2,i))
             cmax = max(cmax,xx(2,i))
         end do
-        call write_obscov(xx,ntot,-3e33,cov2,xyear,offset,lchangesign)
+        call write_obscov(xx,yrs,ntot,-3e33,cov2,xyear,year,offset,
+     +       lchangesign)
 
         sig = 0
         call moment(yy,ntot,mean,adev,sd,var,skew,curt)

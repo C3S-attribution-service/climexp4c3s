@@ -115,7 +115,8 @@
 !
 !       dump (covariate,observation) pairs to plotfile on unit 15
 !
-        call write_obscov(xx,ntot,xmin,cov2,xyear,offset,lchangesign)
+        call write_obscov(xx,yrs,ntot,xmin,cov2,xyear,year,offset,
+     +       lchangesign)
 *       
 *       compute first-guess parameters
 *

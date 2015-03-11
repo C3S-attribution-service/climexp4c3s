@@ -786,10 +786,10 @@
         end
 *  #] adjustyy:
 *  #[ write_obscov:
-        subroutine write_obscov(xx,ntot,xmin,cov2,xyear,offset,
+        subroutine write_obscov(xx,yrs,ntot,xmin,cov2,xyear,year,offset,
      +       lchangesign)
         implicit none
-        integer ntot
+        integer ntot,yrs(0:ntot),year
         real xx(2,ntot),xmin,cov2,xyear,offset
         logical lchangesign
         integer i,is
@@ -813,15 +813,16 @@
             write(15,'(a)') '# covariate  value'
             do i=1,ntot
                 if ( xx(1,i).gt.xmin ) then
-                    write(15,'(2g20.6)') xx(2,i)+offset,is*xx(1,i)
+                    write(15,'(2g20.6,i11)') xx(2,i)+offset,is*xx(1,i),
+     +                   yrs(i)
                 end if
             end do
             write(15,'(a)')
             write(15,'(a)')
             if ( xyear.lt.1e33 ) then
-                write(15,'(2g20.6)') cov2+offset,is*xyear
+                write(15,'(2g20.6,i11)') cov2+offset,is*xyear,year
             else
-                write(15,'(g20.6,a)') cov2+offset,'-999.900'
+                write(15,'(g20.6,a,i11)') cov2+offset,'-999.900',0
             end if
         end if
         end subroutine

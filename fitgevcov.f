@@ -124,8 +124,11 @@
 !
 !       dump (covariate,observation) pairs to plotfile on unit 15
 !
-        call write_obscov(xx,ntot,-3e33,cov2,xyear,offset,lchangesign)
-
+        call write_obscov(xx,yrs,ntot,-3e33,cov2,xyear,year,offset,
+     +       lchangesign)
+!
+!       first-guess estaimtes of the parameters
+!
         b = sd*sqrt(6.)/(4*atan(1.))
         a = mean - 0.57721*b
         xi = 0
