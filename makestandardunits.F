@@ -306,7 +306,8 @@
      +           var.eq.'tp' .or. var.eq.'cp'   .or. var.eq.'lsp' .or. 
      +           var.eq.'rr' .or. var.eq.'rh' .or. var.eq.'pr' .or.
      +           var(1:2).eq.'pp' .or. var.eq.'prlr' .or.
-     +           var(1:3).eq.'pme' .or. var(1:7).eq.'evspsbl' ) then
+     +           var(1:3).eq.'pme' .or. var(1:7).eq.'evspsbl' .or.
+     +           var(1:4).eq.'evap' ) then
 *           first the weight/height units
             if ( newunits(1:6).eq.'kg m-2' .or. newunits(1:5).eq.'kg/m2'
      +           .or. newunits(1:5).eq.'KG/M2'
