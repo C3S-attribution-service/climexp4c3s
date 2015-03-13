@@ -941,7 +941,8 @@
                 else
                     write(0,*) 'getdims: ignoring duplicate lev'
                 endif
-            elseif ( name(1:3).eq.'ens' ) then
+            elseif ( name(1:3).eq.'ens' .or. name(1:6).eq.'number' )
+     +               then
                 if ( ie.eq.-1 ) then
                     if ( lwrite ) print *,'getdims: found ensemble'
                     nens1 = 0
