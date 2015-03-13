@@ -1,53 +1,47 @@
         program dat2grads
 *
-*       convert a dat file from correlate into a grads ctl/dat file combo
+*       convert a (set of) time series files into a grads ctl/dat file combo
 *       with 1 data point.  Useful to check field versions of programs against 
 *       point versions :-(
 *
         implicit none
 #include "recfac.h"
 #include "param.inc"
-        integer i,nperyear,yr,mo,yr1,yr2
-        real data(npermax,yrbeg:yrend),lon,lat,alt
-        character infile*256,file*256,line*128,unit*3,var*40,units*20
+        integer i,nperyear,yr,mo,yr1,yr2,ix,nx
+        real,allocatable :: data(:,:,:)
+        real lon,lat,alt
+        character infile*256,file*256,unit*3,var*40,units*20
         logical lwrite
         integer iargc,llen,get_endian
 
         lwrite = .false.
-        if ( iargc().ne.2 ) then
-            print *,'usage: dat2grads infile.dat outfile.ctl'
-            stop
+        if ( iargc().lt.2 ) then
+            print *,'usage: dat2grads infile1.dat ... outfile.ctl'
+            call exit(-1)
         endif
-        call getarg(1,infile)
-        lon = 0
-        lat = 0
-        alt = 0
-        open(1,file=infile,status='old')
-        do
-            read(1,'(a)') line
-            if ( line(1:1).ne.'#' ) exit
-            i = index(line,'N, ')
-            if ( i.ne.0 ) call getcoordinate(line,i,lat)
-            i = index(line,'E, ')
-            if ( i.ne.0 ) call getcoordinate(line,i,lon)
-            i = index(line,'m       ')
-            if ( i.ne.0 ) call getcoordinate(line,i,alt)
+        nx = iargc()-1
+        allocate(data(npermax,yrbeg:yrend,nx))
+        do ix=1,nx
+            call getarg(ix,infile)
+            if ( ix == 1 ) then
+                call getcoordinates(infile,lat,lon,alt)
+            end if
+            call readseries(infile,data(1,yrbeg,ix),npermax,yrbeg,yrend,
+     +           nperyear,var,units,.false.,lwrite)
         end do
-        close(1)
-        
-        call readseries(infile,data,npermax,yrbeg,yrend,nperyear,var
-     +       ,units,.false.,lwrite)
         yr1 = yrend
         yr2 = yrbeg
-        do yr=yrbeg,yrend
-            do mo=1,nperyear
-                if ( data(mo,yr).lt.1e33 ) then
-                    yr1 = min(yr1,yr)
-                    yr2 = max(yr2,yr)
-                endif
-            enddo
-        enddo
-        call getarg(2,file)
+        do ix=1,nx
+            do yr=yrbeg,yrend
+                do mo=1,nperyear
+                    if ( data(mo,yr,ix).lt.1e33 ) then
+                        yr1 = min(yr1,yr)
+                        yr2 = max(yr2,yr)
+                    end if
+                end do
+            end do
+        end do
+        call getarg(iargc(),file)
         open(2,file=file,status='unknown')
         
         i = index(file,'.ctl')
@@ -57,12 +51,12 @@
         endif
         file(i:) = '.grd'
         open(3,file=file,status='unknown',form='unformatted',
-     +       access='direct',recl=recfa4)
+     +       access='direct',recl=nx*recfa4)
         i = 0
         do yr=yr1,yr2
             do mo=1,nperyear
                 i = i + 1
-                write(3,rec=i) data(mo,yr)
+                write(3,rec=i) (data(mo,yr,ix),ix=1,nx)
             enddo
         enddo
         close(3)
@@ -76,11 +70,13 @@
         else
             write(2,'(a)') 'OPTIONS BIG_ENDIAN'
         endif
-        write(2,'(a,f8.3,a)') 'XDEF 1 LINEAR ',lon,' 1'
+        write(2,'(a,i4,a,f8.3,a)') 'XDEF ',nx,' LINEAR ',lon,' 1'
         write(2,'(a,f8.3,a)') 'YDEF 1 LINEAR ',lat,' 1'
         write(2,'(a,f8.1,a)') 'ZDEF 1 LINEAR ',alt,' 1'
         if ( nperyear.eq.1 ) then
             unit = '1YR'
+        elseif ( nperyear.eq.4 ) then
+            unit = '3MO'
         elseif ( nperyear.eq.12 ) then
             unit = '1MO'
         elseif ( nperyear.eq.73 ) then
@@ -121,3 +117,27 @@
             print *,'getcoordinate: coordinate = ',lat
         endif
         end
+
+        subroutine getcoordinates(infile,lat,lon,alt)
+        implicit none
+        real lat,lon,alt
+        character infile*(*)
+        integer iu,i
+        character line*128
+        lon = 0
+        lat = 0
+        alt = 0
+        call rsunit(iu)
+        open(iu,file=infile,status='old')
+        do
+            read(iu,'(a)') line
+            if ( line(1:1).ne.'#' ) exit
+            i = index(line,'N, ')
+            if ( i.ne.0 ) call getcoordinate(line,i,lat)
+            i = index(line,'E, ')
+            if ( i.ne.0 ) call getcoordinate(line,i,lon)
+            i = index(line,'m       ')
+            if ( i.ne.0 ) call getcoordinate(line,i,alt)
+        end do
+        close(iu)
+        end subroutine
