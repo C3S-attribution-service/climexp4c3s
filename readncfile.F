@@ -9,7 +9,7 @@
         implicit none
 #include "netcdf.inc"
         integer ncid,nxf,nyf,nx,ny,nperyear,yrbeg,yrend,firstyr
-     +        ,firstmo,nt,yr1,yr2,jvars(5)
+     +        ,firstmo,nt,yr1,yr2,jvars(6)
         real field(nxf,nyf,nperyear,yrbeg:yrend),undef
         logical lwrite
         integer unit,jx,jy,i,j,k,l,start(4),count(4),stride(4),imap(4)
@@ -109,6 +109,12 @@
             count(k) = ny
         endif
         if ( jvars(4).gt.0 ) then
+            k = k + 1
+            start(k) = 1
+            count(k) = 1
+        endif
+        if ( jvars(6).gt.0 ) then
+            ! only read one ensemble member
             k = k + 1
             start(k) = 1
             count(k) = 1

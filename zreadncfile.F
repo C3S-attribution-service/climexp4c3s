@@ -8,7 +8,7 @@
         implicit none
 #include "netcdf.inc"
         integer ncid,nxf,nyf,nzf,nx,ny,nz,nperyear,yrbeg,yrend,firstyr
-     +       ,firstmo,nt,yr1,yr2,jvars(5),ilast,jlast,k1,k2,k3,j1,j2,j3
+     +       ,firstmo,nt,yr1,yr2,jvars(6),ilast,jlast,k1,k2,k3,j1,j2,j3
      +       ,dy,mo
         real field(nxf,nyf,nzf,nperyear,yrbeg:yrend),undef
         logical lwrite
@@ -123,6 +123,11 @@
             k = k + 1
             start(k) = 1
             count(k) = max(1,nz)
+        endif
+        if ( jvars(6).gt.0 ) then
+            k = k + 1
+            start(k) = 1
+            count(k) = 1 ! we do noy have the number of ensemble members in this routine yet.
         endif
         if ( jvars(5).gt.0 ) then
             k = k + 1
