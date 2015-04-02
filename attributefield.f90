@@ -14,7 +14,8 @@
     parameter(nvarmax=200,nresmax=100,ntmax=1)
     integer nperyear,nperyear1,mens1,mens,ncid,iens,firstyr,firstmo,endian
     integer i,j,k,l,yr,mo,n,j1,j2,off,nx,ny,nz,nt,nvars,fyr,lyr,nxf,nyf,nzf,nresults
-    integer x1,x2,y1,y2,ix,ixx,iy,iz,iyrs(10),ntvarid,itimeaxis(ntmax),ivars(6,nvarmax)
+    integer x1,x2,y1,y2,ix,ixx,iy,iz,iyrs(10),ntvarid,itimeaxis(ntmax),ivars(2,nvarmax), &
+    &   jvars(6,nvarmax)
     real xx(nxmax),yy(nymax),zz(nzmax),undef,wx(nxmax),wy(nymax),results(3,nresmax)
     real,allocatable :: field(:,:,:,:,:,:),covariate(:,:,:),series(:,:,:),res(:,:,:,:,:)
     logical xrev,yrev,xwrap,lfirst,lprint
@@ -42,7 +43,7 @@
     call attribute_init(file,distribution,assume,off,nperyear,yrbeg,yrend,nensmax,lwrite)
     call getmetadata(file,mens1,mens,ncid,datfile,nxmax,nx &
      &       ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo &
-     &       ,ltime,undef,endian,title,history,nvarmax,nvars,vars,ivars &
+     &       ,ltime,undef,endian,title,history,nvarmax,nvars,vars,jvars &
      &       ,lvars,svars,units,cell_methods,lwrite)
 !
     nxf = nx
@@ -256,6 +257,11 @@
         lvars(2*k+i) = 'upper bound of 95% CI of '//lvars(i)
     end do
     nvars = 3*k
+    if ( nz.le.1 ) then
+        ivars(1,1:nvars) = 0
+    else
+        ivars(1,1:nvars) = 1
+    end if
 
     call getarg(iargc(),outfile)
     title = 'Fit of '//trim(file)//' with '//trim(distribution)//' dependent on'// &
