@@ -14,19 +14,16 @@
 *
         implicit none
 *
-        integer nmc
-        parameter (nmc=1000)
-        integer ntot,j1,j2,ntype,year
+        integer nmc,ntot,j1,j2,ntype,year
         real xx(ntot),mean,sd,a,b,xyear,
      +       t(10),t25(10),t975(10),tx,tx25,tx975,
      +       confidenceinterval
         logical lweb,lchangesign,lboot,lprint,lwrite
 *
         integer i,j,nx,iter,iens
-        real x,xi,aa(nmc),bb(nmc),xixi(nmc),tt(nmc,10),b25
-     +       ,b975,t5(10),t1(10),db,f
-     +       ,threshold,thens,z,ll,ll1,txtx(nmc)
-     +       ,a25,a975,ranf
+        real,allocatable :: aa(:),bb(:),xixi(:),tt(:,:),txtx(:)
+        real x,xi,b25,b975,t5(10),t1(10),db,f
+     +       ,threshold,thens,z,ll,ll1,a25,a975,ranf
         character lgt*4
 *
         integer nmax,ncur
@@ -63,6 +60,11 @@
             tx975 = 3e33
             return
         endif
+!
+!       determine number of bootstrap samples needed, demand at least 25 samples above the threshold
+!
+        nmc = max(1000,nint(25*2/(1-confidenceinterval/100)))
+        allocate(aa(nmc),bb(nmc),xixi(nmc),tt(nmc,10),txtx(nmc))
 *
 *       copy to common for routine llgumbel
 *
@@ -106,9 +108,17 @@
             endif
             return
         endif
-        if ( .not.lweb ) print '(a,i6,a)','# Doing a ',nmc
-     +        ,'-member bootstrap to obtain error estimates'
+        if ( lprint ) then
+            if ( lweb ) then
+                write(0,*) 'Doing a ',nmc
+     +               ,'-member bootstrap to obtain error estimates'
+            else
+                print '(a,i6,a)','# Doing a ',nmc
+     +               ,'-member bootstrap to obtain error estimates'
+            end if
+        end if
         do iens=1,nmc
+            call keepalive1('Computing bootstrap sample ',iens,nmc)
             do i=1,ncur
                 call random_number(ranf)
                 j = 1+int(ntot*ranf)

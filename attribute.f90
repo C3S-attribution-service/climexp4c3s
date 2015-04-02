@@ -11,7 +11,7 @@ program attribute
     integer nresmax
     parameter(nresmax=100)
     integer nperyear,nperyear1,mens1,mens,iens,nresults
-    integer i,yr,mo,n,j1,j2,off
+    integer i,yr,mo,n,off
     real results(3,nresmax)
     real,allocatable :: series(:,:,:),covariate(:,:,:)
     character seriesfile*1024,covariatefile*1024,distribution*6,assume*5,string*80
@@ -76,9 +76,6 @@ program attribute
         write(0,*) 'attribute: error: current year should be before end of series ',yr2,yr2a
         call abort
     end if
-    call getj1j2(j1,j2,m1,nperyear,lwrite)
-    call print_bootstrap_message(max(1,nint(decor)),j1,j2)
-    if ( distribution.eq.'gpd' ) print '(a)','# after declustering.'
 !
 !   process data
 !
@@ -129,7 +126,7 @@ program attribute
         do iens=mens1,mens
             call taketwothird(series(1,yrbeg,iens),npermax,nperyear,yrbeg,yrend)
         end do
-        if ( xyear.lt.1e33 ) xyear = xyear**(2/3.)
+        if ( xyear.lt.1e33 .and. xyear.ge.0 ) xyear = xyear**(2/3.)
     endif
 
     lprint = .true.

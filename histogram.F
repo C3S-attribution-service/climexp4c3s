@@ -199,19 +199,6 @@
             if ( lwrite ) print *,'pmaxindx,maxindx = ',pmaxindx
      +           ,maxindx
         endif
-        if ( nfit.eq.6 .and. pmindata.ge.0 ) then
-            if ( lchangesign ) then
-                call getenscutoff(mindata,100-pmindata,data,npermax
-     +               ,nperyear,yrbeg,yrend,nensmax,nens1,nens2,yr1
-     +               ,yr2,j1,j2,0)
-            else
-                call getenscutoff(mindata,pmindata,data,npermax
-     +               ,nperyear,yrbeg,yrend,nensmax,nens1,nens2,yr1
-     +               ,yr2,j1,j2,0)
-            endif
-            if ( lwrite ) print *,'pmindata,mindata = ',pmindata
-     +           ,mindata
-        endif
         if ( nfit.eq.1 ) then
             if ( minindx.ge.0 ) minindx = 0.5 + int(minindx+1e-5)
             if ( maxindx.lt.2.**31 ) maxindx = 0.5 + int(maxindx -
@@ -272,6 +259,23 @@
      +           ,'# taking anomalies wrt ensemble mean'
             call anomalensemble(data,npermax,nperyear,yrbeg,
      +           yrend,yr1,yr2,nens1,nens2)
+        endif
+!
+!       compute cut-off for GPD - has to be done after all teh operations on the series 
+!       to get a consistent computation (eg otherwise it would vary by season...)
+!
+        if ( nfit.eq.6 .and. pmindata.ge.0 ) then
+            if ( lchangesign ) then
+                call getenscutoff(mindata,100-pmindata,data,npermax
+     +               ,nperyear,yrbeg,yrend,nensmax,nens1,nens2,yr1
+     +               ,yr2,j1,j2,0)
+            else
+                call getenscutoff(mindata,pmindata,data,npermax
+     +               ,nperyear,yrbeg,yrend,nensmax,nens1,nens2,yr1
+     +               ,yr2,j1,j2,0)
+            endif
+            if ( lwrite ) print *,'pmindata,mindata = ',pmindata
+     +           ,mindata
         endif
 *
 *       compute min, max
@@ -402,11 +406,13 @@
 *
 *           compute errors with a bootstrap
 *
+            decor = max(decor,real(lsum)-1)
             if ( j1.eq.j2 ) then
-                ndecor = 1+nint(decor/nperyear)
+                ndecor = 1+int(decor/nperyear)
             else
-                ndecor = 1+nint(decor)
+                ndecor = 1+int(decor)
             endif
+            call print_bootstrap_message(max(1,ndecor),j1,j2)
             do iboot=1,mboot
                 call keepalive1('Bootstrapping',iboot,mboot)
                 n = ntot/ndecor

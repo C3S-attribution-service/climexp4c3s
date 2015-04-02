@@ -11,12 +11,13 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     real series(npermax,yrbeg:yrend,0:mens),covariate(npermax,yrbeg:yrend,0:mens)
     real results(3,nresmax)
     character seriesids(0:mens)*(*),assume*(*),distribution*(*)
-    integer fyr,lyr,ntot,i,j,k,ntype,nmax,npernew,j1,j2,iens,ensmax
+    integer fyr,lyr,ntot,i,j,k,ntype,nmax,npernew,j1,j2,iens,ensmax,init,ndecor
     integer,allocatable :: yrs(:)
     real a(3),b(3),xi(3),alpha(3),beta(3),cov1,cov2,offset,t(3,10,3),tx(3,3)
     real,allocatable :: xx(:,:),yrseries(:,:,:),yrcovariate(:,:,:),yy(:)
     logical lboot,lprint,subtract_offset
     character operation*4,file*1024,idmax*30
+    data init /0/
 
     results = 3e33
     fyr = yr1
@@ -27,6 +28,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     allocate(yrs(0:nmax))
     allocate(yy(nmax))
     xx = 3e33
+    if ( lwrite ) print *,'attribute_dist: series(:,2000,0) = ',(series(j,2000,0),j=1,min(15,nperyear))
     
     if ( distribution.eq.'gev' .or. distribution.eq.'gumbel' ) then
         allocate(yrseries(1,fyr:lyr,0:mens))
@@ -50,7 +52,24 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         j2 = 1
         m1 = 1
         lsel = 1
+        ndecor = 1+nint(decor) ! not used if all goes well
+        if ( init == 0 ) then
+            init = 1
+            call print_bootstrap_message(max(1,ndecor),j1,j2)
+        end if
     else if ( distribution.eq.'gpd' .or. distribution.eq.'gauss' ) then
+        ! in the others lsum inicates teh block maxima length...
+        call getj1j2(j1,j2,m1,nperyear,lwrite)
+        decor = max(decor,real(lsum)-1)
+        if ( j1.eq.j2 ) then
+            ndecor = 1+int(decor/nperyear)
+        else
+            ndecor = 1+int(decor)
+        endif
+        if ( init == 0 ) then
+            init = 1
+            call print_bootstrap_message(max(1,ndecor),j1,j2)
+        end if
         allocate(yrseries(nperyear,fyr:lyr,0:mens))
         allocate(yrcovariate(nperyear,fyr:lyr,0:mens))
         yrseries = 3e33
@@ -149,7 +168,8 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         if ( lwrite ) print *,'attribute_dist: calling fitgpdcov'
         call fitgpdcov(xx,yrs,ntot,a,b,xi,alpha,beta,j1,j2 &
     &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2,offset &
-    &       ,t,tx,pmindata,restrain,assume,confidenceinterval,lboot,lprint,dump,plot,lwrite)
+    &       ,t,tx,pmindata,restrain,assume,confidenceinterval,ndecor,lboot &
+    &       ,lprint,dump,plot,lwrite)
     else if  ( distribution.eq.'gumbel' ) then
         ntype = 2 ! Gumbel plot
         xi = 0
@@ -163,7 +183,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         if ( lwrite ) print *,'attribute_dist: calling fitgaucov'
         call fitgaucov(xx,yrs,ntot,a,b,alpha,beta,j1,j2 &
     &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2,offset &
-    &       ,t,tx,assume,confidenceinterval,lboot,lprint,dump,plot,lwrite)
+    &       ,t,tx,assume,confidenceinterval,ndecor,lboot,lprint,dump,plot,lwrite)
     else
         write(0,*) 'attribute_dist: error: unknown distribution ',trim(distribution)
     end if
@@ -413,14 +433,18 @@ subroutine make_two_annual_values(series,covariate,nperyear,npermax,yrbeg,yrend,
                     yrcovariate(1,yr,iens) = 0
                 end if
                 do dy=1,nperyear
-                    if ( series(dy,yr,iens).lt.1e33 ) then
+                    if ( series(dy,yr,iens).lt.1e33 .and. covariate(dy,yr,iens).lt.1e33 ) then
                         m = m + 1
                         if ( operation.eq.'max' ) then
-                            s = max(s,series(dy,yr,iens))
-                            yrcovariate(1,yr,iens) = covariate(dy,yr,iens)
+                            if ( series(dy,yr,iens).gt.s ) then
+                                s = series(dy,yr,iens)
+                                yrcovariate(1,yr,iens) = covariate(dy,yr,iens)
+                            end if
                         else if ( operation.eq.'min' ) then
-                            s = min(s,series(dy,yr,iens))
-                            yrcovariate(1,yr,iens) = covariate(dy,yr,iens)
+                            if ( series(dy,yr,iens).lt.s ) then
+                                s = series(dy,yr,iens)
+                                yrcovariate(1,yr,iens) = covariate(dy,yr,iens)
+                            end if
                         else if ( operation.eq.'mean' ) then
                             s = s + series(dy,yr,iens)
                             yrcovariate(1,yr,iens) = yrcovariate(1,yr,iens) + covariate(dy,yr,iens)
@@ -440,6 +464,7 @@ subroutine make_two_annual_values(series,covariate,nperyear,npermax,yrbeg,yrend,
                         write(0,*) 'make_annual_values: unknown operation ',trim(operation)
                         call abort
                     end if
+                    if ( lwrite ) print *,yr,yrcovariate(1,yr,iens),yrseries(1,yr,iens)
                 end if
             end do ! yr
         end do ! iens                

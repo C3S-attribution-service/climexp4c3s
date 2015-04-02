@@ -17,9 +17,7 @@
 *
         implicit none
 *
-        integer nmc
-        parameter (nmc=1000)
-        integer ntot,j1,j2,ntype,yr1a,yr2a
+        integer nmc,ntot,j1,j2,ntype,yr1a,yr2a
         integer yrs(0:ntot)
         real xx(2,ntot),a3(3),b3(3),alpha3(3),beta3(3),xyear,
      +       cov1,cov2,offset,t3(3,10,3),tx3(3,3),confidenceinterval
@@ -27,15 +25,15 @@
         logical lweb,lchangesign,lboot,lprint,dump,plot,lwrite
 *
         integer i,j,nx,iter,iens,nfit,year
-        real x,a,b,xi,alpha,beta,aa(nmc),bb(nmc),xixi(nmc),tt(nmc,10,3)
-     +       ,t5(10,3),t1(10,3),db,f
-     +       ,threshold,thens,z,ll,ll1,txtx(nmc,3)
-     +       ,alphaalpha(nmc),betabeta(nmc)
+        real,allocatable :: aa(:),bb(:),xixi(:),tt(:,:,:),
+     +       txtx(:,:),alphaalpha(:),betabeta(:),aacov(:,:)
+        real x,a,b,xi,alpha,beta,t5(10,3),t1(10,3),db,f
+     +       ,threshold,thens,z,ll,ll1
      +       ,a25,a975,b25,b975,alpha25,alpha975,beta25,beta975
      +       ,ranf,mean,sd,dalpha,dbeta,mindata,minindx,pmindata
      +       ,snorm,s,frac,t(10,3),t25(10,3),t975(10,3)
      +       ,tx(3),tx25(3),tx975(3),ttt(10,3),txtxtx(3),xi3(3)
-     +       ,acov(3,2),aacov(nmc,2),cmin,cmax,plo,phi
+     +       ,acov(3,2),cmin,cmax,plo,phi
         real adev,var,skew,curt,aaa,bbb,siga,chi2,q
         real,allocatable :: yy(:),ys(:),zz(:),sig(:)
         character lgt*4
@@ -51,7 +49,13 @@
 *
         real llgumbelcov,gevcovreturnlevel,gevcovreturnyear
         external llgumbelcov,gevcovreturnlevel,gevcovreturnyear
-*
+!
+!       estimate number of bootstrap samples needed, demand at least 25 above threshold
+!
+        nmc = max(1000,nint(25*2/(1-confidenceinterval/100)))
+        allocate(aa(nmc),bb(nmc),xixi(nmc),tt(nmc,10,3),
+     +       txtx(nmc,3),alphaalpha(nmc),betabeta(nmc),aacov(nmc,2))
+
         year = yr2a
         if ( lwrite ) then
             print *,'fitgumcov: input:'
@@ -166,6 +170,7 @@
         if ( lprint .and. .not.lweb ) print '(a,i6,a)','# Doing a ',nmc
      +        ,'-member bootstrap to obtain error estimates'
         do iens=1,nmc
+            call keepalive1('Computing bootstrap sample ',iens,nmc)
             do i=1,ncur
                 call random_number(ranf)
                 j = 1+int(ntot*ranf)

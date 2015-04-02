@@ -1,15 +1,15 @@
 *  #[ fitgaucov:
         subroutine fitgaucov(xx,yrs,ntot,a3,b3,alpha3,beta3,j1,j2
      +       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2
-     +       ,offset,t3,tx3,assume,confidenceinterval,lboot,lprint,dump
-     +       ,plot,lwrite)
+     +       ,offset,t3,tx3,assume,confidenceinterval,ndecor,lboot
+     +       ,lprint,dump,plot,lwrite)
 *
 *       a fit a gaussian distribution with mean linearly dependent on a covariate 
 *       to the data
 *
         implicit none
 *
-        integer ntot,ntype,j1,j2,yr1a,yr2a
+        integer ntot,ntype,j1,j2,yr1a,yr2a,ndecor
         integer yrs(0:ntot)
         real xx(2,ntot),a3(3),b3(3),alpha3(3),beta3(3),xyear,cov1,cov2,
      +       offset,t3(3,10,3),tx3(3,3),confidenceinterval
@@ -18,7 +18,7 @@
 *
         integer nmc
         parameter(nmc=1000)
-        integer i,j,nx,iter,iens,nfit,imc,ier,year
+        integer i,j,jj,n,nx,iter,iens,nfit,imc,ier,year
         real a,b,t(10,3),t25(10,3),t975(10,3),tx(3),tx25(3),tx975(3),
      +       aa(nmc),bb(nmc),tt(nmc,10,3),xi,alpha,beta,dalpha,dbeta,
      +       xmin,z,x,f,txtx(nmc,3),alphaalpha(nmc),betabeta(nmc),
@@ -163,14 +163,26 @@
         do iens=1,nmc
             if ( lprint .and. .not.lweb .and. mod(iens,100).eq.0 )
      +           print '(a,i6)','# ',iens
-            do i=1,ntot
+            n = 1 + (ntot-1)/ndecor
+            do i=1,n
+                ! we do not have the information here to check whether the
+                ! data points were contiguous in the original series...
+                ! TODO: propagate that information              
                 call random_number(ranf)
-                j = 1+int(ntot*ranf)
+                j = 1 + min(ntot-ndecor,int((ntot-ndecor)*ranf))
                 if ( j.lt.1 .or. j.gt.ntot ) then
                     write(0,*) 'fitgaucov: error: j = ',j
                     call abort
                 endif
-                data(:,i) = xx(:,j)
+                if ( i.lt.n ) then ! the blocks that fit in whole
+                    do jj=0,ndecor-1
+                        data(:,1+(i-1)*ndecor+jj) = xx(:,j+jj)
+                    end do
+                else
+                    do jj=0,ndecor-1 ! one more block to the end, the previous block is shortened
+                        data(:,1+ntot-ndecor+jj) = xx(:,j+jj)
+                    end do
+                end if
             enddo
             aa(iens) = a
             bb(iens) = b

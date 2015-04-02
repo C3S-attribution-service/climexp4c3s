@@ -445,7 +445,7 @@
      +           ,'moving block bootstrap with block size '
      +           ,ndecor,' months'
         else
-            print '(2a,i4)'
+            print '(2a,i4,a)'
      +           ,'# The error margins were computed with a '
      +               ,'moving block bootstrap with block size '
      +           ,ndecor,' years'
@@ -576,7 +576,7 @@
                 if ( ntype.eq.2 ) then
                     if ( txtx(iens,j).lt.1e20 .and. txtx(iens,j).gt.1 )
      +                   then
-                        logtxtx(j) = -log(1-1/((j1+j2+1)*txtx(iens,j)))
+                        logtxtx(j) = -log(1-1/((j2-j1+1)*txtx(iens,j)))
                         if ( logtxtx(j).gt.0 ) then
                             logtxtx(j) = -log(logtxtx(j))
                         else
@@ -588,14 +588,14 @@
                 else if ( ntype.eq.3 ) then
                     if ( txtx(iens,j).lt.1e20 .and. txtx(iens,j).gt.0 )
      +                   then
-                        logtxtx(j) = log(txtx(iens,j)*(j1+j2+1))
+                        logtxtx(j) = log(txtx(iens,j)*(j2-j1+1))
                     else
                         logtxtx(j) = 1e20
                     end if                        
                 else if ( ntype.eq.4 ) then
                     if ( txtx(iens,j).lt.1e20 .and. txtx(iens,j).gt.1 )
      +                   then
-                        logtxtx(j) = sqrt(log(txtx(iens,j)*(j1+j2+1)))
+                        logtxtx(j) = sqrt(log(txtx(iens,j)*(j2-j1+1)))
                     else
                         logtxtx(j) = 1e20
                     end if                        

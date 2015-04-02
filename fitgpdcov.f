@@ -2,7 +2,7 @@
         subroutine fitgpdcov(xx,yrs,ntot,a3,b3,xi3,alpha3,beta3,j1,j2
      +       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2
      +       ,offset,t3,tx3,threshold,inrestrain,assume
-     +       ,confidenceinterval,lboot,lprint,dump,plot,lwrite)
+     +       ,confidenceinterval,ndecor,lboot,lprint,dump,plot,lwrite)
 *
 *       fit a GPD distribution to the data, which is already assumed to be declustered
 *       input:
@@ -28,7 +28,7 @@
 *
         integer nmc
         parameter(nmc=1000)
-        integer ntot,j1,j2,ntype,yr1a,yr2a
+        integer ntot,j1,j2,ntype,yr1a,yr2a,ndecor
         integer yrs(0:ntot)
         real xx(2,ntot),a3(3),b3(3),xi3(3),alpha3(3),beta3(3),xyear,
      +       cov1,cov2,offset,inrestrain,t3(3,10,3),tx3(3,3),threshold,
@@ -36,7 +36,7 @@
         character assume*(*),idmax*(*)
         logical lweb,lchangesign,lboot,lprint,dump,plot,lwrite
 *
-        integer i,j,k,l,n,nx,iter,iter1,iens,iiens,nfit,year
+        integer i,j,jj,k,l,n,nx,iter,iter1,iens,iiens,nfit,year
         real x,a,b,xi,alpha,beta,t(10,3),t25(10,3),t975(10,3),
      +       tx(3),tx25(3),tx975(3),aa(nmc),bb(nmc),xixi(nmc),
      +       alphaalpha(nmc),betabeta(nmc),tt(nmc,10,3),
@@ -250,14 +250,26 @@
             if ( lprint ) call keepalive1('Bootstrapping',iiens,nmc)
             if ( lprint .and. .not.lweb .and. mod(iiens,100).eq.0 )
      +           print '(a,i6)','# ',iiens
-            do i=1,ncur
+            n = 1 + (ncur-1)/ndecor
+            do i=1,n
+                ! we do not have the information here to check whether the
+                ! data points were contiguous in the original series...
+                ! TODO: propagate that information              
                 call random_number(ranf)
-                j = 1+int(ncur*ranf)
-                if ( j.lt.1 .or. j.gt.ntot ) then
-                    write(0,*) 'fitgpd: error: j = ',j
+                j = 1 + min(ncur-ndecor,int((ncur-ndecor)*ranf))
+                if ( j.lt.1 .or. j.gt.ncur ) then
+                    write(0,*) 'fitgpdcov: error: j = ',j
                     call abort
                 endif
-                data(:,i) = xx(:,ii(j))
+                if ( i.lt.n ) then ! the blocks that fit in whole
+                    do jj=0,ndecor-1
+                        data(:,1+(i-1)*ndecor+jj) = xx(:,ii(j+jj))
+                    end do
+                else
+                    do jj=0,ndecor-1 ! one more block to the end, the previous block is shortened
+                        data(:,1+ncur-ndecor+jj) = xx(:,ii(j+jj))
+                    end do
+                end if
             enddo
             aa(iens) = a
             bb(iens) = b
