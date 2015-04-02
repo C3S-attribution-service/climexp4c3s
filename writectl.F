@@ -107,6 +107,14 @@
             write(unit,'(a,i6,2a,i4.4,i3,a)') 'TDEF ',nt,' LINEAR 15'
      +            ,months(12/nperyear*mobegin-2,1),yr1,12/nperyear,
      +           'MO'
+        elseif ( nperyear.eq.2 ) then
+            if ( mobegin.lt.1 .or. mobegin.gt.2 ) then
+                write(0,*) 'writectl: error: season = ',mobegin
+                mobegin = 0
+            endif
+            write(unit,'(a,i6,2a,i4.4,i3,a)') 'TDEF ',nt,' LINEAR 15'
+     +            ,months(12/nperyear*mobegin-2,1),yr1,12/nperyear,
+     +           'MO'
         elseif ( nperyear.eq.1 ) then
             write(unit,'(a,i6,2a,i4.4,a)') 'TDEF ',nt,' LINEAR 1',
      +            months(mod(mobegin+5,12)+1,1),yr1+(mobegin+6)/12,

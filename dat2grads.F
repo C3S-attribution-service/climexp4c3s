@@ -46,7 +46,7 @@
         
         i = index(file,'.ctl')
         if ( i.eq.0 ) then
-            write(0,*) 'error: cannot find ''.ctl'' in ',file
+            write(0,*) 'dat2grads: error: cannot find ''.ctl'' in ',file
             call abort
         endif
         file(i:) = '.grd'
@@ -75,6 +75,8 @@
         write(2,'(a,f8.1,a)') 'ZDEF 1 LINEAR ',alt,' 1'
         if ( nperyear.eq.1 ) then
             unit = '1YR'
+        elseif ( nperyear.eq.2 ) then
+            unit = '6MO'
         elseif ( nperyear.eq.4 ) then
             unit = '3MO'
         elseif ( nperyear.eq.12 ) then
@@ -84,8 +86,8 @@
         elseif ( nperyear.eq.366 ) then
             unit = '1DY'
         else
-            write(0,*) 'error: cannot handle nperyear = ',nperyear,
-     +           ' yet'
+            write(0,*) 'dat2grads: error: cannot handle nperyear = ',
+     +           nperyear,' yet'
             call abort
         endif
         write(2,'(a,i6,a,i4.4,2a)') 'TDEF ',nperyear*(yr2-yr1+1),

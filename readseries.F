@@ -25,7 +25,7 @@
         character infile*(*),units*(*),var*(*)
         logical lstandardunits,lwrite
         integer i,j,k,m,year,month,day,unit,status,ncid,dpm(12),
-     +       dpm0(12),imonth,year1
+     +       dpm0(12),imonth,year1,reallynperyear
         logical lagain,lexist
         real*8 x,y,x1,y1,val12(366)
         character file*1023,line*10000
@@ -84,19 +84,34 @@
 *       first look for explicit months
         imonth = monthinline(line)
         nperyear = getnumwords(line) - 1
+        if ( nperyear.eq.2 ) then
+!           it is either half-yearly data: yr valOct-March valApr-Sep
+!           or monthly data: yr mo val
+            read(line,*) year
+            read(unit,*,end=801) year1
+            if ( year.eq.year1 ) then
+                if ( lwrite ) print *,'monthly data'
+                reallynperyear = 12
+            else
+                if ( lwrite ) print *,'seasonal data'
+                reallynperyear = 2
+            endif
+            backspace(unit)
+ 801        continue
+        endif
         if ( nperyear.eq.4 ) then
 !           it is either seasonal data: yr valDJF valMAM valJJA valSON
 !           or hourly data: yr mo dy hr val
             read(line,*) year
-            read(unit,*,end=801) year1
+            read(unit,*,end=802) year1
             if ( year.eq.year1 ) then
-                if ( lwrite ) print *,'hourly data'
-                nperyear = 366*24
+                if ( lwrite ) print *,'monthly data'
+                nperyear = 12
             else
-                if ( lwrite ) print *,'seasonal data'
+                if ( lwrite ) print *,'half-yearly data'
             endif
             backspace(unit)
- 801        continue
+ 802        continue
         endif
 *       often there is a yearly mean/sum at the end
         if ( nperyear.eq.13 ) nperyear = 12
@@ -114,8 +129,13 @@
             call readyrfracval(data,npermax,yrbeg,yrend,nperyear
      +           ,line,unit,lwrite)
         elseif ( nperyear.eq.2 ) then
-            call readyrmoval(data,npermax,yrbeg,yrend,nperyear,line,unit
-     +           ,lwrite)
+            if ( reallynperyear == 2 ) then
+                call readyrval(data,npermax,yrbeg,yrend,nperyear,line,
+     +               unit,lwrite)
+            else
+                call readyrmoval(data,npermax,yrbeg,yrend,nperyear,line,
+     +               unit,lwrite)
+            end if
         elseif ( nperyear.eq.3 ) then
             call readyrmodyval(data,npermax,yrbeg,yrend,nperyear,line
      +           ,unit,lwrite)

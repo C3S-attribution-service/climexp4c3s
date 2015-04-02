@@ -9,12 +9,13 @@
 #include "getopts.inc"
         integer m,l
         logical lprint
-        character*3 months(12),seasons(4)
+        character*3 months(12),seasons(4),halfyears(2)
         save months
         data months 
      +        /'Jan','Feb','Mar','Apr','May','Jun'
      +        ,'Jul','Aug','Sep','Oct','Nov','Dec'/
         data seasons /'DJF','MAM','JJA','SON'/
+        data halfyears /'A-S','O-M'/
 
         if ( lwrite ) then
             print *,'getj1j2: month,nperyear = ',month,nperyear
@@ -43,6 +44,8 @@
                         corrmonths = months(month)
                     elseif ( nperyear.eq.4 ) then
                         corrmonths = seasons(month)
+                    elseif ( nperyear.eq.2 ) then
+                        corrmonths = halfyears(month)
                     else
                         write(0,*)
      +                       'getj1j2: error: cannot handle nperyear = '

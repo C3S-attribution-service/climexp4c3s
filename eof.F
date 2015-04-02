@@ -12,7 +12,7 @@
 #include "netcdf.inc"
 #include "getopts.inc"
         integer nvarmax,nyrmax,neofmax
-        parameter (nvarmax=1,nyrmax=79,neofmax=80)
+        parameter (nvarmax=1,nyrmax=79,neofmax=500)
 	integer nxymax,lwork,liwork
 	parameter(nxymax=120*61,lwork=107208721,liwork=36603) ! ssyevd
         integer i,ii,i1,i2,j,jj,j1,j2,jx,jy,k,m,n,n1,n2,nx,ny,nz,nt
@@ -389,7 +389,7 @@
 	write(0,'(a,i5,a,i5,a,f8.2,a)') 'Found approx ',nxy,'/',nx*ny,
      +		' valid points, time: ',etime(tarray),'<br>'
         if ( nxy.lt.neigen ) then
-            write(0,*) 'Not enough valid points: ',nxy
+            write(0,*) 'eof: error: not enough valid points: ',nxy
             stop
         endif
 *
