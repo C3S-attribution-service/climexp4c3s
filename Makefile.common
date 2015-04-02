@@ -334,7 +334,8 @@ PROGRAMS      = scientific2decimal \
 		polygon2mask \
 		polygon2box \
 		extremeseries \
-		transform
+		transform \
+		gen_time
 
 SHLIBS =	rkillfile.so \
        		rkeepalive.so
