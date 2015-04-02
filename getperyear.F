@@ -54,7 +54,7 @@
                         print *,it,tt(it),tt(it)-tt(it-1)
                     end do
                 end if
-                call abort
+                call exit(-1)
             end if
             if ( lwrite ) print *,'dtt = ',dtt
         else
@@ -86,7 +86,7 @@
      +                               ,'unit ''',trim(units),''', only '
      +                               ,'''days/months/hours/minutes/'
      +                               ,'seconds since'''
-                                call abort
+                                call exit(-1)
                             else
                                 i = i+13
                                 iperyear = nint(365.24*24*3600)
@@ -140,7 +140,7 @@
      +                       ,trim(calendar)
                         write(*,*)'getperyear: error: unknown calendar '
      +                       ,trim(calendar)
-                        call abort
+                        call exit(-1)
                     endif
                 endif
 *               this assumes nperyear <= iperyear but include 366 vs 360
@@ -165,7 +165,7 @@
             if ( nperyear.eq.0 ) then
                 write(0,*) 'getperyear: error: cannot handle frequency '
      +               //'lower than once per year'
-                call abort
+                call exit(-1)
             end if
             if ( nperyear.gt.12 .and. nperyear.le.17 ) then 
 !               this occurs when Feb is the first month or when
@@ -194,7 +194,7 @@
             else
                 write(0,*) 'getperyear: error: cannot handle '//
      +               'timestep of ',dtt,' years yet'
-                call abort
+                call exit(-1)
             endif
         endif
         if ( lwrite ) print *,'getperyear: set nperyear to ',nperyear
@@ -433,7 +433,7 @@
                 write(0,*) i,trim(vars(i))
             enddo
             write(0,*) i,trim(name)
-            call abort
+            call exit(-1)
         endif
         ntvars = ntvars + 1
         vars(ntvars) = name
@@ -558,7 +558,7 @@
         return
  902    write(0,*) 'addonevariable: error: found variable with '//
      +       'different dimensions ',trim(name)
-        call abort
+        call exit(-1)
         end
 *  #] addonevariable:
 *  #[ getdiminfo:
@@ -588,7 +588,7 @@
      +        ) ) then
             write(0,*) 'getdiminfo: illegal unit "'
      +           ,trim(dimname), '" on the ',xy,' axis'
-            if ( dimname(1:3).ne.'deg' ) call abort
+            if ( dimname(1:3).ne.'deg' ) call exit(-1)
         endif
 *       get data, we already checked that nx <= nxmax
         status = nf_get_var_real(ncid,varid,xx)
@@ -601,7 +601,7 @@
             if ( abs(xx(i)).gt.1e10 ) then
                 write(0,*) 'getdiminfo: error: coordinate value is ',
      +               'invalid: ',i,xx(i)
-                call abort
+                call exit(-1)
             end if
         end do
         return
@@ -636,7 +636,7 @@
      +        ) ) then
             write(0,*) 'getzdiminfo: cannot yet handle unit '
      +            ,dimname(1:length), ' yet'
-            call abort
+            call exit(-1)
         endif
 *       get standard_name attribute
         call gettextattopt(ncid,varid,'standard_name',lx(2),lwrite)
@@ -647,7 +647,7 @@
                 write(0,*)
      +               'getzdiminfo: cannot yet handle standard_name '
      +               ,dimname(1:length), ' yet'
-                call abort
+                call exit(-1)
             endif
         endif
 *       get positive
@@ -663,7 +663,7 @@
             if ( abs(xx(i)).gt.1e10 ) then
                 write(0,*) 'getdiminfo: error: coordinate value is ',
      +               'invalid: ',i,xx(i)
-                call abort
+                call exit(-1)
             end if
         end do
         return
@@ -677,7 +677,7 @@
         character*(*) string
         if ( status.ne.nf_noerr ) then
             write(0,*)'netcdf error: ',status,string,nf_strerror(status)
-            call abort
+            call exit(-1)
         endif
         end
 *  #] handle_err:
@@ -700,7 +700,7 @@
             value = 3e33
         elseif ( n.ne.1 ) then
             write(0,*) 'getrealattopt: error: ',name,' has len>1: ',n
-            call abort
+            call exit(-1)
         else
             status = nf_get_att_real(ncid,varid,name,value)
             if ( status.ne.nf_noerr ) call handle_err(status,name)
@@ -826,7 +826,7 @@
         if ( nvars.lt.2 ) then
             write(0,*) 'getnumbers: error: only found ',nvars
      +           ,' variables, expecting at least 2'
-            call abort
+            call exit(-1)
         endif
         end
 *  #] getnumbers:
@@ -887,7 +887,7 @@
      +                    ,ntmax,' to at least ',nt
                     write(*,*) 'getdims: error: increase ntmax from '
      +                    ,ntmax,' to at least ',nt
-                    call abort
+                    call exit(-1)
                 endif
             elseif ( name.eq.'x' .or. name(1:2).eq.'x_' .or. 
      +               name(1:3).eq.'lon'
@@ -899,7 +899,7 @@
                     if ( nx.gt.nxmax ) then
                         write(0,*) 'getdims: too many values on X axis'
      +                        ,nx,nxmax
-                        call abort
+                        call exit(-1)
                     endif
                     ix = dimid
                 else
@@ -915,7 +915,7 @@
                     if ( ny.gt.nymax ) then
                         write(0,*) 'getdims: too many values on Y axis'
      +                        ,ny,nymax
-                        call abort
+                        call exit(-1)
                     endif
                     iy = dimid
                 else
@@ -935,7 +935,7 @@
                     if ( nz.gt.nzmax ) then
                         write(0,*) 'getdims: too many values on Z axis'
      +                        ,nz,nzmax
-                        call abort
+                        call exit(-1)
                     endif
                     iz = dimid
                 else
@@ -952,7 +952,7 @@
                         write(0,*)
      +                       'getdims: too many values on ensemble axis'
      +                       ,nens2,nensmax
-                        call abort
+                        call exit(-1)
                     endif
                 else
                     write(0,*) 'getdims: ignoring duplicate ens'

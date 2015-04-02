@@ -135,7 +135,7 @@
             if ( nt.le.0 ) then
                 write(0,*) 'parsectl: error: nt = ',nt
                 write(*,*) 'parsectl: error: nt = ',nt
-                call abort
+                call exit(-1)
             end if
             i = index(string,'linear') + index(string,'LINEAR')
             if ( i.ne.0 ) then
@@ -170,7 +170,7 @@
                         write(*,'(a,f6.0,a)')
      +                       'parsectl: cannot handle ',s
      +                       ,'-yearly reacords'
-                        call abort
+                        call exit(-1)
                     endif
                 elseif (  string(j-1:j).eq.'MO' .or. 
      +                string(j-1:j).eq.'mo' ) then
@@ -182,7 +182,7 @@
                         write(0,'(a,f6.2,a)')
      +                        'parsectl: error: cannot handle ',s
      +                        ,' monthly records'
-                        call abort
+                        call exit(-1)
                     endif
                 elseif (  string(j-1:j).eq.'WK' .or. 
      +                    string(j-1:j).eq.'wk' ) then
@@ -200,7 +200,7 @@
                 else
                     write(*,'(a)') 'parsectl: error: cannot parse '
      +                    ,string(j-1:j),' as unit of time'
-                    call abort
+                    call exit(-1)
                 endif
 *               locate year
                 i = i - 4
@@ -246,7 +246,7 @@
      +               ,mobegin,yrbegin,nperyear
             else
                 write(0,*) 'parsectl: error: cannot handle ',string
-                call abort
+                call exit(-1)
             endif
             foundit(4) = .true.
 *       VARS
@@ -334,7 +334,7 @@
      +               ' in file ',trim(file)
                 write(*,*) 'parsectl: error: did not find ',foundvar(i),
      +               ' in file ',trim(file)
-                call abort
+                call exit(-1)
             endif
         enddo
         if ( lwrite ) then
@@ -346,16 +346,16 @@
         return
   900   write(0,*) 'parsectl: error reading input file'
         write(0,'(a)') string
-        call abort
+        call exit(-1)
   901   write(0,*) 'parsectl: error reading decsription variable ',i
         write(0,'(a)') string
-        call abort
+        call exit(-1)
   902   write(0,*) 'parsectl: error: more variables (',nvars
      +        ,') than size of arrays (',nvarmax,')'
-        call abort
+        call exit(-1)
  903    write(0,*) 'parsectl: error: cannot find input file '
      +       ,trim(string)
-        call abort
+        call exit(-1)
         end
 
         subroutine getdef(inunit,string,xx,nx,nxmax)
@@ -377,13 +377,13 @@
         if ( string(6:6).eq.'*' ) then
             write(0,*) 'getdef: cannot read n from ',trim(string)
             write(*,*) 'getdef: cannot read n from ',trim(string)
-            call abort
+            call exit(-1)
         endif
         read(string(6:),*) nx
         if ( nx.gt.nxmax ) then
             write(0,*) 'getdef: error: nx>nxmax: ',nx,nxmax
             write(0,*) '        ',string
-            call abort
+            call exit(-1)
         endif
         i = index(string,'LINEAR') + index(string,'linear')
         if ( i.ne.0 ) then
@@ -408,7 +408,7 @@
                 endif
             else
                 write(0,*) 'error: cannot parse ',string(1:llen(string))
-                call abort
+                call exit(-1)
             endif
         endif
         end
@@ -424,7 +424,7 @@
                 nfile = index(file,' ')
                 if ( nfile.eq.0 ) then
                     write(0,*) 'error: filename too long ',file
-                    call abort
+                    call exit(-1)
                 endif
             endif
         endif

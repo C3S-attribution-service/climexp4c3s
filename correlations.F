@@ -70,7 +70,7 @@
         endif
         if ( indxmx.ne.19 ) then
             write(0,*) 'expecting indxmx=19, not ',indxmx
-            call abort
+            call exit(-1)
         endif
         if ( lwrite ) print *,'putting arrays to absent'
         if ( nfittime.gt.0 ) then
@@ -88,7 +88,7 @@
         if ( nperyear.le.0 ) then
             write(0,*) 'correlate: error: the file ',trim(line),
      +           ' is not readable'
-            call abort
+            call exit(-1)
         end if
 !       do not let the arrays get too large
         if ( nperyear.le.12 ) then
@@ -149,7 +149,7 @@
         call readensseries(line,data,nperyear,yrbg,yred,nensmx
      +       ,n,imens1(0),imens(0),var,units,lstandardunits
      +       ,lwrite)
-        if ( n.ne.nperyear ) call abort
+        if ( n.ne.nperyear ) call exit(-1)
         if ( imens(0).gt.0 ) ensemble = .TRUE.
 *
 *  #] read data:
@@ -184,7 +184,7 @@
         enddo
 !       demand at least one series...
         write(0,*) 'correlate: please select an index to correlate with'
-        call abort
+        call exit(-1)
   100   continue
 ***        if ( lsum.gt.1 .and. lsel.gt.1 ) goto 915
         if ( dump ) then
@@ -424,11 +424,11 @@
             if ( lwrite ) print *,'adding series'
             if ( nens2.gt.0 ) then
                 write(0,*) 'error: cannot add ensembles yet'
-                call abort
+                call exit(-1)
             endif
             if ( lag1.ne.lag2 ) then
                 write(0,*) 'error: cannot use range of lags',lag1,lag2
-                call abort
+                call exit(-1)
             endif
             lag = lag1
 *
@@ -476,7 +476,7 @@
      +               ,plotfile(1:llen(plotfile))
                 write(*,*) 'addseries: error: cannot open output file '
      +               ,plotfile(1:llen(plotfile))
-                call abort
+                call exit(-1)
             endif
             open(99,file=plotfile,status='new',err=520)
             print '(a)',plotfile(1:llen(plotfile))
@@ -504,7 +504,7 @@
      +                       'variable ',string(1:i),
      +                       ' corresponding to ',trim(strindx(k)),
      +                       ' not set'
-                        call abort
+                        call exit(-1)
                     end if
                     if ( lwrite ) print *,'found env ',string(1:i)
      +                    ,' with content ',line
@@ -529,7 +529,7 @@
                             write(*,*) 'addseries: error: can only use '
      +                           //'#addfac 1 or ',nperyear,', not '
      +                           ,nfac(k)
-                            call abort
+                            call exit(-1)
                         endif
                         read(line,*,err=600,end=600)
      +                       (addfac(j,k),j=1,nfac(k))
@@ -563,7 +563,7 @@
                                 write(0,*) 'error: found nperyear = ',i,
      +                               ' in ',trim(line),', expected '
      +                               ,nperyear
-                                call abort
+                                call exit(-1)
                             end if
                         end if
                         if ( jindx.lt.10 ) then
@@ -1095,7 +1095,7 @@
      +                           'le running lagged correlations yet'
                             write(*,*) 'correlate: error: cannot hand'//
      +                           'le running lagged correlations yet'
-                            call abort
+                            call exit(-1)
                         endif
                         call getred(alpha,j1,j2,lag,k,nperyear,imens
      +                       ,indxmx,indx,data,nperyear,yrbg,yred
@@ -1256,34 +1256,34 @@
 *
         goto 999
   902   print *,'error reading NINO data'
-        call abort
+        call exit(-1)
   904   print *,'error reading sunspot data'
         print *,line
-        call abort
+        call exit(-1)
   905   print *,'error reading lag value ',line
-        call abort
+        call exit(-1)
   906   print *,'error reading sum value ',line
-        call abort
+        call exit(-1)
   907   print *,'error reading begin value ',line
-        call abort
+        call exit(-1)
   908   print *,'error reading end value ',line
-        call abort
+        call exit(-1)
   909   print *,'error reading maximum index value ',line
-        call abort
+        call exit(-1)
   910   print *,'error reading minimum index value ',line
-        call abort
+        call exit(-1)
   911   print *,'error reading minimum ks cut-off or "plot" ',line
-        call abort
+        call exit(-1)
   912   print *,'error reading month ',line
-        call abort
+        call exit(-1)
   913   print *,'error reading ldecorrelation length ',line
-        call abort
+        call exit(-1)
   914   print *,'error reading number of months to select ',line
-        call abort
+        call exit(-1)
   915   print *,'error: both summing and selecting does not make sense'
-        call abort
+        call exit(-1)
  916    print *,'error: cannot interpolate in time (yet) ',n,nperyear
-        call abort
+        call exit(-1)
   999   continue
 *  #] error messages:
         end
