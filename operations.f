@@ -59,7 +59,7 @@
         do i=yrbeg,yrend
             do j=1,nperyear
                 if ( data(j,i).lt.1e33 ) then
-                    if ( data(j,i).gt.0 ) then
+                    if ( data(j,i).ge.0 ) then
                         data(j,i) = sqrt(data(j,i))
                     else
                         data(j,i) = 3e33
