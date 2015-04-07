@@ -8,9 +8,9 @@
         integer iarg1,iarg2,nperyear,yrbeg,yrend,mens1,mens
         logical loutin
 #include "getopts.inc"
-        integer i,j,k,l,lskip,idiff
+        integer i,j,k,l,lskip,idiff,iret
         real s,minfacinit
-        logical lout,lexist
+        logical lout,lexist,lopen
         character line*511,string*511
         integer iargc,llen
 *
@@ -356,20 +356,27 @@
                 if ( lout ) print '(a,i4)','# ending at year ',yr2
                 lskip = 1
             elseif ( line(1:9).eq.'startstop' ) then
-                call getarg(i+1,line)
-                inquire(file=trim(line),exist=lexist)
-                if ( lexist ) then
+                lstartstop = .true.
+                inquire(unit=12,opened=lopen)
+                if ( .not.lopen ) then ! maybe getopts is called twice...
+                    call getarg(i+1,line)
+                    inquire(file=trim(line),exist=lexist)
                     l = len_trim(line)
-                    do j=0,9999
-                        write(line(l:),'(i4.4)') j
-                        inquire(file=trim(line),exist=lexist)
-                        if ( .not.lexist ) exit
-                    end do
+                    if ( lexist ) then
+                        do j=0,9999
+                            write(line(l+1:),'(i4.4)') j
+                            inquire(file=trim(line),exist=lexist)
+                            if ( .not.lexist ) exit
+                        end do
+                        ! move the old one out of the way
+                        call mysystem('mv '//line(1:l)//' '//trim(line),
+     +                       iret)
+                    end if
+                    open(12,file=trim(line(1:l)),status='new')
+                    if ( lout ) print '(2a)'
+     +                   ,'# writing start and stop years on file '
+     +                   ,trim(line)
                 end if
-                open(12,file=trim(line),status='new')
-                if ( lout ) print '(2a)'
-     +               ,'# writing start and stop years on file '
-     +               ,trim(line)
                 lskip = 1
             elseif ( line(1:2).eq.'lt' ) then
                 call getarg(i+1,line)

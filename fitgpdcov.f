@@ -1,6 +1,6 @@
 *  #[ fitgpdcov:
         subroutine fitgpdcov(xx,yrs,ntot,a3,b3,xi3,alpha3,beta3,j1,j2
-     +       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2
+     +       ,lweb,ntype,lchangesign,yr1a,yr2a,xyearin,idmax,cov1,cov2
      +       ,offset,t3,tx3,threshold,inrestrain,assume
      +       ,confidenceinterval,ndecor,lboot,lprint,dump,plot,lwrite)
 *
@@ -30,7 +30,7 @@
         parameter(nmc=1000)
         integer ntot,j1,j2,ntype,yr1a,yr2a,ndecor
         integer yrs(0:ntot)
-        real xx(2,ntot),a3(3),b3(3),xi3(3),alpha3(3),beta3(3),xyear,
+        real xx(2,ntot),a3(3),b3(3),xi3(3),alpha3(3),beta3(3),xyearin,
      +       cov1,cov2,offset,inrestrain,t3(3,10,3),tx3(3,3),threshold,
      +       confidenceinterval
         character assume*(*),idmax*(*)
@@ -44,7 +44,7 @@
      +       db,dxi,f,z,ll,ll1,txtx(nmc,3),a25,a975,beta25,beta975,
      +       ranf,mean,sd,dalpha,dbeta,mindata,minindx,pmindata,snorm,s,
      +       xmin,cmin,cmax,c,xxyear,frac,ttt(10,3),txtxtx(3),
-     +       acov(3,2),aacov(nmc,2),plo,phi
+     +       acov(3,2),aacov(nmc,2),plo,phi,xyear
         real adev,var,skew,curt,aaa,bbb,siga,chi2,q,p(4)
         integer,allocatable :: ii(:),yyrs(:)
         real,allocatable :: yy(:),ys(:),zz(:),sig(:)
@@ -69,6 +69,7 @@
 *
         year = yr2a
         pthreshold = threshold
+        xyear = xyearin
         if ( lwrite ) then
             print *,'fitgpdcov: input:'
             print *,'assume         = ',assume
@@ -76,6 +77,7 @@
             print *,'threshold      = ',threshold,'%'
             print *,'year,xyear     = ',year,xyear
             print *,'cov1,cov2,offset ',cov1,cov2,offset
+            print *,'ntot           = ',ntot
             if ( .false. ) then
                 do i=1,ntot
                     print *,i,(xx(j,i),j=1,2)
@@ -109,7 +111,7 @@
                 ncur = ncur + 1
             end if
         end do
-        if ( ncur.lt.5 ) then
+        if ( ncur.lt.10 ) then
             return
         end if
 !
@@ -234,7 +236,7 @@
                 end if
             endif
             a3(1) = a
-            b3(1) = b
+            b3(1) = abs(b)
             xi3(1) = xi
             alpha3(1) = alpha
             beta3(1) = beta
@@ -837,6 +839,12 @@
         real athreshold,pthreshold
         common /fitdata5/ nthreshold,athreshold,pthreshold
 
+        if ( llwrite ) then
+            print *,'gpdcovreturnyear: input'
+            print *,'a,b,xi     = ',a,b,xi
+            print *,'alpha,beta = ',alpha,beta
+            print *,'xyear,cov  = ',xyear,cov
+        end if
         x = xyear
         call getabfromcov(a,b,alpha,beta,cov,aa,bb)
         if ( xyear.gt.aa ) then

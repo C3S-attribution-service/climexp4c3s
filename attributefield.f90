@@ -16,7 +16,7 @@
     integer i,j,k,l,yr,mo,n,j1,j2,off,nx,ny,nz,nt,nvars,fyr,lyr,nxf,nyf,nzf,nresults
     integer x1,x2,y1,y2,ix,ixx,iy,iz,iyrs(10),ntvarid,itimeaxis(ntmax),ivars(2,nvarmax), &
     &   jvars(6,nvarmax)
-    real xx(nxmax),yy(nymax),zz(nzmax),undef,wx(nxmax),wy(nymax),results(3,nresmax)
+    real xx(nxmax),yy(nymax),zz(nzmax),undef,wx(nxmax),wy(nymax),results(3,nresmax),xyearsave
     real,allocatable :: field(:,:,:,:,:,:),covariate(:,:,:),series(:,:,:),res(:,:,:,:,:)
     logical xrev,yrev,xwrap,lfirst,lprint
     character file*1024,datfile*1024,covariatefile*1024,distribution*6,assume*5,string*80
@@ -45,6 +45,7 @@
      &       ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo &
      &       ,ltime,undef,endian,title,history,nvarmax,nvars,vars,jvars &
      &       ,lvars,svars,units,cell_methods,lwrite)
+    orgunits = units(1)
 !
     nxf = nx
     nyf = ny
@@ -165,19 +166,23 @@
             endif
 
             if ( lwrite ) print *,'attributefield: calling attribute_dist for ix,iy,iz = ', &
-            & ix,iy,iz,xx(ix),yy(iy),zz(iz)
-            call keepalive1('Grid point',ix+(iy-1)*ny+(nz-1)*nx*ny,nx*ny*nz)
+            &   ix,iy,iz,xx(ix),yy(iy),zz(iz)
+            call keepalive1('Grid point',(ixx-x1)+(iy-y1)*(x2-x1+1)+(iz-1)*(x2-x1+1)*(y2-y1+1), &
+            &   (x2-x1+1)*(y2-y1+1)*nz)
             lprint = .false.
             do i=mens1,mens
                 write(seriesids(i),'(i3.3)') i
             enddo
+            results = 3e33
+            xyearsave = xyear
             call attribute_dist(series,nperyear,covariate,nperyear1,npermax,fyr,lyr,&
             &   mens1,mens,assume,distribution,seriesids,results,nresmax,nresults,lprint)
+            xyear = xyearsave
             if ( lwrite ) then
                 print *,'results = '
                 do i=1,nresults
                     print *,(results(j,i),j=1,3)
-                    if ( results(1,i) == 3e33 ) exit
+                    if ( i.ne.5 .and. results(1,i) == 3e33 ) exit
                 end do
             end if
             if ( lfirst ) allocate(res(nxf,nyf,nzf,3,nresmax))
@@ -200,12 +205,12 @@
     ! write output
     
     if ( nresults /= 38 ) then
-        write(0,*) 'attributefield: internal error: expecting nresults = 37, not ',nresults
+        write(0,*) 'attributefield: internal error: expecting nresults = 38, not ',nresults
         call exit(-1)
     end if
 !
 !   metadata
-!  
+!
     vars(1) = 'mu'
     units(1) = orgunits
     lvars(1) = 'position parameter'
@@ -221,10 +226,10 @@
     vars(5) = 'beta'
     units(5) = trim(orgunits)//'/'//trim(units1)
     lvars(5) = 'second trend parameter'
-    write(vars(6),'(a,i4.4)') 'tx',yr1a
+    write(vars(6),'(a,i4.4)') 'rt',yr1a
     units(6) = 'yr'
     write(lvars(6),'(a,i4.4)') 'return time in climate of ',yr1a
-    write(vars(7),'(a,i4.4)') 'tx',yr2a
+    write(vars(7),'(a,i4.4)') 'rt',yr2a
     units(7) = 'yr'
     write(lvars(7),'(a,i4.4)') 'return time in climate of ',yr2a
     vars(8) = 'ratio'
@@ -251,10 +256,10 @@
     do i=1,k
         vars(k+i) = 'lo'//vars(i)
         units(k+i) = units(i)
-        lvars(k+i) = 'lower bound of 95% CI of '//lvars(i)
+        lvars(k+i) = 'lower bound of CI of '//lvars(i)
         vars(2*k+i) = 'hi'//vars(i)
         units(2*k+i) = units(i)
-        lvars(2*k+i) = 'upper bound of 95% CI of '//lvars(i)
+        lvars(2*k+i) = 'upper bound of CI of '//lvars(i)
     end do
     nvars = 3*k
     if ( nz.le.1 ) then
@@ -274,13 +279,48 @@
 !
     do i=1,3 ! central value; lower, upper bounds 95% CI
         do j=1,nvars/3
-            call writencslice(ncid,ntvarid,itimeaxis,ntmax,ivars,res(1,1,1,i,j) &
-     &        ,nx,ny,nz,nx,ny,nz,1,1)
+            call writencslice(ncid,ntvarid,itimeaxis,ntmax,ivars(1,j+(i-1)*nvars/3), &
+            &   res(1,1,1,i,j),nxf,nyf,nzf,nx,ny,nz,1,1)
         end do
     end do
     i = nf_close(ncid)
     if ( lwrite ) print *,'deallocating res'
     deallocate(res)
+    
+    call savestartstopfield(0,0,.true.)
 
 end program attributefield
+
+! we need to override the standard savestartstop that is loaded from the library...
+
+subroutine savestartstop(yrstart,yrstop)
+    implicit none
+    integer yrstart,yrstop
+    call savestartstopfield(yrstart,yrstop,.false.)
+end subroutine
+subroutine savestartstopfield(yrstart,yrstop,final)
+    implicit none
+    integer yrstart,yrstop
+    logical final
+    integer,save :: allyrstart=9999,allyrstop=-9999
+    logical lopen
+
+    if ( .not.final ) then
+        ! accumulate
+        allyrstart = min(allyrstart,yrstart)
+        allyrstop  = max(allyrstop,yrstop)
+    else ! ignore first two arguments
+        inquire(unit=12,opened=lopen)
+        if ( lopen ) then
+            if ( yrstart.ge.-999 ) then
+                write(12,'(i4)') allyrstart
+            else
+                write(12,'(i5)') allyrstart
+            end if
+            write(12,'(i4)') allyrstop
+        end if
+        close(12)
+    end if
+end subroutine
+
 

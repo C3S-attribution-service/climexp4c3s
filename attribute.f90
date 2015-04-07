@@ -18,6 +18,8 @@ program attribute
     character var*40,units*80,var1*40,units1*80,seriesids(0:nensmax)*30
     logical lprint
     integer iargc
+    real scalingpower
+    common /c_scalingpower/ scalingpower
 
     if ( iargc().lt.8 ) then
         write(0,*) 'usage: attribute series covariate_series ', &
@@ -100,12 +102,14 @@ program attribute
             call sumit(series(1,yrbeg,iens),npermax,nperyear,yrbeg,yrend,lsum,oper)
         end do
     endif
+    scalingpower = 1
     if ( logscale ) then
         print '(a)','# taking logarithm'
         do iens=mens1,mens
             call takelog(series(1,yrbeg,iens),npermax,nperyear,yrbeg,yrend)
         end do
         if ( xyear.lt.1e33 ) xyear = log(xyear)
+        scalingpower = 0
     endif
     if ( sqrtscale ) then
         print '(a)','# taking sqrt'
@@ -113,6 +117,7 @@ program attribute
             call takesqrt(series(1,yrbeg,iens),npermax,nperyear,yrbeg,yrend)
         end do
         if ( xyear.lt.1e33 ) xyear = sqrt(xyear)
+        scalingpower = 0.5
     endif
     if ( squarescale ) then
         print '(a)','# taking square'
@@ -120,6 +125,7 @@ program attribute
             call takesquare(series(1,yrbeg,iens),npermax,nperyear,yrbeg,yrend)
         end do
         if ( xyear.lt.1e33 ) xyear = xyear**2
+        scalingpower = 2
     endif
     if ( twothirdscale ) then
         print '(a)','# taking power two-third'
@@ -127,6 +133,7 @@ program attribute
             call taketwothird(series(1,yrbeg,iens),npermax,nperyear,yrbeg,yrend)
         end do
         if ( xyear.lt.1e33 .and. xyear.ge.0 ) xyear = xyear**(2/3.)
+        scalingpower = 2./3.
     endif
 
     lprint = .true.

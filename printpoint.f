@@ -299,10 +299,13 @@
         logical lchangesign,lwrite,last
         integer i,j,ier,it
         real f,ff,s,x,z,sqrt2,tmax
+        real,save :: smin=3e33,smax=-3e33
         character string*100
         logical lprinted
         real erf
         real,external :: gammp,gammq,invcumgamm,invcumpois
+        real scalingpower
+        common /c_scalingpower/ scalingpower
 
         if ( lwrite ) then
             print *,'plot_ordered_points: xyear = ',xyear
@@ -410,6 +413,8 @@
                 if ( x.ne.-999.9 ) x = -x
             endif
             call printpoint(i,f,ntype,x,s,yrs(j))
+            smin = min(s,smin)
+            smax = max(s,smax)
             if ( i.gt.ntot .and. (1-f)*(j2-j1+1).lt.0.0001 ) 
      +           goto 800
         enddo
@@ -427,6 +432,9 @@
                 call printpoint(0,f,ntype,-999.9,-999.9,10000*yr2a)
             endif
             call print_xtics(6,ntype,ntot,j1,j2)
+            if ( scalingpower.ne.1 ) then
+                call printy2tics(6,smin,smax,scalingpower)
+            end if
         end if
         end
 *  #] plot_ordered_points:
@@ -548,6 +556,78 @@
         write(unit,'(a)') '#@ )'
         end
 *  #] print_xtics:
+*  #[ print_y2tics:
+        subroutine printy2tics(unit,smin,smax,scalingpower)
+!
+!       print the gnuplot command to replace the RH Y-axis with the original units
+!
+        implicit none
+        integer unit
+        real smin,smax,scalingpower
+        integer i,n,pow,i1,i2
+        real delta,s
+        character string*100
+
+        if ( scalingpower.eq.1 ) return
+        if ( smin.lt.0 ) smin = 0
+        if ( scalingpower.eq.0 ) then
+            smin = exp(smin)
+            smax = exp(smax)
+        else
+            smin = smin**(1/scalingpower)
+            smax = smax**(1/scalingpower)
+        end if
+        delta = (smax-smin)/5
+        ! round to 1,2,5*10^pow
+        pow = int(log10(delta))
+        delta = delta/10**pow
+        if ( delta.lt. 2 ) then
+            delta = 1
+        else if ( delta.lt.5 ) then
+            delta = 2
+        else
+            delta = 5
+        end if
+        delta = delta*10**pow
+        i1 = int(smin/delta)
+        i2 = int(smax/delta) + 1
+
+        write(unit,'(a)') '#@ set ytics nomirror'
+        write(unit,'(a)') '#@ set y2tics (\\'
+        do i = i1,i2
+            if ( nint(i*delta).ge.1 .or. i.eq.0 ) then
+                if ( i.eq.0 ) then
+                    string = '(a,i1,a,f15.4,a)'
+                else
+                    write(string,'(a,i1,a)') '(a,i',
+     +                   1+int(0.01+log10(i*delta)),',a,f15.4,a)'
+                end if
+                if ( scalingpower.eq.0 ) then
+                    write(unit,string) '#@ "',nint(i*delta),
+     +                   '" ',log(i*delta),'\\'
+                else
+                    write(unit,string) '#@ "',nint(i*delta),
+     +               '" ',(i*delta)**(scalingpower),'\\'
+                end if
+            else
+                n = int(-0.01-log10(i*delta))
+                write(string,'(a,i1,a,i1,a)') '(a,f',n+2,'.',n,
+     +               ',a,f15.4,a)'
+                if ( scalingpower.eq.0 ) then
+                    write(unit,string) '#@ "',i*delta,
+     +                   '" ',log(i*delta),'\\'
+                else
+                    write(unit,string) '#@ "',i*delta,
+     +               '" ',(i*delta)**(scalingpower),'\\'
+                end if
+            end if
+            if ( i.lt.i2 ) then
+                write(unit,'(a)') '#@ ,\\'
+            end if
+        end do
+        write(unit,'(a)') '#@ )'
+        end subroutine
+*  #] print_y2tics:
 *  #[ plot_tx_cdfs:
         subroutine plot_tx_cdfs(txtx,nmc,nens,ntype,j1,j2)
 !

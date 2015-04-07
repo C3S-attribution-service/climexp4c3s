@@ -836,7 +836,11 @@ subroutine copyab3etc(a3,b3,xi3,alpha3,beta3,t3,tx3, &
     integer i,j
     
     call copy3scalar(a3,a,a25,a975)
-    call copy3scalar(b3,b,b25,b975)
+    if ( b.ge.0 ) then
+        call copy3scalar(b3,b,b25,b975)
+    else
+        call copy3scalar(b3,-b,-b975,-b25)
+    end if
     call copy3scalar(xi3,xi,xi25,xi975)
     call copy3scalar(alpha3,alpha,alpha25,alpha975)
     call copy3scalar(beta3,beta,beta25,beta975)
