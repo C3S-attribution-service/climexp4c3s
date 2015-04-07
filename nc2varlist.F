@@ -8,7 +8,7 @@
 #include "netcdf.inc"
 #include "params.h"
         integer nvarmax
-        parameter(nvarmax=50)
+        parameter(nvarmax=100)
         integer ncid,nx,ny,nz,nt,nperyear,firstyr
      +       ,firstmo,ntvars,ivars(6,nvarmax),ivar
         real xx(nxmax),yy(nymax),zz(nzmax),undef

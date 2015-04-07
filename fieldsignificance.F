@@ -9,7 +9,7 @@
 #include "recfac.h"
 #include "getopts.inc"
         integer nvarmax,ncuts
-        parameter (nvarmax=30,ncuts=9)
+        parameter (nvarmax=100,ncuts=9)
         integer i,j,itime,ivar,iivar,irec,ix,ix1,ixm1,iy,iz,nd,np,x1,x2
      +       ,y1,y2,ncut,icut
         integer mens1,mens,ncid,nx,ny,nz,nt,nperyear,firstmo,firstyr
