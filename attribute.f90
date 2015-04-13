@@ -117,7 +117,7 @@ program attribute
             call takesqrt(series(1,yrbeg,iens),npermax,nperyear,yrbeg,yrend)
         end do
         if ( xyear.lt.1e33 ) xyear = sqrt(xyear)
-        scalingpower = 0.5
+        scalingpower = scalingpower*0.5
     endif
     if ( squarescale ) then
         print '(a)','# taking square'
@@ -125,7 +125,7 @@ program attribute
             call takesquare(series(1,yrbeg,iens),npermax,nperyear,yrbeg,yrend)
         end do
         if ( xyear.lt.1e33 ) xyear = xyear**2
-        scalingpower = 2
+        scalingpower = scalingpower*2
     endif
     if ( twothirdscale ) then
         print '(a)','# taking power two-third'
@@ -133,7 +133,7 @@ program attribute
             call taketwothird(series(1,yrbeg,iens),npermax,nperyear,yrbeg,yrend)
         end do
         if ( xyear.lt.1e33 .and. xyear.ge.0 ) xyear = xyear**(2/3.)
-        scalingpower = 2./3.
+        scalingpower = scalingpower*2./3.
     endif
 
     lprint = .true.
