@@ -127,3 +127,60 @@
 	if ( lwrite ) print *,'getcut: cut = ',cut
         end
 *  #] getcut1:
+*  #[ invgetcut:
+        subroutine invgetcut(pcut,cut,n,a)
+        implicit none
+!
+!       the inverse of getcut: find the percentile pcut of the cut-off cut in the unsorted array a
+!       assume the ends are 1/(n+1), not 0.5/n...
+!       can be made much more efficient with standard routines but OK for now.
+!
+        integer n
+        real cut,pcut,a(n)
+*
+        integer i
+	logical lwrite
+	parameter (lwrite=.true.)
+*
+	if ( lwrite ) then
+            print *,'invgetcut: cut,n = ',cut,n
+            do i=1,3
+                print *,i,a(i)
+            enddo
+	endif
+*       sort (Numerical Recipes quicksort)
+        call nrsort(n,a)
+        call invgetcut1(pcut,cut,n,a,lwrite)
+        end
+*  #] getcut:
+*  #[ invgetcut1:
+        subroutine invgetcut1(pcut,cut,n,a,lwrite)
+!
+!       the inverse of getcut1: find the percentile pcut of the cut-off cut in the sorted array a
+!       assume the ends are 1/(n+1), not 0.5/n...
+!       can be made much more efficient with standard routines but OK for now.
+!
+        implicit none
+        integer n
+        real pcut,cut,a(n)
+        logical lwrite
+        integer i
+        if ( a(1) > cut ) then
+            pcut = 1/real(n+1)
+            if ( lwrite) print *,'a(1) > cut ',a(1),cut,
+     +           ' hence pcut = ',pcut
+        else if ( a(n) < cut ) then
+            pcut = 1 - 1/real(n+1)
+            if ( lwrite ) print *,'a(n) < cut ',a(n),cut,
+     +           ' hence pcut = ',pcut
+        else
+            do i=1,n-1
+                if ( a(i) <= cut .and. a(i+1) > cut ) exit
+            end do
+            pcut = (i + (cut-a(i))/(a(i+1)-a(i)))/real(n+1)
+            if ( lwrite ) print *,'a(',i,') < cut < a(',i+1,') ',
+     +           a(i),cut,a(i+1),' hence pcut = ',
+     +           i/real(n+1),(i+1)/real(n+1),pcut
+        end if
+        end subroutine
+*  #] invgetcut1:

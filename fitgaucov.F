@@ -223,6 +223,7 @@
                 end do
             endif
         enddo
+        iens = nmc
         if ( lchangesign ) then
             a = -a
             acov = -acov
@@ -307,6 +308,7 @@
         call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot)
         call printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a
      +       ,lweb,plot)
+        call printcovpvalue(txtx,iens,lweb)
 
         if ( dump ) then
             call plot_tx_cdfs(txtx,nmc,nmc,ntype,j1,j2)

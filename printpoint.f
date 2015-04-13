@@ -203,6 +203,28 @@
         endif
         end
 *  #] printcovreturntime:
+*  #[ printcovpvalue:
+        subroutine printcovpvalue(txtx,nmc,lweb)
+!
+!       print out the p-value at which the ratio of return time is unequal to 1 (FAR unequal to 0)
+!
+        implicit none
+        integer nmc
+        real txtx(nmc,3)
+        logical lweb
+        integer i
+        real p,one
+        one = 1
+        call invgetcut(p,one,nmc,txtx(1,3))
+        if ( p.gt.0.5 ) p = 1-p
+        if ( lweb ) then
+            print '(2a,f7.4,a)','<tr><td><i>p</i>-value (one-sided)',
+     +           '</td><td>/= 1</td><td>',p,'</td><td>&nbsp;</td></tr>'
+        else
+            print '(a,f7.4,a)','# p-value for ratio/=1 (one-sided) ',p
+        end if
+        end subroutine
+*  #] printcovpvalue:
 *  #[ plotreturnvalue:
         subroutine plotreturnvalue(ntype,t25,t975,n)
 *

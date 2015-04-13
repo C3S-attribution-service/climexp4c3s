@@ -243,7 +243,7 @@
                 end do
                 ! if the event would have been impossible in the current climate
                 ! disregard this bootstrap sample
-                if ( txtxtx(3).gt.1e19 ) then
+                if ( txtxtx(2).gt.1e19 ) then
                     if ( lwrite ) print*,'disregarding bootstrap sample'
                     iens = iens - 1
                 end if                
@@ -370,6 +370,7 @@
         call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot)
         call printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a
      +       ,lweb,plot)
+        call printcovpvalue(txtx,iens,lweb)
 
         if ( dump ) then
             call plot_tx_cdfs(txtx,nmc,iens,ntype,j1,j2)
