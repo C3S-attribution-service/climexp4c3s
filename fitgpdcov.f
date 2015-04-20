@@ -902,6 +902,7 @@
         if ( .true. .and. tx.lt.1e-10 ) then
             write(0,*) 'gpdcovreturnyear: tx < 1e-10: ',tx
             write(0,*) 'a,b,xi,alpha,xyear = ',a,b,alpha,xi,xyear
+            tx = 3e33
         endif
         gpdcovreturnyear = tx
         end
