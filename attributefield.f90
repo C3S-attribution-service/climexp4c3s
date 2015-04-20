@@ -167,8 +167,8 @@
 
             if ( lwrite ) print *,'attributefield: calling attribute_dist for ix,iy,iz = ', &
             &   ix,iy,iz,xx(ix),yy(iy),zz(iz)
-            call keepalive1('Grid point',(ixx-x1)+(iy-y1)*(x2-x1+1)+(iz-1)*(x2-x1+1)*(y2-y1+1), &
-            &   (x2-x1+1)*(y2-y1+1)*nz)
+            call keepalive2('Grid point',(ixx-x1)+(iy-y1)*(x2-x1+1)+(iz-1)*(x2-x1+1)*(y2-y1+1), &
+            &   (x2-x1+1)*(y2-y1+1)*nz,.true.)
             lprint = .false.
             do i=mens1,mens
                 write(seriesids(i),'(i3.3)') i
@@ -234,7 +234,7 @@
     write(lvars(7),'(a,i4.4)') 'return time in climate of ',yr2a
     vars(8) = 'ratio'
     units(8) = '1'
-    write(lvars(5),'(a,i4.4)') 'ratio of return times'
+    write(lvars(8),'(a,i4.4)') 'ratio of return times'
     k = 8
     do i=1,10
         l = 2 + (i-1)/3
