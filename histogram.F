@@ -33,6 +33,9 @@
         real *8 ranf
         external gammln,erf,erfcc,gammp,gammq,invcumpois
      +        ,invcumgamm,ranf
+!
+        real scalingpower
+        common /c_scalingpower/ scalingpower
 *
         call killfile(string,line,file,0)
         allocate(yrs(0:maxldat))
@@ -154,27 +157,32 @@
                 call sumit(data(1,yrbeg,iens),npermax,nperyear
      +               ,yrbeg,yrend,lsum,oper)
             endif
+            scalingpower = 1
             if ( logscale ) then
                 if ( iens.eq.nens1 ) print '(a)'
      +               ,'# taking logarithm'
                 call takelog(data(1,yrbeg,iens),npermax
      +               ,nperyear,yrbeg,yrend)
+                scalingpower = 0
             endif
             if ( sqrtscale ) then
                 if ( iens.eq.nens1 ) print '(a)','# taking sqrt'
                 call takesqrt(data(1,yrbeg,iens),npermax
      +               ,nperyear,yrbeg,yrend)
+                scalingpower = scalingpower*0.5
             endif
             if ( squarescale ) then
                 if ( iens.eq.nens1 ) print '(a)','# taking square'
                 call takesquare(data(1,yrbeg,iens),npermax
      +               ,nperyear,yrbeg,yrend)
+                scalingpower = scalingpower*2
             endif
             if ( twothirdscale ) then
                 if ( iens.eq.nens1 ) print '(a)',
      +               '# taking power twothird'
                 call taketwothird(data(1,yrbeg,iens),npermax
      +               ,nperyear,yrbeg,yrend)
+                scalingpower = scalingpower*2./3.
             endif
         enddo
 *

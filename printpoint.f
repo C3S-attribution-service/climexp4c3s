@@ -135,7 +135,7 @@
      +                   ,tx,'</td><td>',tx25,' ... ',tx975,'</td></tr>'
                 end if
             else
-                print '(a,f16.5,a,i4,a,f16.5,a,2f16.5)','# return time '
+                print '(a,f16.5,a,i4,a,f16.5,a,2f18.5)','# return time '
      +               ,xyear,' (',year,') = ',tx,' 95% CI ',tx25,tx975
             endif
         endif
@@ -586,7 +586,7 @@
         implicit none
         integer unit
         real smin,smax,scalingpower
-        integer i,n,pow,i1,i2
+        integer i,j,n,pow,i1,i2
         real delta,s
         character string*100
 
@@ -621,8 +621,9 @@
                 if ( i.eq.0 ) then
                     string = '(a,i1,a,f15.4,a)'
                 else
-                    write(string,'(a,i1,a)') '(a,i',
-     +                   1+int(0.01+log10(i*delta)),',a,f15.4,a)'
+                    n = 1+int(0.01+log10(i*delta))
+                    n = max(1,min(9,n))
+                    write(string,'(a,i1,a)') '(a,i',n,',a,f15.4,a)'
                 end if
                 if ( scalingpower.eq.0 ) then
                     write(unit,string) '#@ "',nint(i*delta),
@@ -633,6 +634,7 @@
                 end if
             else
                 n = int(-0.01-log10(i*delta))
+                n = max(1,min(n,7))
                 write(string,'(a,i1,a,i1,a)') '(a,f',n+2,'.',n,
      +               ',a,f15.4,a)'
                 if ( scalingpower.eq.0 ) then
