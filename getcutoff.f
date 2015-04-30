@@ -140,7 +140,7 @@
 *
         integer i
 	logical lwrite
-	parameter (lwrite=.true.)
+	parameter (lwrite=.false.)
 *
 	if ( lwrite ) then
             print *,'invgetcut: cut,n = ',cut,n
