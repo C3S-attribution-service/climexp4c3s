@@ -6,11 +6,31 @@
         implicit none
         integer npermax,nperyear,yrbeg,yrend,mdiff
         real data(npermax,yrbeg:yrend),minfac,n
-        integer i,j,k,m,ii
-        real s,absent
+        integer i,j,k,m,ii,iold,jold
+        real s,sold,absent
         parameter (absent=3e33)
+        integer,external :: leap
 *
-        if ( mdiff.gt.0 ) then
+        if ( mdiff.eq.1 ) then
+            ! take simple differences
+            sold = 3e33
+            jold = -999
+            do i=yrbeg,yrend
+                do j=1,nperyear
+                    if ( nperyear.eq.366 .and. j.eq.31+29 .and. 
+     +                   leap(i).eq.1 ) cycle 
+                    if ( sold.lt.1e33 .and. data(j,i).lt.1e33 ) then
+                        s = data(j,i) - sold
+                    else
+                        s = 3e33
+                    end if
+                    if ( jold.ge.1 ) data(jold,iold) = s
+                    jold = j
+                    iold = i
+                    sold = data(j,i)
+                end do
+            end do
+        else if ( mdiff.gt.1 ) then
             do i=yrbeg,yrend
                 do j=1,nperyear
                     s = 0
