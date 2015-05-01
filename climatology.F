@@ -153,7 +153,22 @@
      +       '               97.5%'
         do yr=2000,2001
  1000       format(i4.4,2i2.2,100g20.6)
-            if ( nperyear.eq.4 ) then
+            if ( nperyear.eq.2 ) then
+                do j=1,2
+                    if ( mean(j,0).lt.1e33 ) then
+                        if ( j.eq.1 ) then
+                            print 1000,yr-1,6*j+4,1,(mean(j,i),i=0,ncut)
+                        else
+                            print 1000,yr,6*j-8,1,(mean(j,i),i=0,ncut)
+                        endif
+                    else
+                        print '(a)'
+                    endif
+                enddo
+                if ( yr.eq.2001 .and. mean(1,0).lt.1e33 ) then
+                    print 1000,2001,10,1,(mean(1,i),i=0,ncut)
+                endif
+            else if ( nperyear.eq.4 ) then
                 do j=1,4
                     if ( mean(j,0).lt.1e33 ) then
                         if ( j.eq.1 ) then
@@ -168,7 +183,7 @@
                 if ( yr.eq.2001 .and. mean(1,0).lt.1e33 ) then
                     print 1000,2001,12,1,(mean(1,i),i=0,ncut)
                 endif
-            elseif ( nperyear.eq.12 ) then
+            else if ( nperyear.eq.12 ) then
                 do j=1,12
                     if ( mean(j,0).lt.1e33 ) then
                         print 1000,yr,j,1,(mean(j,i),i=0,ncut)
