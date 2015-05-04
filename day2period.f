@@ -35,6 +35,42 @@
      +           newdata,npermax,nperyearnew,
      +           yrbeg,yrend,1,nperyear,1,oper,lgt,cut,
      +           minfac,itype,lwrite)
+        elseif ( nperyearnew.eq.2 ) then
+            if ( nperyear.ne.360 ) then
+                j = -(31+30+31)
+            else
+                j = -3*30
+            endif
+            jold = nint(j/(366./nperyear))
+            do mo=-2,9
+                if ( nperyear.eq.360 ) then
+                    j = j + 30
+                    jj = j
+                elseif ( nperyear.eq.365 ) then
+                    if ( mo.gt.0 ) then
+                        j = j + dpm365(mo)
+                    else
+                        j = j + dpm365(mo+12)
+                    endif
+                    jj = nint(j/(365./nperyear))
+                else
+                    if ( mo.gt.0 ) then
+                        j = j + dpm(mo)
+                    else
+                        j = j + dpm(mo+12)
+                    endif
+                    jj = nint(j/(366./nperyear))
+                endif
+                if ( mo.eq.3 .or. mo.eq.9 )
+     +               then
+                    call day2period(
+     +                   olddata,mpermax,nperyear,lvalid,
+     +                   newdata,npermax,nperyearnew,
+     +                   yrbeg,yrend,jold+1,jj,1+mo/6,oper,lgt,cut,
+     +                   minfac,itype,lwrite)
+                    jold = jj
+                endif
+            enddo
         elseif ( nperyearnew.eq.4 ) then
             if ( nperyear.ne.360 ) then
                 j = -31

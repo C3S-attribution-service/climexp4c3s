@@ -15,7 +15,7 @@
      +        /'Jan','Feb','Mar','Apr','May','Jun'
      +        ,'Jul','Aug','Sep','Oct','Nov','Dec'/
         data seasons /'DJF','MAM','JJA','SON'/
-        data halfyears /'A-S','O-M'/
+        data halfyears /'O-M','A-S'/
 
         if ( lwrite ) then
             print *,'getj1j2: month,nperyear = ',month,nperyear

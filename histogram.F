@@ -379,6 +379,8 @@
                                 yrstop  = max(yrstop,i)
                                 lf(ntot) = .not.lastvalid
                                 lastvalid = .true.
+                                if ( .false. .and. lwrite )
+     +                               print *,'xx(',ntot,') = ',xx(ntot)
                                 if ( lwrite .and. lf(ntot) ) print *
      +                               ,'boundary at ',ntot,j,i,iens
                             else

@@ -259,6 +259,7 @@ PROGRAMS      = scientific2decimal \
 		climatology \
 		month2string \
 		season2string \
+		halfyear2string \
 		annual2string \
 		series \
 		multifit \
