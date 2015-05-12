@@ -389,8 +389,9 @@
 	write(0,'(a,i5,a,i5,a,f8.2,a)') 'Found approx ',nxy,'/',nx*ny,
      +		' valid points, time: ',etime(tarray),'<br>'
         if ( nxy.lt.neigen ) then
-            write(0,*) 'eof: error: not enough valid points: ',nxy
-            stop
+            neigen = nxy
+            write(0,*) 'eof: warning: reduced number of eigenvalues to:'
+     +           ,nxy
         endif
 *
 *	check whether the job is not too large
