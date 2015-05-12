@@ -218,8 +218,9 @@
         call invgetcut(p,one,nmc,txtx(1,3))
         if ( p.gt.0.5 ) p = 1-p
         if ( lweb ) then
-            print '(2a,f7.4,a)','<tr><td><i>p</i>-value (one-sided)',
-     +           '</td><td>/= 1</td><td>',p,'</td><td>&nbsp;</td></tr>'
+            print '(2a,f7.4,2a)','<tr><td><i>p</i>-value (one-sided)',
+     +           '</td><td>&#8800; 1</td><td>',p,'</td><td>&nbsp;</td>',
+     +           '</tr>'
         else
             print '(a,f7.4,a)','# p-value for ratio/=1 (one-sided) ',p
         end if
