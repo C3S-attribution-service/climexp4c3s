@@ -401,7 +401,7 @@
         do iscen=1,nscenmax
             write(1,'(2a)') '# ',scenarios(iscen)
             do iperiod=nperiod,1,-1
-                write(1,'(i4,50f8.4)') yr2s,
+                write(1,'(i4,50f12.4)') yr2s,
      +               seriesmean(iperiod,iscen),
      +               (seriesquant(i,iperiod,iscen),i=-6,6)
      +               ,sqrt(seriesdecvar(1,iscen))
