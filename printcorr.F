@@ -405,7 +405,11 @@
  1100           format(a,a8,f7.3,f7.2,i6,g10.2e1,g8.2e1,g10.2e1,g8.2e1
      +               ,i4,2g10.2e1)
                 if ( dump ) then
-                    xneff = n-2*(n-2)/df
+                    if ( df.gt.0 ) then
+                        xneff = n-2*(n-2)/df
+                    else
+                        xneff = -3e33
+                    end if
                     if ( xneff.gt.0 ) then
                         chieff = sqrt(chi2/xneff)
                     else
