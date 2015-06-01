@@ -5,7 +5,7 @@ program dat2nc
 !
     implicit none
     include "param.inc"
-    integer             :: yr,mo,nperyear,i,j,n
+    integer             :: yr,mo,nperyear,i,j,n,mens,mens1
     real*4              :: x,y,x0,y0
     real*4,allocatable  :: data(:,:,:)
     character           :: file*256,since*32,var*40,lvar*80,description*128
@@ -38,7 +38,7 @@ program dat2nc
             comment(2+len_trim(comment):) = trim(description(3:))
         else
             lvar = description(j+2:)
-            j = index(descriptiopn,'[')
+            j = index(description,'[')
             var = description(3:j-1)
         end if
     end do
