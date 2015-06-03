@@ -39,6 +39,10 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
             if ( lwrite ) print *,'attribute_dist: calling make_two_annual_values with max'
             call make_two_annual_values(series,covariate,nperyear,npermax,yrbeg,yrend,mens1,mens, &
             &   yrseries,yrcovariate,fyr,lyr,'max')
+            if ( xyear.lt.1e33 ) then
+                call get_covariate_extrayear(covariate,nperyear1,npermax,yrbeg,yrend,mens1,mens, &
+                & yrcovariate,fyr,lyr)
+            end if
         else
             if ( lwrite ) print *,'attribute_dist: calling make_annual_values for series with max'
             call make_annual_values(series,nperyear,npermax,yrbeg,yrend,mens1,mens, &
@@ -107,7 +111,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     end if
     
     if ( lwrite ) print *,'attribute_dist: calling handle_then_now'
-    call handle_then_now(yrseries,yrcovariate,npernew,fyr,lyr,j1,j2,yr1a,yr2a,mens1,mens, &
+        call handle_then_now(yrseries,yrcovariate,npernew,fyr,lyr,j1,j2,yr1a,yr2a,mens1,mens, &
     & xyear,ensmax,cov1,cov2,lprint,lwrite)
     if ( cov1.gt.1e33 .or. cov2.gt.1e33 ) then
         return
@@ -533,6 +537,40 @@ subroutine make_two_annual_values(series,covariate,nperyear,npermax,yrbeg,yrend,
     end if ! nperyear >= 12
 end subroutine make_two_annual_values
 
+subroutine get_covariate_extrayear(covariate,nperyear,npermax,yrbeg,yrend,mens1,mens,yrcovariate,fyr,lyr)
+    
+    ! construct two annual time series with the maxima of series and the corresponding values of covariate
+
+    implicit none
+    include 'getopts.inc'
+    integer nperyear,npermax,yrbeg,yrend,mens1,mens,fyr,lyr
+    real covariate(npermax,yrbeg:yrend,0:mens),yrcovariate(1,fyr:lyr,0:mens)
+    integer n,j1,j2,iens,i,j,k
+    real s
+    
+    if ( yrcovariate(1,yr2a,0).gt.1e33 ) then
+        ! it may have been left out because there is no data in series
+        ! take the mean value over the months (we do not know which time of year the
+        ! user-supplied value refers to...)
+        s = 0
+        n = 0
+        call getj1j2(j1,j2,m1,nperyear,.false.)
+        do iens = mens1,mens
+            do j=j1,j2
+                k = j
+                call normon(k,yr2a,i,nperyear)
+                if ( covariate(k,i,iens).lt.1e33 ) then
+                    n = n + 1
+                    s = s + covariate(k,i,iens)
+                end if
+            end do
+        end do
+        if ( n.gt.0 ) then
+            yrcovariate(1,yr2a,mens1:mens) = s/n
+        end if
+    end if
+end subroutine
+
 subroutine fill_linear_array(series,covariate,nperyear,j1,j2,fyr,lyr,mens1,mens,&
 &   xx,yrs,nmax,ntot)
 
@@ -642,13 +680,13 @@ subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xy
         end if
         series(momax,yrmax,mens1:mens) = 3e33 ! for GPD we should also make a few values to the sides undef
         if ( lwrite ) print *,'find_cov: xyear = ',xyear,momax,yrmax,ensmax
-    end if
-    if ( xyear.gt.1e33 ) then
-        if ( lprint ) then
-            write(0,*) 'find_cov: error: cannot find valid data in ',yr,', periods ',j1,j2, &
-            & ', ensemble members ',mens1,mens
+        if ( xyear.gt.1e33 ) then
+            if ( lprint ) then
+                write(0,*) 'find_cov: error: cannot find valid data in ',yr,', periods ',j1,j2, &
+                & ', ensemble members ',mens1,mens
+            end if
+            cov = 3e33
         end if
-        cov = 3e33
     end if
 end subroutine find_cov
 
