@@ -246,7 +246,14 @@
                 if ( txtxtx(2).gt.1e19 ) then
                     if ( lwrite ) print*,'disregarding bootstrap sample'
                     iens = iens - 1
-                end if                
+                else if ( txtxtx(3).gt.1e33 ) then
+                    write(0,*) 'fitgevcov: something went wrong',
+     +                   txtxtx
+                    iens = iens - 1
+                end if
+                if ( txtxtx(2).lt.0.5 ) then
+                    write(0,*) 'fitgevcov: suspicious point ',txtxtx
+                end if
             endif
         enddo
         if ( lchangesign ) then
@@ -370,7 +377,7 @@
         call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot)
         call printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a
      +       ,lweb,plot)
-        call printcovpvalue(txtx,iens,lweb)
+        call printcovpvalue(txtx,nmc,iens,lweb)
 
         if ( dump ) then
             call plot_tx_cdfs(txtx,nmc,iens,ntype,j1,j2)

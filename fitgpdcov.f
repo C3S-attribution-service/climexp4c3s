@@ -422,7 +422,7 @@
         call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot)
         call printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a
      +       ,lweb,plot)
-        call printcovpvalue(txtx,iens,lweb)
+        call printcovpvalue(txtx,nmc,iens,lweb)
 
 !       plot fit for present-day climate
         call plotreturnvalue(ntype,t25(1,2),t975(1,2),j2-j1+1)

@@ -154,7 +154,7 @@
         end
 *  #] getcut:
 *  #[ invgetcut1:
-        subroutine invgetcut1(pcut,cut,n,a,lwrite)
+        subroutine invgetcut1(pcut,cut,n,a,llwrite)
 !
 !       the inverse of getcut1: find the percentile pcut of the cut-off cut in the sorted array a
 !       assume the ends are 1/(n+1), not 0.5/n...
@@ -163,24 +163,31 @@
         implicit none
         integer n
         real pcut,cut,a(n)
+        logical llwrite
+        integer i,m
         logical lwrite
-        integer i
+!       first cut out the undefined ones
+        lwrite = llwrite
+        lwrite = .true.
+        do m=n,1,-1
+            if ( a(m).lt.1e33 ) exit
+        end do
         if ( a(1) > cut ) then
-            pcut = 1/real(n+1)
+            pcut = 1/real(m+1)
             if ( lwrite) print *,'a(1) > cut ',a(1),cut,
      +           ' hence pcut = ',pcut
-        else if ( a(n) < cut ) then
-            pcut = 1 - 1/real(n+1)
-            if ( lwrite ) print *,'a(n) < cut ',a(n),cut,
+        else if ( a(m) < cut ) then
+            pcut = 1 - 1/real(m+1)
+            if ( lwrite ) print *,'a(m) < cut ',a(m),cut,
      +           ' hence pcut = ',pcut
         else
-            do i=1,n-1
+            do i=1,m-1
                 if ( a(i) <= cut .and. a(i+1) > cut ) exit
             end do
-            pcut = (i + (cut-a(i))/(a(i+1)-a(i)))/real(n+1)
+            pcut = (i + (cut-a(i))/(a(i+1)-a(i)))/real(m+1)
             if ( lwrite ) print *,'a(',i,') < cut < a(',i+1,') ',
      +           a(i),cut,a(i+1),' hence pcut = ',
-     +           i/real(n+1),(i+1)/real(n+1),pcut
+     +           i/real(m+1),(i+1)/real(m+1),pcut
         end if
         end subroutine
 *  #] invgetcut1:
