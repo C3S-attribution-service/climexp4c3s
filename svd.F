@@ -80,7 +80,7 @@
         i1 = 4
         if ( nsvd.gt.nsvdmax ) then
             write(0,*) 'svd: error: max number of SVDs is ',nsvdmax
-            call abort
+            call exit(-1)
         end if
         goto 11
  10     continue
@@ -93,13 +93,13 @@
         i = index(outfile1,'.ctl')
         if ( i.eq.0 ) then
             write(0,*) 'svd: sorry. netcdf output not yet supported'
-            call abort
+            call exit(-1)
         end if
         call getarg(iargc(),outfile2)
         i = index(outfile2,'.ctl')
         if ( i.eq.0 ) then
             write(0,*) 'svd: sorry. netcdf output not yet supported'
-            call abort
+            call exit(-1)
         end if
         inquire(file=trim(outfile1),exist=lexist1)
         inquire(file=trim(outfile2),exist=lexist2)
@@ -127,7 +127,7 @@
      +           /' in time yet',nperyear1,nperyear2
             write(*,*) 'svd: error: cannot interpolate'/
      +           /' in time yet',nperyear1,nperyear2
-            call abort
+            call exit(-1)
         endif
         nperyear = nperyear1
         lastyr = min(firstyr1 + (nt1-1)/nperyear,firstyr2 + (nt2-1)
@@ -153,7 +153,7 @@
         enddo
         if ( fix2 ) then
             write(0,*) 'svd: fix2 not yet supported'
-            call abort
+            call exit(-1)
         end if
         yr1 = max(yr1,firstyr,firstyr - (min(lag1,lag2)+nperyear-1)
      +       /nperyear)
@@ -210,16 +210,16 @@
         if ( m1.ne.m2 ) then
             print *,'Sorry, can only handle a single starting month'
             print *,'months:',m1,m2
-            call abort
+            call exit(-1)
         endif
         if ( lag1.ne.lag2 ) then
             print *,'Sorry, can only handle a single lag'
             print *,'lags:',lag1,lag2
-            call abort
+            call exit(-1)
         endif
         if ( lag2.ne.lag1 ) then
             print *,'Sorry, only makes sense for lag1=lag2'
-            call abort
+            call exit(-1)
         endif
         print *,'init'
         do iens=0,mens
@@ -330,7 +330,7 @@
 *
         if ( nz1.gt.1 ) then
             write(0,*) 'not yet ready for Z'
-            call abort
+            call exit(-1)
         else
             call enscutoutwindow(x11,x12,y11,y12,xx1,nx1,xwrap1,xrev1
      +           ,avex,yy1,ny1,avey,wx1,wy1,field1,nxf1,nyf1,nens1,nens2
@@ -351,7 +351,7 @@
      +        ,etime(tarray),'<br>'
         if ( nz2.gt.1 ) then
             write(0,*) 'not yet ready for Z'
-            call abort
+            call exit(-1)
         else
             call enscutoutwindow(x21,x22,y21,y22,xx2,nx2,xwrap2,xrev2
      +           ,altavex,yy2,ny2,altavey,wx2,wy2,field2,nxf2,nyf2,nens1
@@ -490,7 +490,7 @@
      +                                       'many points in field1'
                                         write(*,*) 'svd: error: too '//
      +                                       'many points in field1'
-                                        call abort
+                                        call exit(-1)
                                     endif
                                     ijk1(1,n1) = jx1
                                     ijk1(2,n1) = jy1
@@ -511,7 +511,7 @@
                                     write(*,*) 'svd: error: too '//
      +                                   'many points in field2',
      +                                   jx2,jy2,jz2
-                                    call abort
+                                    call exit(-1)
                                 endif
                                 ijk2(1,n2) = jx2
                                 ijk2(2,n2) = jy2
@@ -540,6 +540,14 @@
 *       and put the rest of the undefineds to zero (I do not know a
 *       better value)
 *
+        if ( n1.eq.0 .or. n2.eq.0 ) then
+            write(0,*) 'svd: error: no valid data found. '//
+     +           'Please check your input.'
+            write(0,*) 'Common errors are selecting a land area when '//
+     +           'there is only data over sea or vice vera, a time '//
+     +           'period with data or a season without data.'
+            call exit(-1)
+        end if
  801    continue
         do i1=1,n1
             do i2=1,n2
@@ -608,7 +616,7 @@
             write(*,*) 'svd: error: too much memory needed (', 4*nxf1
      +           *nxf2*nzf1*n/1e9,' GB). Please reduce the size of ',
      +           'the problem by averaging over grid boxes.'
-            call abort
+            call exit(-1)
         end if
         nsvd = min(n,nsvd)
         allocate(ss(n))
@@ -633,7 +641,7 @@
      +       ,info)
         if ( info.ne.0 ) then
             write(0,*) 'svd: error in sgesvd, info = ',info
-            call abort
+            call exit(-1)
         end if
         deallocate(work)
         write(0,'(a,f8.2)')'Eigenvalues, time: ',etime(tarray)
@@ -761,7 +769,7 @@
             close(1)
         else
             write(0,*) 'svd: sorry, netcdf output not yet ready'
-            call abort
+            call exit(-1)
         end if
         do i=1,nsvd
             do iens=nens1,nens2
@@ -885,7 +893,7 @@
             close(1)
         else
             write(0,*) 'svd: sorry, netcdf output not yet ready'
-            call abort
+            call exit(-1)
         end if
         do i=1,nsvd
             do iens=nens1,nens2
