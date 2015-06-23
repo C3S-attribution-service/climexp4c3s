@@ -103,16 +103,14 @@
     call enscutoutwindow(x1,x2,y1,y2,xx,nx,xwrap,xrev,avex,yy,ny, &
  &       avey,wx,wy,field,nxf,nyf,nens1,nens2,nperyear, &
  &       fyr,lyr,yr1,yr2,lwrite)
+    ! the data are now in the corner 1..nx, 1...ny
 !
 !   process data
 !
     lfirst = .true.
     iz = 1
-    do iy=y1,y2
-        do ixx=x1,x2
-            ix = ixx
-            if ( ix.gt.nx ) ix = ix - nx
-            if ( ix.lt.1 ) ix = ix + nx
+    do iy=1,ny
+        do ix=1,nx
             if ( lfirst ) allocate(series(npermax,fyr:lyr,0:mens))
             do iens=nens1,nens2
                 do i=yr1,yr2
@@ -144,21 +142,18 @@
                 end do
             endif
             if ( logscale ) then
-                print '(a)','# taking logarithm'
                 do iens=mens1,mens
                     call takelog(series(1,fyr,iens),npermax,nperyear,fyr,lyr)
                 end do
                 if ( xyear.lt.1e33 ) xyear = log(xyear)
             endif
             if ( sqrtscale ) then
-                print '(a)','# taking sqrt'
                 do iens=mens1,mens
                     call takesqrt(series(1,fyr,iens),npermax,nperyear,fyr,lyr)
                 end do
                 if ( xyear.lt.1e33 ) xyear = sqrt(xyear)
             endif
             if ( squarescale ) then
-                print '(a)','# taking square'
                 do iens=mens1,mens
                     call takesquare(series(1,fyr,iens),npermax,nperyear,fyr,lyr)
                 end do
@@ -167,8 +162,7 @@
 
             if ( lwrite ) print *,'attributefield: calling attribute_dist for ix,iy,iz = ', &
             &   ix,iy,iz,xx(ix),yy(iy),zz(iz)
-            call keepalive2('Grid point',(ixx-x1)+(iy-y1)*(x2-x1+1)+(iz-1)*(x2-x1+1)*(y2-y1+1), &
-            &   (x2-x1+1)*(y2-y1+1)*nz,.true.)
+            call keepalive2('Grid point',(ix-1)+(iy-1)*nx+(iz-1)*nx*ny,nx*ny*nz,.true.)
             lprint = .false.
             do i=mens1,mens
                 write(seriesids(i),'(i3.3)') i
