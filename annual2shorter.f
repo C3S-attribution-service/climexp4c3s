@@ -21,11 +21,12 @@
         yr2 = min(yrend,yrendnew)
         newdata = 3e33
         if ( nperyear.eq.1 ) then
+            if ( lwrite ) print *,'annual2shorter: annual data'
             do yr=yr1,yr2
                 do k=1,n
                     mo = m1 + k - 1
                     call normon(mo,yr,i,npernew)
-                    if ( i.ge.yrbegnew .and. i.lt.yrendnew ) then
+                    if ( i.ge.yrbegnew .and. i.le.yrendnew ) then
                         if ( data(1,yr).lt.1e33 ) then
                             newdata(mo,i) = data(1,yr)/nfac
                         endif

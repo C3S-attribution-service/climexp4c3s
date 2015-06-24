@@ -78,22 +78,24 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         allocate(yrcovariate(nperyear,fyr:lyr,0:mens))
         yrseries = 3e33
         yrcovariate = 3e33
-        ! copy series to keep the code easier to handle GEV and Gauss at the same time :-(
+        ! copy series to keep the code easier to handle GPD and Gauss at the same time :-(
         yrseries(1:nperyear,fyr:lyr,mens1:mens) = series(1:nperyear,fyr:lyr,mens1:mens)
         ! change covariate to the same time resolution as series
-        if ( nperyear1.le.nperyear ) then
-            do iens=mens1,mens
+        if ( nperyear1.lt.nperyear ) then
+            if ( lwrite ) print *,'repeating covariate from nperyear = ',nperyear1,' to ',nperyear
+           do iens=mens1,mens
                 call annual2shorter(covariate(1,yrbeg,iens),npermax,yrbeg,yrend,nperyear1, &
                 &   yrcovariate(1,fyr,iens),nperyear,fyr,lyr,nperyear,1,nperyear,1,lwrite)
             end do
         else if ( nperyear1.gt.nperyear ) then
             ! this should not occur in the web interface
-            write(0,*) 'atribute_gev: error: covariate should not have higher time resolution than series: ', &
+            write(0,*) 'atribute_dist: error: covariate should not have higher time resolution than series: ', &
             &   nperyear1,nperyear
-            write(*,*) 'atribute_gev: error: covariate should not have higher time resolution than series: ', &
+            write(*,*) 'atribute_dist: error: covariate should not have higher time resolution than series: ', &
             &   nperyear1,nperyear
             call abort
         else ! equal already
+            if ( lwrite ) print *,'copying covariate ',nperyear
             yrcovariate(1:nperyear,fyr:lyr,mens1:mens) = covariate(1:nperyear,fyr:lyr, &
             &   mens1:mens)
         end if
@@ -114,6 +116,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         call handle_then_now(yrseries,yrcovariate,npernew,fyr,lyr,j1,j2,yr1a,yr2a,mens1,mens, &
     & xyear,ensmax,cov1,cov2,lprint,lwrite)
     if ( cov1.gt.1e33 .or. cov2.gt.1e33 ) then
+        if ( lwrite ) print *,'giving up, cov1,cov2 = ',cov1,cov2
         return
     end if
     if ( ensmax.ge.mens1 ) then
@@ -670,6 +673,10 @@ subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xy
         if ( lprint ) then
             write(0,*) '<p>find_cov: error: no valid value in covariate(', &
             &   momax,yrmax,ensmax,') = ',cov,'<br>'
+        end if
+        if ( lwrite ) then
+            print *,'find_cov: error: no valid value in covariate(', &
+            &   momax,yrmax,ensmax,') = ',cov
         end if
     end if
     if ( i12.eq.2 ) then
