@@ -383,7 +383,8 @@
             call copyab3etc(a3,b3,xi3,alpha3,beta3,t3,tx3,
      +           a,a25,a975,b,b975,xi,xi,xi,alpha,alpha25,alpha975,
      +           beta,beta25,beta975,t,t25,t975,tx,tx25,tx975)
-            if ( .not.lwrite ) goto 801 ! deallocate and return
+            goto 801 ! deallocate and return
+            !!!if ( .not.lwrite ) goto 801 ! deallocate and return
         end if
         if ( lweb ) then
             print '(a)','# <tr><td colspan="4">Fitted to GPD '//
