@@ -20,6 +20,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     data init /0/
 
     results = 3e33
+    nresults = 0
     fyr = yr1
     lyr = yr2
     nmax = nperyear*(yr2-yr1+1)*(1+mens-mens1)
@@ -113,7 +114,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     end if
     
     if ( lwrite ) print *,'attribute_dist: calling handle_then_now'
-        call handle_then_now(yrseries,yrcovariate,npernew,fyr,lyr,j1,j2,yr1a,yr2a,mens1,mens, &
+    call handle_then_now(yrseries,yrcovariate,npernew,fyr,lyr,j1,j2,yr1a,yr2a,mens1,mens, &
     & xyear,ensmax,cov1,cov2,lprint,lwrite)
     if ( cov1.gt.1e33 .or. cov2.gt.1e33 ) then
         if ( lwrite ) print *,'giving up, cov1,cov2 = ',cov1,cov2
@@ -207,6 +208,10 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         do j=1,3
             do i=1,10
                 k = k + 1
+                if ( k.gt.nresmax ) then
+                    write(0,*) 'attrubute_dist: internal error: results array to small: ',nresmax
+                    call abort
+                end if
                 results(:,k) = t(:,i,j)
             end do
         end do

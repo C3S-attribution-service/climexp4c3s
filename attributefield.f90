@@ -171,11 +171,15 @@
             xyearsave = xyear
             call attribute_dist(series,nperyear,covariate,nperyear1,npermax,fyr,lyr,&
             &   mens1,mens,assume,distribution,seriesids,results,nresmax,nresults,lprint)
+            if ( nresults > nresmax ) then
+                write(0,*) 'attributefield: error: got back too many results ',nresults,nresmax
+                call abort
+            end if
             xyear = xyearsave
             if ( lwrite ) then
                 print *,'results = '
                 do i=1,nresults
-                    print *,(results(j,i),j=1,3)
+                    print *,i,(results(j,i),j=1,3)
                     if ( i.ne.5 .and. results(1,i) == 3e33 ) exit
                 end do
             end if
@@ -198,7 +202,7 @@
     
     ! write output
     
-    if ( nresults /= 38 ) then
+    if ( nresults /= 38 .and. nresults /= 0 ) then
         write(0,*) 'attributefield: internal error: expecting nresults = 38, not ',nresults
         call exit(-1)
     end if
