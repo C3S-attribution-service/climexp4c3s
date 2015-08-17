@@ -122,7 +122,7 @@ subroutine read_deltas(variable,horizon,scenario,region,deltas,scaling,lwrite)
     real deltas(5,12)
     character variable*(*),scenario*(*),region*(*),scaling*(*)
     logical lwrite
-    integer i,j,iyr,yr,iregion,mo,ndeltas,ip99
+    integer i,j,iyr,oyr,yr,iregion,mo,ndeltas,ip99
     character file*255,line*255,scen*2
     real delta0(5,12,nyears),a,aa(7)
     logical foundregion
@@ -152,20 +152,29 @@ subroutine read_deltas(variable,horizon,scenario,region,deltas,scaling,lwrite)
     end if
 
     delta0 = 3e33
+    oyr = -999
     do iyr=1,nyears
         yr = yrs(iyr)
+        if ( lwrite ) print *,'yr = ',yr,iyr,nyears
         if ( yr == 1995 ) then
             delta0(1:5,1:12,iyr) = 0
+            cycle
+        end if
+        if ( yr == oyr ) then
+            delta0(1:5,1:12,iyr) = delta0(1:5,1:12,iyr-1)
             cycle
         end if
         scen = scenario
         write(file,'(5a,i4,a)') 'KNMI14/deltas-KNMI14__',trim(variable),'___', &
 &           trim(scen),'__',yr,'.txt'
+        if ( lwrite ) print *,'open file ',trim(file)
         open(1,file=trim(file),status='old',err=900)
-        read(1,'(a)') line
+        read(1,'(a)',end=100,err=901) line
+        if ( lwrite ) print *,'line=',trim(line)
         foundregion = .false.
         do
             read(1,'(a)',end=100,err=901) line
+            if ( lwrite ) print *,'line=',trim(line)
             if ( variable == 'rr' ) then
                 foundregion = .true.
                 if ( trim(scen).eq.'__' ) then !^%$#$%^&*
@@ -207,6 +216,9 @@ subroutine read_deltas(variable,horizon,scenario,region,deltas,scaling,lwrite)
             write(0,*) 'transform: error: cannot find region ',region
             call abort
         end if
+        if ( lwrite ) print *,'closing file'
+        close(1)
+        oyr = yr
     end do ! iyr
 
     if ( horizon.lt.yrs(1) ) then
@@ -223,7 +235,11 @@ subroutine read_deltas(variable,horizon,scenario,region,deltas,scaling,lwrite)
         if ( horizon >= yrs(iyr) .and. horizon < yrs(iyr+1) .or. &
         &    iyr == nyears-1 .and. horizon == yrs(iyr+1) ) then  ! 2085 is special case
             ! linear interpolation
-            a = real(horizon-yrs(iyr))/real(yrs(iyr+1)-yrs(iyr))
+            if ( yrs(iyr+1) == yrs(iyr) ) then
+                a = 0 ! arbitrary
+            else
+                a = real(horizon-yrs(iyr))/real(yrs(iyr+1)-yrs(iyr))
+            end if
             if ( lwrite ) then
                 print *,'linear interpolation ',(1-a),yrs(iyr),' and ',a,yrs(iyr+1)
             end if
