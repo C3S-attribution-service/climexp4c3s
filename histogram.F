@@ -51,6 +51,14 @@
             stop
         endif
 !
+!       record the exact command used in the output file
+        command = '#'
+        do i=0,iargc()
+            call getarg(i,line)
+            command = trim(command)//' '//trim(line)
+        end do
+        print '(a)',trim(command)
+!
 !       getopts comes way too late for these options...
         do i=4,iargc()
             call getarg(i,string)
@@ -66,7 +74,6 @@
         if ( file.ne.'file' ) then
 *           simple data file (possibly an ensemble)
             off = 0
-            print '(2a)','# file ',trim(file)
             call readensseries(file,data,npermax,yrbeg,yrend,nensmax
      +           ,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
         else
