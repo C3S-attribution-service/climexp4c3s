@@ -192,6 +192,7 @@
                 scalingpower = scalingpower*2./3.
             endif
         enddo
+        if ( lchangesign ) xyear = -xyear
 *
 *       apply minindx, maxindx cuts;
 *       in case of a Poisson distribution round to unambiguous
@@ -276,7 +277,7 @@
      +           yrend,yr1,yr2,nens1,nens2)
         endif
 !
-!       compute cut-off for GPD - has to be done after all teh operations on the series 
+!       compute cut-off for GPD - has to be done after all the operations on the series 
 !       to get a consistent computation (eg otherwise it would vary by season...)
 !
         if ( nfit.eq.6 .and. pmindata.ge.0 ) then
@@ -1031,6 +1032,10 @@
                     write(11,'(3g16.4)') tx,tx25,tx975
                 endif
                 if ( lchangesign ) xyear = -xyear
+                if ( lchangesign .and. nfit.eq.6 ) then
+                    mindata = -mindata ! phenomenologically
+                    a = mindata
+                end if
                 frac = 1
                 call plot_ordered_points(xx,xs,yrs,ntot,ntype,nfit,
      +               frac,a,b,xi,j1,j2,minindx,mindata,pmindata,
