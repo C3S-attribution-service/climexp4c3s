@@ -105,6 +105,7 @@ OBJS	      = makeabsent.o \
 		perc2cut.o \
 		filllinarray.o \
 		printcorr.o \
+		getcorr.o \
 		composite.o \
 		getruncorr.o \
 		getsign.o \
@@ -256,6 +257,7 @@ PROGRAMS      = scientific2decimal \
 		get_index \
 		getchance \
 		plotdat \
+		plotdaily \
 		climatology \
 		month2string \
 		season2string \
@@ -487,6 +489,9 @@ plotnao:	plotnao.o makeabsent.o readdat.o rmean.o normon.o
 
 plotdat:	plotdat.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ plotdat.o $(LIBRARY) $(LIBS)
+
+plotdaily:	plotdaily.o $(LIBRARY)
+		$(LD) $(FFLAGS) -o $@ $@.o $(LIBRARY) $(LIBS)
 
 getnperyear:	getnperyear.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ getnperyear.o $(LIBRARY) $(LIBS)
