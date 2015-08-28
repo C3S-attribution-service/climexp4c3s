@@ -11,7 +11,7 @@ program plotdaily
     character file*255,var*20,units*20,string*80,enddate*20
     integer iargc
     
-    if ( iargc() < 4 ) then
+    if ( iargc() < 3 ) then
         write(0,*) 'usage: plotdaily infile nday enddate [begin yr1 end yr2]'
         call exit(-1)
     end if
