@@ -51,7 +51,10 @@ program plotdaily
         mm = molast-k
         call normon(mm,yrlast,yr,nperyear)
         call getdymo(dy,mo,mm,nperyear)
-
-        print '(i4,2i2.2,2f12.4)',yr,mo,dy,data(mm,yr)+mean(mm),mean(mm)
+        if ( data(mm,yr).lt.1e33 .and. mean(mm).lt.1e33 ) then
+            print '(i4,2i2.2,2f12.4)',yr,mo,dy,data(mm,yr)+mean(mm),mean(mm)
+        else
+            print '(a)'
+        end if
     end do
 end program
