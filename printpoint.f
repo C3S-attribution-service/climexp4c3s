@@ -332,6 +332,9 @@
 
         if ( lwrite ) then
             print *,'plot_ordered_points: xyear = ',xyear
+            print *,'                    a,b,xi = ',a,b,xi
+            print *,'  minindx,mindata,pmindata = ',minindx,mindata,
+     +           pmindata
         end if
         call keepalive1('Output',0,ntot+100)
         call nrsort(ntot,xx)
