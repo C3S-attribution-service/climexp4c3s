@@ -54,6 +54,10 @@ subroutine getcorr(series1,nper1,fy1,ly1,series2,nper2,fy2,ly2,j1,j2,corr,lwrite
         end do
     end do
     df = ntot - 2 ! not used
-    call pearsnxx(xx,yy,ntot,corr,prob,z,ax,sxx,ay,syy,sxy,df)
+    if ( df.gt.2 ) then
+        call pearsnxx(xx,yy,ntot,corr,prob,z,ax,sxx,ay,syy,sxy,df)
+    else
+        corr = 0
+    end if
     if ( lwrite ) print *,'getcorr: corr = ',corr
 end subroutine
