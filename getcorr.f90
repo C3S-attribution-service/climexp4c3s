@@ -1,11 +1,11 @@
-subroutine getcorr(series1,nmax1,nper1,fy1,ly1,series2,nmax2,nper2,fy2,ly2,j1,j2,corr,lwrite)
+subroutine getcorr(series1,nper1,fy1,ly1,series2,nper2,fy2,ly2,j1,j2,corr,lwrite)
 !
 !   Compute the correlation between the two series.
 !   Only the correlation, no significances or anything.
 !
     implicit none
-    integer nmax1,nper1,fy1,ly1,nmax2,nper2,fy2,ly2,j1,j2
-    real series1(nmax1,fy1:ly1),series2(nmax2,fy2:ly2),corr
+    integer nper1,fy1,ly1,nper2,fy2,ly2,j1,j2
+    real series1(nper1,fy1:ly1),series2(nper2,fy2:ly2),corr
     logical lwrite
     integer yyr,yr,mm,mo,ntot,nmax,fyr,lyr,nperyear
     real prob,z,ax,sxx,ay,syy,sxy,df
@@ -24,8 +24,8 @@ subroutine getcorr(series1,nmax1,nper1,fy1,ly1,series2,nmax2,nper2,fy2,ly2,j1,j2
     nperyear = min(nper1,nper2)
     nmax = nperyear*(j2-j1+1)*(lyr-fyr+1)
     if ( lwrite ) then
-        print *,'nmax = ',nmax,nperyear,j1,j2,fyr,lyr
-        if ( .true. ) then
+        print *,'getcorr: nmax = ',nmax,nperyear,j1,j2,fyr,lyr
+        if ( .false. ) then
             do yr=fyr,lyr
                 if ( series1(j1,yr).lt.1e33 .and. &
      &               series2(j1,yr).lt.1e33 ) then
@@ -55,4 +55,5 @@ subroutine getcorr(series1,nmax1,nper1,fy1,ly1,series2,nmax2,nper2,fy2,ly2,j1,j2
     end do
     df = ntot - 2 ! not used
     call pearsnxx(xx,yy,ntot,corr,prob,z,ax,sxx,ay,syy,sxy,df)
+    if ( lwrite ) print *,'getcorr: corr = ',corr
 end subroutine

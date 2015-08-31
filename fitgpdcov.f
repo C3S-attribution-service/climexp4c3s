@@ -1,5 +1,6 @@
 *  #[ fitgpdcov:
-        subroutine fitgpdcov(xx,yrs,ntot,a3,b3,xi3,alpha3,beta3,j1,j2
+        subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr
+     +       ,mens1,mens,crosscorr,a3,b3,xi3,alpha3,beta3,j1,j2
      +       ,lweb,ntype,lchangesign,yr1a,yr2a,xyearin,idmax,cov1,cov2
      +       ,offset,t3,tx3,threshold,inrestrain,assume
      +       ,confidenceinterval,ndecor,lboot,lprint,dump,plot,lwrite)
@@ -28,15 +29,19 @@
 *
         integer nmc
         parameter(nmc=1000)
-        integer ntot,j1,j2,ntype,yr1a,yr2a,ndecor
-        integer yrs(0:ntot)
-        real xx(2,ntot),a3(3),b3(3),xi3(3),alpha3(3),beta3(3),xyearin,
+        integer npernew,fyr,lyr,mens1,mens,
+     +      ntot,j1,j2,ntype,yr1a,yr2a,ndecor
+        real yrseries(npernew,fyr:lyr,0:mens),
+     +       yrcovariate(npernew,fyr:lyr,0:mens),
+     +       crosscorr(0:mens,0:mens),
+     +       a3(3),b3(3),xi3(3),alpha3(3),beta3(3),xyearin,
      +       cov1,cov2,offset,inrestrain,t3(3,10,3),tx3(3,3),threshold,
      +       confidenceinterval
         character assume*(*),idmax*(*)
         logical lweb,lchangesign,lboot,lprint,dump,plot,lwrite
 *
         integer i,j,jj,k,l,n,nx,iter,iter1,iens,iiens,nfit,year
+        integer,allocatable :: yrs(:)
         real x,a,b,xi,alpha,beta,t(10,3),t25(10,3),t975(10,3),
      +       tx(3),tx25(3),tx975(3),aa(nmc),bb(nmc),xixi(nmc),
      +       alphaalpha(nmc),betabeta(nmc),tt(nmc,10,3),
@@ -44,12 +49,12 @@
      +       db,dxi,f,z,ll,ll1,txtx(nmc,3),a25,a975,beta25,beta975,
      +       ranf,mean,sd,dalpha,dbeta,mindata,minindx,pmindata,snorm,s,
      +       xmin,cmin,cmax,c,xxyear,frac,ttt(10,3),txtxtx(3),
-     +       acov(3,2),aacov(nmc,2),plo,phi,xyear
+     +       acov(3,2),aacov(nmc,2),plo,phi,xyear,scross,sdecor
         real adev,var,skew,curt,aaa,bbb,siga,chi2,q,p(4)
         integer,allocatable :: ii(:),yyrs(:)
-        real,allocatable :: yy(:),ys(:),zz(:),sig(:)
+        real,allocatable :: xx(:,:),yy(:),ys(:),zz(:),sig(:)
         logical lopen
-        character lgt*4,string*1000,arg*250
+        character lgt*4,string*1000,arg*250,method*3
         integer iargc
 *
         integer nmax,ncur
@@ -67,6 +72,15 @@
         real llgpdcov,gpdcovreturnlevel,gpdcovreturnyear
         external llgpdcov,gpdcovreturnlevel,gpdcovreturnyear
 *
+        allocate(yrs(0:nmax))
+        allocate(xx(2,nmax))
+        if ( lwrite ) print *,'fitgpdcov: calling fill_linear_array'
+        call fill_linear_array(yrseries,yrcovariate,npernew,j1,j2,
+     +       fyr,lyr,mens1,mens,xx,yrs,nmax,ntot,lwrite)
+        if ( npernew.ge.360 ) then
+            call decluster(xx,yrs,ntot,pmindata,lwrite)
+        end if
+
         year = yr2a
         pthreshold = threshold
         xyear = xyearin
@@ -247,32 +261,41 @@
         if ( lprint .and. .not.lweb ) print '(a,i6,a)','# doing a ',nmc
      +        ,'-member bootstrap to obtain error estimates'
         iens = 0
+        scross = 0
         do iiens=1,nmc
             iens = iens + 1
             if ( lprint ) call keepalive1('Bootstrapping',iiens,nmc)
             if ( lprint .and. .not.lweb .and. mod(iiens,100).eq.0 )
      +           print '(a,i6)','# ',iiens
             n = 1 + (ncur-1)/ndecor
-            do i=1,n
-                ! we do not have the information here to check whether the
-                ! data points were contiguous in the original series...
-                ! TODO: propagate that information              
-                call random_number(ranf)
-                j = 1 + min(ncur-ndecor,int((ncur-ndecor)*ranf))
-                if ( j.lt.1 .or. j.gt.ncur ) then
-                    write(0,*) 'fitgpdcov: error: j = ',j
-                    call abort
-                endif
-                if ( i.lt.n ) then ! the blocks that fit in whole
-                    do jj=0,ndecor-1
-                        data(:,1+(i-1)*ndecor+jj) = xx(:,ii(j+jj))
-                    end do
-                else
-                    do jj=0,ndecor-1 ! one more block to the end, the previous block is shortened
-                        data(:,1+ncur-ndecor+jj) = xx(:,ii(j+jj))
-                    end do
-                end if
-            enddo
+            method = 'new'
+            if ( method == 'old' ) then
+                do i=1,n
+                    ! we do not have the information here to check whether the
+                    ! data points were contiguous in the original series...
+                    ! TODO: propagate that information              
+                    call random_number(ranf)
+                    j = 1 + min(ncur-ndecor,int((ncur-ndecor)*ranf))
+                    if ( j.lt.1 .or. j.gt.ncur ) then
+                        write(0,*) 'fitgpdcov: error: j = ',j
+                        call abort
+                    endif
+                    if ( i.lt.n ) then ! the blocks that fit in whole
+                        do jj=0,ndecor-1
+                            data(:,1+(i-1)*ndecor+jj) = xx(:,ii(j+jj))
+                        end do
+                    else
+                        do jj=0,ndecor-1 ! one more block to the end, the previous block is shortened
+                            data(:,1+ncur-ndecor+jj) = xx(:,ii(j+jj))
+                        end do
+                    end if
+                enddo
+            else
+                call sample_bootstrap(yrseries,yrcovariate,
+     +               npernew,j1,j2,fyr,lyr,mens1,mens,crosscorr,
+     +               ndecor,data,nmax,ntot,sdecor,lwrite)
+                scross = scross + sdecor
+            end if
             aa(iens) = a
             bb(iens) = b
             xixi(iens) = xi
@@ -320,6 +343,7 @@
                 end if
             endif
         enddo
+        if ( mens > mens1 ) call print_spatial_scale(scross/nmc)
         if ( lchangesign ) then
             a = -a
             acov = -acov

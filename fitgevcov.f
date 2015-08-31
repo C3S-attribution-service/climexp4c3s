@@ -1,8 +1,9 @@
 *  #[ fitgevcov:
-        subroutine fitgevcov(xx,yrs,ntot,a3,b3,xi3,alpha3,beta3,j1,j2
+        subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr
+     +       ,mens1,mens,crosscorr,a3,b3,xi3,alpha3,beta3,j1,j2
      +       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2
-     +       ,offset,t3,tx3,inrestrain,assume,confidenceinterval,lboot
-     +       ,lprint,dump,plot,lwrite)
+     +       ,offset,t3,tx3,inrestrain,assume,confidenceinterval,ndecor
+     +       ,lboot,lprint,dump,plot,lwrite)
 *
 *       fit a GEV distribution to the data, which is already assumed to be block max
 *       input:
@@ -27,15 +28,19 @@
 *
         integer nmc
         parameter(nmc=1000)
-        integer ntot,j1,j2,ntype,yr1a,yr2a
-        integer yrs(0:ntot)
-        real xx(2,ntot),a3(3),b3(3),xi3(3),alpha3(3),beta3(3),xyear,
+        integer npernew,fyr,lyr,mens1,mens,
+     +      ntot,j1,j2,ntype,yr1a,yr2a,ndecor
+        real yrseries(npernew,fyr:lyr,0:mens),
+     +       yrcovariate(npernew,fyr:lyr,0:mens),
+     +       crosscorr(0:mens,0:mens),
+     +       a3(3),b3(3),xi3(3),alpha3(3),beta3(3),xyear,
      +       cov1,cov2,offset,inrestrain,t3(3,10,3),tx3(3,3),
      +       confidenceinterval
         character assume*(*),idmax*(*)
         logical lweb,lchangesign,lboot,lprint,dump,plot,lwrite
 *
-        integer i,j,k,l,n,nx,iter,iens,iiens,nfit,year
+        integer i,j,k,l,n,nx,iter,iens,iiens,nfit,year,yr
+        integer,allocatable :: yrs(:)
         real x,a,b,xi,alpha,beta,t(10,3),t25(10,3),t975(10,3),
      +       tx(3),tx25(3),tx975(3),
      +       aa(nmc),bb(nmc),xixi(nmc),alphaalpha(nmc),betabeta(nmc)
@@ -44,12 +49,12 @@
      +       ,db,dxi,f,threshold,thens,z,ll,ll1,txtx(nmc,3)
      +       ,a25,a975,ranf,mean,sd,dalpha,dbeta
      +       ,mindata,minindx,pmindata,snorm,s,xxyear,frac,
-     +       acov(3,2),aacov(nmc,2),plo,phi,cmin,cmax
+     +       acov(3,2),aacov(nmc,2),plo,phi,cmin,cmax,scross,sdecor
         real ttt(10,3),txtxtx(3)
         real adev,var,skew,curt,aaa,bbb,aa25,aa975,bb25,bb975,
      +       siga,chi2,q
-        real,allocatable :: yy(:),ys(:),zz(:),sig(:)
-        character lgt*4
+        real,allocatable :: xx(:,:),yy(:),ys(:),zz(:),sig(:)
+        character lgt*4,method*3
 *
         integer nmax,ncur
         parameter(nmax=100000)
@@ -63,7 +68,14 @@
         real llgevcov,gevcovreturnlevel,gevcovreturnyear
         external llgevcov,gevcovreturnlevel,gevcovreturnyear
 *
+        allocate(yrs(0:nmax))
+        allocate(xx(2,nmax))
         year = yr2a
+
+        if ( lwrite ) print *,'fitgevcov: calling fill_linear_array'
+        call fill_linear_array(yrseries,yrcovariate,npernew,j1,j2,
+     +       fyr,lyr,mens1,mens,xx,yrs,nmax,ntot,lwrite)
+
         if ( lwrite ) then
             print *,'fitgevcov: input:'
             print *,'assume         = ',assume
@@ -187,20 +199,29 @@
         if ( lprint .and. .not.lweb ) print '(a,i6,a)','# doing a ',nmc
      +        ,'-member bootstrap to obtain error estimates'
         iens = 0
+        scross = 0
         do iiens=1,nmc
             iens = iens + 1
             call keepalive1('Bootstrapping',iiens,nmc)
             if ( lprint .and. .not.lweb .and. mod(iiens,100).eq.0 )
      +           print '(a,i6)','# ',iiens
-            do i=1,ntot
-                call random_number(ranf)
-                j = 1+int(ntot*ranf)
-                if ( j.lt.1 .or. j.gt.ntot ) then
-                    write(0,*) 'fitgev: error: j = ',j
-                    call abort
-                endif
-                data(:,i) = xx(:,j)
-            enddo
+            method = 'new'
+            if ( method == 'old' ) then
+                do i=1,ntot
+                    call random_number(ranf)
+                    j = 1+int(ntot*ranf)
+                    if ( j.lt.1 .or. j.gt.ntot ) then
+                        write(0,*) 'fitgev: error: j = ',j
+                        call abort
+                    endif
+                    data(:,i) = xx(:,j)
+                enddo
+            else
+                call sample_bootstrap(yrseries,yrcovariate,
+     +               npernew,j1,j2,fyr,lyr,mens1,mens,crosscorr,
+     +               ndecor,data,nmax,ntot,sdecor,lwrite)
+                scross = scross + sdecor
+            end if
             aa(iens) = a
             bb(iens) = b
             xixi(iens) = xi
@@ -256,6 +277,7 @@
                 end if
             endif
         enddo
+        if ( mens > mens1 ) call print_spatial_scale(scross/nmc)
         if ( lchangesign ) then
             a = -a
             acov = -acov

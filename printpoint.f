@@ -472,17 +472,17 @@
             print '(3a)'
      +           ,'# The error margins were computed with a '
      +           ,'bootstrap method that assumes all points are '
-     +           ,'independent'
+     +           ,'temporally independent.'
         elseif ( j1.ne.j2 ) then
             print '(2a,i4,a)'
      +           ,'# The error margins were computed with a '
      +           ,'moving block bootstrap with block size '
-     +           ,ndecor,' months'
+     +           ,ndecor,' months.'
         else
             print '(2a,i4,a)'
      +           ,'# The error margins were computed with a '
      +               ,'moving block bootstrap with block size '
-     +           ,ndecor,' years'
+     +           ,ndecor,' years.'
         endif
         end
 *  #] print_bootstrap_message:

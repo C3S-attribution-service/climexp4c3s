@@ -1,8 +1,9 @@
 *  #[ fitgumcov:
-        subroutine fitgumcov(xx,yrs,ntot,a3,b3,alpha3,beta3,j1,j2
+        subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr
+     +       ,mens1,mens,crosscorr,a3,b3,alpha3,beta3,j1,j2
      +       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2
-     +       ,offset,t3,tx3,assume,confidenceinterval,lboot,lprint,dump
-     +       ,plot,lwrite)
+     +       ,offset,t3,tx3,assume,confidenceinterval,ndecor
+     +       ,lboot,lprint,dump,plot,lwrite)
 *
 *       a fit a Gumbel distribution to the data, which is already assumed to be block max
 *       input:
@@ -17,14 +18,18 @@
 *
         implicit none
 *
-        integer nmc,ntot,j1,j2,ntype,yr1a,yr2a
-        integer yrs(0:ntot)
-        real xx(2,ntot),a3(3),b3(3),alpha3(3),beta3(3),xyear,
+        integer npernew,fyr,lyr,mens1,mens,
+     +       nmc,ntot,j1,j2,ntype,yr1a,yr2a,ndecor
+        real yrseries(npernew,fyr:lyr,0:mens),
+     +       yrcovariate(npernew,fyr:lyr,0:mens),
+     +       crosscorr(0:mens,0:mens),
+     +       a3(3),b3(3),alpha3(3),beta3(3),xyear,
      +       cov1,cov2,offset,t3(3,10,3),tx3(3,3),confidenceinterval
         character assume*(*),idmax*(*)
         logical lweb,lchangesign,lboot,lprint,dump,plot,lwrite
 *
         integer i,j,nx,iter,iens,nfit,year
+        integer,allocatable :: yrs(:)
         real,allocatable :: aa(:),bb(:),xixi(:),tt(:,:,:),
      +       txtx(:,:),alphaalpha(:),betabeta(:),aacov(:,:)
         real x,a,b,xi,alpha,beta,t5(10,3),t1(10,3),db,f
@@ -33,10 +38,10 @@
      +       ,ranf,mean,sd,dalpha,dbeta,mindata,minindx,pmindata
      +       ,snorm,s,frac,t(10,3),t25(10,3),t975(10,3)
      +       ,tx(3),tx25(3),tx975(3),ttt(10,3),txtxtx(3),xi3(3)
-     +       ,acov(3,2),cmin,cmax,plo,phi
+     +       ,acov(3,2),cmin,cmax,plo,phi,scross,sdecor
         real adev,var,skew,curt,aaa,bbb,siga,chi2,q
-        real,allocatable :: yy(:),ys(:),zz(:),sig(:)
-        character lgt*4
+        real,allocatable :: xx(:,:),yy(:),ys(:),zz(:),sig(:)
+        character lgt*4,method*3
 *
         integer nmax,ncur
         parameter(nmax=100000)
@@ -53,10 +58,15 @@
 !       estimate number of bootstrap samples needed, demand at least 25 above threshold
 !
         nmc = max(1000,nint(25*2/(1-confidenceinterval/100)))
-        allocate(aa(nmc),bb(nmc),xixi(nmc),tt(nmc,10,3),
+        allocate(yrs(0:nmax))
+        allocate(xx(2,nmax),aa(nmc),bb(nmc),xixi(nmc),tt(nmc,10,3),
      +       txtx(nmc,3),alphaalpha(nmc),betabeta(nmc),aacov(nmc,2))
-
         year = yr2a
+
+        if ( lwrite ) print *,'fitgumcov: calling fill_linear_array'
+        call fill_linear_array(yrseries,yrcovariate,npernew,j1,j2,
+     +       fyr,lyr,mens1,mens,xx,yrs,nmax,ntot,lwrite)
+
         if ( lwrite ) then
             print *,'fitgumcov: input:'
             print *,'j1,j2      = ',j1,j2
@@ -169,17 +179,26 @@
         endif
         if ( lprint .and. .not.lweb ) print '(a,i6,a)','# Doing a ',nmc
      +        ,'-member bootstrap to obtain error estimates'
+        scross = 0
         do iens=1,nmc
             call keepalive1('Computing bootstrap sample ',iens,nmc)
-            do i=1,ncur
-                call random_number(ranf)
-                j = 1+int(ntot*ranf)
-                if ( j.lt.1 .or. j.gt.ncur ) then
-                    write(0,*) 'fitgumcov: error: j = ',j
-                    call abort
-                endif
-                data(:,i) = xx(:,j)
-            enddo
+            method = 'new'
+            if ( method == 'old' ) then
+                do i=1,ncur
+                    call random_number(ranf)
+                    j = 1+int(ntot*ranf)
+                    if ( j.lt.1 .or. j.gt.ncur ) then
+                        write(0,*) 'fitgumcov: error: j = ',j
+                        call abort
+                    endif
+                    data(:,i) = xx(:,j)
+                enddo
+            else
+                call sample_bootstrap(yrseries,yrcovariate,
+     +               npernew,j1,j2,fyr,lyr,mens1,mens,crosscorr,
+     +               ndecor,data,nmax,ntot,sdecor,lwrite)
+                scross = scross + sdecor
+            end if
             aa(iens) = a
             bb(iens) = b
             alphaalpha(iens) = alpha
@@ -218,6 +237,7 @@
                 end do
             endif
         enddo
+        if ( mens > mens1 ) call print_spatial_scale(scross/nmc)
         iens = nmc
         if ( lchangesign ) then
             a = -a

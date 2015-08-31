@@ -11,10 +11,10 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     real series(npermax,yrbeg:yrend,0:mens),covariate(npermax,yrbeg:yrend,0:mens)
     real results(3,nresmax)
     character seriesids(0:mens)*(*),assume*(*),distribution*(*)
-    integer fyr,lyr,ntot,i,j,k,ntype,nmax,npernew,j1,j2,iens,ensmax,init,ndecor
+    integer fyr,lyr,ntot,i,j,k,ntype,nmax,npernew,j1,j2,iens,jens,ensmax,init,ndecor,n
     integer,allocatable :: yrs(:)
     real a(3),b(3),xi(3),alpha(3),beta(3),cov1,cov2,offset,t(3,10,3),tx(3,3)
-    real,allocatable :: xx(:,:),yrseries(:,:,:),yrcovariate(:,:,:),yy(:)
+    real,allocatable :: xx(:,:),yrseries(:,:,:),yrcovariate(:,:,:),yy(:),crosscorr(:,:)
     logical lboot,lprint,subtract_offset
     character operation*4,file*1024,idmax*30
     data init /0/
@@ -28,6 +28,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     allocate(xx(2,nmax))
     allocate(yrs(0:nmax))
     allocate(yy(nmax))
+    allocate(crosscorr(0:mens,0:mens))
     xx = 3e33
     if ( lwrite ) print *,'attribute_dist: series(:,2000,0) = ',(series(j,2000,0),j=1,min(15,nperyear))
     
@@ -149,11 +150,23 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     else
         offset = 0
     end if
-    if ( lwrite ) print *,'attribute_dist: calling fill_linear_array'
-    call fill_linear_array(yrseries,yrcovariate,npernew,j1,j2,fyr,lyr,mens1,mens, &
-    &   xx,yrs,nmax,ntot)
-    if ( distribution.eq.'gpd' .and. nperyear.ge.360 ) then
-        call decluster(xx,yrs,ntot,pmindata,lwrite)
+    if ( mens.gt.mens1 ) then
+        n = (mens-mens1+1)
+        n = n*(n-1)/2
+        i = 0
+        do iens = mens1,mens
+            crosscorr(iens,iens) = 1
+            do jens=iens+1,mens
+                call keepalive1('Computing correlations',i,n)
+                i = i + 1
+                call getcorr(yrseries(1,fyr,iens),npernew,fyr,lyr, &
+                &            yrseries(1,fyr,jens),npernew,fyr,lyr, &
+                &            j1,j2,crosscorr(iens,jens),lwrite)
+                crosscorr(jens,iens) = crosscorr(iens,jens)
+            end do
+        end do
+    else
+        crosscorr(mens1,mens1) = 1
     end if
 
     if ( lprint .and. lweb ) then
@@ -164,17 +177,19 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     lboot = .true.
     if ( distribution.eq.'gev' ) then
         ntype = 2 ! Gumbel plot
-        if ( lwrite ) print *,'attribute_dist: calling fitgevcov'
-        call fitgevcov(xx,yrs,ntot,a,b,xi,alpha,beta,j1,j2 &
+        if ( lwrite ) print *,'attribute_dist: calling fitgevcov',j1,j2
+        call fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
+    &       ,crosscorr,a,b,xi,alpha,beta,j1,j2 &
     &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2,offset &
-    &       ,t,tx,restrain,assume,confidenceinterval,lboot,lprint,dump,plot,lwrite)
+    &       ,t,tx,restrain,assume,confidenceinterval,ndecor,lboot,lprint,dump,plot,lwrite)
     else if ( distribution.eq.'gpd' ) then
         ntype = 3 ! log plot
         !!!print *,'DEBUG'
         !!!lboot = .false.
         !!!lwrite = .true.
         if ( lwrite ) print *,'attribute_dist: calling fitgpdcov'
-        call fitgpdcov(xx,yrs,ntot,a,b,xi,alpha,beta,j1,j2 &
+        call fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
+    &       ,crosscorr,a,b,xi,alpha,beta,j1,j2 &
     &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2,offset &
     &       ,t,tx,pmindata,restrain,assume,confidenceinterval,ndecor,lboot &
     &       ,lprint,dump,plot,lwrite)
@@ -182,14 +197,16 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         ntype = 2 ! Gumbel plot
         xi = 0
         if ( lwrite ) print *,'attribute_dist: calling fitgumcov'
-        call fitgumcov(xx,yrs,ntot,a,b,alpha,beta,j1,j2 &
+        call fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
+    &       ,crosscorr,a,b,alpha,beta,j1,j2 &
     &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2,offset &
-    &       ,t,tx,assume,confidenceinterval,lboot,lprint,dump,plot,lwrite)
+    &       ,t,tx,assume,confidenceinterval,ndecor,lboot,lprint,dump,plot,lwrite)
     else if  ( distribution.eq.'gauss' ) then
         ntype = 4 ! sqrtlog plot
         xi = 0
         if ( lwrite ) print *,'attribute_dist: calling fitgaucov'
-        call fitgaucov(xx,yrs,ntot,a,b,alpha,beta,j1,j2 &
+        call fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
+    &       ,crosscorr,a,b,alpha,beta,j1,j2 &
     &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2,offset &
     &       ,t,tx,assume,confidenceinterval,ndecor,lboot,lprint,dump,plot,lwrite)
     else
@@ -580,7 +597,7 @@ subroutine get_covariate_extrayear(covariate,nperyear,npermax,yrbeg,yrend,mens1,
 end subroutine
 
 subroutine fill_linear_array(series,covariate,nperyear,j1,j2,fyr,lyr,mens1,mens,&
-&   xx,yrs,nmax,ntot)
+&   xx,yrs,nmax,ntot,lwrite)
 
     ! transfer the valid pairs in series, covariate to xx(1:2,1:ntot)
     
@@ -589,7 +606,20 @@ subroutine fill_linear_array(series,covariate,nperyear,j1,j2,fyr,lyr,mens1,mens,
     integer yrs(0:nmax)
     real series(nperyear,fyr:lyr,0:mens),covariate(nperyear,fyr:lyr,0:mens),xx(2,nmax)
     integer yy,yr,mm,mo,day,month,yrstart,yrstop,iens
+    logical lwrite
 
+    if ( lwrite ) then
+        print *,'fill_linear_array: nperyear,j1,j2,fyr,lyr,mens1,mens = ', &
+        &   nperyear,j1,j2,fyr,lyr,mens1,mens
+        if ( .true. ) then
+            do yr=fyr,lyr
+                if ( series(j1,yr,mens1).lt.1e33 .and. &
+     &               covariate(j1,yr,mens1).lt.1e33 ) then
+                    print *,yr,series(j1,yr,mens1),covariate(j1,yr,mens1)
+                end if
+            end do
+        end if
+    end if
     yrstart = lyr
     yrstop = fyr
     ntot = 0
@@ -617,6 +647,181 @@ subroutine fill_linear_array(series,covariate,nperyear,j1,j2,fyr,lyr,mens1,mens,
     end do
     call savestartstop(yrstart,yrstop)
 end subroutine fill_linear_array
+
+subroutine sample_bootstrap(series,covariate,nperyear,j1,j2,fyr,lyr,mens1,mens,&
+&   crosscorr,ndecor,xx,nmax,ntot,sdecor,lwrite)
+
+    ! transfer random samples of the valid pairs in series, covariate to xx(1:2,1:ntot)
+    ! serial autocrrelations are taken into account with a moving block of length ndecor
+    ! for j1==j2 this is counted in years, for j1/=j2 in months/days
+    ! TODO: take spatial cross-correlation into account
+    
+    implicit none
+    integer nperyear,j1,j2,fyr,lyr,mens1,mens,ndecor,nmax,ntot
+    real series(nperyear,fyr:lyr,0:mens),covariate(nperyear,fyr:lyr,0:mens),sdecor
+    real crosscorr(0:mens,0:mens),xx(2,nmax)
+    logical lwrite
+    integer yy,yr,mm,mmm,mo,day,month,yrstart,yrstop,iens,i,j,ntry,nleft,jens,nens
+    real ranf,cutoff
+    logical ok
+
+    cutoff = exp(-0.5)  ! based on the moving block going to 1/e, 
+                        ! this is half the distance as we go in all directions.
+    cutoff = exp(-1.)
+    if ( lwrite ) then
+        print *,'sample_bootstrap: nperyear,j1,j2,fyr,lyr,mens1,mens = ', &
+        &   nperyear,j1,j2,fyr,lyr,mens1,mens
+        print *,'                  ndecor = ',ndecor
+    end if
+!
+!   as this routine will often be called with far too large ranges in years,
+!   let's first narrow that down to get an acceptable hit rate later on
+!
+    yrstart = lyr
+    yrstop = fyr
+    ntot = 0
+    do iens=mens1,mens
+        do yy=fyr,lyr
+            do mm=j1,j2
+                mo = mm
+                call normon(mo,yy,yr,nperyear)
+                if ( yr.ge.fyr .and. yr.le.lyr ) then
+                    if ( series(mo,yr,iens).lt.1e33 .and. covariate(mo,yr,iens).lt.1e33 ) then
+                        ntot = ntot + 1
+                        yrstart = min(yrstart,yr)
+                        yrstop = max(yrstop,yr)
+                    end if
+                end if
+            end do
+        end do
+    end do
+    if ( lwrite ) print *,'sample_bootstrap: yrstart,yrstop = ',yrstart,yrstop
+ !
+ !  the sampling itself.
+ !
+    j = 0
+    nens = 0
+    do while ( j < ntot )
+        nens = nens + 1
+        ok = .false.
+        ntry = 0
+        do while ( .not.ok )
+            ntry = ntry + 1
+            if ( ntry.gt.10000 ) then
+                write(0,*) 'sample_bootstrap: too many tries ',ntry
+                call exit(-1)
+            end if
+            if ( mens1 == mens ) then
+                iens = mens1
+            else
+                call random_number(ranf)
+                iens = 0 + int((mens-mens1+1)*ranf)
+            end if
+            call random_number(ranf)
+            yy = yrstart + int((yrstop-yrstart+1)*ranf)
+            if ( j1 == j2 ) then
+                mo = 1
+                yr = yy
+            else
+                call random_number(ranf)
+                mo = j1 + int((j2-j1+1)*ranf)
+                call normon(mo,yy,yr,nperyear)
+            end if
+            if ( lwrite ) print *,'reference ',mo,yr,iens
+            do jens = mens1,mens
+                if ( crosscorr(jens,iens).lt.1e33 .and. &
+                &    crosscorr(jens,iens).gt.cutoff ) then ! always true for the diagonal
+                    ! include in spatial moving block
+                    if ( series(mo,yr,jens).lt.1e33 .and. covariate(mo,yr,jens).lt.1e33 ) then
+                        ok = .true.
+                        j = j + 1
+                        if ( lwrite ) print *,'crosscorr(',jens,iens, &
+                        &   ') = ',crosscorr(jens,iens),'>',cutoff
+                        xx(1,j) = series(mo,yr,jens)
+                        xx(2,j) = covariate(mo,yr,jens)
+                        if ( lwrite ) print *,'xx(:,',j,') = ',xx(:,j)
+                        if ( ndecor.gt.1 ) then
+                            ! handle serial autocorrelations with a moving block
+                            if ( j1 == j2 ) then
+                                ! annual values, ndecor refers to year-on-year autocorrelations
+                                ! just skip undefineds, we do the same with the end of the series.
+                                do yy=yr+1,yr+ndecor-1
+                                    if ( yy <= yrstop .and. j < ntot ) then
+                                        if ( series(mo,yy,jens).lt.1e33 .and. &
+                                        &    covariate(mo,yy,jens).lt.1e33 ) then
+                                            j = j + 1
+                                            if ( j.gt.ntot ) goto 800
+                                            if ( lwrite ) print *,'also taking ',mo,yy,jens
+                                            xx(1,j) = series(mo,yy,jens)
+                                            xx(2,j) = covariate(mo,yy,jens)
+                                            if ( lwrite ) print *,'xx(:,',j,') = ',xx(:,j)
+                                        end if
+                                    end if
+                                end do
+                            else
+                                ! monthly (or daily) values, ndecor refers to the 
+                                ! autocorrelation of these.
+                                nleft = ndecor - 2
+                                do mmm=mo+1,min(j2,mo+ndecor-1)
+                                    mm = mmm
+                                    call normon(mm,yr,yy,nperyear)
+                                    if ( yy <= yrstop .and. j < ntot ) then
+                                        if ( series(mm,yy,jens).lt.1e33 .and. &
+                                        &    covariate(mm,yy,jens).lt.1e33 ) then
+                                            j = j + 1
+                                            if ( j.gt.ntot ) goto 800
+                                            nleft = nleft - 1
+                                            if ( lwrite ) print *,'also taking ',mm,yy,jens
+                                            xx(1,j) = series(mm,yy,jens)
+                                            xx(2,j) = covariate(mm,yy,jens)
+                                            if ( lwrite ) print *,'xx(:,',j,') = ',xx(:,j)
+                                        end if
+                                    end if
+                                end do
+                                ! if there are months/days left after we hit the end of the season,
+                                ! try going backwards
+                                do mmm=mo-1,max(j1,mo-nleft)
+                                    mm = mmm
+                                    call normon(mm,yr,yy,nperyear)
+                                    if ( yy >= yrstart .and. j < ntot ) then
+                                        if ( series(mm,yy,jens).lt.1e33 .and. &
+                                        &    covariate(mm,yy,jens).lt.1e33 ) then
+                                            j = j + 1
+                                            if ( j.gt.ntot ) goto 800
+                                            nleft = nleft - 1
+                                            if ( lwrite ) print *,'also taking ',mm,yy,jens
+                                            xx(1,j) = series(mm,yy,jens)
+                                            xx(2,j) = covariate(mm,yy,jens)
+                                            if ( lwrite ) print *,'xx(:,',j,') = ',xx(:,j)
+                                        end if ! valid data
+                                    end if ! valid year
+                                end do ! loop over moving block
+                            end if ! j1 == j2
+                        end if ! ndecor > 0 
+                    end if ! valid data
+                end if ! crosscorr < cutoff
+            end do ! ensemble members for spatial moving block
+        end do ! while ( .not.ok )
+    end do ! ntot, length of array
+    800 continue
+    do i=1,ntot
+        if ( xx(1,i).gt.1e10.or. xx(2,i).gt.1e10 ) then
+            write(0,*) 'sample_bootstrap: error: xx:,',i,') = ',xx(:,i)
+        end if
+    end do
+    sdecor = real(ntot)/real(nens)
+end subroutine sample_bootstrap
+
+subroutine print_spatial_scale(scross)
+    implicit none
+    real scross
+    if ( scross.gt.1.05 ) then
+        print '(a,f6.1,a)','# Used spatial decorrelation blocks of ', & 
+        &   scross,' stations on average in the bootstrap.'
+    else
+        print '(a)','# All series are considered independent in the bootstrap.'
+    end if
+end subroutine print_spatial_scale
 
 subroutine handle_then_now(series,covariate,nperyear,fyr,lyr,j1,j2,yr1a,yr2a, &
     &   mens1,mens,xyear,ensmax,cov1,cov2,lprint,lwrite)

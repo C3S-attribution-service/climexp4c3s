@@ -1,5 +1,6 @@
 *  #[ fitgaucov:
-        subroutine fitgaucov(xx,yrs,ntot,a3,b3,alpha3,beta3,j1,j2
+        subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr
+     +       ,mens1,mens,crosscorr,a3,b3,alpha3,beta3,j1,j2
      +       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2
      +       ,offset,t3,tx3,assume,confidenceinterval,ndecor,lboot
      +       ,lprint,dump,plot,lwrite)
@@ -9,9 +10,12 @@
 *
         implicit none
 *
-        integer ntot,ntype,j1,j2,yr1a,yr2a,ndecor
-        integer yrs(0:ntot)
-        real xx(2,ntot),a3(3),b3(3),alpha3(3),beta3(3),xyear,cov1,cov2,
+        integer npernew,fyr,lyr,mens1,mens,
+     +      ntot,ntype,j1,j2,yr1a,yr2a,ndecor
+        real yrseries(npernew,fyr:lyr,0:mens),
+     +       yrcovariate(npernew,fyr:lyr,0:mens),
+     +       crosscorr(0:mens,0:mens),
+     +       a3(3),b3(3),alpha3(3),beta3(3),xyear,cov1,cov2,
      +       offset,t3(3,10,3),tx3(3,3),confidenceinterval
         logical lweb,lchangesign,lboot,lprint,dump,plot,lwrite
         character assume*(*),idmax*(*)
@@ -19,15 +23,17 @@
         integer nmc
         parameter(nmc=1000)
         integer i,j,jj,n,nx,iter,iens,nfit,imc,ier,year
+        integer,allocatable :: yrs(:)
         real a,b,t(10,3),t25(10,3),t975(10,3),tx(3),tx25(3),tx975(3),
      +       aa(nmc),bb(nmc),tt(nmc,10,3),xi,alpha,beta,dalpha,dbeta,
      +       xmin,z,x,f,txtx(nmc,3),alphaalpha(nmc),betabeta(nmc),
-     +       mean,sd,ranf,mindata,minindx,pmindata,snorm,s,frac
+     +       mean,sd,ranf,mindata,minindx,pmindata,snorm,s,frac,scross,
+     +       sdecor
         real a25,a975,b25,b975,alpha25,alpha975,beta25,beta975
         real adev,var,skew,curt,aaa,bbb,siga,chi2,q,cmin,cmax,plo,phi
         real ttt(10,3),txtxtx(3),dum,xi3(3),acov(3,2),aacov(nmc,2)
-        real,allocatable :: yy(:),ys(:),zz(:),sig(:)
-        character lgt*4
+        real,allocatable :: xx(:,:),yy(:),ys(:),zz(:),sig(:)
+        character lgt*4,method*3
         external gaucovreturnlevel,gaucovreturnyear
 *
         integer nmax
@@ -41,6 +47,13 @@
         common /fitdata4/ cassume
 *
         year = yr2a
+        allocate(yrs(0:nmax))
+        allocate(xx(2,nmax))
+
+        if ( lwrite ) print *,'fitgaucov: calling fill_linear_array'
+        call fill_linear_array(yrseries,yrcovariate,npernew,j1,j2,
+     +       fyr,lyr,mens1,mens,xx,yrs,nmax,ntot,lwrite)
+
         if ( lwrite ) then
             print *,'fitgaucov: input'
             print *,'year,xyear  = ',year,xyear
@@ -160,30 +173,39 @@
         endif
         if ( lprint .and. .not.lweb ) print '(a,i6,a)','# doing a ',nmc
      +        ,'-member bootstrap to obtain error estimates'
+        scross = 0
         do iens=1,nmc
             if ( lprint .and. .not.lweb .and. mod(iens,100).eq.0 )
      +           print '(a,i6)','# ',iens
-            n = 1 + (ntot-1)/ndecor
-            do i=1,n
-                ! we do not have the information here to check whether the
-                ! data points were contiguous in the original series...
-                ! TODO: propagate that information              
-                call random_number(ranf)
-                j = 1 + min(ntot-ndecor,int((ntot-ndecor)*ranf))
-                if ( j.lt.1 .or. j.gt.ntot ) then
-                    write(0,*) 'fitgaucov: error: j = ',j
-                    call abort
-                endif
-                if ( i.lt.n ) then ! the blocks that fit in whole
-                    do jj=0,ndecor-1
-                        data(:,1+(i-1)*ndecor+jj) = xx(:,j+jj)
-                    end do
-                else
-                    do jj=0,ndecor-1 ! one more block to the end, the previous block is shortened
-                        data(:,1+ntot-ndecor+jj) = xx(:,j+jj)
-                    end do
-                end if
-            enddo
+            method = 'new'
+            if ( method == 'old' ) then
+                n = 1 + (ntot-1)/ndecor
+                do i=1,n
+                    ! we do not have the information here to check whether the
+                    ! data points were contiguous in the original series...
+                    ! TODO: propagate that information              
+                    call random_number(ranf)
+                    j = 1 + min(ntot-ndecor,int((ntot-ndecor)*ranf))
+                    if ( j.lt.1 .or. j.gt.ntot ) then
+                        write(0,*) 'fitgaucov: error: j = ',j
+                        call abort
+                    endif
+                    if ( i.lt.n ) then ! the blocks that fit in whole
+                        do jj=0,ndecor-1
+                            data(:,1+(i-1)*ndecor+jj) = xx(:,j+jj)
+                        end do
+                    else
+                        do jj=0,ndecor-1 ! one more block to the end, the previous block is shortened
+                            data(:,1+ntot-ndecor+jj) = xx(:,j+jj)
+                        end do
+                    end if
+                enddo
+            else
+                call sample_bootstrap(yrseries,yrcovariate,
+     +               npernew,j1,j2,fyr,lyr,mens1,mens,crosscorr,
+     +               ndecor,data,nmax,ntot,sdecor,lwrite)
+                scross = scross + sdecor
+            end if
             aa(iens) = a
             bb(iens) = b
             alphaalpha(iens) = alpha
@@ -223,6 +245,7 @@
                 end do
             endif
         enddo
+        if ( mens > mens1 ) call print_spatial_scale(scross/nmc)
         iens = nmc
         if ( lchangesign ) then
             a = -a
