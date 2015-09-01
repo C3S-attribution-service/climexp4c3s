@@ -169,11 +169,6 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         crosscorr(mens1,mens1) = 1
     end if
 
-    if ( lprint .and. lweb ) then
-        print '(a,i9,a)','# <tr><td>N:</td><td>&nbsp;</td><td>',ntot, &
-        &   '</td><td>&nbsp;</td></tr>'
-    end if
-
     lboot = .true.
     if ( distribution.eq.'gev' ) then
         ntype = 2 ! Gumbel plot

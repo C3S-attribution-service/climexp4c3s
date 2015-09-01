@@ -53,6 +53,10 @@
         if ( lwrite ) print *,'fitgaucov: calling fill_linear_array'
         call fill_linear_array(yrseries,yrcovariate,npernew,j1,j2,
      +       fyr,lyr,mens1,mens,xx,yrs,nmax,ntot,lwrite)
+        if ( lprint .and. lweb ) then
+            print '(a,i9,a)','# <tr><td>N:</td><td>&nbsp;</td><td>',
+     +           ntot,'</td><td>&nbsp;</td></tr>'
+        end if
 
         if ( lwrite ) then
             print *,'fitgaucov: input'
