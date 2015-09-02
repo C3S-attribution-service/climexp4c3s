@@ -56,22 +56,23 @@
                 ncfile = file(:i-1)//'.nc'
                 inquire(file=trim(ncfile),exist=lexist)
                 if ( lexist ) then
-                    ! check that it is not older than the ascii file
-                    call stat(trim(infile),iarray1,iret1)
-                    call stat(trim(ncfile),iarray2,iret2)
-                    if ( iret1 == 0 .and. iret2 == 0 ) then
-                        if ( iarray2(10).ge.iarray2(10) ) then
-                            file = ncfile
-                            if ( lwrite ) then
-                                print *,'readseries: using file ',
-     +                               trim(file)
-                            end if
-                        else
-                            ! remove the out-of-date netcdf file
-                            open(1,file=trim(ncfile))
-                            close(1,status='delete')
-                        end if
-                    end if
+!!!                    ! check that it is not older than the ascii file
+!!!                    call stat(trim(infile),iarray1,iret1)
+!!!                    call stat(trim(ncfile),iarray2,iret2)
+!!!                    if ( iret1 == 0 .and. iret2 == 0 ) then
+!!!                        if ( iarray2(10).ge.iarray2(10) ) then
+!!!                            file = ncfile
+!!!                            if ( lwrite ) then
+!!!                                print *,'readseries: using file ',
+!!!     +                               trim(file)
+!!!                            end if
+!!!                        else
+!!!                            ! remove the out-of-date netcdf file
+!!!                            open(1,file=trim(ncfile))
+!!!                            close(1,status='delete')
+!!!                        end if
+!!!                    end if
+                    file = ncfile
                 end if
             end if
             status = nf_open(file,nf_nowrite,ncid)
