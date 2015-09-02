@@ -25,10 +25,11 @@
         character infile*(*),units*(*),var*(*)
         logical lstandardunits,lwrite
         integer i,j,k,m,year,month,day,unit,status,ncid,dpm(12),
-     +       dpm0(12),imonth,year1,reallynperyear
+     +       dpm0(12),imonth,year1,reallynperyear,iarray1(13),
+     +       iarray2(13),iret1,iret2
         logical lagain,lexist
         real*8 x,y,x1,y1,val12(366)
-        character file*1023,line*10000
+        character file*1023,ncfile*1023,line*10000
         integer getnumwords,monthinline
         save dpm,dpm0        
         data dpm0 /31,29,31,30,31,30,31,31,30,31,30,31/
@@ -52,13 +53,24 @@
             ! as that is read orders of magnitude faster
             i = index(file,'.dat')
             if ( i.ne.0 ) then
-                file = file(:i-1)//'.nc'
-                inquire(file=trim(file),exist=lexist)
-                if ( .not.lexist ) then
-                    file = infile
-                else
-                    if ( lwrite ) then
-                        print *,'readseries: using file ',trim(file)
+                ncfile = file(:i-1)//'.nc'
+                inquire(file=trim(ncfile),exist=lexist)
+                if ( lexist ) then
+                    ! check that it is not older than the ascii file
+                    call stat(trim(infile),iarray1,iret1)
+                    call stat(trim(ncfile),iarray2,iret2)
+                    if ( iret1 == 0 .and. iret2 == 0 ) then
+                        if ( iarray2(10).ge.iarray2(10) ) then
+                            file = ncfile
+                            if ( lwrite ) then
+                                print *,'readseries: using file ',
+     +                               trim(file)
+                            end if
+                        else
+                            ! remove the out-of-date netcdf file
+                            open(1,file=trim(ncfile))
+                            close(1,status='delete')
+                        end if
                     end if
                 end if
             end if
