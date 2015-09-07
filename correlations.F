@@ -210,77 +210,47 @@
 *
         if ( lincl(1) ) then
             if ( lwrite ) print *,'reading SOI file soi.dat'
-            call readseries(dir(1:ldir)//'CRUData/soi.dat',
+            call readseries(trim(dir)//'CRUData/soi.dat',
      +           indx(1,yrbg,0,1),nperyear,yrbg,yred,n,var,units
      +           ,.false.,lwrite)
             if ( n.ne.nperyear ) goto 916
         endif
 *
-*       get old NINO indices from Alexey Kaplan
+*       get NINO indices from ERSST v4
 *
-        if ( lincl(2).or.lincl(3).or.lincl(4).or.lincl(5) ) then            
-            n = 12
-            if ( nperyear.ne.12 ) goto 916
-            if ( lwrite ) print *,'Opening file sstkap.indices'
-            open(1,file=dir(1:ldir)//'NCEPData/sstkap.indices',status
-     +            ='old')
-*           skip header
-            do i=1,1
-                read(1,'(a)') line
-            enddo
-*           data is in the format
-*           yyyy mm NINO12 dNINO12 NINO3 dNINO3 NINO4 dNINO4 NINO3.4 dNINO3.4
-            do i=1,10000
-                read(1,*,err=902,end=150) year,month,anino
-                if ( year.lt.200 ) year = year + 1900
-                do j=1,4
-                    indx(month,year,0,j+1) = anino(2*j)
-                    if ( indx(month,year,0,j+1).gt.10 .or.
-     +                   indx(month,year,0,j+1).lt.-10 ) then
-                        indx(month,year,0,j+1) = absent
-                    endif
-                enddo
-***                if ( lwrite ) print *,year,month,(anino(2*j),j=1,4)
-            enddo
-  150       continue
-            close(1)
-        endif
-*
-*       and the NINO indices from http://nic.fb4.noaa.gov:80/data/cddb/
-*
-        if ( lincl(2).or.lincl(3).or.lincl(4).or.lincl(5) ) then
-            n = 12
-            if ( nperyear.ne.12 ) goto 916
-            if ( lwrite ) print *,'Opening file sstoi.indices'
-            open(1,file=dir(1:ldir)//'NCEPData/sstoi.indices',status
-     +            ='old')
-*           skip header
-            do i=1,1
-                read(1,'(a)') line
-            enddo
-*           data is in the format (format changed 1-feb-2000)
-*           yyyy mm NINO12 dNINO12 NINO3 dNINO3 NINO4 dNINO4 NINO3.4 dNINO3.4
-            do i=1,10000
-                read(1,*,err=902,end=200) year,month,anino
-                if ( year.lt.200 ) year = year + 1900
-                do j=1,4
-                    indx(month,year,0,j+1) = anino(2*j)
-                    if ( indx(month,year,0,j+1).gt.10 .or.
-     +                   indx(month,year,0,j+1).lt.-10 ) then
-                        indx(month,year,0,j+1) = absent
-                    endif
-                enddo
-                if ( .false. .and. lwrite ) print *,year,month,(anino(2
-     +               *j),j=1,4)
-            enddo
-  200       continue
-            close(1)
-        endif
+        if ( lincl(2) ) then
+            if ( lwrite ) print *,'reading NCDCData/ersst_nino12a.dat'
+            call readseries(trim(dir)//'NCDCData/ersst_nino12.dat'
+     +           ,indx(1,yrbg,0,2),nperyear,yrbg,yred,n,var,units
+     +           ,.false.,lwrite)
+            if ( n.ne.nperyear ) goto 916
+        end if
+        if ( lincl(3) ) then
+            if ( lwrite ) print *,'reading NCDCData/ersst_nino3a.dat'
+            call readseries(trim(dir)//'NCDCData/ersst_nino3a.dat'
+     +           ,indx(1,yrbg,0,3),nperyear,yrbg,yred,n,var,units
+     +           ,.false.,lwrite)
+            if ( n.ne.nperyear ) goto 916
+        end if
+        if ( lincl(4) ) then
+            if ( lwrite ) print *,'reading NCDCData/ersst_nino4a.dat'
+            call readseries(trim(dir)//'NCDCData/ersst_nino4a.dat'
+     +           ,indx(1,yrbg,0,4),nperyear,yrbg,yred,n,var,units
+     +           ,.false.,lwrite)
+            if ( n.ne.nperyear ) goto 916
+        end if
+        if ( lincl(5) ) then
+            if ( lwrite ) print *,'reading NCDCData/ersst_nino3.4a.dat'
+            call readseries(trim(dir)//'NCDCData/ersst_nino3.4a.dat'
+     +           ,indx(1,yrbg,0,5),nperyear,yrbg,yred,n,var,units
+     +           ,.false.,lwrite)
+            if ( n.ne.nperyear ) goto 916
+        end if
 *
 *       and the NAO data
 *
         if ( lincl(6) ) then
-            call readseries(dir(1:ldir)//'CRUData/nao.dat',
+            call readseries(trim(dir)//'CRUData/nao.dat',
      +           indx(1,yrbg,0,6),nperyear,yrbg,yred,n,var,units
      +           ,.false.,lwrite)
             if ( nperyear.ne.n ) goto 916
@@ -291,7 +261,7 @@
 *       and the sunspot data, 1749-1991
 *
         if ( lincl(7) ) then
-            call readseries(dir(1:ldir)//'SIDCData/sunspots.dat',
+            call readseries(trim(dir)//'SIDCData/sunspots.dat',
      +           indx(1,yrbg,0,7),nperyear,yrbg,yred,n,var,units
      +           ,.false.,lwrite)
             if ( nperyear.ne.n ) goto 916
@@ -300,7 +270,7 @@
             n = 12
             if ( nperyear.ne.12 ) goto 916
             if ( lwrite ) print *,'Opening file sunhist_2.html'
-            open(1,file=dir(1:ldir)//'SIDCData/sunhist_2.html',status
+            open(1,file=trim(dir)//'SIDCData/sunhist_2.html',status
      +            ='old')
 *           data is in the format
 *           no yrmin valmin yrmax valmax rise fall length
