@@ -26,6 +26,9 @@
         integer getpid
         data scenarios /'rcp26','rcp45','rcp60','rcp85','sresa1b'/
         lwrite = .false.
+        call getenv('LWRITE',string)
+        call tolower(string)
+        if ( string.eq.'true' ) lwrite = .true.
 !
 !       find list of model files
 !
@@ -339,9 +342,14 @@
      +                           + series(mon,yr,iens,imod)
                         end if
                     end do
-                    seriesscen(iens,imod,iperiod) = 
-     +                   seriesscen(iens,imod,iperiod)/n
-     +                   - seriesclim(iens,imod)
+                    if ( n.eq.0 ) then
+                        if ( lwrite ) print *,'weird, n = 0'
+                         seriesscen(iens,imod,iperiod) = 3e33
+                    else
+                         seriesscen(iens,imod,iperiod) = 
+     +                        seriesscen(iens,imod,iperiod)/n
+     +                        - seriesclim(iens,imod)
+                     end if
                 end do
             end do
 !
