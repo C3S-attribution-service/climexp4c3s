@@ -47,7 +47,7 @@ program plotdaily
 
     print '(a,i5,2a)','# last ',nday,' of data in file ',trim(file)
     call copyheader(file,6)
-    do k=nday-1,0,-1
+    do k=nday-1,-1,-1
         mm = molast-k
         call normon(mm,yrlast,yr,nperyear)
         call getdymo(dy,mo,mm,nperyear)
