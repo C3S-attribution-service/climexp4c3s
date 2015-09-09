@@ -1,5 +1,5 @@
-# FFLAGS = -g -m64 -Dlinux -fbounds-check -fbackslash #-fsecond-underscore
-FFLAGS = -O3 -m64 -Dlinux -fbackslash # -fno-backtrace
+# FFLAGS = -g -m64 -Dlinux -fbounds-check -fbackslash -ffpe-trap=invalid,zero,overflow #-fsecond-underscore
+FFLAGS = -O3 -m64 -Dlinux -fbackslash -ffpe-trap=invalid,zero,overflow # -fno-backtrace
 
 CFLAGS = -O -m64
 
