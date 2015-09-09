@@ -28,8 +28,9 @@
         call getarg(iargc(),file)
         inquire(file=file,exist=exist)
         if ( exist ) then
-            print *,'output file exists, overwrite?'
-            read(*,*) yesno
+!!!            print *,'output file exists, overwrite?'
+!!!            read(*,*) yesno
+            yesno = 'y'
             if ( yesno.eq.'y' .or. yesno.eq.'Y' .or.
      +           yesno.eq.'j' .or. yesno.eq.'J' ) then
                 open(1,file=file)
@@ -164,10 +165,10 @@
         call writectl(file,datfile,nx,xx,ny,yy,nz,zz,
      +       nperyear,nperyear,2000,1,undef,title,nvars,vars,ivars
      +        ,lvars,units)
-        open(1,file=datfile,form='unformatted',access='direct',
+        open(2,file=datfile,form='unformatted',access='direct',
      +       recl=recfa4*nx*ny)
         do mo=1,nperyear
-            write(1,rec=mo) ((mean(i,j,mo),i=1,nx),j=1,ny)
+            write(2,rec=mo) ((mean(i,j,mo),i=1,nx),j=1,ny)
         enddo
         close(1)
         end
