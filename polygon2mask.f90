@@ -166,7 +166,7 @@ subroutine read_polygon(datfile,npol,npolmax,polygon,lwrite)
     integer ipol
     character string*100
     logical lwrite
-    integer npol1,npol2
+    integer npol1,npol2,i
     logical leof
 !
     npol = 0
@@ -182,8 +182,14 @@ subroutine read_polygon(datfile,npol,npolmax,polygon,lwrite)
             leof = .false.
             goto 100
         end if
-        if ( string(1:1).eq.'#' ) cycle
+        if ( string(1:1).eq.'#' .or. string(2:2).eq.'#' ) cycle
         npol = npol + 1
+        ! excel often uses commas rather than decimal points
+        if ( index(string,'.') == 0 ) then
+            do i=1,len(string)
+                if ( string(i:i) == ',' ) string(i:i) = '.'
+            end do
+        end if
         read(string,*) polygon(1,npol),polygon(2,npol)
         if ( polygon(2,npol).lt.-90 .or. polygon(2,npol).gt.90 ) then
             write(0,*) 'polygon2mask: error: latitude ',npol,' is ',polygon(2,npol)
