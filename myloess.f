@@ -2,6 +2,19 @@
      +           ,minfac,filtertype,hilo,yearmonth,family,lwrite)
 !
 !       my own LOESS routine; I cannot get the horrible netlib ones to work
+!       input:
+!       data(1:nperyear,yrbeg:yrend)    contains the data with first dimension days, months, ...
+!       nmonth                          use data from point-nmonth to point+nmongth (ie 2*nmonth+1 length)
+!       minfac                          only consider intervals with minfac% valid data
+!       filtertype                      loess1: 1st degree, loess2: 2nd degree
+!       hilo                            hi: high-pass filtering, lo: low-pass filtering
+!       yearmonth                       year: filter in the year direction for each month (day)
+!                                       month: filter consecutive months (days)
+!       family                          should be 'gaus*'
+!       lwrite                          debug flag
+!
+!       output:
+!       data(1:nperyear,yrbeg:yrend)    contains the data with first dimension days, months, ...
 !
         implicit none
         integer npermax,nperyear,yrbeg,yrend,nmonth
