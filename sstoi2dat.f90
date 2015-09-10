@@ -49,6 +49,8 @@ program sstoi2dat
     do j=2,5
         if ( infile == 'sstoi.indices' ) then
             write(file,'(a,i1,a)') 'nino',j,'.dat'
+        else if ( infile == 'sstkap.indices' ) then
+            write(file,'(a,i1,a)') 'kaplan_nino',j,'.dat'
         else if ( infile == 'ersst4.nino.mth.81-10.ascii' ) then
             write(file,'(a,i1,a)') 'ersstv4_nino',j,'.dat'
         else
@@ -71,10 +73,14 @@ program sstoi2dat
         endif
         if ( file == 'sstoi.indices' ) then
             write(1,'(a)') '# source: NCEP SST OI v2'
+            write(1,'(4a)') '# <a href=http://www.cpc.noaa.gov/data/indices/>CPC/NCEP/NOAA</a>'
+        else if ( file == 'sstkap.indices' ) then
+            write(1,'(a)') '# source: LDEO Kaplan reconstruction'
+            write(1,'(4a)') '# <a href=http://iridl.ldeo.columbia.edu/SOURCES/.Indices/.nino/.KAPLAN/>LDEO</a>'
         else if ( file == 'ersst4.nino.mth.81-10.ascii' ) then
             write(1,'(a)') '# source: NCEI ERSST v4'
+            write(1,'(4a)') '# <a href=http://www.cpc.noaa.gov/data/indices/>CPC/NCEP/NOAA</a>'
         end if
-        write(1,'(4a)') '# <a href=http://www.cpc.noaa.gov/data/indices/>CPC/NCEP/NOAA</a>'
         call date_and_time(values=ii)
         write(1,'(a,i4,a,i2.2,a,i2.2)') '# last updated: ',ii(1),'-',ii(2),'-',ii(3)
         do i=yrbeg,yrend
