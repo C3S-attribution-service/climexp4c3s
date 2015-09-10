@@ -51,38 +51,39 @@ program patchseries
 !   determine regression coefficents per month or less
 !
     if ( nperyear.le.12 ) then
-        if ( lnoscale ) then
-            scale = 1
-            offset = 0
-        else
-            do mo=1,nperyear
-                n = 0
-                do yr=yrbeg,yrend
-                    if ( maindata(mo,yr).lt.1e33 .and. &
-     &                   auxdata(mo,yr).lt.1e33 ) then
-                        n = n + 1
-                        xx(n) = auxdata(mo,yr)
-                        sx(mo) = sx(mo) + xx(n)
-                        yy(n) = maindata(mo,yr)
-                        sy(mo) = sy(mo) + yy(n)
-                    end if
-                end do
-                if ( n.gt.0 ) then
-                    sx(mo) = sx(mo)/n
-                    sy(mo) = sy(mo)/n
-                end if
-                if ( n.lt.7 ) then ! arbitrary
-                    scale(mo) = 3e33
-                    offset(mo) = 3e33
-                else if ( lreversefit ) then
-                    call fit(xx,yy,n,sig,0,offset(mo),scale(mo),siga,sigb,chi2,q)
-                else
-                    call fit(yy,xx,n,sig,0,a,b,siga,sigb,chi2,q)
-                    scale(mo) = 1/b
-                    offset(mo) = -a/b
+        do mo=1,nperyear
+            n = 0
+            do yr=yrbeg,yrend
+                if ( maindata(mo,yr).lt.1e33 .and. &
+ &                   auxdata(mo,yr).lt.1e33 ) then
+                    n = n + 1
+                    xx(n) = auxdata(mo,yr)
+                    sx(mo) = sx(mo) + xx(n)
+                    yy(n) = maindata(mo,yr)
+                    sy(mo) = sy(mo) + yy(n)
                 end if
             end do
-        end if
+            if ( n.gt.3 ) then
+                sx(mo) = sx(mo)/n
+                sy(mo) = sy(mo)/n
+            else
+                sx(mo) = 0
+                sy(mo) = 3e33
+            end if
+            if ( lnoscale ) then
+                scale(mo) = 1
+                offset(mo) = sy(mo) - sx(mo)
+            else if ( n.lt.7 ) then ! arbitrary
+                scale(mo) = 3e33
+                offset(mo) = 3e33
+            else if ( lreversefit ) then
+                call fit(xx,yy,n,sig,0,offset(mo),scale(mo),siga,sigb,chi2,q)
+            else
+                call fit(yy,xx,n,sig,0,a,b,siga,sigb,chi2,q)
+                scale(mo) = 1/b
+                offset(mo) = -a/b
+            end if
+        end do
         do yr=yrbeg,yrend
             do mo=1,nperyear
                 if ( maindata(mo,yr).gt.1e33 .and. &
@@ -101,40 +102,41 @@ program patchseries
         else
             nperday = nint(nperyear/366.)
         end if
-        if ( lnoscale ) then
-            scale = 1
-            offset = 0
-        else
-            do mo=1,12
-                n = 0
-                do yr=yrbeg,yrend
-                    do dy=1,nperday*dpm(mo)
-                        call invgetdymo(dy,mo,j,nperyear)
-                        if ( maindata(j,yr).lt.1e33 .and. &
-     &                       auxdata(j,yr).lt.1e33 ) then
-                            n = n + 1
-                            xx(n) = auxdata(j,yr)
-                            yy(n) = maindata(j,yr)
-                            sy(mo) = sy(mo) + yy(n)
-                        end if
-                    end do
+        do mo=1,12
+            n = 0
+            do yr=yrbeg,yrend
+                do dy=1,nperday*dpm(mo)
+                    call invgetdymo(dy,mo,j,nperyear)
+                    if ( maindata(j,yr).lt.1e33 .and. &
+ &                       auxdata(j,yr).lt.1e33 ) then
+                        n = n + 1
+                        xx(n) = auxdata(j,yr)
+                        yy(n) = maindata(j,yr)
+                        sy(mo) = sy(mo) + yy(n)
+                    end if
                 end do
-                if ( n.gt.0 ) then
-                    sx(mo) = sx(mo)/n
-                    sy(mo) = sy(mo)/n
-                end if
-                if ( n.lt.7 ) then ! arbitrary
-                    scale(mo) = 3e33
-                    offset(mo) = 3e33
-                else if ( lreversefit ) then
-                    call fit(xx,yy,n,sig,0,offset(mo),scale(mo),siga,sigb,chi2,q)
-                else
-                    call fit(yy,xx,n,sig,0,a,b,siga,sigb,chi2,q)
-                    scale(mo) = 1/b
-                    offset(mo) = -a/b
-                end if
             end do
-        end if
+            if ( n.gt.3 ) then
+                sx(mo) = sx(mo)/n
+                sy(mo) = sy(mo)/n
+            else
+                sx(mo) = 0
+                sy(mo) = 3e33
+            end if
+            if ( lnoscale ) then
+                scale(mo) = 0
+                offset(mo) = sy(mo) - sx(mo)
+            else if ( n.lt.7 ) then ! arbitrary
+                scale(mo) = 3e33
+                offset(mo) = 3e33
+            else if ( lreversefit ) then
+                call fit(xx,yy,n,sig,0,offset(mo),scale(mo),siga,sigb,chi2,q)
+            else
+                call fit(yy,xx,n,sig,0,a,b,siga,sigb,chi2,q)
+                scale(mo) = 1/b
+                offset(mo) = -a/b
+            end if
+        end do
         do yr=yrbeg,yrend
             do mo=1,12
                 do dy=1,nperday*dpm(mo)
