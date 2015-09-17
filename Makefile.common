@@ -269,6 +269,7 @@ PROGRAMS      = scientific2decimal \
 		spectrum \
 		diamond2year \
 		extendyear \
+		extend_series \
 		describefield \
 		netcdf2dat \
 		ctl2dat \
@@ -573,6 +574,9 @@ grads2nc:	grads2nc.o $(LIBRARY)
 
 extendyear:	extendyear.o llen.o
 		$(LD) $(FFLAGS) -o $@ $@.o llen.o
+
+extend_series:	extend_series.o $(LIBRARY)
+		$(LD) $(FFLAGS) -o $@ $@.o $(LIBRARY) $(LIBS)
 
 histogram:	histogram.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBRARY) $(LIBS)
