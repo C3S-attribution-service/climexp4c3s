@@ -68,7 +68,7 @@ program transform
     if ( trim(variable) == 'rr' ) then
         string = trim(scenario)//'('//trim(scaling)//')'
     end if
-    print '(3a)','# Transformed following the KNMI''14 scenario ',trim(string), ', v3.0'
+    print '(3a)','# Transformed following the KNMI''14 scenario ',trim(string), ', v3.1'
     if ( trim(variable) /= 'rr' ) then
         print '(4a)','# for the region ',trim(region)
     end if
