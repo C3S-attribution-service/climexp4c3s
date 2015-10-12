@@ -13,7 +13,7 @@ program transform
     character string*100
     logical lwrite
     integer iargc
-    lwrite = .false.
+    lwrite = .true.
 
     if ( iargc().lt.5 ) then
         write(0,*) 'usage: transform infile variable horizon scenario[.subscenario] region'
