@@ -174,6 +174,7 @@ subroutine read_deltas(variable,horizon,scenario,region,deltas,scaling,lwrite)
         foundregion = .false.
         do
             read(1,'(a)',end=100,err=901) line
+            if ( line == ' ' ) cycle
             if ( lwrite ) print *,'line=',trim(line)
             if ( variable == 'rr' ) then
                 foundregion = .true.
