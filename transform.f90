@@ -174,7 +174,7 @@ subroutine read_deltas(variable,horizon,scenario,region,deltas,scaling,lwrite)
         foundregion = .false.
         do
             read(1,'(a)',end=100,err=901) line
-            if ( line == ' ' ) cycle
+            if ( line(3:) == ' ' ) cycle ! for pgf90, leaves special characters in the line
             if ( lwrite ) print *,'line=',trim(line)
             if ( variable == 'rr' ) then
                 foundregion = .true.
