@@ -2,6 +2,7 @@ program plotdaily
 !
 !   make the graphics file for gnuplot to plot the last N days of a daily time series
 !   plus climatology.
+!   also works for monthly and annual data, so the name is a bit awkward.
 !
     implicit none
     include 'param.inc'
