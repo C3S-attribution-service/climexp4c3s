@@ -741,6 +741,7 @@
         integer i,j,year,month,day,dpm(12),dpm0(12)
         real y,xyr,xmo,xdy
         logical lfirst
+        integer,external :: getnumwords
         save dpm,dpm0,lfirst
         data dpm0 /31,29,31,30,31,30,31,31,30,31,30,31/
         data lfirst /.true./
@@ -799,6 +800,7 @@
 8990    continue
         read(unit,'(a)',err=905,end=900) line
         if ( line(1:1).eq.'#' .or. line.eq.' ' ) goto 8990
+        if ( getnumwords(line).lt.4 ) goto 8990 
         read(line,*,err=915,end=900) year,month,day,y
         goto 800
  915    continue
