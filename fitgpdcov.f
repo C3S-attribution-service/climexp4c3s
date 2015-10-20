@@ -739,6 +739,11 @@
                 llgpdcov = 3e33
                 goto 999
             end if
+            if (bb.lt.0 ) then
+                if ( llwrite ) print *,'llgpdcov: bb negative ',bb
+                llgpdcov = 3e33
+                goto 999
+            end if
             z = xx(i)
             if ( z.lt.0 ) then
                 if ( z.lt.-5e-5*abs(athreshold) ) then
