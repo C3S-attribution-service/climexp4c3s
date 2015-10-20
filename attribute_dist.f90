@@ -885,7 +885,7 @@ subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xy
         end if
     end if
     if ( i12.eq.2 ) then
-        if ( xyear.gt.1e33 ) then
+        if ( abs(xyear).gt.1e33 ) then
             xyear = series(momax,yrmax,ensmax)
         else
             ensmax = -1 ! xyear was given by user

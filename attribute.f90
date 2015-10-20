@@ -85,7 +85,9 @@ program attribute
         do iens=mens1,mens
             call changesign(series(1,yrbeg,iens),npermax,nperyear,yrbeg,yrend)
         end do
-        xyear = -xyear
+        if ( xyear.lt.1e30 ) then
+            xyear = -xyear
+        end if
     endif
     if ( ldetrend ) then
         do iens=mens1,mens
