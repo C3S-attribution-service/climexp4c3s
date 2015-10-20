@@ -1181,7 +1181,7 @@ subroutine checknonegative(series,nperyear,fyr,lyr,mens1,mens,j1,j2,assume, &
                 if ( yr.ge.fyr .and. yr.le.lyr ) then
                     if ( .not.lchangesign .and. series(mo,yr,iens).lt.0 .or. &
                         & lchangesign .and. series(mo,yr,iens).gt.0 .and. &
-                        &       series(mo,yr,iens).lt.1e33 .and.  ) then
+                        &       series(mo,yr,iens).lt.1e33 ) then
                         write(0,*) 'error: option "scale" is not compatible '// &
                         &   'with negative values in the time series', &
                         &   series(mo,yr,iens)
