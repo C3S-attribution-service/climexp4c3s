@@ -96,6 +96,11 @@ program attribute
         end do
     end if
     if ( anom ) then
+        if ( assume == 'scale' ) then
+            write(0,*) 'error: it makes no sense to use "scale" on anomalies'
+            write(*,*) 'error: it makes no sense to use "scale" on anomalies'
+            call exit(-1)
+        end if
         do iens=mens1,mens
             call anomal(series(1,yrbeg,iens),npermax,nperyear,yrbeg,yrend,yr1,yr2)
         end do

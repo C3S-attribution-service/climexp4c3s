@@ -109,6 +109,9 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         call abort
     end if
     
+    if ( assume == 'scale' ) then
+        call checknonegative(yrseries,npernew,fyr,lyr,mens1,mens,j1,j2,assume,lwrite)
+    end if
     if ( lnormsd .and. mens.gt.mens1 ) then
         if ( lwrite ) print *,'attrbute_dist: normalising all series'
         call normaliseseries(yrseries,npernew,fyr,lyr,mens1,mens,j1,j2,assume,lwrite)
@@ -1153,6 +1156,36 @@ subroutine normaliseseries(series,nperyear,fyr,lyr,mens1,mens,j1,j2,assume,lwrit
         write(*,*) 'normaliseseries: error: unknown assumption ',trim(assume)
         call exit(-1)
     end if
+end subroutine
+
+subroutine checknonegative(series,nperyear,fyr,lyr,mens1,mens,j1,j2,assume,lwrite)
+!
+!   check that series does not contain negative values
+!
+    implicit none
+    integer nperyear,fyr,lyr,mens1,mens,j1,j2
+    real series(nperyear,fyr:lyr,0:mens)
+    logical lwrite
+    character assume*(*)
+    integer iens,yy,yr,mm,mo
+
+    if ( assume /= 'scale' ) return
+
+    do iens=mens1,mens
+        do yy=fyr,lyr
+            do mm=j1,j2
+                mo = mm
+                call normon(mo,yy,yr,nperyear)
+                if ( yr.ge.fyr .and. yr.le.lyr ) then
+                    if ( series(mo,yr,iens).lt.0 ) then
+                        write(0,*) 'error: option "scale" is not compatible with negative values in the time series'
+                        write(*,*) 'error: option "scale" is not compatible with negative values in the time series'
+                        call exit(-1)
+                    end if
+                end if
+            end do
+        end do
+    end do
 end subroutine
 
 subroutine getmeanseries(series,nperyear,mens1,mens,fyr,lyr,j1,j2,lmult,mean)
