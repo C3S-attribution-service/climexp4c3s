@@ -1179,8 +1179,9 @@ subroutine checknonegative(series,nperyear,fyr,lyr,mens1,mens,j1,j2,assume, &
                 mo = mm
                 call normon(mo,yy,yr,nperyear)
                 if ( yr.ge.fyr .and. yr.le.lyr ) then
-                    if ( series(mo,yr,iens).lt.0 .and. .not.lchangesign .or. &
-                        & series(mo,yr,iens).gt.0 .and. lchangesign ) then
+                    if ( .not.lchangesign .and. series(mo,yr,iens).lt.0 .or. &
+                        & lchangesign .and. series(mo,yr,iens).gt.0 .and. &
+                        &       series(mo,yr,iens).lt.1e33 .and.  ) then
                         write(0,*) 'error: option "scale" is not compatible '// &
                         &   'with negative values in the time series', &
                         &   series(mo,yr,iens)
