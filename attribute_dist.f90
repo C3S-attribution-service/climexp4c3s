@@ -110,7 +110,8 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     end if
     
     if ( assume == 'scale' ) then
-        call checknonegative(yrseries,npernew,fyr,lyr,mens1,mens,j1,j2,assume,lwrite)
+        call checknonegative(yrseries,npernew,fyr,lyr,mens1,mens,j1,j2,assume, &
+        &   lchangesign,lwrite)
     end if
     if ( lnormsd .and. mens.gt.mens1 ) then
         if ( lwrite ) print *,'attrbute_dist: normalising all series'
@@ -1158,14 +1159,15 @@ subroutine normaliseseries(series,nperyear,fyr,lyr,mens1,mens,j1,j2,assume,lwrit
     end if
 end subroutine
 
-subroutine checknonegative(series,nperyear,fyr,lyr,mens1,mens,j1,j2,assume,lwrite)
+subroutine checknonegative(series,nperyear,fyr,lyr,mens1,mens,j1,j2,assume, &
+&   lchangesign,lwrite)
 !
 !   check that series does not contain negative values
 !
     implicit none
     integer nperyear,fyr,lyr,mens1,mens,j1,j2
     real series(nperyear,fyr:lyr,0:mens)
-    logical lwrite
+    logical lchangesign,lwrite
     character assume*(*)
     integer iens,yy,yr,mm,mo
 
@@ -1177,9 +1179,14 @@ subroutine checknonegative(series,nperyear,fyr,lyr,mens1,mens,j1,j2,assume,lwrit
                 mo = mm
                 call normon(mo,yy,yr,nperyear)
                 if ( yr.ge.fyr .and. yr.le.lyr ) then
-                    if ( series(mo,yr,iens).lt.0 ) then
-                        write(0,*) 'error: option "scale" is not compatible with negative values in the time series'
-                        write(*,*) 'error: option "scale" is not compatible with negative values in the time series'
+                    if ( series(mo,yr,iens).lt.0 .and. .not.lchangesign .or. &
+                        & series(mo,yr,iens).gt.0 .and. lchangesign ) then
+                        write(0,*) 'error: option "scale" is not compatible '// &
+                        &   'with negative values in the time series', &
+                        &   series(mo,yr,iens)
+                        write(*,*) 'error: option "scale" is not compatible '// &
+                        &   'with negative values in the time series', &
+                        &   series(mo,yr,iens)
                         call exit(-1)
                     end if
                 end if
