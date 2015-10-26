@@ -81,14 +81,6 @@ program attribute
 !
 !   process data
 !
-    if ( lchangesign ) then
-        do iens=mens1,mens
-            call changesign(series(1,yrbeg,iens),npermax,nperyear,yrbeg,yrend)
-        end do
-        if ( xyear.lt.1e30 ) then
-            xyear = -xyear
-        end if
-    endif
     if ( ldetrend ) then
         do iens=mens1,mens
             call detrend(series(1,yrbeg,iens),npermax,nperyear,yrbeg,yrend,yr1,yr2,m1,m2,lsel)
@@ -142,6 +134,14 @@ program attribute
         end do
         if ( xyear.lt.1e33 .and. xyear.ge.0 ) xyear = xyear**(2/3.)
         scalingpower = scalingpower*2./3.
+    endif
+    if ( lchangesign ) then
+        do iens=mens1,mens
+            call changesign(series(1,yrbeg,iens),npermax,nperyear,yrbeg,yrend)
+        end do
+        if ( xyear.lt.1e30 ) then
+            xyear = -xyear
+        end if
     endif
 
     lprint = .true.
