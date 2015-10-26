@@ -150,12 +150,12 @@
      +                       'nf_get_vara_real(',
      +                       ncid,jvars(1),start,count,',field(',1,1,
      +                       startmo,max(firstyr,yr1),'))'
-                        write(0,*) 'field(1) = ',
-     +                       field(1,1,startmo,max(firstyr,yr1))
-                        write(0,*) 'field(',
-     +                       ((min(yrend,yr2)-max(firstyr,yr1))*nperyear
-     +                       +nperyear-startmo+1)*ny*nx,')   = ',
-     +                       field(nx,ny,nperyear,min(yrend,yr2))
+!!!                        write(0,*) 'field(1) = ',
+!!!     +                       field(1,1,startmo,max(firstyr,yr1))
+!!!                        write(0,*) 'field(',
+!!!     +                       ((min(yrend,yr2)-max(firstyr,yr1))*nperyear
+!!!     +                       +nperyear-startmo+1)*ny*nx,')   = ',
+!!!     +                       field(nx,ny,nperyear,min(yrend,yr2))
                     end if
                     status = nf_get_vara_real(ncid,jvars(1),start,count
      +                   ,field(1,1,startmo,max(firstyr,yr1)))
