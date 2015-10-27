@@ -163,7 +163,7 @@
      +       gevcovreturnlevel,j1,j2,t)
         if ( xyear.lt.1e33 ) then
             call getreturnyears(a,b,xi,alpha,beta,xyear,cov1,cov2,
-     +           gevcovreturnyear,j1,j2,tx,lwrite)
+     +           gevcovreturnyear,j1,j2,tx,lchangesign,lwrite)
         endif
         call getabfromcov(a,b,alpha,beta,cov1,aaa,bbb)
         acov(1,1) = aaa
@@ -262,7 +262,7 @@
             if ( xyear.lt.1e33 ) then
                 call getreturnyears(aa(iens),bb(iens),xixi(iens),
      +               alphaalpha(iens),betabeta(iens),xyear,cov1,cov2,
-     +               gevcovreturnyear,j1,j2,txtxtx,lwrite)
+     +               gevcovreturnyear,j1,j2,txtxtx,lchangesign,lwrite)
                 do j=1,3
                     txtx(iens,j) = txtxtx(j)
                 end do
@@ -693,12 +693,14 @@
         end
 *  #] gevcovreturnlevel:
 *  #[ gevcovreturnyear:
-        real function gevcovreturnyear(a,b,xi,alpha,beta,xyear,cov)
+        real function gevcovreturnyear(a,b,xi,alpha,beta,xyear,cov,
+     +       lchangesign)
 !
 !       compute the return time of the value xyear with the fitted values
 !
         implicit none
         real a,b,xi,alpha,beta,xyear,cov
+        logical lchangesign
         real x,y,z,tx,arg,aa,bb
 
         x = xyear

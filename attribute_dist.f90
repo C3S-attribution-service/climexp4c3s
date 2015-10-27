@@ -653,7 +653,6 @@ subroutine sample_bootstrap(series,covariate,nperyear,j1,j2,fyr,lyr,mens1,mens,&
     ! transfer random samples of the valid pairs in series, covariate to xx(1:2,1:ntot)
     ! serial autocrrelations are taken into account with a moving block of length ndecor
     ! for j1==j2 this is counted in years, for j1/=j2 in months/days
-    ! TODO: take spatial cross-correlation into account
     
     implicit none
     integer nperyear,j1,j2,fyr,lyr,mens1,mens,ndecor,nmax,ntot
@@ -719,7 +718,7 @@ subroutine sample_bootstrap(series,covariate,nperyear,j1,j2,fyr,lyr,mens1,mens,&
             call random_number(ranf)
             yy = yrstart + int((yrstop-yrstart+1)*ranf)
             if ( j1 == j2 ) then
-                mo = 1
+                mo = j1
                 yr = yy
             else
                 call random_number(ranf)
@@ -738,7 +737,7 @@ subroutine sample_bootstrap(series,covariate,nperyear,j1,j2,fyr,lyr,mens1,mens,&
                         &   ') = ',crosscorr(jens,iens),'>',cutoff
                         xx(1,j) = series(mo,yr,jens)
                         xx(2,j) = covariate(mo,yr,jens)
-                        if ( lwrite ) print *,'xx(:,',j,') = ',xx(:,j)
+                        if ( lwrite ) print *,'xx(:,',j,') = ',xx(:,j),mo,yr,jens
                         if ( ndecor.gt.1 ) then
                             ! handle serial autocorrelations with a moving block
                             if ( j1 == j2 ) then

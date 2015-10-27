@@ -746,14 +746,14 @@
 *  #] getreturnlevels:
 *  #[ getreturnyears:
         subroutine getreturnyears(a,b,xi,alpha,beta,xyear,cov1,cov2,
-     +       covreturnyear,j1,j2,tx,lwrite)
+     +       covreturnyear,j1,j2,tx,lchangesign,lwrite)
         implicit none
         integer j1,j2
         real a,b,xi,alpha,beta,xyear,cov1,cov2,tx(3)
-        logical lwrite
+        logical lchangesign,lwrite
         real,external :: covreturnyear
-        tx(1) = covreturnyear(a,b,xi,alpha,beta,xyear,cov1)
-        tx(2) = covreturnyear(a,b,xi,alpha,beta,xyear,cov2)
+        tx(1) = covreturnyear(a,b,xi,alpha,beta,xyear,cov1,lchangesign)
+        tx(2) = covreturnyear(a,b,xi,alpha,beta,xyear,cov2,lchangesign)
         if ( tx(2).gt.1e19 ) then
             if ( tx(1).gt.1e19 ) then
                 tx(3) = 3e33
