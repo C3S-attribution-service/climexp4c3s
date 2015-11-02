@@ -62,7 +62,7 @@ program sstoi2dat
             write(1,'(a)') '# Nino12 [K] Nino12 index'
             write(1,'(2a)') '# SST anomalies in 10S-EQ, 80W-90W'
         elseif ( j.eq.3 ) then
-            write(1,'(a)') '# Nino12 [K] Nino12 index'
+            write(1,'(a)') '# Nino3 [K] Nino3 index'
             write(1,'(2a)') '# SST anomalies in 5S-5N, 90W-150W'
         elseif ( j.eq.4 ) then
             write(1,'(a)') '# Nino4 [K] Nino4 index'
