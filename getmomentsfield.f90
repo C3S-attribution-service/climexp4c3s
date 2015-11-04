@@ -687,13 +687,6 @@ program getmomentsfield
 !       convert to standard units
 !
         if ( lstandardunits ) then
-            if ( nz.gt.1 ) then
-                write(0,*) 'getmomentsfield: error: cannot convert '// &
-     &               '3D fields to standard units yet'
-                write(*,*) 'getmomentsfield: error: cannot convert '// &
-     &               '3D fields to standard units yet'
-                call abort
-            endif
             saveunits = units(1)
             do i=1,nvars
                 if ( .not. ( abs(imoment).le.100 .and. &
@@ -702,11 +695,11 @@ program getmomentsfield
      &               .and. .not. ( imoment.eq.200 .and. i.eq.2 ) &
      &               .and. .not. imoment.eq.1000 .and. .not. imoment.eq.1001 ) then
                     units(i) = saveunits
-                    call makestandardfield(res(1,1,1,1,i),nx,ny,1,12,0,0 &
-     &                   ,nx,ny,1,12,0,0,vars(1),units(i),lwrite)
+                    call makestandardfield(res(1,1,1,1,i),nx,ny,nz,12,0,0 &
+     &                   ,nx,ny,nz,12,0,0,vars(1),units(i),lwrite)
                     units(i) = saveunits
-                    call makestandardfield(res(1,1,1,0,i),nx,ny,1,1,0,0 &
-     &                   ,nx,ny,1,1,0,0,vars(1),units(i),lwrite)
+                    call makestandardfield(res(1,1,1,0,i),nx,ny,nz,1,0,0 &
+     &                   ,nx,ny,nz,1,0,0,vars(1),units(i),lwrite)
                 else
                     units(i) = "1"
                 endif
