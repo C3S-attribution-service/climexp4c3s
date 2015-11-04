@@ -776,6 +776,7 @@
         subroutine getabfromcov(a,b,alpha,beta,cov,aa,bb)
         implicit none
         real a,b,alpha,beta,cov,aa,bb
+        real arg
         character cassume*5
         common /fitdata4/ cassume
         integer ncur
@@ -787,8 +788,14 @@
             aa = a + alpha*cov
             bb = b
         else if ( cassume.eq.'scale' ) then
-            aa = a*exp(alpha*cov/a)
-            bb = b*aa/a
+            arg = alpha*cov/a
+            if ( arg < 70 ) then
+                aa = a*exp(alpha*cov/a)
+                bb = b*aa/a
+            else
+                aa = 3e33
+                bb = 3e33
+            end if
         else if ( cassume.eq.'both' ) then
             aa = a + alpha*cov
             bb = b + beta*cov
@@ -852,7 +859,12 @@
         character assume*(*)
         logical lchangesign,lwrite
         integer i
+        real arg
 !
+        if ( lwrite ) then
+            print *,'adjustyy: input ',assume
+            print *,'a,b,alpha,beta,cov = ',a,b,alpha,beta,cov
+        end if
         do i=1,ntot
             yy(i) = xx(1,i)
             zz(i) = xx(2,i)
@@ -872,15 +884,31 @@
         else if ( assume.eq.'scale' ) then
             if ( lchangesign ) then
                 do i=1,ntot
-                    yy(i) = yy(i)*exp(alpha*(zz(i)-cov)/a)
+                    arg = alpha*(zz(i)-cov)/a
+                    if ( arg < 70 ) then
+                        yy(i) = yy(i)*exp(arg)
+                    else
+                        yy(i) = 3e33
+                    end if
                 end do
             else
                 do i=1,ntot
-                    yy(i) = yy(i)*exp(-alpha*(zz(i)-cov)/a)
+                    arg = -alpha*(zz(i)-cov)/a
+                    if ( arg < 70 ) then
+                        yy(i) = yy(i)*exp(arg)
+                    else
+                        yy(i) = 3e33
+                    end if
                 end do
             end if
-            aaa = a*exp(alpha*cov/a)
-            bbb = b*exp(alpha*cov/a)
+            arg = alpha*cov/a
+            if ( arg < 70 ) then
+                aaa = a*exp(arg)
+                bbb = b*exp(arg)
+            else
+                aaa = 3e33
+                bbb = 3e33
+            end if
         else if ( assume.eq.'both' ) then
             write(0,*) 'adjustyy: error: not yet ready'
             write(*,*) 'adjustyy: error: not yet ready'
@@ -968,6 +996,7 @@
         real cov1,cov2,acov(3,2),offset
         logical lchangesign
         integer i,j,is
+        real a(3)
         logical lopen
         inquire(unit=15,opened=lopen) ! no flag in getopts.inc
         if ( lopen ) then
@@ -976,8 +1005,22 @@
             write(15,'(a)')
             write(15,'(a)')
      +           '# covariate threshold lowerbound upperbound'
-            write(15,'(4g20.6)') cov1+offset,(is*acov(j,1),j=1,3)
-            write(15,'(4g20.6)') cov2+offset,(is*acov(j,2),j=1,3)
+            do j=1,3
+                if ( acov(j,1) < 1e33 ) then
+                    a(j) = is*acov(j,1)
+                else
+                    a(j) = -999.9
+                end if
+            end do
+            write(15,'(4g20.6)') cov1+offset,a
+            do j=1,3
+                if ( acov(j,2) < 1e33 ) then
+                    a(j) = is*acov(j,2)
+                else
+                    a(j) = -999.9
+                end if
+            end do
+            write(15,'(4g20.6)') cov2+offset,a
         endif
         end subroutine
 *  #] write_threshold:

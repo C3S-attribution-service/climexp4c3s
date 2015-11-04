@@ -221,7 +221,11 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         call getreturnyears(a,b,xi,alpha,beta,xyear,cov1,cov2, &
  &           gpdcovreturnyear,j1,j2,tx,lchangesign,lwrite)
         ! convert to years
-        tx(1:2) = tx(1:2)/(j2-j1+1)
+        do i=1,2
+            if ( tx(i).lt.1e33 ) then
+                tx(i) = tx(i)/(j2-j1+1)
+            end if
+        end do
     end if
     call getabfromcov(a,b,alpha,beta,cov1,aaa,bbb)
     acov(1,1) = aaa
@@ -234,7 +238,6 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     if ( .not.lboot ) then
         if ( lchangesign ) then
             a = -a
-            b = -b
             t = -t
             alpha = -alpha
             if ( cassume == 'both' ) then
@@ -284,7 +287,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         else
             call sample_bootstrap(yrseries,yrcovariate, &
      &               npernew,j1,j2,fyr,lyr,mens1,mens,crosscorr, &
-     &               ndecor,data,nmax,ntot,sdecor,lwrite)
+     &               ndecor,data,nmax,ntot,sdecor,.false.)
             scross = scross + sdecor
         end if
         aa(iens) = a
@@ -306,6 +309,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         aacov(iens,1) = aaa
         call getabfromcov(aa(iens),bb(iens),alphaalpha(iens),betabeta(iens),cov2,aaa,bbb)
         aacov(iens,2) = aaa
+        llwrite = lwrite
         call getreturnlevels(aa(iens),bb(iens),xixi(iens), &
      &           alphaalpha(iens),betabeta(iens), &
      &           cov1,cov2,gpdcovreturnlevel,j1,j2,ttt)
@@ -320,12 +324,19 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
      &               gpdcovreturnyear,j1,j2,txtxtx,lchangesign,lwrite)
             do j=1,2
                 ! convert to years
-                txtx(iens,j) = txtxtx(j)/(j2-j1+1)
+                if ( txtxtx(j).lt.1e33 ) then
+                    txtx(iens,j) = txtxtx(j)/(j2-j1+1)
+                end if
             end do
             txtx(iens,3) = txtxtx(3)
             ! if the event would have been impossible in the current climate
             ! disregard this bootstrap sample
             if ( txtxtx(2) > 1e19 ) then
+                iens = iens - 1
+            end if
+            ! if the return time is not infinite but something went completely wrong
+            ! also disregard it
+            if ( txtxtx(1) > 1e30 ) then
                 iens = iens - 1
             end if
         end if
@@ -334,18 +345,33 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     if ( lchangesign ) then
         a = -a
         acov = -acov
-        aa = -aa
-        aacov = -aacov
-        b = -b
-        bb = -bb
+        do iiens=1,iens
+            if ( aa(iens) < 1e33 ) aa = -aa
+            if ( aacov(iens,1) < 1e33 ) aacov(iens,1) = -aacov(iens,1)
+            if ( aacov(iens,2) < 1e33 ) aacov(iens,2) = -aacov(iens,2)
+        end do
         alpha = -alpha
         alphaalpha = -alphaalpha
         if ( assume == 'both' ) then
             beta = -beta
             betabeta = -betabeta
         end if
-        t = -t
-        tt = -tt
+        do j=1,10
+            do i=1,3
+                if ( t(j,i) < 1e30 ) then
+                    t(j,i) = -t(j,i)
+                end if
+            end do
+        end do
+        do iiens=1,iens
+            do j=1,10
+                do i=1,3
+                    if ( tt(iiens,j,i) < 1e33 ) then
+                        tt(iiens,j,i) = -tt(iiens,j,i)
+                    end if
+                end do
+            end do
+        end do
     end if
     plo = (100-confidenceinterval)/2
     phi = (100+confidenceinterval)/2
@@ -587,8 +613,9 @@ real function llgpdcov(p)
     real p(4)
 !
     integer i,j,n,nlo,nhi,iloop,ilohi
-    real x,z,xi,s,aa,bb,llold,alpha,alo,ahi,delta,aathreshold(2)
+    real x,z,xi,s,aa,bb,llold,alpha,alo,ahi,delta,aathreshold(2),arg
     real,allocatable :: xx(:),xxunsorted(:)
+    logical lllwrite
 !
     integer nmax,ncur
     parameter(nmax=100000)
@@ -619,25 +646,26 @@ real function llgpdcov(p)
 !   get threshold
 !
     alpha = p(3)
+    lllwrite = .false.
     if ( cassume /= 'scale' ) then
         do i=1,ncur
             xx(i) = data(1,i) - alpha*data(2,i)
             !!!print *,'xx(',i,') = ',xx(i),data(1,i),alpha*data(2,i)
         end do
-        if ( llwrite ) xxunsorted = xx
+        if ( lllwrite ) xxunsorted = xx
         call nrsort(ncur,xx)
         athreshold = (xx(ncur-nthreshold) + xx(ncur-nthreshold+1))/2
-        if ( llwrite ) then
+        if ( lllwrite ) then
             print *,'llgpdcov: nthreshold,athreshold = ',nthreshold,athreshold
             print *,'          xx(',ncur-nthreshold,') = ',xx(ncur-nthreshold)
             print *,'          xx(',ncur-nthreshold+1,') = ',xx(ncur-nthreshold+1)
         end if
         xx = xx - athreshold
-        if ( llwrite ) xxunsorted = xxunsorted - athreshold
+        if ( lllwrite ) xxunsorted = xxunsorted - athreshold
     else
         ! iterative procedure I am afraid...
         ! assume athreshold has been set to a reasonable value higher up
-        if ( llwrite ) then
+        if ( lllwrite ) then
             print *,'llgpdcov: iterative threshold determination'
             print *,'athreshold,alpha = ',athreshold,alpha
         end if
@@ -651,7 +679,12 @@ real function llgpdcov(p)
             do iloop=1,maxloop
                 n = 0
                 do i=1,ncur
-                    xx(i) = data(1,i) - aathreshold(ilohi)*exp(alpha*data(2,i)/aathreshold(ilohi))
+                    arg = alpha*data(2,i)/aathreshold(ilohi)
+                    if ( arg < 70 ) then
+                        xx(i) = data(1,i) - aathreshold(ilohi)*exp(arg)
+                    else
+                        xx(i) = -3e33
+                    end if
                     if ( xx(i) > 0 ) then
                         n = n + 1
                     end if
@@ -667,7 +700,7 @@ real function llgpdcov(p)
                         nlo = n
                         aathreshold(ilohi) = aathreshold(ilohi) * delta
                     end if
-                    if ( llwrite ) print *,'bracketing ',ilohi,nthreshold,alo,nlo,ahi,nhi
+                    if ( lllwrite ) print *,'bracketing ',ilohi,nthreshold,alo,nlo,ahi,nhi
                 else
                     ! bisect
                     if ( n <= nthreshold+1-ilohi .eqv. athreshold > 0 ) then
@@ -679,7 +712,7 @@ real function llgpdcov(p)
                     end if
                     aathreshold(ilohi) = (alo+ahi)/2
                     if ( abs((alo-ahi)/(alo+ahi)).lt.2e-7 ) exit
-                    if ( llwrite ) print *,'bisecting  ',ilohi,nthreshold,alo,nlo,ahi,nhi
+                    if ( lllwrite ) print *,'bisecting  ',ilohi,nthreshold,alo,nlo,ahi,nhi
                 end if
             end do
             if ( iloop > maxloop ) then
@@ -689,23 +722,47 @@ real function llgpdcov(p)
          &                   iloop,n,nthreshold,aathreshold(ilohi)
                 end if
             end if
-            if ( llwrite ) print *,'aathreshold(ilohi) = ',aathreshold(ilohi)
+            if ( lllwrite ) print *,'aathreshold(ilohi) = ',aathreshold(ilohi)
         end do ! ilohoi
         athreshold = (aathreshold(1) + aathreshold(2))/2
-        if ( llwrite ) print *,'athreshold = ',athreshold
+        n = 0
+        do i=1,ncur
+            arg = alpha*data(2,i)/athreshold
+            if ( arg < 70 ) then
+                xx(i) = data(1,i) - athreshold*exp(arg)
+            else if ( athreshold < 0 ) then
+                xx(i) = 3e33
+            else
+                xx(i) = -3e33
+            end if
+            if ( xx(i) >= 0 ) then
+                n = n + 1
+            end if
+        end do
+        if ( llwrite ) print *,'athreshold = ',athreshold,n
         call nrsort(ncur,xx)
+    end if
+    if ( xx(ncur) > 1e33 ) then
+        if ( llwrite ) print *,'llgpdcov: x'' undefined '
+        llgpdcov = 3e33
+        goto 999
     end if
 !
 !   and compute cost function
 !
     do i=ncur-nthreshold+1,ncur
         call getabfromcov(athreshold,p(1),p(3),p(4),data(2,i),aa,bb)
-        if ( abs(bb) < 1e-30 ) then
+        if ( abs(aa).gt.1e33 ) then
+            if ( llwrite ) print *,'llgpdcov: aa undefined ',aa
+            llgpdcov = 3e33
+            goto 999            
+        end if 
+        if ( abs(bb) < 1e-15 ) then
             if ( llwrite ) print *,'llgpdcov: bb too small ',bb
             llgpdcov = 3e33
             goto 999
         end if
-        if (bb < 0 ) then
+        if ( bb < 0 ) then
             if ( llwrite ) print *,'llgpdcov: bb negative ',bb
             llgpdcov = 3e33
             goto 999
@@ -713,7 +770,11 @@ real function llgpdcov(p)
         z = xx(i)
         if ( z < 0 ) then
             if ( z < -5e-5*abs(athreshold) ) then
-                write(0,*) 'llgpdcov: error: z<0 ',z,i,ncur
+                write(0,*) 'llgpdcov: error: z<0 ',z,n,nthreshold
+                write(*,*) '# llgpdcov: error: z<0 ',z,n,nthreshold
+                do j=1,ncur
+                    print *,i,j,xx(j)
+                end do
             end if
             z = 0
         end if
@@ -731,7 +792,7 @@ real function llgpdcov(p)
             llgpdcov = llgpdcov - (1+1/xi)*log(1+xi*z/bb)
 !!!                print *,i,z, - (1+1/xi)*log(1+xi*z/b) - log(b)
         end if
-        if ( llwrite ) then
+        if ( lllwrite ) then
             do j=1,ncur
                 if ( xxunsorted(j) == xx(i) ) exit
             end do
@@ -752,7 +813,7 @@ real function llgpdcov(p)
 !       preconditioning on xi with gaussian of width restrain/2 around 0
         llgpdcov = llgpdcov - (xi/(restrain/2))**2/2
     end if
-!       minimum, not maximum
+!   minimum, not maximum
     llgpdcov = -llgpdcov
 !
 999 continue
@@ -785,12 +846,19 @@ real function gpdcovreturnlevel(a,b,xi,alpha,beta,xx,cov)
     real a,b,xi,alpha,beta,xx,cov
     real aa,bb,x,y,t
     logical lwrite
+    integer ncur
+    real restrain
+    logical llwrite
+    common /fitdata2/ restrain,ncur,llwrite
     integer nthreshold
     real athreshold,pthreshold
     common /fitdata5/ nthreshold,athreshold,pthreshold
 
-    lwrite = .false. ! local variable
     call getabfromcov(a,b,alpha,beta,cov,aa,bb)
+    if ( abs(bb) < 1e-10 .or. bb.gt.1e33 ) then
+        gpdcovreturnlevel = 3e33
+        return
+    end if
     x = xx + log10(1-pthreshold/100)
     if ( abs(xi) > 10 ) then
         gpdcovreturnlevel = 3e33
@@ -805,10 +873,9 @@ real function gpdcovreturnlevel(a,b,xi,alpha,beta,xx,cov)
         end if
     end if
     t = t + aa ! threshold
-    if ( lwrite ) then
-        print *,'gpdcovreturnlevel:'
+    if ( llwrite ) then
         print *,'a,b,xi,alpha,beta = ',a,b,xi,alpha,beta
-        print *,'x,cov             = ',x,cov
+        print *,'t,cov             = ',exp(x*log(10.)),cov
         print *,'aa,bb             = ',aa,bb
         print *,'gpdcovreturnlevel = ',t
     end if
@@ -822,7 +889,7 @@ real function gpdcovreturnyear(a,b,xi,alpha,beta,xyear,cov,lchangesign)
     implicit none
     real a,b,xi,alpha,beta,xyear,cov
     integer i,n,ntot
-    real x,y,z,tx,aa,bb,aaa,bbb
+    real x,y,z,tx,aa,bb,aaa,bbb,p
     real,allocatable :: yy(:),zz(:)
     logical lchangesign
     integer nmax,ncur
@@ -868,44 +935,16 @@ real function gpdcovreturnyear(a,b,xi,alpha,beta,xyear,cov,lchangesign)
             print *,'  x,z = ',x,z
         end if
     else
-        n = 0
         allocate(yy(ncur),zz(ncur))
         call adjustyy(ncur,data,cassume,a,b,alpha,beta,cov,yy,zz,aaa,bbb,lchangesign,llwrite)
-        if ( .true. ) then
-            do i=1,ncur
-                if ( yy(i) > xyear .eqv. lchangesign ) n = n + 1
-            end do
-        else
-            if ( cassume == 'shift' ) then
-                do i=1,ncur
-                    if ( data(1,i) - alpha*(data(2,i)-cov) > xyear ) n = n + 1
-                end do
-            else if ( cassume == 'scale' ) then
-                do i=1,ncur
-                    if ( data(1,i)*exp(alpha/athreshold*(data(2,i)-cov)) > xyear ) n = n + 1
-                end do
-            else if ( cassume == 'both' ) then
-                do i=1,ncur
-                    ! not sure whether this is correct
-                    if ( (data(1,i)-xyear - alpha*(data(2,i)-cov)) > 0 ) n = n + 1 
-                end do
-            else
-                write(0,*) 'gpdcovreturnyear: error: unknown value for assume: ',cassume
-                call abort
-            end if
-        end if
+        call invgetcut(p,xyear,ncur,yy)
         ! approximately... I do not have this information here.
         ntot = nint(nthreshold/(1-pthreshold/100))
-        if ( n < nthreshold/2 ) then
-            !!!write(0,*) 'gpdcovreturnyear: error: n<nhreshold/2 but xyear < aa ',n,nthreshold/2,xyear,aa
-            if ( llwrite ) write(*,*) 'gpdcovreturnyear: error: n<nhreshold/2 but xyear < aa ',n,nthreshold/2,xyear,aa
-            tx = 3e33
-        else
-            tx = real(ntot+1)/real(n)
-        end if
+        if ( abs(real(ncur)/real(ntot)-1) < 0.1 ) ntot = ncur
+        tx = real(ntot+1)/real(ncur+1)/(1-p)
         if ( llwrite ) then
-            print *,'gpdcovreturnyear: interpolated tx = ',tx
-            print *,'  n,ntot = ',n,ntot
+            print *,'gpdcovreturnyear: tx interpolated = ',tx
+            print *,'  p,ncur,ntot = ',p,ncur,ntot
         end if
         deallocate(yy,zz)
     end if
