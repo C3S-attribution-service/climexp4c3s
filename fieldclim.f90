@@ -112,6 +112,7 @@ program fieldclim
     nn = 0
     mean = 0
     do yr=yr1,yr2
+        !!!print *,'anomalies of year ',yr
         call keepalive1('Computing anomaly of year',yr-yr1+1,yr2-yr1+1)
         do mo=1,nperyear
             do j=1,ny
@@ -166,6 +167,7 @@ program fieldclim
  &        ,lvars,units)
     open(2,file=datfile,form='unformatted',access='direct',recl=recfa4*nx*ny)
     do mo=1,nperyear
+        !!!print *,'writing mo ',mo
         write(2,rec=mo) ((mean(i,j,mo),i=1,nx),j=1,ny)
     enddo
     close(1)

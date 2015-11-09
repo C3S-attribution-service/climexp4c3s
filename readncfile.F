@@ -333,6 +333,9 @@
         endif
 !       yes, Virginia, there are netcdf files in the wild that encoded undefs by NaNs...
         do i=max(yr1,yrbeg),min(yr2,yrend)
+            call keepalive1('Checking for weird undefs ',
+     +           i-max(yr1,yrbeg)+1,
+     +           min(yr2,yrend)-max(yr1,yrbeg)+1)
             do j=1,nperyear
                 do jy=1,max(ny,1)
                     do jx=1,max(nx,1)
@@ -353,6 +356,9 @@
             if ( abs(undef).gt.1000 ) then
                 ! relative diff
                 do i=max(yr1,yrbeg),min(yr2,yrend)
+                    call keepalive1('Changing undefs to 3e33',
+     +                   i-max(yr1,yrbeg)+1,
+     +                   min(yr2,yrend)-max(yr1,yrbeg)+1)
                     do j=1,nperyear
                         do jy=1,max(ny,1)
                             do jx=1,max(nx,1)
@@ -367,6 +373,9 @@
             else
                 ! absolute diff
                 do i=max(yr1,yrbeg),min(yr2,yrend)
+                    call keepalive1('Changing undefs to 3e33',
+     +                   i-max(yr1,yrbeg)+1,
+     +                   min(yr2,yrend)-max(yr1,yrbeg)+1)
                     do j=1,nperyear
                         do jy=1,max(ny,1)
                             do jx=1,max(nx,1)
@@ -387,6 +396,9 @@
 !       check for values that will cause crashes later on when taking squaares
 !
         do i=max(yr1,yrbeg),min(yr2,yrend)
+            call keepalive1('Checking a few other things ',
+     +           i-max(yr1,yrbeg)+1,
+     +           min(yr2,yrend)-max(yr1,yrbeg)+1)
             do j=1,nperyear
                 do jy=1,max(ny,1)
                     do jx=1,max(nx,1)
