@@ -13,7 +13,7 @@
      +       units*(*)
 *       local variables
         integer status,ncid,ntdimid,idim,i,j,l,ii(8),dy,mo,yr,yr0,yr1
-     +       ,yr2,nt,ivar,ntvarid
+     +       ,yr2,nt,ivar,ntvarid,year,month
         integer dpm(12)
         integer,allocatable :: itimeaxis(:)
         real array(1)
@@ -216,6 +216,25 @@
             do i=1,nt
                 itimeaxis(i) = (i-1)*12/nperyear
             enddo
+        elseif ( nperyear.eq.36 ) then
+            month = 1
+            year = yr1
+            itimeaxis(1) = 0
+            do i=2,nt
+                if ( mod(i,3).eq.2 .or. mod(i,3).eq.0 ) then
+                    itimeaxis(i) = itimeaxis(i-1) + 10
+                else
+                    itimeaxis(i) = itimeaxis(i-1) + dpm(month) - 20
+                    if ( leap(year).eq.2 ) then
+                        itimeaxis(i) = itimeaxis(i) + 1
+                    end if
+                    month = month + 1
+                    if ( month.gt.12 ) then
+                        month = month - 12
+                        year = year + 1
+                    end if
+                end if
+            end do
         elseif ( nperyear.lt.360 ) then
             do i=1,nt
                 itimeaxis(i) = (i-1)*nint(365./nperyear)
