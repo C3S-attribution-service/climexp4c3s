@@ -14,9 +14,9 @@
         logical lwrite
         integer unit,jx,jy,i,j,k,l,start(4),count(4),stride(4),imap(4)
      +        ,status,startmo,ck,noleap,ilast,jlast,nn,jj,itoobig,
-     +       ntoobig
+     +       ntoobig,jul0,jul1,jul2,dy,mo
         logical notfirst
-        integer leap
+        integer leap,julday
         logical isnan
 !
         itoobig = 0
@@ -121,16 +121,38 @@
         endif
         if ( jvars(5).gt.0 ) then
             k = k + 1
-            if ( yr1.gt.firstyr ) then
-                startmo = 1
-                start(k) = 1 + nperyear*(yr1-firstyr) - firstmo + 1
-                count(k) = min( nt - nperyear*(yr1-firstyr) + firstmo -
-     +                1,nperyear*(yr2-yr1+1))
+            if ( nperyear.ne.366 ) then
+                if ( yr1.gt.firstyr ) then
+                    startmo = 1
+                    start(k) = 1 + nperyear*(yr1-firstyr) - firstmo + 1
+                    count(k) = min( nt - nperyear*(yr1-firstyr) + 
+     +                   firstmo - 1,nperyear*(yr2-yr1+1))
+                else
+                    startmo = firstmo
+                    start(k) = 1
+                    count(k) = min( nt,
+     +                   nperyear*(yr2-yr1+1) - firstmo + 1)
+                endif
             else
-                startmo = firstmo
-                start(k) = 1
-                count(k) = min( nt, nperyear*(yr2-yr1+1) - firstmo + 1)
-            endif
+                ! leap years...
+                if ( leap(firstyr).eq.2 .or. firstmo.le.60 ) then
+                    call getdymo(dy,mo,firstmo,nperyear)
+                else
+                    call getdymo(dy,mo,firstmo-1,nperyear)
+                end if
+                jul0 = julday(mo,dy,firstyr)
+                jul1 = julday(1,1,yr1)
+                jul2 = julday(12,31,yr2)
+                if ( yr1.gt.firstyr ) then
+                    startmo = 1
+                    start(k) = jul1 - jul0 + 1
+                    count(k) = jul2 - jul1 + 1
+                else
+                    startmo = firstmo
+                    start(k) = 1
+                    count(k) = min( nt, jul2 - jul0 + 1)
+                endif
+            end if
         else
             startmo = 1
             if ( lwrite ) then
@@ -179,8 +201,8 @@
                         end if
                         if ( j/nn.eq.31+29 .and. leap(i).eq.1 ) then
                             do jj=0,nn-1
-                                if ( lwrite ) print *,'setting ',i,j+jj,
-     +                               ' to undefined'
+                                if ( lwrite ) print *,
+     +                               'setting ',i,j+jj,' to undefined'
                                 do jy=1,max(ny,1)
                                     do jx=1,max(nx,1)
                                         field(jx,jy,j+jj,i) = undef
@@ -191,7 +213,8 @@
                             noleap = noleap + nn
                         endif
                         call keepalive1('Reading day ',l,ck)
-                        if ( lwrite ) print *,'reading ',start(k),i,j
+                        if ( lwrite ) print *,'reading day '
+     +                       ,l,'/',ck,':',start(k),i,j
                         status = nf_get_vara_real(ncid,jvars(1)
      +                           ,start,count,field(1,1,j,i))
                         ilast = i

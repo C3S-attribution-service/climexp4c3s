@@ -144,14 +144,22 @@
                     end if
                     j1 = julday(mo,dy,firstyr)
                     j2 = julday(1,1,yr1)
-                    start(k) = 1 + j2-j1
                     j3 = julday(12,31,yr2)
+                    start(k) = 1 + j2-j1
                     count(k) = min(nt-start(k),1+j3-j2)
                 end if
             else
                 startmo = firstmo
                 start(k) = 1
-                count(k) = min( nt, nperyear*(yr2-yr1+1) - firstmo + 1)
+                if ( nperyear.ne.366 ) then
+                    count(k) = min( nt, 
+     +                   nperyear*(yr2-yr1+1) - firstmo + 1)
+                else
+                    j1 = julday(mo,dy,firstyr)
+                    j2 = julday(1,1,yr1)
+                    j3 = julday(12,31,yr2)
+                    count(k) = min(nt,j3-j1+1)
+                end if
             endif
         else
             write(0,*) 'zreadncfile: error: time undefined in ncid '
