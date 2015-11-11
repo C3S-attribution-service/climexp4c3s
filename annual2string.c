@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-main(int argc,char *argv[])
+int main(int argc,char *argv[])
 {
   int season,season2,lag,sum,sum2,yr,sm1,sm2,im1,im2,smm1,smm2,imm1,imm2,fix2;
   char lagstring[20],avestring1[20],avestring2[20];
@@ -15,8 +15,16 @@ main(int argc,char *argv[])
     p = strstr(argv[2],",");
     if ( p != NULL ) {
       *p = '\0';
-      sum = atoi(argv[2]);
-      sum2 = atoi(p+1);
+      if ( *argv[2] == '\0' ) {
+        sum = 1;
+      } else {
+        sum = atoi(argv[2]);
+      }
+      if ( *p+1 == '\0') {
+        sum2 = 1;
+      } else {
+        sum2 = atoi(p+1);
+      }
     } else {
       sum = atoi(argv[2]);
       sum2 = sum;
