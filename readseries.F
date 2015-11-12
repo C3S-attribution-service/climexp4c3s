@@ -84,6 +84,10 @@
                 if ( lwrite ) print *,'calling readncseries ',trim(file)
                 call readncseries(file,data,npermax,nperyear,yrbeg,yrend
      +               ,ncid,var,units,lwrite)
+                if ( lstandardunits ) then
+                    call makestandardseries(data,npermax,yrbeg,yrend,
+     +                   nperyear,var,units,lwrite)
+                endif
                 return
             endif
         endif
