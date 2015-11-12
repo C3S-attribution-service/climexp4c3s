@@ -130,6 +130,10 @@
      +               ,newunits(1),offset,slope,ndpm,lwrite)
             call getxyprop(xx,nx,yy,ny,xrev,yrev,xwrap)
         endif
+        if ( lwrite ) then
+            print *,'units    = ',trim(units(1))
+            print *,'newunits = ',trim(newunits(1))
+        end if
         goto 999
  900    print *,'getfileunits: error: cannot open file ',trim(file)
         call abort
