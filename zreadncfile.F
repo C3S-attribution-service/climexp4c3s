@@ -369,6 +369,7 @@
             call abort
         endif
 !       yes, Virginia, there are netcdf files in the wild that encoded undefs by NaNs...
+        if ( .false. ) then
         do i=max(yr1,yrbeg),min(yr2,yrend)
             do j=1,nperyear
                 do jz=1,max(nz,1)
@@ -385,6 +386,7 @@
                 end do
             end do
         end do
+        end if
 !       change undef convention to ours
         if ( undef.ne.3e33 ) then
             if ( lwrite ) print *,'changing undefineds to 3e33'

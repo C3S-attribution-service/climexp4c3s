@@ -355,6 +355,7 @@
             endif
         endif
 !       yes, Virginia, there are netcdf files in the wild that encoded undefs by NaNs...
+        if ( .false. ) then ! save some time...
         do i=max(yr1,yrbeg),min(yr2,yrend)
             call keepalive1('Checking for weird undefs ',
      +           i-max(yr1,yrbeg)+1,
@@ -372,6 +373,7 @@
                 end do
             end do
         end do
+        end if
 !       change other undef conventions to ours
         if ( undef.ne.3e33 ) then
             if ( lwrite ) print *,'changing undef from ',undef,
