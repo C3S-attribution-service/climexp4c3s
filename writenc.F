@@ -73,7 +73,7 @@
 *       local variables
         integer status,ntdimid,nxdimid,nydimid,nzdimid,nensdimid,ndims
      +       ,idims(5),nxvarid,nyvarid,nzvarid,nensvarid,ivar,i,j,l,
-     +       ii(8),dy,mo
+     +       ii(8),dy,mo,chunks(5)
         integer, allocatable :: iens(:)
         real array(1)
         integer dpm(12)
@@ -116,8 +116,9 @@
 *
 *       open file, overwriting old file if it exists
 *
-        if ( lwrite ) print *,'calling nf_create(',trim(file),0,ncid,')'
-        status = nf_create(file,0,ncid)
+        if ( lwrite ) print *,'calling nf_create(',trim(file),
+     +       'NF_NETCDF4,ncid)'
+        status = nf_create(file,NF_NETCDF4,ncid)
         if ( status.ne.nf_noerr ) call handle_err(status,file)
         if ( lwrite ) print *,'writenc: created ',file(1:llen(file))
      +        ,' with ncid = ',ncid
@@ -375,6 +376,24 @@
      +            ,nf_float,1,array)
             if ( status.ne.nf_noerr ) then
                 string = 'def _FillValue '
+                string(16:) = lvars(ivar)
+                call handle_err(status,string)
+            endif
+            chunks(1) = nx
+            chunks(2) = ny
+            chunks(3) = nz
+            chunks(4) = 1
+            chunks(5) = 1
+            status = nf_def_var_chunking(ncid,ivars(2,ivar),nf_chunked,
+     +           chunks)
+            if ( status.ne.nf_noerr ) then
+                string = 'def chunking '
+                string(16:) = lvars(ivar)
+                call handle_err(status,string)
+            endif
+            status = nf_def_var_deflate(ncid,ivars(2,ivar),0,1,3)
+            if ( status.ne.nf_noerr ) then
+                string = 'def deflate '
                 string(16:) = lvars(ivar)
                 call handle_err(status,string)
             endif
