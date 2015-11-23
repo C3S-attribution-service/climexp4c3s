@@ -185,7 +185,9 @@
                 print *,'results = '
                 do i=1,nresults
                     print *,i,(results(j,i),j=1,3)
-                    if ( i.ne.5 .and. results(1,i) == 3e33 ) exit
+                    if ( i.ne.5 .and. results(1,i).gt.1e33 ) then
+                        exit
+                    end if
                 end do
             end if
             if ( lfirst ) allocate(res(nxf,nyf,nzf,3,nresmax))
