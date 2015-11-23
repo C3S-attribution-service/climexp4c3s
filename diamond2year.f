@@ -52,7 +52,7 @@
             read(2,'(a)') line2
             if ( line2(1:1).eq.'#' .or. line2.eq.' ' ) goto 110
             n = getnumwords(line2)
-            read(line2,*,err=901) (x(m),m=1,n-4),year,month
+            read(line2,*,err=901) (x(m),m=1,2),year,month
             if ( n.eq.6 ) then
                 if ( x(1).lt.xmin .or. x(1).gt.xmax ) goto 110
                 if ( x(2).lt.ymin .or. x(2).gt.ymax ) goto 110
