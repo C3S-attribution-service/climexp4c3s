@@ -379,11 +379,12 @@
                 string(16:) = lvars(ivar)
                 call handle_err(status,string)
             endif
-            chunks(1) = nx
-            chunks(2) = ny
-            chunks(3) = nz
+            chunks(1) = max(1,nx)
+            chunks(2) = max(1,ny)
+            chunks(3) = max(1,nz) ! can be 0
             chunks(4) = 1
             chunks(5) = 1
+            if ( lwrite ) print *,'chunks = ',chunks
             status = nf_def_var_chunking(ncid,ivars(2,ivar),nf_chunked,
      +           chunks)
             if ( status.ne.nf_noerr ) then
