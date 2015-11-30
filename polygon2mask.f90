@@ -172,6 +172,7 @@ subroutine read_polygon(datfile,npol,npolmax,polygon,lwrite)
     npol = 0
     npol1 = npol + 1
     polygon = 3e33
+    if ( lwrite ) print *,'opening ',trim(datfile)
     open(1,file=trim(datfile),status='old')
 10  continue
     do
@@ -180,7 +181,11 @@ subroutine read_polygon(datfile,npol,npolmax,polygon,lwrite)
         if ( string.eq.' ' ) then
             ! signifies the beginning of a new polygon
             leof = .false.
-            goto 100
+            if ( npol.eq.0 ) then
+                goto 10 ! skip empty first line
+            else
+                goto 100 ! new polygon
+            end if
         end if
         if ( string(1:1).eq.'#' .or. string(2:2).eq.'#' ) cycle
         npol = npol + 1
