@@ -582,6 +582,10 @@
         endif
         if ( lfrac ) then
             j = nint(nperyear*(x-year)+0.75001)
+            if ( nperyear.eq.366 .and. leap(year).eq.1 .and. j.ge.60 ) 
+     +           then
+                j = 1 + nint(365*(x-year)+0.75001)
+            end if
         else
             j = getj(month,day,hour,nperyear)
         endif
@@ -601,6 +605,10 @@
         if ( lfrac ) then
             year = int(x1+1e-4)
             j = nint(nperyear*(x1-year)+0.75001)
+            if ( nperyear.eq.366 .and. leap(year).eq.1 .and. j.ge.60 ) 
+     +           then
+                j = 1 + nint(365*(x1-year)+0.75001)
+            end if
         else
             j = getj(month1,day1,hour1,nperyear)
             year = year1
