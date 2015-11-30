@@ -156,8 +156,8 @@
                         nextx = i+real(k)/n
                         lasty = data(j,i,iens)
                         lskip = .TRUE.
-                    elseif ( lskip .and. .not.(n.eq.366 .and. j.eq.60) )
-     +                        then
+                    elseif ( lskip .and. .not.
+     +                       ( nperyear.eq.366 .and. j.eq.60) ) then
 *                       to counter peculiarity in gnuplot steps plotting
                         print '(f10.4,g14.6,a)',nextx,lasty,
      +                        '# repeat last y to get nice gnuplot plot'
