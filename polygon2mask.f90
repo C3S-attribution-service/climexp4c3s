@@ -79,7 +79,7 @@ program polygon2mask
   call getarg(iargc(),maskfile)
   !
   ! fill mask array
-  !
+  call keepalive1('Generating mask file ',0,0)
   call fillmask(polygon,npol,pole,xx,nx,yy,ny,mask,nxmax,nymax,lwrite)
   !
   ! apply land/sea mask if requested
