@@ -80,7 +80,7 @@ program polygon2mask
   !
   ! fill mask array
   !
-  call keepalive1('Generating mask file ',0,0)
+  !!!call keepalive1('Generating mask file ',0,0)
   call fillmask(polygon,npol,pole,xx,nx,yy,ny,mask,nxmax,nymax,lwrite)
   !
   ! apply land/sea mask if requested
@@ -210,7 +210,7 @@ subroutine read_polygon(datfile,npol,npolmax,polygon,lwrite)
         polygon(1,npol) = polygon(1,npol1)
         polygon(2,npol) = polygon(2,npol1)
     end if
-    call keepalive1('Reading shapefile',npol,0)
+    !!!call keepalive1('Reading shapefile',npol,0)
     if ( lwrite ) then
         print *,'read_polygon: found ',npol-npol1,'-edged polygon'
         do ipol=npol1,npol
