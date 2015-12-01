@@ -76,7 +76,7 @@
             do it=1,nt
                 if ( .not.tdefined(it) ) then
                     write(0,*) 'getmetadat: error: cannot handle ',
-     +                   'holes in time axis yet'
+     +                   'holes in time axis yet ',it
                     call abort
                 end if
             end do
