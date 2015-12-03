@@ -77,7 +77,7 @@
         integer, allocatable :: iens(:)
         real array(1)
         integer dpm(12)
-        logical lwrite,lhasz
+        logical lwrite,lhasz,lnetcdf4
         character string*10000,months(0:12,2)*3,clwrite*10
 *       externals
         integer llen,iargc
@@ -116,9 +116,17 @@
 *
 *       open file, overwriting old file if it exists
 *
-        if ( lwrite ) print *,'calling nf_create(',trim(file),
-     +       'NF_NETCDF4,ncid)'
-        status = nf_create(file,NF_NETCDF4,ncid)
+        if ( index(file,'regionverification').ne.0 ) then
+            if ( lwrite ) print *,'calling nf_create(',trim(file),
+     +           'NF_64BIT_OFFSETL,ncid)'
+            status = nf_create(file,NF_64BIT_OFFSET,ncid)
+            lnetcdf4 = .false.
+        else
+            if ( lwrite ) print *,'calling nf_create(',trim(file),
+     +           'NF_NETCDF4+NF_CLASSIC_MODEL,ncid)'
+            status = nf_create(file,NF_NETCDF4+NF_CLASSIC_MODEL,ncid)
+            lnetcdf4 = .true.
+        end if
         if ( status.ne.nf_noerr ) call handle_err(status,file)
         if ( lwrite ) print *,'writenc: created ',file(1:llen(file))
      +        ,' with ncid = ',ncid
@@ -379,25 +387,27 @@
                 string(16:) = lvars(ivar)
                 call handle_err(status,string)
             endif
-            chunks(1) = max(1,nx)
-            chunks(2) = max(1,ny)
-            chunks(3) = max(1,nz) ! can be 0
-            chunks(4) = 1
-            chunks(5) = 1
-            if ( lwrite ) print *,'chunks = ',chunks
-            status = nf_def_var_chunking(ncid,ivars(2,ivar),nf_chunked,
-     +           chunks)
-            if ( status.ne.nf_noerr ) then
-                string = 'def chunking '
-                string(16:) = lvars(ivar)
-                call handle_err(status,string)
-            endif
-            status = nf_def_var_deflate(ncid,ivars(2,ivar),0,1,3)
-            if ( status.ne.nf_noerr ) then
-                string = 'def deflate '
-                string(16:) = lvars(ivar)
-                call handle_err(status,string)
-            endif
+            if ( lnetcdf4 ) then
+                chunks(1) = max(1,nx)
+                chunks(2) = max(1,ny)
+                chunks(3) = max(1,nz) ! can be 0
+                chunks(4) = 1
+                chunks(5) = 1
+                if ( lwrite ) print *,'chunks = ',chunks
+                status = nf_def_var_chunking(ncid,ivars(2,ivar),
+     +               nf_chunked,chunks)
+                if ( status.ne.nf_noerr ) then
+                    string = 'def chunking '
+                    string(16:) = lvars(ivar)
+                    call handle_err(status,string)
+                endif
+                status = nf_def_var_deflate(ncid,ivars(2,ivar),0,1,3)
+                if ( status.ne.nf_noerr ) then
+                    string = 'def deflate '
+                    string(16:) = lvars(ivar)
+                    call handle_err(status,string)
+                endif
+            end if
         enddo
 *
 *       end definition mode, put in data mode
