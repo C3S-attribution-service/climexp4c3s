@@ -210,8 +210,8 @@
                         multimodel(nmodel) = iens
                         nmodel = nmodel + 1
                     endif
-                    call keepalive(iens,nens2-nens1+2)
-                    print *,'f = ',f1
+                    call keepalive2('Reading ensemble member ',iens,
+     +                   nens2-nens1+1,.true.)
                     call readdatfile(datfile1
      +                   ,field1(1,1,1,firstyr1,iens)
      +                   ,nxf,nyf,nx1,ny1,nperyear,firstyr1,lastyr1
@@ -238,7 +238,8 @@
                         multimodel(nmodel) = iens
                         nmodel = nmodel + 1
                     endif
-                    call keepalive(iens,nens2-nens1+2)
+                    call keepalive2('Reading ensemble member ',iens,
+     +                   nens2-nens1+1,.true.)
                     call readncfile(ncid1,field1(1,1,1,firstyr,iens),nxf
      +                   ,nyf,nx1,ny1,nperyear,firstyr1,lastyr1
      +                   ,f1,fm1,nt1,u1,lwrite
