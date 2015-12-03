@@ -811,20 +811,20 @@
                         ave(month) = ave(month)/sw
                         if ( missing .and. .not.anom ) ave(month) =
      +                       ave(month) + avemean(month)
-                        if ( lwrite ) write(0,*) 'ave(',month,') = '
+                        if ( lwrite ) write(*,*) 'ave(',month,') = '
      +                        ,ave(month)
                     endif
                 else
                     if ( sw.eq.0 ) then
                         avemean(month+nperyear) = 3e33
                         sw0 = 0
-                        if ( lwrite ) write(0,*) 'sw<minfac*area 2: ',sw
+                        if ( lwrite ) write(*,*) 'sw<minfac*area 2: ',sw
      +                        ,minfac/100,month+nperyear
                     else
                         sw0 = sw
                         avemean(month+nperyear) =
      +                       avemean(month+nperyear)/sw
-                        if ( lwrite ) write(0,*) 'avemean(',month
+                        if ( lwrite ) write(*,*) 'avemean(',month
      +                        +nperyear,') = ',avemean(month+nperyear),
      +                       sw
                     endif
