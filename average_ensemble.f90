@@ -18,7 +18,7 @@ program average_ensemble
     if ( iargc().lt.2 ) then
         print *,'usage: average_ensemble ensfile [ens n1 n2] '// &
  &           '[mean|min|max|num] [debug] [dummy]'
-        call abort
+        call exit(-1)
     endif
 
     allocate(data(1:npermax,yrbeg:yrend,0:mensmax))
@@ -86,7 +86,7 @@ program average_ensemble
         mean(1:nperyear,yrbeg:yrend) = -3e33
     else
         write(0,*) 'average_ensemble: error: unknown operation ',oper
-        call abort
+        call exit(-1)
     end if
     do iens=nens1,nens2
         do yr=yrbeg,yrend
@@ -104,7 +104,7 @@ program average_ensemble
                     else
                         write(0,*) 'average_ensemble: error: '//    &
  &                           'unknown operation 2 ',oper
-                        call abort
+                        call exit(-1)
                     end if
                 endif
             enddo

@@ -9,7 +9,7 @@
         integer npermax,yrbeg,yrend,nensmax,nperyear,mens1,mens
         real data(npermax,yrbeg:yrend,0:nensmax)
         logical lwrite,lstandardunits
-        character ids(0:mens)*(*),var*(*),units*(*)
+        character ids(0:nensmax)*(*),var*(*),units*(*)
         integer i,m,iret,filetime,stringtime
         real lon,lat,elev
         logical lexist
@@ -29,12 +29,18 @@
         endif
         ! one prog has underscores in its name, which conflicts with the convention to put the extra 
         ! arguments there
-        i = index(prog,'getdutchprecip_')
-        if ( i == 0 ) then
-            i = index(prog,'_')
+        if ( prog(1:4) == 'grid' ) then
+            ! the name already contains underscores, so the trick to append the 
+            ! extraargs separeted by dashes does not work.       
+            i = 0
         else
-            i = index(prog,'2009_')
-            if ( i /= 0 ) i = i + 4
+            i = index(prog,'getdutchprecip_')
+            if ( i == 0 ) then
+                i = index(prog,'_')
+            else
+                i = index(prog,'2009_')
+                if ( i /= 0 ) i = i + 4
+            end if
         end if
         if ( i.ne.0 ) then
             extraargs = prog(i+1:)
