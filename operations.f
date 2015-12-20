@@ -113,15 +113,39 @@
 *
         do i=yrbeg,yrend
             do j=1,nperyear
-                if ( data(j,i).lt.1e33 ) then
+                if ( abs(data(j,i)).lt.3e16 ) then
                     data(j,i) = data(j,i)**2
+                else
+                    data(j,i) = 3e33
                 endif
             enddo
         enddo
 *
         end
 *  #] takesquare:
-*  #[ takesquare:
+*  #[ takecube:
+        subroutine takecube(data,npermax,nperyear,yrbeg,yrend)
+*
+*       take square of time series
+*
+        implicit none
+        integer yrbeg,yrend,npermax,nperyear
+        real data(npermax,yrbeg:yrend)
+        integer i,j
+*
+        do i=yrbeg,yrend
+            do j=1,nperyear
+                if (  abs(data(j,i)).lt.1e11 ) then
+                   data(j,i) = data(j,i)**2
+                else
+                    data(j,i) = 3e33
+                endif
+            enddo
+        enddo
+*
+        end
+*  #] takesquare:
+*  #[ taketwothird:
         subroutine taketwothird(data,npermax,nperyear,yrbeg,yrend)
 *
 *       take time series to the power two-third
@@ -142,7 +166,7 @@
         enddo
 *
         end
-*  #] takesquare:
+*  #] taketwothird:
 *  #[ takeinv:
         subroutine takeinv(data,npermax,nperyear,yrbeg,yrend)
 *

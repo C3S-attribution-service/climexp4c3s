@@ -85,7 +85,7 @@
         real x(3)
         integer i
         if ( logscale .or. sqrtscale .or. squarescale .or.
-     +       twothirdscale ) then
+     +       cubescale .or. twothirdscale ) then
             do i=1,3
                 if ( i.eq.1 ) then
                     x(i) = x1in
@@ -96,6 +96,7 @@
                 endif
                 if ( logscale ) x(i) = 10.**(x(i))
                 if ( sqrtscale ) x(i) = x(i)**2
+                if ( cubescale ) x(i) = x(i)**3
                 if ( squarescale ) x(i) = sqrt(x(i))
                 if ( twothirdscale ) x(i) = x(i)**(3./2.)
             enddo

@@ -127,6 +127,14 @@ program attribute
         if ( xyear.lt.1e33 ) xyear = xyear**2
         scalingpower = scalingpower*2
     endif
+    if ( cubescale ) then
+        print '(a)','# taking square'
+        do iens=mens1,mens
+            call takecube(series(1,yrbeg,iens),npermax,nperyear,yrbeg,yrend)
+        end do
+        if ( xyear.lt.1e33 ) xyear = xyear**3
+        scalingpower = scalingpower*3
+    endif
     if ( twothirdscale ) then
         print '(a)','# taking power two-third'
         do iens=mens1,mens

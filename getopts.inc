@@ -9,7 +9,8 @@
      &      ncrossvalidate,day0,add_option
         logical logscale,sqrtscale,lrank,ldetrend,lsubtract,lwrite,      &
      &      lincl(19),lks,dump,plot,lconting,fix2,lnormsd,lbootstrap,    &
-     &      anom,composite,ensemble,squarescale,twothirdscale,leads,     &
+     &      anom,composite,ensemble,squarescale,cubescale,               &
+     &      twothirdscale,leads,                                         &
      &      logfield,sqrtfield,lfitnoise,lrandom,lrmse,lchangesign,      &
      &      lmakeensfull,lweb,lstandardunits,lallobs,lstartstop,         &
      &      lnomissing,lensanom,lnooverlap,lmae
@@ -27,7 +28,8 @@
      &      noisetype,debias,normalization,fitfunc,altavex,altavey,      &
      &      logscale,sqrtscale,lrank,ldetrend,lsubtract,lwrite,          &
      &      lincl,lks,dump,plot,lconting,fix2,lnormsd,lbootstrap,        &
-     &      anom,composite,ensemble,squarescale,twothirdscale,leads,     &
+     &      anom,composite,ensemble,squarescale,cubescale,               &
+     &      twothirdscale,leads,                                         &
      &      logfield,sqrtfield,lfitnoise,lrandom,lrmse,                  &
      &      lchangesign,lmakeensfull,lweb,lstandardunits,lallobs,        &
      &      lstartstop,lnomissing,lensanom,lnooverlap,ncrossvalidate,    &

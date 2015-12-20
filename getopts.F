@@ -164,6 +164,9 @@
             elseif ( line(1:6).eq.'square' ) then
                 squarescale = .TRUE.
                 if ( lout ) print '(a)','# set square on'
+            elseif ( line(1:6).eq.'cube' ) then
+                cubescale = .TRUE.
+                if ( lout ) print '(a)','# set square on'
             elseif ( line(1:8).eq.'twothird' ) then
                 twothirdscale = .TRUE.
                 if ( lout ) print '(a)','# set two-third power on'

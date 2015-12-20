@@ -184,6 +184,12 @@
      +               ,nperyear,yrbeg,yrend)
                 scalingpower = scalingpower*2
             endif
+            if ( cubescale ) then
+                if ( iens.eq.nens1 ) print '(a)','# taking square'
+                call takecube(data(1,yrbeg,iens),npermax
+     +               ,nperyear,yrbeg,yrend)
+                scalingpower = scalingpower*3
+            endif
             if ( twothirdscale ) then
                 if ( iens.eq.nens1 ) print '(a)',
      +               '# taking power twothird'
