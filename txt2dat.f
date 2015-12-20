@@ -1,7 +1,7 @@
         program txt2dat
         implicit none
-        integer i,j,yr,iens
-        real val
+        integer i,j,iens
+        real val,yr
         logical ensemble
         character file*255,line*255,ensfile*255,type*10,wmo*255
 *
@@ -11,7 +11,7 @@
             iens = -1
             call getenv('TYPE',type)
         endif
-        open(1,file=file,status='old')
+        open(1,file=trim(file),status='old')
         if ( .not.ensemble ) print '(2a)','# ',trim(file)
         i = 1
  10     continue
@@ -23,12 +23,18 @@
                 if ( i.ne.0 ) then
                     read(line(i+15:),*) iens
                     ensfile = trim(file)//'.dat'
+                    i = index(ensfile,'.txt.dat')
+                    if ( i.ne.0 ) ensfile(i:) = '.dat'
                     i = index(ensfile,'/')
-                    ensfile = ensfile(1:i)//'i'//trim(ensfile(i+1:))
+                    if ( ensfile(i+1:i+1).ne.type(1:1) ) then
+                        ensfile = ensfile(1:i)//trim(type)//
+     +                       trim(ensfile(i+1:))
+                    end if
                     call filloutens(ensfile,iens)
                     if ( iens.ge.0 ) close(2)
                     print '(2a)','# ',trim(ensfile)
                     open(2,file=ensfile)
+                    call copyheader(file,2)
                 endif
                 write(2,'(a)') trim(line)
             else
@@ -37,6 +43,7 @@
             goto 10
         endif
  20     continue
+        if ( line.eq.' ' ) goto 10
         read(line,*) yr,val
         if ( ensemble ) then
             write(2,*) yr,val
