@@ -12,9 +12,10 @@ program fieldclim
     integer yr,mo,i,j,n,yrbegin
     integer,allocatable :: nn(:,:,:)
     real xx(nxmax),yy(nymax),zz(nzmax),undef,lsmask(nxmax,nymax)
-    real,allocatable :: field(:,:,:,:),mean(:,:,:),mean2(:,:,:),fxy(:,:)
-    character file*255,datfile*255,title*255,vars(nvmax)*6 &
- &        ,lvars(nvmax)*50,units(nvmax)*20,yesno*1
+    real,allocatable :: field(:,:,:,:),mean(:,:,:),mean2(:,:,:),fxy(:,:), &
+ &      fy(:,:,:)
+    character file*255,datfile*255,title*255,vars(nvmax)*40 &
+ &        ,lvars(nvmax)*80,units(nvmax)*20,yesno*1
     logical exist
     integer iargc
 !
@@ -74,6 +75,7 @@ program fieldclim
     allocate(mean2(nx,ny,nperyear))
     allocate(field(nx,ny,nperyear,firstyr:lastyr))
     allocate(fxy(nperyear,firstyr:lastyr))
+    allocate(fy(nperyear,firstyr:lastyr,nx))
 !
 !       read data
 !
@@ -89,18 +91,23 @@ program fieldclim
 !       take N-period averages
 !
     if ( lsum.gt.1 ) then
+        ! faster
         do j=1,ny
             call keepalive1('Summing latitude',j,ny)
-            do i=1,nx
-                do yr=firstyr,lastyr
-                    do mo=1,nperyear
-                        fxy(mo,yr) = field(i,j,mo,yr)
+            do yr=firstyr,lastyr
+                do mo=1,nperyear
+                    do i=1,nx
+                        fy(mo,yr,i) = field(i,j,mo,yr)
                     end do
                 end do
-                call sumit(fxy,nperyear,nperyear,firstyr,lastyr,lsum,oper)
-                do yr=firstyr,lastyr
-                    do mo=1,nperyear
-                        field(i,j,mo,yr) = fxy(mo,yr)
+            end do
+            do i=1,nx
+                call sumit(fy(1,firstyr,i),nperyear,nperyear,firstyr,lastyr,lsum,oper)
+            end do
+            do yr=firstyr,lastyr
+                do mo=1,nperyear
+                    do i=1,nx
+                        field(i,j,mo,yr) = fy(mo,yr,i)
                     end do
                 end do
             end do
