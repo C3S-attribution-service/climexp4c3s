@@ -354,6 +354,30 @@ program getmomentsfield
                                 enddo
                             enddo
                         endif
+                        if ( squarescale ) then
+                            do i=yr1,yr2
+                                do j=1,nperyear
+                                    if ( fxy(j,i,iens).lt.1e16 ) then
+                                        fxy(j,i,iens) = &
+     &                                          fxy(j,i,iens)**2
+                                    else
+                                        fxy(j,i,iens) = 3e33
+                                    endif
+                                enddo
+                            enddo
+                        endif
+                        if ( cubescale ) then
+                            do i=yr1,yr2
+                                do j=1,nperyear
+                                    if ( fxy(j,i,iens).lt.1e11 ) then
+                                        fxy(j,i,iens) = &
+     &                                          fxy(j,i,iens)**3
+                                    else
+                                        fxy(j,i,iens) = 3e33
+                                    endif
+                                enddo
+                            enddo
+                        endif
                         if ( twothirdscale ) then
                             do i=yr1,yr2
                                 do j=1,nperyear
