@@ -9,7 +9,7 @@
 #include "recfac.h"
         integer nxmax,nymax,nzmax,nvmax,yrbeg,yrend,npermax,ndatmax
      +       ,indxmax
-        parameter(nxmax=360,nymax=180,nzmax=1,nvmax=1,
+        parameter(nxmax=720,nymax=360,nzmax=1,nvmax=1,
      +       yrbeg=1800,yrend=2300,npermax=12,ndatmax=1000,indxmax=6)
         integer i,j,k,l,n,mo,yr,i1,i2,j1,j2
      +       ,status,irec,jul1,jul2
