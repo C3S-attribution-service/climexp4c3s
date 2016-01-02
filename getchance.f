@@ -55,6 +55,8 @@
 *       read data
 *
         ndata = 0
+        logscale = .false.
+        sqrtscale = .false.
   100   continue
         read(1,'(a)',err=900,end=200) string
         if ( string(1:1).eq.'#' ) then
@@ -72,7 +74,7 @@
         if ( ndata.lt.npart ) then
             print *,'error: less data (',ndata,') than partitions ('
      +            ,npart,')'
-            call abort
+            call exit(-1)
         endif
 *
 *       sort data and get n-ciles
@@ -202,6 +204,6 @@
 *
   900   print *,'error reading from file'
         print '(a)',string
-        call abort
+        call exit(-1)
   999   continue
         end
