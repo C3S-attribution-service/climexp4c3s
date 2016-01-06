@@ -13,7 +13,7 @@ program plotdaily
     integer iargc
     
     if ( iargc() < 3 ) then
-        write(0,*) 'usage: plotdaily infile nday enddate [begin yr1 end yr2]'
+        write(0,*) 'usage: plotdaily infile nday enddate [begin yr1 end yr2 | anom]'
         call exit(-1)
     end if
     
@@ -29,7 +29,11 @@ program plotdaily
     call getopts(4,iargc(),nperyear,yrbeg,yrend,.true.,mens1,mens)
 
     allocate(mean(nperyear))
-    call anomalclim(data,npermax,nperyear,yrbeg,yrend,yr1,yr2,mean)
+    if ( .not.anom ) then
+        call anomalclim(data,npermax,nperyear,yrbeg,yrend,yr1,yr2,mean)
+    else
+        mean = 0
+    end if
 
     if ( enddate == 'last' ) then
         ! find last time with data
