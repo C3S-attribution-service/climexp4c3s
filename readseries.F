@@ -920,6 +920,10 @@
      +       units(nvmax)*80,title*1000
         logical onlynumbers
 *
+        if ( file.eq.' ' ) then
+            write(0,*) 'copyheader: error: empty filename'
+            return
+        end if
         status = nf_open(file,nf_nowrite,ncid)
         if ( status.ne.0 ) then
             call rsunit(iunit)

@@ -326,6 +326,10 @@
         do i=10,indxuse
             if ( lwrite ) print *,'Opening index file '
      +           ,trim(indexfiles(i))
+            if ( indexfiles(i).eq.' ' ) then
+                write(0,*) 'correlate: error: empty file name ',i
+                call exit(-1)
+            end if
             call readensseries(indexfiles(i),indx(1,yrbg,0,i),nperyear
      +           ,yrbg,yred,nensmx,n,imens1(i),imens(i),ivar,iunits
      +           ,lstandardunits,lwrite)
@@ -460,6 +464,10 @@
             do k=1,indxuse
                 if ( lincl(k) ) then
                     !!!print *,k,strindx(k),jindx
+                    if ( k.eq.10 ) then
+                        ! assume the first user-defined file is the main one...
+                        call copyheader(indexfiles(k),99)
+                    end if
                     jindx = jindx + 1
                     if ( jindx.lt.10 ) then
                         write(string,'(a,i1)') 'FORM_a',jindx
