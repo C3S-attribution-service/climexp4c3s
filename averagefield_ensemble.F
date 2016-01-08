@@ -116,10 +116,9 @@
      +                yr1,yr2,1,1)
             enddo
         else
-            write(0,*) 'Reading ensemble member ',iens
             do iens=nens1,nens2
-                write(0,*) 'Reading ensemble member ',iens-nens1+1,'/',
-     +               nens2-nens1+1,'<p>'
+                call keepalive2('Reading ensemble member ',iens-nens1+1,
+     +               nens2-nens1+1,.true.)
                 call getarg(1,infile)
                 if ( ensemble ) then
                     if ( iens.eq.nens1 ) then
@@ -158,9 +157,8 @@
 *
 *       compute ensemble mean
 *
-        write(0,*) 'Computing ensemble mean ...<p>'
         do yr=yr1,yr2
-            call keepalive1('Computing average year',yr-yr1+1,yr-yr1+1)
+            call keepalive1('Computing average year',yr-yr1+1,yr2-yr1+1)
             do mo=1,nperyear
                 do k=1,nz
                     do j=1,ny
@@ -283,7 +281,6 @@
      +           ,ivars,lvars,units,0,0)
         end if
         it = 0
-        write(0,*) 'Writing output ...<p>'
         do yr=yr1,yr2
             call keepalive1('Writing output year',yr-yr1+1,yr2-yr1+1)
             do mo=1,nperyear
