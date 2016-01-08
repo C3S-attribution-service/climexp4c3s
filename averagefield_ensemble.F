@@ -156,6 +156,7 @@
 *       compute ensemble mean
 *
         do yr=yr1,yr2
+            call keepalive1('Computing average year',yr-yr1+1,yr-yr1+1)
             do mo=1,nperyear
                 do k=1,nz
                     do j=1,ny
@@ -279,6 +280,7 @@
         end if
         it = 0
         do yr=yr1,yr2
+            call keepalive1('Writing output year',yr-yr1+1,yr2-yr1+1)
             do mo=1,nperyear
                 if ( nperyear.eq.366 .and. mo.eq.31+29 ) cycle
                 it = it + 1
