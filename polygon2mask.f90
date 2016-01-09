@@ -80,7 +80,7 @@ program polygon2mask
   !
   ! fill mask array
   !
-  !!!call keepalive1('Generating mask file ',0,0)
+  call keepalive1('Generating mask file ',0,0)
   call fillmask(polygon,npol,pole,xx,nx,yy,ny,mask,nxmax,nymax,lwrite)
   !
   ! apply land/sea mask if requested
@@ -210,7 +210,7 @@ subroutine read_polygon(datfile,npol,npolmax,polygon,lwrite)
         polygon(1,npol) = polygon(1,npol1)
         polygon(2,npol) = polygon(2,npol1)
     end if
-    !!!call keepalive1('Reading shapefile',npol,0)
+    call keepalive1('Reading shapefile',npol,0)
     if ( lwrite ) then
         print *,'read_polygon: found ',npol-npol1,'-edged polygon'
         do ipol=npol1,npol
@@ -246,79 +246,79 @@ subroutine fillmask(polygon,npol,pole,xx,nx,yy,ny,mask,nxmax,nymax,lwrite)
   real xx(nx),yy(ny),mask(nxmax,nymax)
   character pole*2
   logical lwrite
-  integer ipol,ix,iy,ixmin,ixmax,iymin,iymax
+  integer ipol,ix,iy,ixmin,ixmax,iymin,iymax,count,countmax
   double precision xmin,xmax,ymin,ymax,res(2),epsilon
   real in_polygon
 
   mask = 0
-  if ( .false. ) then ! too many exceptions... (eg Arctic)
-  ! THIS CODE DOES NOT WORK AND IS NOT EXECUTED
-  ! search for lowest/highest latitude to save time in the subsequent loops
-  !
-  ymin = max(yy(1),yy(ny))
-  ymax = min(yy(1),yy(ny))
-  do ipol=1,npol - 1 ! last point repeats the first one
-     if ( polygon(2,ipol).lt.1e33 ) then
-        ymin = min(ymin,polygon(2,ipol))
-        ymax = max(ymax,polygon(2,ipol))
-     end if
-  end do
-  if ( yy(ny).gt.yy(1) ) then ! bloody reversed grids...
-     do iy = 1,ny
-        if ( yy(iy).ge.ymin ) exit
-     end do
-     iymin = iy
-     do iy = ny,1,-1
-        if ( yy(iy).le.ymax ) exit
-     end do
-     iymax = iy
+      if ( .false. ) then ! too many exceptions... (eg Arctic)
+      ! THIS CODE DOES NOT WORK AND IS NOT EXECUTED
+      ! search for lowest/highest latitude to save time in the subsequent loops
+      !
+      ymin = max(yy(1),yy(ny))
+      ymax = min(yy(1),yy(ny))
+      do ipol=1,npol - 1 ! last point repeats the first one
+         if ( polygon(2,ipol).lt.1e33 ) then
+            ymin = min(ymin,polygon(2,ipol))
+            ymax = max(ymax,polygon(2,ipol))
+         end if
+      end do
+      if ( yy(ny).gt.yy(1) ) then ! bloody reversed grids...
+         do iy = 1,ny
+            if ( yy(iy).ge.ymin ) exit
+         end do
+         iymin = iy
+         do iy = ny,1,-1
+            if ( yy(iy).le.ymax ) exit
+         end do
+         iymax = iy
+      else
+         do iy = ny,1,-1
+            if ( yy(iy).ge.ymin ) exit
+         end do
+         iymax = iy
+         do iy = 1,ny
+            if ( yy(iy).le.ymax ) exit
+         end do
+         iymin = iy
+      end if
+      if ( lwrite ) then
+         print *,'fillmask: restricting computation to latitude range'
+         print *,iymin,yy(iymin)
+         print *,iymax,yy(iymax)
+      end if
+      !
+      ! do not search for lowest/highest longitude to save time in the subsequent loops
+      !
+      xmin = max(xx(1),xx(nx))
+      xmax = min(xx(1),xx(nx))
+      do ipol=1,npol - 1 ! last point repeats the first one
+         if ( polygon(1,ipol).lt.3e33 ) then
+            xmin = min(xmin,polygon(1,ipol))
+            xmax = max(xmax,polygon(1,ipol))
+         end if
+      end do
+      if ( xmin.lt.xx(1) .or. xmax.gt.xx(nx) ) then
+         ! probably wraps, take all points
+         ixmin = 1
+         ixmax = nx
+      else
+         do ix = 1,nx
+            if ( xx(ix).ge.xmin ) exit
+         end do
+         ixmin = ix
+         do ix = nx,1,-1
+            if ( xx(ix).le.xmax ) exit
+         end do
+         ixmax = ix
+      end if
+      if ( lwrite ) then
+         print *,'fillmask: restricting computation to longitude range'
+         print *,ixmin,xx(ixmin)
+         print *,ixmax,xx(ixmax)
+      end if
   else
-     do iy = ny,1,-1
-        if ( yy(iy).ge.ymin ) exit
-     end do
-     iymax = iy
-     do iy = 1,ny
-        if ( yy(iy).le.ymax ) exit
-     end do
-     iymin = iy
-  end if
-  if ( lwrite ) then
-     print *,'fillmask: restricting computation to latitude range'
-     print *,iymin,yy(iymin)
-     print *,iymax,yy(iymax)
-  end if
-  !
-  ! do not search for lowest/highest longitude to save time in the subsequent loops
-  !
-  xmin = max(xx(1),xx(nx))
-  xmax = min(xx(1),xx(nx))
-  do ipol=1,npol - 1 ! last point repeats the first one
-     if ( polygon(1,ipol).lt.3e33 ) then
-        xmin = min(xmin,polygon(1,ipol))
-        xmax = max(xmax,polygon(1,ipol))
-     end if
-  end do
-  if ( xmin.lt.xx(1) .or. xmax.gt.xx(nx) ) then
-     ! probably wraps, take all points
-     ixmin = 1
-     ixmax = nx
-  else
-     do ix = 1,nx
-        if ( xx(ix).ge.xmin ) exit
-     end do
-     ixmin = ix
-     do ix = nx,1,-1
-        if ( xx(ix).le.xmax ) exit
-     end do
-     ixmax = ix
-  end if
-  if ( lwrite ) then
-     print *,'fillmask: restricting computation to longitude range'
-     print *,ixmin,xx(ixmin)
-     print *,ixmax,xx(ixmax)
-  end if
-  else
-     ! KEEP IT SIMPLE FOR TEH TIME BEING...
+     ! KEEP IT SIMPLE FOR THE TIME BEING...
      ixmin = 1
      ixmax = nx
      iymin = 1
@@ -328,6 +328,7 @@ subroutine fillmask(polygon,npol,pole,xx,nx,yy,ny,mask,nxmax,nymax,lwrite)
   ! loop over grid
   !
   do ix=ixmin,ixmax
+     call keepalive1('Grid point',ix-ixmin+1,ixmax-ixmin+1)
      do iy=iymin,iymax
         mask(ix,iy) = in_polygon(polygon,npol,dble(xx(ix)),dble(yy(iy)),pole,lwrite)
         if ( lwrite ) print '(a,i5,f9.3,i5,f8.3,f4.1)', &
@@ -360,15 +361,17 @@ subroutine fillmask(polygon,npol,pole,xx,nx,yy,ny,mask,nxmax,nymax,lwrite)
                     if ( lwrite ) print *,'   y+ point ',ix,xx(ix),iy,yy(iy)+epsilon/sqrt(3.),res(2)
                  end if
               end if
-              if ( (res(1).eq.3e33 .or. res(2).eq.3e33) .and. epsilon.gt.1e-4 ) then
+              if ( (res(1).eq.3e33 .or. res(2).eq.3e33) .and. epsilon.ge.1e-4 ) then
                   ! try again, we were unlucky
                   res(1) = -1
                   res(2) = +1
-                  epsilon = epsilon/3.14 ! not a nice number
               end if 
+              epsilon = epsilon/3.14 ! not a nice number
+              if ( epsilon < 1e-4 ) exit
            end do
-           if ( res(1).eq.3e33 ) then
+           if ( res(1).eq.3e33 .or. res(2).eq.3e33 .or. res(1).ne.res(2) ) then
               write(0,*) 'fillmask: internal error ',res,epsilon
+              write(0,*) '          for point ',ix,iy,xx(ix),yy(iy)
               call abort
            end if
            mask(ix,iy) = res(1)
