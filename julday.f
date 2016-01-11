@@ -5,7 +5,7 @@ C  (C) Copr. 1986-92 Numerical Recipes Software +.-).
       PARAMETER (IGREG=15+31*(10+12*1582))
       INTEGER ja,jm,jy
       jy=iyyy
-      if (jy.eq.0) write(0,*) 'julday: warning: there is no year zero'
+      !!!if (jy.eq.0) write(0,*) 'julday: warning: there is no year zero'
       if (jy.lt.0) jy=jy+1
       if (mm.gt.2) then
         jm=mm+1
