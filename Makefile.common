@@ -339,7 +339,8 @@ PROGRAMS      = scientific2decimal \
 		polygon2box \
 		extremeseries \
 		transform \
-		gen_time
+		gen_time \
+		ecmwf_times
 
 SHLIBS =	rkillfile.so \
        		rkeepalive.so
@@ -721,6 +722,9 @@ polygon2mask:	polygon2mask.o $(LIBRARY)
 
 polygon2box:	polygon2box.o
 		$(LD) $(FFLAGS) -o $@ $@.o
+
+ecmwf_times:	ecmwf_times.o
+		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
 
 roc:		roc.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
