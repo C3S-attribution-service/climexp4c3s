@@ -349,26 +349,26 @@
         end if
         if ( lweb ) then
             print '(a)','# <tr><td colspan="4">Fitted to GEV '//
-     +           'distribution P(x) = exp(-(1+&xi;(x-a'')'//
-     +               '/b'')^(-1/&xi;))</td></tr>'
+     +           'distribution P(x) = exp(-(1+&xi;(x-&mu;'')'//
+     +               '/&sigma;'')^(-1/&xi;))</td></tr>'
             call printab(lweb)
             call getabfromcov(a25,b25,alpha,beta,cov1,aa25,bb25)
             call getabfromcov(a975,b975,alpha,beta,cov1,aa975,bb975)
             call getabfromcov(a,b,alpha,beta,cov1,aaa,bbb)
             print '(a,i5,a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>'//
-     +           'a'':</td><td>',yr1a,'</td><td>',aaa,'</td><td>',
+     +           '&mu;'':</td><td>',yr1a,'</td><td>',aaa,'</td><td>',
      +           aa25,'...',aa975,'</td></tr>'
             print '(a,i5,a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>'//
-     +           'b'':</td><td>',yr1a,'</td><td>',bbb,'</td><td>',
+     +           '&sigma;'':</td><td>',yr1a,'</td><td>',bbb,'</td><td>',
      +           bb25,'...',bb975,'</td></tr>'
             call getabfromcov(a25,b25,alpha,beta,cov2,aa25,bb25)
             call getabfromcov(a975,b975,alpha,beta,cov2,aa975,bb975)
             call getabfromcov(a,b,alpha,beta,cov2,aaa,bbb)
             print '(a,i5,a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>'//
-     +           'a'':</td><td>',yr2a,'</td><td>',aaa,'</td><td>',
+     +           '&mu;'':</td><td>',yr2a,'</td><td>',aaa,'</td><td>',
      +           aa25,'...',aa975,'</td></tr>'
             print '(a,i5,a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>'//
-     +           'b'':</td><td>',yr2a,'</td><td>',bbb,'</td><td>',
+     +           '&sigma;'':</td><td>',yr2a,'</td><td>',bbb,'</td><td>',
      +           bb25,'...',bb975,'</td></tr>'
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'//
      +           '&xi;:</td><td>',xi,'</td><td>',xi25,'...',xi975,
