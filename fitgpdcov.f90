@@ -421,12 +421,12 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     end if
     if ( lweb ) then
     print '(a)','# <tr><td colspan="4">Fitted to GPD '// &
-     &           'distribution H(x+a'') = 1 - (1+&xi;*x/b'')^(-1/&xi;)</td></tr>'
+     &           'distribution H(x+&mu;'') = 1 - (1+&xi;*x/&sigma;'')^(-1/&xi;)</td></tr>'
         call printab(lweb)
         print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
-     &           'a:</td><td>',a,'</td><td>',a25,'...',a975,'</td></tr>'
+     &           '&mu;:</td><td>',a,'</td><td>',a25,'...',a975,'</td></tr>'
         print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
-     &           'b:</td><td>',b,'</td><td>',b25,'...',b975,'</td></tr>'
+     &           '&sigma;:</td><td>',b,'</td><td>',b25,'...',b975,'</td></tr>'
         print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
      &           '&xi;:</td><td>',xi,'</td><td>',xi25,'...',xi975,'</td></tr>'
         print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
@@ -911,7 +911,7 @@ real function gpdcovreturnyear(a,b,xi,alpha,beta,xyear,cov,lchangesign)
         x = xyear - aa
         z = (1 + xi*x/bb)
         if ( z > 1e10 ) then
-            write(0,*) 'gpdcovreturnyear: error: z = ',z,xi,x,bb
+            !!!write(0,*) 'gpdcovreturnyear: error: z = ',z,xi,x,bb
             tx = 3e33
         else if ( z <= 0 ) then
             tx = 1e20

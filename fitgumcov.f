@@ -313,13 +313,15 @@
         end if
         if ( lweb ) then
             print '(a)','# <tr><td colspan="4">Fitted to Gumbel '//
-     +           'distribution P(x) = exp(-exp(-(x-a'')/b''))'//
-     +           '</td></tr>'
+     +           'distribution P(x) = exp(-exp(-(x-&mu;'')/&sigma;''))'
+     +           //'</td></tr>'
             call printab(lweb)
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'//
-     +           'a:</td><td>',a,'</td><td>',a25,'...',a975,'</td></tr>'
+     +           '&mu;:</td><td>',a,'</td><td>',a25,'...',a975,
+     +           '</td></tr>'
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'//
-     +           'b:</td><td>',b,'</td><td>',b25,'...',b975,'</td></tr>'
+     +           '&sigma;:</td><td>',b,'</td><td>',b25,'...',b975,
+     +           '</td></tr>'
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'//
      +           '&alpha;:</td><td>',alpha,'</td><td>',alpha25,'...',
      +           alpha975,'</td></tr>'

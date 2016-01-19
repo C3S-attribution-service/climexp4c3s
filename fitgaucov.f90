@@ -291,13 +291,13 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
     end if
     if ( lweb ) then
         print '(a)','# <tr><td colspan="4">Fitted to normal '// &
-     &           'distribution P(x) = exp(-(x-a'')&sup2;'// &
-     &           '/(2b''&sup2;))/(b''&radic;(2&pi;))</td></tr>'
+     &           'distribution P(x) = exp(-(x-&mu;'')&sup2;'// &
+     &           '/(2&sigma;''&sup2;))/(&sigma;''&radic;(2&pi;))</td></tr>'
         call printab(lweb)
         print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
-     &           'a:</td><td>',a,'</td><td>',a25,'...',a975,'</td></tr>'
+     &           '&mu;:</td><td>',a,'</td><td>',a25,'...',a975,'</td></tr>'
         print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
-     &           'b:</td><td>',b,'</td><td>',b25,'...',b975,'</td></tr>'
+     &           '&sigma;:</td><td>',b,'</td><td>',b25,'...',b975,'</td></tr>'
         print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
      &           '&alpha;:</td><td>',alpha,'</td><td>',alpha25,'...', &
      &           alpha975,'</td></tr>'

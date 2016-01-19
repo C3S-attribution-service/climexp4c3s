@@ -816,16 +816,16 @@
         if ( lweb ) then
             if ( cassume.eq.'shift' ) then
                 print '(a)','# <tr><td colspan="4">'//
-     +               'with a''= a+&alpha;T '//
-     +               'and b'' = b</td></tr>'
+     +               'with &mu;''= &mu;+&alpha;T '//
+     +               'and &sigma;'' = &sigma;</td></tr>'
             else if ( cassume.eq.'scale' ) then
                 print '(a)','# <tr><td colspan="4">'//
-     +               'with a'' = a exp(&alpha;T/a) '//
-     +               'and b'' = b exp(&alpha;T/a)</td></tr>'
+     +               'with &mu;'' = &mu; exp(&alpha;T/a) '//
+     +               'and &sigma;'' = &sigma; exp(&alpha;T/a)</td></tr>'
             else if ( cassume.eq.'both' ) then
                 print '(a)','# <tr><td colspan="4">'//
-     +               'with a''= a+&alpha;T '//
-     +               'and b'' = b+&beta;T</td></tr>'
+     +               'with &mu;''= &mu;+&alpha;T '//
+     +               'and &sigma;'' = &sigma;+&beta;T</td></tr>'
             else
                 write(0,*) 'printpoint: error: unknow value for assume '
      +               ,cassume
