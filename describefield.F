@@ -13,7 +13,8 @@
 *
         integer i,n,nx,ny,nz,nt,nperyear,firstyr,firstmo,nvars,ivars(2
      +       ,nvmax),jvars(6,nvmax),ncid,endian,status,iens,nens1,
-     +       dy1,mo1,dy2,mo2,yr,ntp,ntt,it
+     +       dy1,mo1,dy2,mo2,yr,ntp,ntt,it,iarg,nargs,nt1,firstyr1,
+     +       firstmo1
         real xx(nxmax),yy(nymax),zz(nzmax),undef,dx,dy,dz,yg(nymax)
      +       ,wg(nymax),pi
         character infile*255,datfile*255,outfile*255,units(nvmax)*60
@@ -31,12 +32,15 @@
 *
         n = iargc()
         if ( n.lt.1 ) then
-            write(0,*) 'usage: describefield infile.[ctl|nc]'
+            write(0,*) 'usage: describefield infile.[ctl|nc] '//
+     +           '[file2 ...]'
             stop
         endif
-        call getarg(2,string)
+        nargs = iargc()
+        call getarg(nargs,string)
         if ( string.eq.'debug' .or. string.eq.'lwrite' ) then
             lwrite = .true.
+            nargs = nargs - 1
         end if
         ensemble = .false.
         iens = 0
@@ -60,14 +64,22 @@
      +           ,' to ',iens,' <br>'
             call filloutens(infile,nens1)
         endif
+        nt = 0
+        ntt = 0
+        firstmo = 9999
+        firstyr = 9999
+        do iarg = 1,nargs
+!       no indent for the time being
+
+        call getarg(iarg,infile)
         if ( lwrite ) print *,'describefield: nf_opening file '
      +        ,infile(1:llen(infile))
         status = nf_open(infile,nf_nowrite,ncid)
         if ( status.ne.nf_noerr ) then
             if ( lwrite ) print *,'error opening as netcdf file',status
-            call parsectl(infile,datfile,nxmax,nx,xx,nymax,ny,yy,nzmax
-     +            ,nz,zz,nt,nperyear,firstyr,firstmo,undef,endian,title
-     +            ,1,nvars,vars,ivars,lvars,units)
+            call parsectl(infile,datfile,nxmax,nx,xx,nymax,ny,yy,nzmax,
+     +           nz,zz,nt1,nperyear,firstyr1,firstmo1,undef,endian,
+     +           title,1,nvars,vars,ivars,lvars,units)
             tdefined(1:nt) = .true.
             ltime = ' '
             svars = ' '
@@ -77,7 +89,7 @@
             ncid = -1
         else
             call ensparsenc(infile,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax
-     +           ,nz,zz,lz,nt,nperyear,firstyr,firstmo,ltime,tdefined
+     +           ,nz,zz,lz,nt1,nperyear,firstyr1,firstmo1,ltime,tdefined
      +           ,ntmax,nens1,iens,undef,title,history,1,nvars,vars
      +           ,jvars,lvars,svars,units,cell_methods)
             if ( .not. ensemble .and. iens.ne.0 ) then
@@ -86,6 +98,19 @@
      +           ,' to ',iens,'<br>'
             endif
         endif
+!       we assume that if there are multiple files 
+!       all properties are the same except the time information
+        if ( 10000*firstyr1 + firstmo1 .lt. 10000*firstyr + firstmo )
+     +       then
+            firstyr = firstyr1
+            firstmo = firstmo1
+        end if
+        nt = nt + nt1
+        do it=1,nt1
+            if ( tdefined(it) ) ntt = ntt + 1
+        end do
+
+        end do ! loop over files
         write(0,'(2a)') title(1:llen(title)),'<br>'
         call getxyprop(xx,nx,yy,ny,xrev,yrev,xwrap)
 *
@@ -233,10 +258,6 @@
 *
 *       T
 *
-        ntt = 0
-        do it=1,nt
-            if ( tdefined(it) ) ntt = ntt + 1
-        end do
         if ( ntt.gt.0 ) then
             if ( nperyear.eq.0 ) then
                 write(0,'(a)') 'Time axis was not identified correctly'
