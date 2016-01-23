@@ -72,6 +72,7 @@
 !       no indent for the time being
 
         call getarg(iarg,infile)
+        if ( ensemble ) call filloutens(infile,nens1)
         if ( lwrite ) print *,'describefield: nf_opening file '
      +        ,infile(1:llen(infile))
         status = nf_open(infile,nf_nowrite,ncid)
