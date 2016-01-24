@@ -81,7 +81,7 @@
             call parsectl(infile,datfile,nxmax,nx,xx,nymax,ny,yy,nzmax,
      +           nz,zz,nt1,nperyear,firstyr1,firstmo1,undef,endian,
      +           title,1,nvars,vars,ivars,lvars,units)
-            tdefined(1:nt) = .true.
+            tdefined(1:nt1) = .true.
             ltime = ' '
             svars = ' '
             cell_methods = ' '
@@ -203,7 +203,7 @@
                 yg(i) = -90 + 180*acos(yg(i))/pi
             end do
             do i=1,n/2
-                write(0,*) i,yy(i),yg(i),yy(i)-yg(i)
+                !!!write(0,*) i,yy(i),yg(i),yy(i)-yg(i)
                 if ( abs(abs(yy(i))-abs(yg(i))) .gt.
      +               max(0.01,1e-3*abs(yy(i))) )goto 205
             end do
