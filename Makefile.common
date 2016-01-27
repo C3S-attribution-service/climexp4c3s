@@ -138,6 +138,7 @@ OBJS	      = makeabsent.o \
 		checkgridequal.o \
 		polint.o \
 		mysystem.o \
+		mystat.o \
 		getfiletime.o \
 		checkstring.o \
 		getfileunits.o \
