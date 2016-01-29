@@ -661,7 +661,7 @@ ar1:		ar1.o
 dat2nc:		dat2nc.o climexp.a
 		$(FC) $(FFLAGS) -o $@ $@.o $(LIBS)
 
-txt2dat:	txt2dat.o llen.o
+txt2dat:	txt2dat.o llen.o $(LIBRARY)
 		$(FC) $(FFLAGS) -o $@ $@.o $(LIBS)
 
 getunits:	getunits.o $(LIBRARY)
