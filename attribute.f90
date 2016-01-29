@@ -10,7 +10,7 @@ program attribute
     include 'getopts.inc'
     integer nresmax
     parameter(nresmax=100)
-    integer nperyear,nperyear1,mens1,mens,iens,nresults
+    integer nperyear,nperyear1,mens1,mens,mmens1,mmens,iens,nresults
     integer i,yr,mo,n,off
     real results(3,nresmax)
     real,allocatable :: series(:,:,:),covariate(:,:,:)
@@ -66,7 +66,12 @@ program attribute
         end do
     else
         call readensseries(covariatefile,covariate,npermax,yrbeg,yrend &
-        & ,nperyear1,var1,units1,lstandardunits,lwrite)
+        & ,nensmax,nperyear1,mmens1,mmens,var1,units1,lstandardunits,lwrite)
+        if ( mmens1 /= mens1 .or. mmens /= mens ) then
+            write(0,*) 'attribute: error: number of ensemble members should be the same ' &
+            & ,'found covariate: ',mmens1,'-',mmens,', series ',mens1,'-',mens
+            call exit(-1)
+        end if
     end if
     
     call getopts(6+off,iargc(),nperyear,yrbeg,yrend,.true.,mens1,mens)
