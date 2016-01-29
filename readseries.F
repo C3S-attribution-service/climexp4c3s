@@ -936,18 +936,19 @@
             elseif ( line(1:1).ne.'#' .and. line(2:2).ne.'#' ) then
                 write(unit,'(a)') trim(line)
                 do i=2,5
-                    read(iunit,'(a)') line
+                    read(iunit,'(a)',end=800) line
                     if ( onlynumbers(line) ) exit
                     write(unit,'(a)') trim(line)
                 enddo
             else
                 write(unit,'(a)') trim(line)
                 do i=1,1000
-                    read(iunit,'(a)') line
+                    read(iunit,'(a)',end=800) line
                     if ( line(1:1).ne.'#' ) exit
                     write(unit,'(a)') trim(line)
                 enddo
             endif
+ 800        continue
             close(iunit)
         else                    ! netcdf file
             call parsenc(file,ncid,mxmax,nx,xx,mymax,ny,yy,mzmax
