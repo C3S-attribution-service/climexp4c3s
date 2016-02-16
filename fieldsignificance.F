@@ -66,6 +66,7 @@
         end if
         do ivar=1,nvars
             if ( vars(ivar)(1:4).eq.'prob' .or.
+     +           vars(ivar)(1:2).eq.'rt2' .or.
      +           index(vars(ivar),'_rt').ne.0 ) then
                 if ( all.eq.'all_lo' ) then
                     if ( vars(ivar)(1:3).eq.'lo_' ) goto 101
@@ -77,7 +78,7 @@
             end if
         end do
         write(*,*) 'fieldsignficance: error: cannot find variable '//
-     +       'prob* or *_rt*'
+     +       'prob*, rt2* or *_rt*'
         goto 999
  101    continue
         if ( vars(ivar)(1:4).eq.'prob' ) then
