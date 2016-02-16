@@ -67,7 +67,9 @@
      +                               trim(file)
                             end if
                         else
-                            ! remove the out-of-date netcdf file
+                            if ( lwrite ) print *,'readseries: remove'//
+     +                           'the out-of-date netcdf file ',
+     +                           trim(ncfile) 
                             open(1,file=trim(ncfile))
                             close(1,status='delete',err=101)
  101                        continue
@@ -75,7 +77,8 @@
                     end if
                 end if
             end if
-            status = nf_open(file,nf_nowrite,ncid)
+            
+            status = nf_open(trim(file),nf_nowrite,ncid)
             if ( status.ne.nf_noerr ) then
                 call rsunit(unit)
                 open(unit,file=trim(file),status='old',err=902)
@@ -764,9 +767,11 @@
             dpm(month) = dpm0(month)
         enddo
         nperyear = 366          ! first try
+	if ( lwrite ) print *,'reading from ',trim(line)
         read(line,*,err=300,end=900) year,month,day,y
         goto 400
  300    continue
+        if ( lwrite ) print *,'error, trying as reals'
         read(line,*,err=905,end=900) xyr,xmo,xdy,y
         year = nint(xyr)
         month = nint(xmo)
@@ -810,7 +815,8 @@
         endif
  899    continue
 8990    continue
-        read(unit,'(a)',err=905,end=900) line
+        read(unit,'(a)',err=906,end=900) line
+        if ( lwrite ) print *,'read from unit ',unit,' line ',trim(line)
         if ( line(1:1).eq.'#' .or. line.eq.' ' ) goto 8990
         if ( getnumwords(line).lt.4 ) goto 8990 
         read(line,*,err=915,end=900) year,month,day,y
@@ -824,8 +830,11 @@
  900    continue
         return
  905    print *,'readseries: error reading yr,mo,dy,val data'
-        print *,trim(line)
-        call abort
+        print *,'from line: ',trim(line)
+        call exit(-1)
+ 906    print *,'readseries: error reading line'
+        print *,'from unit ',unit
+        call exit(-1)
         end
 
         subroutine readyrmodyhrval(data,npermax,yrbeg,yrend,nperyear
