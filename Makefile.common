@@ -342,7 +342,7 @@ PROGRAMS      = scientific2decimal \
 		transform \
 		gen_time \
 		ecmwf_times \
-		printtable
+		printbigtable
 
 SHLIBS =	rkillfile.so \
        		rkeepalive.so
