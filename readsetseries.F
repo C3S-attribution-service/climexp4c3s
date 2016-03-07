@@ -34,13 +34,7 @@
             ! extraargs separeted by dashes does not work.       
             i = 0
         else
-            i = index(prog,'getdutchprecip_')
-            if ( i == 0 ) then
-                i = index(prog,'_')
-            else
-                i = index(prog,'2009_')
-                if ( i /= 0 ) i = i + 4
-            end if
+            i = index(prog,'_')
         end if
         if ( i.ne.0 ) then
             extraargs = prog(i+1:)
@@ -50,7 +44,7 @@
                 if ( extraargs(i:i).eq.'_' ) 
      +               extraargs(i:i) = ' '
             end do
-            write(0,*) 'histogram: transforming stations to '//
+            write(0,*) 'readsetseries: transforming stations to '//
      +           'lower time resolution ',trim(extraargs),'<br>'
         else
             extraargs = ' '
@@ -119,14 +113,14 @@
             nperyear = m
         else
             if ( m.ne.nperyear ) then
-                write(0,*) 'histogram: error: different time scales ',m
-     +               ,nperyear
+                write(0,*) 'readsetseries: error: different time scales'
+     +               ,m,nperyear
                 call abort
             endif
         endif
         mens = mens + 1
         if ( mens.gt.nensmax ) then
-            write(0,*) 'histogram: error: increase nensmax'
+            write(0,*) 'readsetseries: error: increase nensmax'
             call abort
         endif
         goto 1

@@ -341,7 +341,8 @@ PROGRAMS      = scientific2decimal \
 		extremeseries \
 		transform \
 		gen_time \
-		ecmwf_times
+		ecmwf_times \
+		printtable
 
 SHLIBS =	rkillfile.so \
        		rkeepalive.so
@@ -668,6 +669,9 @@ getunits:	getunits.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
 
 average_ensemble:	average_ensemble.o $(LIBRARY)
+		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
+
+printbigtable:	printbigtable.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
 
 averagefield_ensemble:	averagefield_ensemble.o $(LIBRARY)
