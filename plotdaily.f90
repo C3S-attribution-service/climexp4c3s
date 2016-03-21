@@ -7,13 +7,15 @@ program plotdaily
     implicit none
     include 'param.inc'
     include 'getopts.inc'
-    integer nday,nperyear,mens,mens1,i,j,k,dy,mm,mo,yy,yr,yrlast,molast,dylast
+    integer nday,nperyear,mens,mens1,i,j,k,dy,mm,mo,yy,yr,yrlast,molast,dylast,n
+    real cumdata,cummean
     real,allocatable :: data(:,:),mean(:)
+    logical cdf
     character file*255,var*20,units*20,string*80,enddate*20
     integer iargc
     
     if ( iargc() < 3 ) then
-        write(0,*) 'usage: plotdaily infile nday enddate [begin yr1 end yr2 | anom]'
+        write(0,*) 'usage: plotdaily infile nday enddate [cdf] [begin yr1 end yr2] [anom]'
         call exit(-1)
     end if
     
@@ -26,7 +28,16 @@ program plotdaily
     &   var,units,lstandardunits,lwrite)
     mens1 = 0
     mens = 0
-    call getopts(4,iargc(),nperyear,yrbeg,yrend,.true.,mens1,mens)
+    n = 4
+    cdf = .false.
+    if ( iargc() >= n ) then
+        call getarg(n,string)
+        if ( string(1:3) == 'cdf' ) then
+            n = n + 1
+            cdf = .true.
+        end if
+    end if
+    call getopts(n,iargc(),nperyear,yrbeg,yrend,.true.,mens1,mens)
 
     allocate(mean(nperyear))
     if ( .not.anom ) then
@@ -52,12 +63,23 @@ program plotdaily
 
     print '(a,i5,2a)','# last ',nday,' of data in file ',trim(file)
     call copyheader(file,6)
+    if ( cdf ) then
+        cumdata = 0
+        cummean = 0
+    end if
     do k=nday-1,-1,-1
         mm = molast-k
         call normon(mm,yrlast,yr,nperyear)
         call getdymo(dy,mo,mm,nperyear)
         if ( data(mm,yr).lt.1e33 .and. mean(mm).lt.1e33 ) then
-            print '(i4,2i2.2,2f12.4)',yr,mo,dy,data(mm,yr)+mean(mm),mean(mm)
+            if ( cdf ) then
+                cumdata = cumdata + data(mm,yr)+mean(mm)
+                cummean = cummean + mean(mm)
+            else
+                cumdata = data(mm,yr)+mean(mm)
+                cummean = mean(mm)
+            end if
+            print '(i4,2i2.2,2f12.4)',yr,mo,dy,cumdata,cummean
         else
             print '(a)'
         end if
