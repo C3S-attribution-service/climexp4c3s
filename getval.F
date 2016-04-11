@@ -22,14 +22,30 @@
      +       ,lstandardunits,lwrite)
         if ( nperyear.eq.0 ) goto 999
         call getopts(2,iargc(),nperyear,yrbeg,yrend,.false.,0,0)
+        if ( yr2a.gt.yrend ) then
+            write(*,*) 'getval: error: year undefined'
+            write(0,*) 'getval: error: year undefined'
+            call exit(-1)
+        endif
+        if ( nperyear == 1 ) m1 = 1
+        if ( m1 == 0 ) then
+            write(*,*) 'getval: error: month undefined'
+            write(0,*) 'getval: error: month undefined'
+            call exit(-1)
+        endif
+        call invgetdymo(day0,m1,m,nperyear)
+        if ( lwrite ) then
+            print *,'getval: dy,mo  ',day0,m1
+            print *,'getval: data(',m,yr2a,') ',data(m,yr2a)
+        end if
         if ( lsum.gt.1 ) then
             call sumit(data,npermax,nperyear,yrbeg,yrend,lsum,oper)
         endif
         n = 0
         do yr=yrbeg,yrend
-            if ( data(m1,yr).lt.1e33 ) then
+            if ( data(m,yr).lt.1e33 ) then
                 n = n + 1
-                xx(n) = data(m1,yr)
+                xx(n) = data(m,yr)
             endif
         enddo
         call getmoment(1,xx,n,x1)
@@ -42,16 +58,6 @@
         endif
         i = index(file,'/',.true.) + 1
         j = index(file,'.') - 1
-        if ( yr2a.gt.yrend ) then
-            write(*,*) 'getval: error: year undefined'
-            write(0,*) 'getval: error: year undefined'
-            call abort
-        endif
-        call invgetdymo(day0,m1,m,nperyear)
-        if ( lwrite ) then
-            print *,'getval: dy,mo  ',day0,m1
-            print *,'getval: data(',m,yr2a,') ',data(m,yr2a)
-        end if
         if ( data(m,yr2a).lt.1e30 ) then
             write(*,'(3a,g16.4,3a)')
      +           '<table class=realtable width=451><tr><td width=300>'
