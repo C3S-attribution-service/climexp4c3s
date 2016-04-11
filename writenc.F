@@ -426,7 +426,7 @@
         else
             j = ntmax
         endif
-        nperday = nint(nperyear/365.)
+        nperday = max(1,nint(nperyear/365.))
         if ( nperday.gt.1 ) then
             n = nperyear/nperday
         else
