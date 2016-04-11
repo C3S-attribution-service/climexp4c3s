@@ -81,6 +81,8 @@
             status = nf_open(trim(file),nf_nowrite,ncid)
             if ( status.ne.nf_noerr ) then
                 call rsunit(unit)
+                if ( lwrite ) print *,'readseries: opening ',trim(file),
+     +               ' as ascii file on unit ',unit
                 open(unit,file=trim(file),status='old',err=902)
             else
 *               it is a netCDF file
@@ -140,7 +142,7 @@
      +            ,nperyear
             write(*,*) 'readseries: error: increase npermax ',npermax
      +            ,nperyear
-            call abort
+            call exit(-1)
         endif
         if ( imonth.gt.0 ) then
             call readdymoyrval(data,npermax,yrbeg,yrend,nperyear,line
@@ -176,7 +178,7 @@
         endif
         return
  902    print *,'readseries: error opening ',trim(file)
-        call abort
+        call exit(-1)
         end
 
         subroutine readseriesheader(var,units,line,unit,lwrite)
@@ -256,7 +258,7 @@
         return
  903    print *,'readseriesheader: error reading header'
         print *,line
-        call abort
+        call exit(-1)
         end
 
         logical function onlynumbers(line)
@@ -388,7 +390,7 @@
   904   print *,'readdymoyrval: error reading data of line'
         print '(a)',trim(line)
         print '(a,2i3,g14.6)','last data read ',year,day,val
-        call abort
+        call exit(-1)
         end
 
         subroutine readyrval(data,npermax,yrbeg,yrend,nperyear,line,unit
@@ -439,7 +441,7 @@
         print '(a)',trim(line)
         print '(a,i4,1000g14.6)','last data read ',year,(val12(j),j=1
      +       ,nperyear)
-        call abort
+        call exit(-1)
         end
 
         subroutine readyrfracval(data,npermax,yrbeg,yrend,nperyear,line
@@ -469,7 +471,7 @@
             write(0,*)
      +           'readyrfracval: error: cannot find 1 or 2 in line '
      +           ,trim(line)
-            call abort
+            call exit(-1)
         end if
         j = scan(line(i:),' ')
         if ( j.eq.0 ) j = 9999
@@ -479,7 +481,7 @@
         if ( j.eq.9999 ) then
             write(0,*) 'readyrfracval: error: cannot find space or '//
      +           'tab in ',trim(line(i:))
-            call abort
+            call exit(-1)
         end if
         if ( lwrite ) print *,'looking for decimal point in ',
      +       line(i:i+j-2)
@@ -581,7 +583,7 @@
      +           ,nperyear
             write(*,*) 'readseries: error: increase npermax ',npermax
      +           ,nperyear
-            call abort
+            call exit(-1)
         endif
         if ( lfrac ) then
             j = nint(nperyear*(x-year)+0.75001)
@@ -695,7 +697,7 @@
             print '(a,4i4,g14.6)','last data read ',year1,month1,day1
      +           ,hour1,y1
         endif
-        call abort
+        call exit(-1)
         end
 
         subroutine readyrmoval(data,npermax,yrbeg,yrend,nperyear,line
@@ -740,7 +742,7 @@
  904    print *,'readyrmoval: error reading data of line'
         print '(a)',trim(line)
         print '(a,i4,1000g14.6)','last data read ',year,j,y
-        call abort
+        call exit(-1)
         end
 
         subroutine readyrmodyval(data,npermax,yrbeg,yrend,nperyear,line
@@ -767,7 +769,7 @@
             dpm(month) = dpm0(month)
         enddo
         nperyear = 366          ! first try
-	if ( lwrite ) print *,'reading from ',trim(line)
+    if ( lwrite ) print *,'reading from ',trim(line)
         read(line,*,err=300,end=900) year,month,day,y
         goto 400
  300    continue
@@ -909,7 +911,7 @@
         return
  905    print *,'readseries: error reading yr,mo,dy,hr,val data'
         print *,year,month,day,hour,y
-        call abort
+        call exit(-1)
         end
 
         subroutine copyheader(file,unit)
@@ -996,19 +998,19 @@
         endif
         if ( month.lt.1 .or. month.gt.12 ) then
             write(0,*) 'yyyymmddhh: error: found month ',month,' in ',
-     +		ymdh
-     	    call abort
-     	endif
+     +      ymdh
+            call exit(-1)
+        endif
         if ( day.lt.1 .or. day.gt.31 ) then
             write(0,*) 'yyyymmddhh: error: found day ',day,' in ',
-     +		ymdh
-     	    call abort
-     	endif
+     +      ymdh
+            call exit(-1)
+        endif
         if ( hour.lt.0 .or. month.gt.24 ) then
             write(0,*) 'yyyymmddhh: error: found hour ',hour,' in ',
-     +		ymdh
-     	    call abort
-     	endif
+     +      ymdh
+            call exit(-1)
+        endif
         end
 
         integer function getj(month,day,hour,nperyear)
@@ -1032,8 +1034,14 @@
             do k=1,month-1
                 j = j + dpm(k)
             enddo
-            if ( nperyear.ge.4*360 ) then
+            if ( nperyear.ge.24*360 ) then
+                j = 24*(j-1) + hour
+            else if ( nperyear.ge.8*360 ) then
+                j = 8*(j-1) + mod(hour,3) + 1
+            else if ( nperyear.ge.4*360 ) then
                 j = 4*(j-1) + mod(hour,6) + 1
+            else if ( nperyear.ge.2*360 ) then
+                j = 2*(j-1) + mod(hour,12) + 1
             elseif ( nperyear.lt.360 ) then
                 j = 1 + (j-1)*nperyear/365
             endif
@@ -1072,7 +1080,7 @@
             write(0,*) 'Cannot handle more than 1464 values per year'
             write(0,*) '(6-hourly data)'
             write(0,*) 'but attempted to read ',nperyear
-            call abort
+            call exit(-1)
         end if
         if ( lwrite .and. nperyear.ne.nperyearold ) then
             print *,'adjustnperyear: adjusted ',nperyearold,' to '
