@@ -769,7 +769,7 @@
             dpm(month) = dpm0(month)
         enddo
         nperyear = 366          ! first try
-    if ( lwrite ) print *,'reading from ',trim(line)
+        if ( lwrite ) print *,'reading from ',trim(line)
         read(line,*,err=300,end=900) year,month,day,y
         goto 400
  300    continue
