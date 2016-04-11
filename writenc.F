@@ -10,7 +10,7 @@
         character svars(1000)*1,ltime*10,lz(3)*20
         if ( nvars.gt.1000 ) then
             write(0,*) 'writenc: can only handle up to 1000 variables'
-            call abort
+            call exit(-1)
         endif
         svars(1:nvars) = ' '
         ltime = 'time'
@@ -73,7 +73,7 @@
 *       local variables
         integer status,ntdimid,nxdimid,nydimid,nzdimid,nensdimid,ndims
      +       ,idims(5),nxvarid,nyvarid,nzvarid,nensvarid,ivar,i,j,l,
-     +       ii(8),dy,mo,chunks(5)
+     +       ii(8),dy,mo,chunks(5),n,nperday
         integer, allocatable :: iens(:)
         real array(1)
         integer dpm(12)
@@ -91,7 +91,7 @@
         if ( nt.gt.ntmax ) then
             write(0,*) 'writenc: error: increase ntmax to ',nt
      +            ,' and recompile'
-            call abort
+            call exit(-1)
         endif
         call getenv('WRITENC_LWRITE',clwrite)
         if ( index(clwrite,'T') + index(clwrite,'t') .gt.0 ) then
@@ -204,9 +204,12 @@
             string = 'months since '
         elseif ( nperyear.gt.12 .and. nperyear.le.366 ) then
             string = 'days since '
+        elseif ( nperyear.gt.366 ) then
+            string = 'hours since '
         else
             write(0,*) 'writenc: cannot handle nperyear = ',nperyear
-            call abort
+            write(0,*) '         in defining units string'
+            call exit(-1)
         endif
         call getdymo(dy,mo,mobegin,nperyear)
         l = llen(string) + 2
@@ -423,11 +426,23 @@
         else
             j = ntmax
         endif
-        if ( nperyear.eq.1 .or. nperyear.eq.12 .or. nperyear.eq.366 .or.
-     +       nperyear.eq.365 .or. nperyear.eq.360 ) then
-            do i=1,j
-                itimeaxis(i) = i-1
-            enddo
+        nperday = nint(nperyear/365.)
+        if ( nperday.gt.1 ) then
+            n = nperyear/nperday
+        else
+            n = nperyear
+        end if
+        if ( n.eq.1 .or. n.eq.12 .or. 
+     +       n.eq.366 .or. n.eq.365 .or. n.eq.360 ) then
+            if ( nperday.eq.1 .or. nperday.eq.24 ) then
+                do i=1,j
+                    itimeaxis(i) = i-1
+                enddo
+            else
+                do i=1,j
+                    itimeaxis(i) = (24/nperday)*(i-1)
+                enddo
+            end if
         elseif ( nperyear.lt.12 ) then
             do i=1,j
                 itimeaxis(i) = (i-1)*12/nperyear
@@ -438,7 +453,8 @@
             enddo
         else
             write(0,*) 'writenc: cannot handle nperyear = ',nperyear
-            call abort
+            write(0,*) '         in defining time axus'
+            call exit(-1)
         endif
         if ( lwrite ) print *,'put time axis ',itimeaxis(1:j)
         status = nf_put_var_int(ncid,ntvarid,itimeaxis)

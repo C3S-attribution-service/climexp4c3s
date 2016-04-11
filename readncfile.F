@@ -14,7 +14,7 @@
         logical lwrite
         integer unit,jx,jy,i,j,k,l,start(4),count(4),stride(4),imap(4)
      +        ,status,startmo,ck,noleap,ilast,jlast,nn,jj,itoobig,
-     +       ntoobig,jul0,jul1,jul2,dy,mo
+     +       ntoobig,jul0,jul1,jul2,dy,mo,nperday
         logical notfirst
         integer leap,julday
         logical isnan
@@ -52,7 +52,7 @@
             call abort
         endif
         notfirst = .TRUE.
-        nn = nperyear/366
+        nn = max(1,nint(nperyear/365.24))
 *
 *       for completeness, these loops will almost never be executed
 *
@@ -121,7 +121,7 @@
         endif
         if ( jvars(5).gt.0 ) then
             k = k + 1
-            if ( nperyear.ne.366 ) then
+            if ( nperyear/nn.ne.366 ) then
                 if ( yr1.gt.firstyr ) then
                     startmo = 1
                     start(k) = 1 + nperyear*(yr1-firstyr) - firstmo + 1
@@ -145,12 +145,12 @@
                 jul2 = julday(12,31,yr2)
                 if ( yr1.gt.firstyr ) then
                     startmo = 1
-                    start(k) = jul1 - jul0 + 1
-                    count(k) = jul2 - jul1 + 1
+                    start(k) = nn*(jul1 - jul0) + 1
+                    count(k) = nn*(jul2 - jul1 + 1)
                 else
                     startmo = firstmo
                     start(k) = 1
-                    count(k) = min( nt, jul2 - jul0 + 1)
+                    count(k) = min( nt, nn*(jul2 - jul0 + 1))
                 endif
             end if
         else
@@ -166,7 +166,7 @@
         endif
         if ( nxf.eq.nx .and. jvars(2).eq.1 .or. jvars(2).eq.0 ) then
             if ( nyf.eq.ny .and. jvars(3).eq.2 .or. jvars(3).eq.0 ) then
-                if ( 366*nn.ne.nperyear ) then
+                if ( nperyear/nn.ne.366 ) then
                     if ( lwrite ) then
                         print *,'readncfile: calling ',
      +                       'nf_get_vara_real(',
@@ -199,7 +199,7 @@
      +                           ,yrend,l,ck
                             exit
                         end if
-                        if ( j/nn.eq.31+29 .and. leap(i).eq.1 ) then
+                        if ( j.eq.nn*(31+28)+1 .and. leap(i).eq.1 ) then
                             do jj=0,nn-1
                                 if ( lwrite ) print *,
      +                               'setting ',i,j+jj,' to undefined'

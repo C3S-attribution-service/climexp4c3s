@@ -6,7 +6,7 @@
 *
         implicit none
         integer ntmax,nensmax
-        parameter (ntmax=500000,nensmax=230)
+        parameter (ntmax=2000000,nensmax=230)
         integer ncid,nxmax,nymax,nzmax,nx,ny,nz,nt,nperyear,firstyr
      +       ,firstmo,nvarmax,ntvars,ivars(6,nvarmax)
         real xx(nxmax),yy(nymax),zz(nzmax),undef

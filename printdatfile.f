@@ -2,20 +2,25 @@
         implicit none
         integer unit,npermax,nperyear,yrbeg,yrend
         real data(npermax,yrbeg:yrend)
-        integer year,i,dy,mo,dpm(12,3),ical
+        integer year,i,dy,mo,dpm(12,3),ical,n,nperday,hr,hh
         data dpm /
      +       30,30,30,30,30,30,30,30,30,30,30,30,
      +       31,28,31,30,31,30,31,31,30,31,30,31,
      +       31,29,31,30,31,30,31,31,30,31,30,31/
         double precision val(360),offset
 *
-        if ( nperyear.lt.360 ) then
+        n = nperyear
+        nperday = max(1,nint(nperyear/365.24))
+        if ( n.gt.366 ) then
+            n = n/nperday
+        end if
+        if ( n.lt.360 ) then
             ical = 0
-        elseif ( nperyear.eq.360 ) then
+        elseif ( n.eq.360 ) then
             ical = 1
-        elseif ( nperyear.eq.365 ) then
+        elseif ( n.eq.365 ) then
             ical = 2
-        elseif ( nperyear.eq.366 ) then
+        elseif ( n.eq.366 ) then
             ical = 3
         else
             ical = 4
@@ -43,12 +48,23 @@
                 i = 0
                 do mo=1,12
                     do dy=1,dpm(mo,ical)
-                        i = i + 1
-                        if ( data(i,year).lt.1e33 ) then
-                            write(unit,'(i4,2i3,g15.7)') year,mo,dy
-     +                           ,data(i,year)
-                        endif
-                    enddo
+                        if ( nperday.eq.1 ) then
+                            i = i + 1
+                            if ( data(i,year).lt.1e33 ) then
+                                write(unit,'(i4,2i3,g15.7)') year,mo,dy
+     +                               ,data(i,year)
+                            end if
+                        else
+                            do hr=1,nperday
+                                i = i + 1
+                                hh = hr*(24/nperday)
+                                if ( data(i,year).lt.1e33 ) then
+                                    write(unit,'(i4,3i2.2,g15.7)') 
+     +                                   year,mo,dy,hh,data(i,year)
+                                end if
+                            end do
+                        end if
+                    end do
                 enddo
             else
                 if ( nperyear.le.366 ) then

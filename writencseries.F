@@ -13,7 +13,7 @@
      +       units*(*)
 *       local variables
         integer status,ncid,ntdimid,idim,i,j,l,ii(8),dy,mo,yr,yr0,yr1
-     +       ,yr2,nt,ivar,ntvarid,year,month
+     +       ,yr2,nt,ivar,ntvarid,year,month,n,nperday
         integer dpm(12)
         integer,allocatable :: itimeaxis(:)
         real array(1)
@@ -54,12 +54,19 @@
                 end if
             end do
         end do
-        if ( nperyear.ne.366 ) then
+        nperday = max(1,nint(nperyear/365.24))
+        if ( nperday.gt.1 ) then
+            n = nperyear/nperday
+        else
+            n = nperyear
+        end if
+        if ( n.ne.366 ) then
             nt = nperyear*(yr2 - yr1 + 1)
         else
             i = julday(1,1,yr1)
             j = julday(12,31,yr2)
             nt = j-i+1
+            if ( nperday.gt.1 ) nt = nperday*nt
         end if
         if ( lwrite ) then
             print *,'writencseries: first,last year with data ',yr1,yr2
@@ -132,12 +139,17 @@
             string = 'months since '
         elseif ( nperyear.gt.12 .and. nperyear.le.366 ) then
             string = 'days since '
+        elseif ( nperyear.gt.366 .and. nperyear.le.366*24 ) then
+            string = 'hours since '
         else
-            write(0,*) 'writenc: cannot handle nperyear = ',nperyear
-            call abort
+            write(0,*) 'writencseries: cannot handle nperyear = ',
+     +           nperyear
+            write(0,*) '               in defining units string'
+            call exit(-1)
         endif
         l = len_trim(string) + 2
         write(string(l:),'(i4,a,i2.2,a,i2.2)') yr1,'-',1,'-',1
+        if ( nperyear.gt.366 ) string = trim(string)//' 00:00:00'
         if ( lwrite ) print *,'units = ',trim(string)
         status = nf_put_att_text(ncid,ntvarid,'units',len_trim(string)
      +       ,string)
@@ -152,14 +164,13 @@
         status = nf_put_att_text(ncid,ntvarid,'axis',1,'T')
         if ( status.ne.nf_noerr ) call handle_err(status
      +       ,'put time axis')
-        if ( nperyear.eq.1 .or. nperyear.eq.12 .or. nperyear.eq.366 )
-     +       then
+        if ( nperyear.lt.360 .or. n.eq.366 ) then
             status = nf_put_att_text(ncid,ntvarid,'calendar',9
      +           ,'gregorian')
-        elseif ( nperyear.eq.360 ) then
+        elseif ( n.eq.360 ) then
             status = nf_put_att_text(ncid,ntvarid,'calendar',7,
      +           '360_day')
-        elseif ( nperyear.eq.365 ) then
+        elseif ( n.eq.365 ) then
             status = nf_put_att_text(ncid,ntvarid,'calendar',7,
      +           '365_day')
         endif
@@ -206,17 +217,23 @@
         if ( status.ne.nf_noerr ) call handle_err(status,'enddef')
 *
 *       write axes
-*       
-        if ( nperyear.eq.1 .or. nperyear.eq.12 .or. nperyear.eq.366 .or.
-     +       nperyear.eq.365 .or. nperyear.eq.360 ) then
-            do i=1,nt
-                itimeaxis(i) = i-1
-            enddo
-        elseif ( nperyear.lt.12 ) then
+*
+        if ( n.eq.1 .or. n.eq.12 .or. 
+     +       n.eq.366 .or. n.eq.365 .or. n.eq.360 ) then
+            if ( nperday.le.1 ) then
+                do i=1,nt
+                    itimeaxis(i) = i-1
+                end do
+            else
+                do i=1,nt
+                    itimeaxis(i) = (24/nperday)*i
+                end do
+            end if
+        else if ( nperyear.lt.12 ) then
             do i=1,nt
                 itimeaxis(i) = (i-1)*12/nperyear
-            enddo
-        elseif ( nperyear.eq.36 ) then
+            end do
+        else if ( nperyear.eq.36 ) then
             month = 1
             year = yr1
             itimeaxis(1) = 0
@@ -235,14 +252,16 @@
                     end if
                 end if
             end do
-        elseif ( nperyear.lt.360 ) then
+        else if ( nperyear.lt.360 ) then
             do i=1,nt
                 itimeaxis(i) = (i-1)*nint(365./nperyear)
-            enddo
+            end do
         else
-            write(0,*) 'writenc: cannot handle nperyear = ',nperyear
-            call abort
-        endif
+            write(0,*) 'writencseries: cannot handle nperyear = ',
+     +           nperyear
+            write(0,*) '               in defining time axis' 
+            call exit(-1)
+        end if
         if ( lwrite ) print *,'put time axis ',itimeaxis(1:nt)
         status = nf_put_var_int(ncid,ntvarid,itimeaxis)
         if ( status.ne.nf_noerr ) call handle_err(status,'put time')
@@ -253,7 +272,7 @@
         do yr=yr1,yr2
             do mo=1,nperyear
                 if ( leap(yr).eq.1 .and. 
-     +               nperyear.eq.366 .and. mo.eq.60 ) cycle
+     +               n.eq.366 .and. 1+(mo-1)/nperday.eq.60 ) cycle
                 i = i + 1
                 linear(i) = data(mo,yr)
             end do
