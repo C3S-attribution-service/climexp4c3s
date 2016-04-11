@@ -182,6 +182,7 @@ OBJS	      = makeabsent.o \
 		legzo.o \
 		ftest.o \
 		getweightedquant.o \
+		wetbulb.o \
 		calcCDD.o \
 		calcCFD.o \
 		calcCSU.o \
@@ -342,7 +343,11 @@ PROGRAMS      = scientific2decimal \
 		transform \
 		gen_time \
 		ecmwf_times \
-		printbigtable
+		printbigtable \
+		testwetbulb \
+		compute_wetbulb \
+		wetbulb_field \
+		outliers
 
 SHLIBS =	rkillfile.so \
        		rkeepalive.so
@@ -731,6 +736,15 @@ polygon2box:	polygon2box.o
 ecmwf_times:	ecmwf_times.o
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
 
+compute_wetbulb:	compute_wetbulb.o $(LIBRARY)
+		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)		
+
+wetbulb_field:	wetbulb_field.o $(LIBRARY)
+		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)		
+
+outliers:	outliers.o $(LIBRARY)
+		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)		
+
 roc:		roc.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
 
@@ -774,6 +788,9 @@ testfitgevcov:	testfitgevcov.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)		
 
 testshiftseries:	testshiftseries.o $(LIBRARY)
+		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)		
+
+testwetbulb:	testwetbulb.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)		
 
 rkillfile.so:	rkillfile.f
