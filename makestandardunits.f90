@@ -175,6 +175,9 @@ subroutine makestandardunits(mean,nperyear,invar,units,newunits,offset,slope,ndp
     endif
     var = invar
     call tolower(var)
+    if ( var(1:4) == 'max_' .or. var(1:4) == 'min_' ) then
+        var = var(5:)
+    end if
     offset = 0
     slope = 1
     ndpm = 0
