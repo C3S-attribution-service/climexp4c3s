@@ -334,7 +334,11 @@
             end if
             if ( lwrite ) print *,trim(command)
             call mysystem(command,retval)
-            call checkval(retval,command)
+            !!!call checkval(retval,command) do not mind a few going wrong...
+            if ( retval.ne.0 ) then
+                call mysystem('rm -f '//trim(datfile),retval)
+                goto 200
+            end if
   310       continue
             if ( filterext.ne.' ' ) then
 *               filter datfile to longer-period file
