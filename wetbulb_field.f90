@@ -12,7 +12,7 @@ program wetbulb_field
     integer ivtmax(6,nvarmax),ivtdew(6,nvarmax),ivpres(6,nvarmax),ivars(2,nvarmax)
     integer nperyear,nt,firstyr,firstmo,ntvars,nperyear1,nt1,firstyr1,firstmo1
     integer,allocatable :: itimeaxis(:)
-    real xx(nxmax),yy(nymax),zz(nzmax),xx1(nxmax),yy1(nxmax),zz1(nzmax),undef,undef1
+    real xx(nxmax),yy(nymax),zz(nzmax),xx1(nxmax),yy1(nxmax),zz1(nzmax),undef,undef1,undef2
     real,allocatable ::  tmax(:,:,:,:),tdew(:,:,:,:),pres(:,:,:,:),twet(:,:,:,:)
     logical lwrite,lstandardunits
     character tmaxfile*255,tdewfile*255,presfile*255,twetfile*255
@@ -64,13 +64,9 @@ program wetbulb_field
         &   nperyear1,nperyear,firstyr1,firstyr, firstmo1,firstmo
         call exit(-1)
     end if
-    if ( undef1 /= undef ) then
-        write(0,*) 'wetbulb_field: error: undef not equal ',undef1,undef
-        call exit(-1)
-    end if
     idpres = 0
     call parsenc(trim(presfile),idpres,nxmax,nx1,xx1,nymax,ny1,yy1,nzmax &
-     &        ,nz1,zz1,nt1,nperyear1,firstyr1,firstmo1,undef1,title,nvarmax &
+     &        ,nz1,zz1,nt1,nperyear1,firstyr1,firstmo1,undef2,title,nvarmax &
      &        ,ntvars,vars,ivpres,lvars,presunits)
     if ( presunits(1) /= 'Pa' .and. presunits(1) /= 'hPa' .and. presunits(1) /= 'mb' ) then
         write(0,*) 'wetbulbfield: error: expecting Pa, hPa or mb for pressure, not ',presunits
@@ -85,10 +81,6 @@ program wetbulb_field
     if ( nperyear1 /= nperyear .or. firstyr1 /= firstyr .or. firstmo1 /= firstmo ) then
         write(0,*) 'wetbulb_field: error: timescale or start time not equal: ', &
         &   nperyear1,nperyear,firstyr1,firstyr, firstmo1,firstmo
-        call exit(-1)
-    end if
-    if ( undef1 /= undef ) then
-        write(0,*) 'wetbulb_field: error: undef not equal ',undef1,undef
         call exit(-1)
     end if
     
@@ -108,7 +100,7 @@ program wetbulb_field
     write(0,*) 'Reading ',trim(tdewfile)
     nt1 = nt
     call readncfile(idtdew,tdew,nx,ny,nx,ny,nperyear,firstyr,lastyr,firstyr,firstmo,nt1, &
-    &   undef,lwrite,firstyr,lastyr,ivtdew)
+    &   undef1,lwrite,firstyr,lastyr,ivtdew)
     if ( tdewunits(1) == 'K' ) then
         tdewunits = 'Celsius'
         tdew = tdew - 273.15
@@ -116,7 +108,7 @@ program wetbulb_field
     write(0,*) 'Reading ',trim(presfile)
     nt1 = nt
     call readncfile(idpres,pres,nx,ny,nx,ny,nperyear,firstyr,lastyr,firstyr,firstmo,nt1, &
-    &   undef,lwrite,firstyr,lastyr,ivpres)
+    &   undef2,lwrite,firstyr,lastyr,ivpres)
     if ( presunits(1) == 'Pa' ) then
         tmaxunits = 'hPa'
         pres = pres/100
@@ -140,7 +132,7 @@ program wetbulb_field
     units(1) = 'Celsius'
     ivars(1,1) = 1
     allocate(itimeaxis(nt1))
-    call writenc(twetfile,idtwet,ntvarid,itimeaxis,nt1,nx,xx,ny,yy,nz,zz,nt,nperyear,firstyr,1, &
+    call writenc(twetfile,idtwet,ntvarid,itimeaxis,nt1,nx,xx,ny,yy,nz,zz,nt,nperyear,firstyr,firstmo, &
     &   3e33,title,nvars,vars,ivars,lvars,units,0,0)
     it = 0
     nperday = max(1,nint(nperyear/366.24))
