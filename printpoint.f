@@ -820,8 +820,8 @@
      +               'and &sigma;'' = &sigma;</td></tr>'
             else if ( cassume.eq.'scale' ) then
                 print '(a)','# <tr><td colspan="4">'//
-     +               'with &mu;'' = &mu; exp(&alpha;T/a) '//
-     +               'and &sigma;'' = &sigma; exp(&alpha;T/a)</td></tr>'
+     +               'with &mu;'' = &mu; exp(&alpha;T/&mu;) and '//
+     +               '&sigma;'' = &sigma; exp(&alpha;T/&mu;)</td></tr>'
             else if ( cassume.eq.'both' ) then
                 print '(a)','# <tr><td colspan="4">'//
      +               'with &mu;''= &mu;+&alpha;T '//
