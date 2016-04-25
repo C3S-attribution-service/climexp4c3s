@@ -293,6 +293,7 @@
      +                ,'# starting months refer to field2/field/index'
             elseif ( line(1:3).eq.'lag' ) then
                 call getarg(i+1,line)
+                call deletebackslash(line)
 	        j = index(line,':')
 	        if ( j.ne.0 ) then
 	            read(line(:j-1),*,err=905) lag1
@@ -313,6 +314,7 @@
                 lskip = 1
             elseif ( line(1:3).eq.'mon' ) then
                 call getarg(i+1,line)
+                call deletebackslash(line)
 	        j = index(line,':')
 	        if ( j.ne.0 ) then
 	            read(line(:j-1),*,err=906) m1
@@ -452,7 +454,7 @@
                     read(line,*,err=906) lsum
                     if ( lsum.le.0 ) then
                         write(0,*) 'error: expecting sum>0,not ',lsum
-                        call abort
+                        call exit(-1)
                     endif
                     if ( lout ) print '(a,i4,a)','# summing ',lsum
      +                    ,' months/periods'
@@ -461,7 +463,7 @@
                     read(line,*,err=906) lsum2
                     if ( lsum.le.0 ) then
                         write(0,*) 'error: expecting sum2>0,not ',lsum2
-                        call abort
+                        call exit(-1)
                     endif
                     if ( lout ) print '(a,i4,a)','# summing ',lsum2
      +                    ,' months/periods of index/field/field2'
@@ -591,7 +593,7 @@
                 else
                     print *,'getopts: error: unknown option for random'
                     print *,line(1:llen(line))
-                    call abort
+                    call exit(-1)
                 endif
                 lskip = 1
             elseif ( line(1:5).eq.'noise' ) then
@@ -605,7 +607,7 @@
                 else
                     print *,'getopts: error: unknown option for noise'
                     print *,line(1:llen(line))
-                    call abort
+                    call exit(-1)
                 endif
                 lskip = 1
             elseif ( line(1:4).eq.'conf' ) then
@@ -1036,68 +1038,68 @@
         if ( lrank .and. ncrossvalidate.gt.0 ) then
             write(0,*) 'getopts: error: cannot use cross-validation ',
      +           'with rank correlations yet'
-            call abort
+            call exit(-1)
         end if
         return
 *
 *       error messages
 *
  905    print *,'getopts: error reading lag value ',trim(line)
-        call abort
+        call exit(-1)
  906    print *,'getopts: error reading sum value ',trim(line)
-        call abort
+        call exit(-1)
  907    print *,'getopts: error reading begin year value ',trim(line)
-        call abort
+        call exit(-1)
  908    print *,'getopts: error reading end year value ',trim(line)
-        call abort
+        call exit(-1)
  909    print *,'getopts: error reading maximum data value ',trim(line)
-        call abort
+        call exit(-1)
  910    print *,'getopts: error reading minimum data value ',trim(line)
-        call abort
+        call exit(-1)
  911    print *,'getopts: error reading minimum ks cut-off or "plot" '
      +       ,trim(line)
-        call abort
+        call exit(-1)
  912    print *,'getopts: error reading month value ',trim(line),
      +       ', should be integer between 1 and ',nperyear
-        call abort
+        call exit(-1)
  913    print *,'getopts: error reading ldecorrelation length '
      +       ,trim(line)
-        call abort
+        call exit(-1)
  914    print *,'getopts: error reading selection value ',trim(line)
      +       ,nperyear
-        call abort
+        call exit(-1)
  915    print *,'getopts: error reading minfac value ',trim(line)
-        call abort
+        call exit(-1)
  916    print *,'getopts: error reading lon,lat value ',trim(line)
-        call abort
+        call exit(-1)
  917    print *,'getopts: error: invalid value for xave: ',trim(line)
-        call abort
+        call exit(-1)
  918    print *,'getopts: error: invalid value for yave: ',trim(line)
-        call abort
+        call exit(-1)
  919    print *,'getopts: error: invalid value for fittime: ',trim(line)
-        call abort
+        call exit(-1)
  920    print *,'getopts: error reading minnum value ',trim(line)
-        call abort
+        call exit(-1)
  921    print *,'getopts: error reading interpolation type ',trim(line)
-        call abort
+        call exit(-1)
  922    print *,'getopts: error reading ensemble numbers from '
      +       ,trim(line)
-        call abort
+        call exit(-1)
  923    print *,'getopts: error: expecting a window length of more '//
      +       'than 0: ',trim(line)
-        call abort
+        call exit(-1)
  924    print *,'getopts: error: expecting a file name for running '//
      +       'correlations'
-        call abort
+        call exit(-1)
  925    print *,'getopts: error reading leads from ',trim(line)
-        call abort
+        call exit(-1)
  926    print *,'getopts: error reading factor from ',trim(line)
-        call abort
+        call exit(-1)
  927    print *,'getopts: error reading degree of fit polynomial from '
      +       ,trim(line)
-        call abort
+        call exit(-1)
  928    print *,'getopts: error: invalid value for day: ',trim(line)
-        call abort
+        call exit(-1)
         end
 
         subroutine month2period(m,nperyear,offset)
@@ -1115,7 +1117,7 @@
 *       normalize m
         if ( m.lt.1 ) then
             print *,'month2period: error: m<1: ',m
-            call abort
+            call exit(-1)
         endif
         if ( lwrite ) print *,'y,m,nperyear=',y,m,nperyear
         y = (m-1)/12
@@ -1169,3 +1171,16 @@
         m = m + nperyear*y
         if ( lwrite ) print *,'m = ',m
         end
+
+        subroutine deletebackslash(line)
+        implicit none
+        character*(*) line
+        integer j
+        j = index(line,'\\')
+        !!!print *,'@@@ j,line = ',j,trim(line)
+        do while ( j /= 0 )
+            line = line(:j-1) // line(j+1:)
+            j = index(line,'\\')
+            !!!print *,'@@@ j,line = ',j,trim(line)
+        end do
+        end subroutine
