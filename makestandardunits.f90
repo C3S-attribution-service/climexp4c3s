@@ -363,9 +363,9 @@ subroutine makestandardunits(mean,nperyear,invar,units,newunits,offset,slope,ndp
      &               (var(1:3).ne.'pme' .and. var(1:7).ne.'evspsbl' &
      &               .and. mean*slope*30.**ndpm.lt.1e-3 ) .or. &
      &               mean*slope*30.**ndpm.gt.1200 ) then
-                write(0,*) 'makestandardunits: error: units were ' &
-     &                   ,trim(units),' but this would give about ', &
-     &                   mean*slope*30.**ndpm,' mm/dy'
+                write(0,*) 'makestandardunits: warning: units were ' &
+     &                   ,trim(units),' but this makes about ', &
+     &                   mean*slope*30.**ndpm,' mm/day'
             end if
         elseif ( nperyear.eq. 12 ) then
 !               use mm/month
