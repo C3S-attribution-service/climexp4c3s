@@ -103,7 +103,7 @@
      +            //' more Y grid points ','(',avey
      +            ,') than are available between ',lat1c,' and
      +            ',lat2c,' degrees north'
-            call abort
+            call exit(-1)
         endif
         if ( lwrite ) print '(a,2i4,a,2i4)',
      +	      'getlatlonwindow: cutting out window x ',x1,x2,' and y ',
@@ -552,7 +552,7 @@
             if ( lwrite ) print *,'First shifting, overlap ',x1,x2
             if ( 1+x2-x1.gt.nx ) then
                 write(0,*) 'cutoutwindow: internal error ',1+x2-x1,nx
-                call abort
+                call exit(-1)
             endif
             nnx = 1+x2-x1
             if ( nnx.lt.1 ) nnx = nnx + nx
@@ -573,7 +573,7 @@
                                     print *,'cutoutwindow: '
      +                                   ,'internal error:',i,j,mo,yr
      +                                   ,field(i,j,mo,yr,iens)
-                                    call abort
+                                    call exit(-1)
                                 endif
                             enddo
                         enddo
@@ -707,7 +707,7 @@
                     enddo
                     if ( wgt.eq.0 ) then
                         write(0,*) 'cutoutwindow: error: weight=0'
-                        call abort
+                        call exit(-1)
                     endif
                     xx(i+1) = sum/wgt
                     wx(i+1) = wgt
