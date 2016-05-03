@@ -122,7 +122,7 @@
      +       ivars(2,1),lsncid,ndpm,yr1,yr2,nyr,ntvarid,nxf,nyf,
      +       nzf,it,mo,yr,irec
         integer ncidmask,nxmask,nymask,nzmask,ntmask,fyr,fmo,
-     +       jvarsmask(6,1)
+     +       jvarsmask(6,1),iarray1(13),iarray2(13),iret1,iret2
         integer,allocatable :: itimeaxis(:)
         integer xlist(nxmax*nymax),ylist(nxmax*nymax)
         real minfac,ave(mypermax),avemean(mypermax),lon1,lon2,lat1,lat2,
@@ -132,7 +132,7 @@
         real xxmask(nxmax),yymask(nymax),zzmask(nzmax)
         real,allocatable :: mask(:,:)
         logical xrev,yrev,xwrap,interp,missing,lstandardunits
-     +       ,gridpoints,anom,outfield,lmask
+     +       ,gridpoints,anom,outfield,lmask,lexist
         character string*255,dipole*2,shortfilename*255,datadir*255
      +       ,letter*1,lsmaskfile*255,lsmasktype*4,lstitle*255,
      +       fieldname*100,outfile*255
@@ -167,7 +167,7 @@
             read(in,'(a)') datadir
             mopts = 4
         else if ( string(1:4).eq.'mask' ) then
-            npoints = 1 ! for gthe time being only one mask can be requested at a time
+            npoints = 1 ! for the time being only one mask can be requested at a time
             lmask = .true.
             call getarg(3,string)
             write(0,'(2a)') 'cutting out region defined by mask ',
@@ -549,8 +549,28 @@
                 do i=1,len_trim(string)
                     if ( string(i:i).eq.' ' ) string(i:i) = '0'
                 enddo
+                inquire(file=trim(string),exist=lexist)
+                if ( lexist ) then
+                    ! check whether it is up-to-date
+                    call mystat(trim(fieldname),iarray1,iret1)
+                    call mystat(trim(string),iarray2,iret2)
+                    if ( iret1 == 0 .and. iret2 == 0 ) then
+                        if ( iarray2(10).ge.iarray1(10) ) then
+                            ! file already there and seems valid, next point
+                            if ( lwrite ) print *,'file ',trim(string),
+     +                           'already there and seems valid',
+     +                           iarray2(10).ge.iarray1(10)
+                            cycle
+                        end if
+                    end if
+                    if ( lwrite ) print *,'file ',trim(string),
+     +                   ' invalid or outdated ',iret1,iarray1(10),
+     +                   iret2,iarray2(10),', deleting'
+                    open(out,file=trim(string),status='old')
+                    close(out,status='delete')
+                end if
                 if ( lwrite ) print *,'opening ',trim(string)
-                open(out,file=string,status='unknown',err=900)
+                open(out,file=trim(string),status='unknown',err=900)
             endif
 *
             if ( title.eq.' ' ) title = shortfilename
@@ -836,7 +856,9 @@
      +           offset,slope,ndpm,year,yr1,yr2,nyr)
             if ( nyr.eq.0 ) then
                 write(0,*) 'get_index: error: cannot find any data'
-                call abort
+                if ( out.ne.6 ) then
+                    close(out,status='delete')
+                end if
             end if
             if ( gridpoints ) then
                 if ( nyr.gt.0 ) then
