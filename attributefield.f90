@@ -81,11 +81,11 @@
     yr2 = min(yr2,lyr)
     if ( yr1a.lt.yr1 .or. yr1a.lt.yrbeg ) then
         write(0,*) 'attribute: error: reference year should be after start of series ',yr1,yr1a
-        call abort
+        call exit(-1)
     end if
     if ( yr2a.gt.yr2 .or. yr2a.gt.yrend ) then
         write(0,*) 'attribute: error: current year should be before end of series ',yr2,yr2a
-        call abort
+        call exit(-1)
     end if
     call getj1j2(j1,j2,m1,nperyear,lwrite)
     call print_bootstrap_message(max(1,nint(decor)),j1,j2)
@@ -178,7 +178,7 @@
             &   mens1,mens,assume,distribution,seriesids,results,nresmax,nresults,lprint)
             if ( nresults > nresmax ) then
                 write(0,*) 'attributefield: error: got back too many results ',nresults,nresmax
-                call abort
+                call exit(-1)
             end if
             xyear = xyearsave
             if ( lwrite ) then
