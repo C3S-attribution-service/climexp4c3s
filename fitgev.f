@@ -38,9 +38,9 @@
         integer nmax,ncur
         parameter(nmax=100000)
         real data(nmax),restrain
-        logical llwrite
+        logical llwrite,llchangesign
         common /fitdata1/ data
-        common /fitdata2/ restrain,ncur,llwrite
+        common /fitdata2/ restrain,ncur,llwrite,llchangesign
 *
         real llgev,gevreturnlevel,gevreturnyear
         external llgev,gevreturnlevel,gevreturnyear
@@ -277,9 +277,9 @@
         integer nmax,ncur
         parameter(nmax=100000)
         real data(nmax),restrain
-        logical llwrite
+        logical llwrite,llchangesign
         common /fitdata1/ data
-        common /fitdata2/ restrain,ncur,llwrite
+        common /fitdata2/ restrain,ncur,llwrite,llchangesign
 *
         llgev = 0
         if ( p(2).le.0 ) then

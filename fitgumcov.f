@@ -46,9 +46,9 @@
         integer nmax,ncur
         parameter(nmax=100000)
         real data(2,nmax),restrain
-        logical llwrite
+        logical llwrite,llchangesign
         common /fitdata3/ data
-        common /fitdata2/ restrain,ncur,llwrite
+        common /fitdata2/ restrain,ncur,llwrite,llchangesign
         character cassume*5
         common /fitdata4/ cassume
 *
@@ -162,7 +162,6 @@
         if ( .not.lboot ) then
             if ( lchangesign ) then
                 a = -a
-                b = -b
                 t = -t
                 alpha = -alpha
                 beta = -beta
@@ -249,8 +248,6 @@
             acov = -acov
             aa = -aa
             aacov = -aacov
-            b = -b
-            bb = -bb
             alpha = -alpha
             alphaalpha = -alphaalpha
             if ( assume.eq.'both' ) then
@@ -365,6 +362,10 @@
         frac = 1
         ! gumbel fit
         nfit = 4
+        if ( lchangesign ) then
+            a = -a
+            alpha = -alpha
+        end if
 
         ! compute distribution at past year and plot it
         call adjustyy(ntot,xx,assume,a,b,alpha,beta,cov1,
@@ -501,9 +502,9 @@
         integer nmax,ncur
         parameter(nmax=100000)
         real data(2,nmax),restrain
-        logical llwrite
+        logical llwrite,llchangesign
         common /fitdata3/ data
-        common /fitdata2/ restrain,ncur,llwrite
+        common /fitdata2/ restrain,ncur,llwrite,llchangesign
 *
         llgumbelcov = 0
         do i=1,ncur

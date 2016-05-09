@@ -26,7 +26,7 @@
         real mean(0:nboot),sd(0:nboot),skew(0:nboot)
         character file*255,string*100,var*20,units*20,prog*100,
      +       number*100,line*255,command*255,extraargs*100,
-     +       extraargs_*100,ids(0:nensmax)*30
+     +       extraargs_*100,ids(0:nensmax)*30,assume*5
 
         integer iargc
         real gammln,erf,erfcc,gammq,gammp,invcumpois,invcumgamm
@@ -92,6 +92,7 @@
         nfit = 0
         ntype = 0
         yrs(0) = 0
+        assume = 'shift'
         if ( n.ge.i ) then
  10         continue
             call getarg(i,string)
@@ -143,6 +144,11 @@
                 endif
                 goto 10
             endif
+            if ( string(1:6).eq.'assume' ) then
+                call getarg(i+1,assume)
+                i = i + 2
+                goto 10
+            end if
             call getopts(i,n,nperyear,yrbeg,yrend,.true.,mens1,mens)
             if ( mens.gt.0 ) then
                 print '(a,i3,a,i3)','# using ensemble members ',nens1,
@@ -594,6 +600,7 @@
      +               tx25,tx975,confidenceinterval,.true.,.true.,lwrite)
                 call gumbnorm(a,b,snorm)
                 nfitted = 3
+                if ( lchangesign ) a = -a
             elseif ( nfit.eq.5 ) then
 *               GEV distribution
                 if ( nperyear.gt.12 .and. oper.ne.'a' .and. oper.ne.'i'
@@ -611,7 +618,7 @@
 *               GPD distribution
                 call fitgpd(xx,ntot,mean(0),sd(0),b,xi,j1,j2,lweb,
      +               ntype,lchangesign,pmindata,threshold,yr2a,xyear,
-     +               t,t25,t975,tx,tx25,tx975,restrain,
+     +               t,t25,t975,tx,tx25,tx975,restrain,assume,
      +               confidenceinterval,.true.,.true.,lwrite)
 ***                print *,'mindata,threshold = ',mindata,threshold
                 snorm = 1
@@ -1039,8 +1046,9 @@
                 endif
                 if ( lchangesign ) xyear = -xyear
                 if ( lchangesign .and. nfit.eq.6 ) then
-                    mindata = -mindata ! phenomenologically
-                    a = mindata
+                    a = threshold
+                    mindata = threshold
+                    b = abs(b)
                 end if
                 frac = 1
                 call plot_ordered_points(xx,xs,yrs,ntot,ntype,nfit,

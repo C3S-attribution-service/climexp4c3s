@@ -103,9 +103,9 @@
         integer nmax,ncur
         parameter(nmax=10000000)
         real data(nmax),xrestrain
-        logical llwrite
+        logical llwrite,llchangesign
         common /fitdata1/ data
-        common /fitdata2/ xrestrain,ncur,llwrite
+        common /fitdata2/ xrestrain,ncur,llwrite,llchangesign
 #include "getopts.inc"
 *       
         real gammln,gammp,gammq
@@ -153,9 +153,9 @@
         integer nmax,ncur
         parameter(nmax=10000000)
         real data(nmax),restrain
-        logical llwrite
+        logical llwrite,llchangesign
         common /fitdata1/ data
-        common /fitdata2/ restrain,ncur,llwrite
+        common /fitdata2/ restrain,ncur,llwrite,llchangesign
 *
         real dgammln,llgamma
         external dgammln,llgamma

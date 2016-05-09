@@ -1,8 +1,8 @@
 *  #[ fitgpd:
         subroutine fitgpd(xx,ntot,mean,sd,b,xi,j1,j2,lweb,ntype
      +       ,lchangesign,pthreshold,threshold,year,xyear,t,t25,t975,tx
-     +       ,tx25,tx975,inrestrain,confidenceinterval,lboot,lprint,
-     +       lwrite)
+     +       ,tx25,tx975,inrestrain,assume,confidenceinterval,lboot
+     +       ,lprint,lwrite)
 *
 *       a fit a GPD distribution to the data
 *       input:
@@ -21,6 +21,7 @@
         real xx(ntot),mean,sd,b,pthreshold,inrestrain,xyear,
      +       t(10),t25(10),t975(10),tx,tx25,tx975,confidenceinterval
         logical lweb,lchangesign,lboot,lprint,lwrite
+        character assume*5
 *
         integer i,j,k,n,nx,iter,iens,iweird,nweird
         real x,xi,bb(nmc),xixi(nmc),tt(nmc,10),b25
@@ -32,10 +33,12 @@
 *
         integer nmax,ncur
         parameter(nmax=100000)
-        real data(nmax),restrain
-        logical llwrite
+        real data(nmax),restrain,cthreshold
+        logical llwrite,llchangesign
         common /fitdata1/ data
-        common /fitdata2/ restrain,ncur,llwrite
+        common /fitdata2/ restrain,ncur,llwrite,llchangesign,cthreshold
+        character cassume*5
+        common /fitdata4/ cassume
 *
         real llgpd
         external llgpd
@@ -89,6 +92,9 @@
             endif
         enddo
         restrain = inrestrain
+        cthreshold = threshold
+        cassume = assume
+        llchangesign = lchangesign
         if ( lwrite ) print *,'fitgpd: found ',ncur
      +       ,' points above threshold'
 !       make sure that points with a lot of equal values at the
@@ -105,7 +111,11 @@
             return
         endif            
         b = sd
-        xi = 0
+        if ( lchangesign .and. cassume == 'scale' ) then
+            xi = -0.1
+        else
+            xi = 0.1
+        end if
         call fit1gpd(b,xi,iter)
         if ( b.lt.1e-6*sd ) then
 *           something went wrong, throw away results
@@ -261,8 +271,6 @@
             endif
         enddo
         if ( lchangesign ) then
-            b = -b
-            bb = -bb
             t = -t
             tt = -tt
         endif
@@ -293,12 +301,19 @@
         if ( .not.lprint .and. .not.lwrite ) return
         if ( lweb ) then
             print '(a)','# <tr><td colspan="3">Fitted to GPD '//
-     +           'distribution H(x) = 1 - (1+&xi;*(x-a)/b)^(-1/&xi;)'
-     +           //'</td></tr>'
-            print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>a:</td><td>'
-     +           ,threshold,'</td><td>(',pthreshold,'%)</td></tr>'
-            print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>b:</td><td>'
-     +           ,b,'</td><td>',b25,'...',b975,'</td></tr>'
+     +           'distribution H(x) = 1 - (1+&xi;(x-&mu;)/&sigma;)'//
+     +           '^(-1/&xi;)</td></tr>'
+            if ( lchangesign ) then
+                print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>&mu;:'//
+     +               '</td><td>',-threshold,'</td><td>(',100-pthreshold,
+     +               '%)</td></tr>'
+            else
+                print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>&mu;:'//
+     +               '</td><td>',threshold,'</td><td>(',pthreshold,
+     +               '%)</td></tr>'
+            end if
+            print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>&sigma;:'//
+     +           '</td><td>',b,'</td><td>',b25,'...',b975,'</td></tr>'
             print '(a,f16.3,a,f16.3,a,f16.3,a)'
      +           ,'# <tr><td>&xi;:</td><td>',xi,'</td><td>',xi25,'...'
      +           ,xi975,'</td></tr>'
@@ -327,12 +342,21 @@
         real b,xi
         integer i
         real q(2),p(3,2),y(3),tol
+        logical lok
+        integer nmax,ncur
+        parameter(nmax=100000)
+        real data(nmax),restrain,cthreshold
+        logical llwrite,llchangesign
+        common /fitdata1/ data
+        common /fitdata2/ restrain,ncur,llwrite,llchangesign,cthreshold
+        character cassume*5
+        common /fitdata4/ cassume
         real llgpd
         external llgpd
 *
 *       fit, using Numerical Recipes routines
 *
-        !!!print *,'fit1gpd: b,xi = ',b,xi
+ 10     continue
         q(1) = b
         q(2) = xi
         p(1,1) = q(1) *0.9
@@ -341,11 +365,30 @@
         p(2,2) = p(1,2)
         p(3,1) = p(1,1)
         p(3,2) = p(1,2) *1.2 + 0.1
+        lok = .false.
         do i=1,3
             q(1) = p(i,1)
             q(2) = p(i,2)
             y(i) = llgpd(q)
+            if ( y(i) < 1e33 ) lok = .true.
         enddo
+        if ( .not.lok ) then
+            if ( xi /= 0 ) then
+                xi = xi + 0.1*xi/abs(xi)
+            else if ( cassume == 'scale' .and. llchangesign ) then
+                xi = -0.1
+            else 
+                xi = 0.1
+            end if
+            if ( abs(xi).lt.2 ) then
+                goto 10
+            else
+                write(0,*) 'fit1gpd: error: cannot find initial values'
+                b = 3e33
+                xi = 3e33
+                return
+            end if
+        end if
         tol = 1e-4
         call amoeba(p,y,3,2,2,tol,llgpd,iter)
 *       maybe add restart later
@@ -371,13 +414,17 @@
 *
         integer i
         real b,xi,s,z,llold
+        integer,save :: init
+        data init /0/
 *
         integer nmax,ncur
         parameter(nmax=100000)
-        real data(nmax),restrain
-        logical llwrite
+        real data(nmax),restrain,cthreshold
+        logical llwrite,llchangesign
         common /fitdata1/ data
-        common /fitdata2/ restrain,ncur,llwrite
+        common /fitdata2/ restrain,ncur,llwrite,llchangesign,cthreshold
+        character cassume*5
+        common /fitdata4/ cassume
 *
         llgpd = 0
         b = p(1)
@@ -395,6 +442,25 @@
             write(0,*) 'llgpd: restrain<0 ',restrain
             call abort
         end if
+        if ( llchangesign .and. cassume == 'scale' ) then
+            if ( init == 0 ) then
+                init = 1
+                write(0,*) 'Enforcing a hard lower bound of zero.'
+            end if
+            if ( xi >= 0 ) then
+                ! scaling implies (for climate) that the distribution cannot cross zero, 
+                ! so xi must be < 0
+                llgpd = 3e33
+                goto 999
+            end if
+            if ( b > abs(cthreshold*xi) ) then
+                ! scaling implies (for climate) that the distribution cannot cross zero, 
+                ! so the upper limit must be <0 (for flipped signs)
+                llgpd = 3e33
+                goto 999
+            end if
+        end if
+            
         do i=1,ncur
             z = data(i)
             if ( z.lt.0 ) then

@@ -36,9 +36,9 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
     parameter(nmax=100000)
     integer ncur
     real data(2,nmax),restrain
-    logical llwrite
+    logical llwrite,llchangesign
     common /fitdata3/ data
-    common /fitdata2/ restrain,ncur,llwrite
+    common /fitdata2/ restrain,ncur,llwrite,llchangesign
     character cassume*5
     common /fitdata4/ cassume
 !
@@ -334,7 +334,10 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
     frac = 1
     ! fit to gauss (normal distribution)
     nfit = 2
-    if ( lchangesign ) b = -b
+    if ( lchangesign ) then
+        a = -a
+        alpha = -alpha
+    end if
 
     ! compute distribution at past year and plot it
     call adjustyy(ntot,xx,assume,a,b,alpha,beta,cov1,yy,zz,aaa,bbb,lchangesign,lwrite)
@@ -465,9 +468,9 @@ real function llgausscov(p)
     parameter(nmax=100000)
     integer ncur
     real data(2,nmax),restrain
-    logical llwrite
+    logical llwrite,llchangesign
     common /fitdata3/ data
-    common /fitdata2/ restrain,ncur,llwrite
+    common /fitdata2/ restrain,ncur,llwrite,llchangesign
     character cassume*5
     common /fitdata4/ cassume
 !   

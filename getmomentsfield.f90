@@ -30,7 +30,7 @@ program getmomentsfield
      &       ,vars(nvarmax)*15,lvars(nvarmax)*255,svars(nvarmax)*80 &
      &       ,title*255,history*10000,units(nvarmax)*20, &
      &       cell_methods(nvarmax)*100,lsmasktype*4,ltime*120
-        character yesno*1,dir*255,string*15,saveunits*20,format*10
+        character yesno*1,dir*255,string*15,saveunits*20,format*10,assume*5
         integer iargc,llen,rindex
 !
 !       process command line
@@ -143,6 +143,7 @@ program getmomentsfield
                 call getarg(3,line)
                 read(line,*,err=905) year
             endif
+            assume = 'shift'
             imoment = 200
         elseif ( line(1:3).eq.'gev' ) then
             if ( line(1:6).eq.'gev_rt' ) then
@@ -588,7 +589,7 @@ program getmomentsfield
                             call fitgpd(ddata,n,xmom(1),xmom(2),b,xi, &
      &                           j1,j2,lweb,2,lchangesign,pmindata, &
      &                           mindata,year,xyear,t,t25,t975, &
-     &                           tx,tx25,tx975,restrain,confidenceinterval, &
+     &                           tx,tx25,tx975,restrain,assume,confidenceinterval, &
      &                           .false.,.false.,lwrite)
                             res(jx,jy,jz,m,1) = b
                             res(jx,jy,jz,m,2) = xi

@@ -57,9 +57,9 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     integer nmax,ncur
     parameter(nmax=100000)
     real data(2,nmax),restrain
-    logical llwrite
+    logical llwrite,llchangesign
     common /fitdata3/ data
-    common /fitdata2/ restrain,ncur,llwrite
+    common /fitdata2/ restrain,ncur,llwrite,llchangesign
     character cassume*5
     common /fitdata4/ cassume
     integer nthreshold
@@ -193,6 +193,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     end do
     restrain = inrestrain
     llwrite = lwrite
+    llchangesign = lchangesign
     cassume = assume
 
     ! first guess
@@ -205,7 +206,11 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     ! needed later on...
     yy(1:ncur) = ys(1:ncur)
     b = sd/3 ! should set the scale roughly right...
-    xi = 0
+    if ( cassume == 'scale' .and. lchangesign ) then
+        xi = -0.1
+    else
+        xi = 0.1
+    end if
     if ( assume == 'shift' .or. assume == 'scale' ) then
         beta = 3e33
         call fit1gpdcov(a,b,xi,alpha,dalpha,iter)
@@ -228,9 +233,17 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         end do
     end if
     call getabfromcov(a,b,alpha,beta,cov1,aaa,bbb)
-    acov(1,1) = aaa
+    if ( lchangesign) then
+        acov(1,1) = -aaa
+    else
+        acov(1,1) = aaa
+    end if
     call getabfromcov(a,b,alpha,beta,cov2,aaa,bbb)
-    acov(1,2) = aaa
+    if ( lchangesign) then
+        acov(1,2) = -aaa
+    else
+        acov(1,2) = aaa
+    end if
     call write_threshold(cmin,cmax,a,b,alpha,beta,offset,lchangesign)
 !
 !   bootstrap to find error estimates
@@ -342,9 +355,9 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     if ( lchangesign ) then
         do iiens=1,iens
             if ( a < 1e33 ) a = -a
-            if ( aa(iens) < 1e33 ) aa(iens) = -aa(iens)
-            if ( aacov(iens,1) < 1e33 ) aacov(iens,1) = -aacov(iens,1)
-            if ( aacov(iens,2) < 1e33 ) aacov(iens,2) = -aacov(iens,2)
+            if ( aa(iiens) < 1e33 ) aa(iiens) = -aa(iiens)
+            if ( aacov(iiens,1) < 1e33 ) aacov(iiens,1) = -aacov(iiens,1)
+            if ( aacov(iiens,2) < 1e33 ) aacov(iiens,2) = -aacov(iiens,2)
         end do
         alpha = -alpha
         alphaalpha = -alphaalpha
@@ -419,6 +432,9 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         goto 801 ! deallocate and return
         !!!if ( .not.lwrite ) goto 801 ! deallocate and return
     end if
+    if ( lchangesign ) then
+        a = -a
+    end if
     if ( lweb ) then
     print '(a)','# <tr><td colspan="4">Fitted to GPD '// &
      &           'distribution H(x+&mu;'') = 1 - (1+&xi;*x/&sigma;'')^(-1/&xi;)</td></tr>'
@@ -449,9 +465,6 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     call printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,lweb,plot)
     call printcovpvalue(txtx,nmc,iens,lweb)
 
-!       plot fit for present-day climate
-    call plotreturnvalue(ntype,t25(1,2),t975(1,2),j2-j1+1)
-
     if ( dump ) then
         call plot_tx_cdfs(txtx,nmc,iens,ntype,j1,j2)
     end if
@@ -470,12 +483,18 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     do i=1,ncur
         data(:,i) = xx(:,ii(i))
     end do
+    if ( lchangesign ) then
+        ! we had flipped the sign on a,alpha but not yet on the rest, flip back...
+        a = -a
+        alpha = -alpha
+        if ( assume == 'both' ) beta = -beta
+    end if
     ! compute distribution at past year and plot it
     call adjustyy(ncur,data,assume,a,b,alpha,beta,cov1,yy,zz,aaa,bbb,lchangesign,lwrite)
     ys(1:ncur) = yy(1:ncur)
-    mindata = aaa
     print '(a,i5)','# distribution in year ',yr1a
     call plotreturnvalue(ntype,t25(1,1),t975(1,1),j2-j1+1)
+    mindata = aaa
     call plot_ordered_points(yy,ys,yyrs,ncur,ntype,nfit, &
      &       frac,aaa,bbb,xi,j1,j2,minindx,mindata,pmindata, &
      &       year,xyear,snorm,lchangesign,lwrite,.false.)
@@ -483,11 +502,11 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     ! compute distribution at present year and plot it
     call adjustyy(ncur,data,assume,a,b,alpha,beta,cov2,yy,zz,aaa,bbb,lchangesign,lwrite)
     ys(1:ncur) = yy(1:ncur)
-    mindata = aaa
     print '(a)'
     print '(a)'
     print '(a,i5)','# distribution in year ',yr2a
     call plotreturnvalue(ntype,t25(1,2),t975(1,2),j2-j1+1)
+    mindata = aaa
     call plot_ordered_points(yy,ys,yyrs,ncur,ntype,nfit, &
      &       frac,aaa,bbb,xi,j1,j2,minindx,mindata,pmindata, &
      &       year,xyear,snorm,lchangesign,lwrite,.true.)
@@ -507,12 +526,16 @@ subroutine fit1gpdcov(a,b,xi,alpha,dalpha,iter)
     real a,b,xi,alpha,dalpha
     integer i
     real q(4),p(4,3),y(4),tol
+    logical lok
     real llgpdcov
     external llgpdcov
+    character cassume*5
+    common /fitdata4/ cassume
     integer nthreshold
     real athreshold,pthreshold
     common /fitdata5/ nthreshold,athreshold,pthreshold
 !
+10  continue
     q(1) = b
     q(2) = xi
     q(3) = alpha
@@ -529,12 +552,32 @@ subroutine fit1gpdcov(a,b,xi,alpha,dalpha,iter)
     p(4,1) = p(1,1)
     p(4,2) = p(1,2)
     p(4,3) = p(1,3) + 2*dalpha
+    lok = .false.
     do i=1,4
         q(1) = p(i,1)
         q(2) = p(i,2)
         q(3) = p(i,3)
         y(i) = llgpdcov(q)
+        if ( y(i) < 1e33 ) lok = .true.
     end do
+    if ( .not.lok ) then
+        if ( xi /= 0 ) then
+            xi = xi + 0.1*xi/abs(xi)
+        else if ( cassume == 'scale' .and. athreshold < 0 ) then
+            xi = -0.1
+        else 
+            xi = 0.1
+        end if
+        if ( abs(xi).lt.2 ) then
+            goto 10
+        else
+            write(0,*) 'fit1gpdcov: error: cannot find initial fit values'
+            a = 3e33
+            b = 3e33
+            xi = 3e33
+            alpha = 3e33
+        end if
+    end if
     tol = 1e-4
     call amoeba(p,y,4,3,3,tol,llgpdcov,iter)
 !   maybe add restart later
@@ -550,12 +593,16 @@ subroutine fit2gpdcov(a,b,xi,alpha,beta,dalpha,dbeta,iter)
     real a,b,xi,alpha,beta,dalpha,dbeta
     integer i
     real q(4),p(5,4),y(5),tol
+    logical lok
     real llgpdcov
     external llgpdcov
+    character cassume*5
+    common /fitdata4/ cassume
     integer nthreshold
     real athreshold,pthreshold
     common /fitdata5/ nthreshold,athreshold,pthreshold
 !
+10  continue
     q(1) = b
     q(2) = xi
     q(3) = alpha
@@ -580,13 +627,34 @@ subroutine fit2gpdcov(a,b,xi,alpha,beta,dalpha,dbeta,iter)
     p(5,2) = p(1,2)
     p(5,3) = p(1,3)
     p(5,4) = p(1,4) + 2*dbeta
+    lok = .false.
     do i=1,5
         q(1) = p(i,1)
         q(2) = p(i,2)
         q(3) = p(i,3)
         q(4) = p(i,4)
         y(i) = llgpdcov(q)
+        if ( y(i) < 1e33 ) lok = .true.
     end do
+    if ( .not.lok ) then
+        if ( xi /= 0 ) then
+            xi = xi + 0.1*xi/abs(xi)
+        else if ( cassume == 'scale' .and. athreshold < 0 ) then
+            xi = -0.1
+        else 
+            xi = 0.1
+        end if
+        if ( abs(xi).lt.1 ) then
+            goto 10
+        else
+            write(0,*) 'fit2gpdcov: error: cannot find initial fit values'
+            a = 3e33
+            b = 3e33
+            xi = 3e33
+            alpha = 3e33
+            beta = 3e33
+        end if
+    end if
     tol = 1e-4
     call amoeba(p,y,5,4,4,tol,llgpdcov,iter)
 !   maybe add restart later
@@ -615,14 +683,15 @@ real function llgpdcov(p)
     integer nmax,ncur
     parameter(nmax=100000)
     real data(2,nmax),restrain
-    logical llwrite
+    logical llwrite,llchangesign
     common /fitdata3/ data
-    common /fitdata2/ restrain,ncur,llwrite
+    common /fitdata2/ restrain,ncur,llwrite,llchangesign
     character cassume*5
     common /fitdata4/ cassume
     integer nthreshold
     real athreshold,pthreshold
     common /fitdata5/ nthreshold,athreshold,pthreshold
+    integer,save :: init=0
 !
     llgpdcov = 0
     allocate(xx(ncur))
@@ -631,11 +700,11 @@ real function llgpdcov(p)
     if ( abs(xi) > 10 ) then
         if ( llwrite ) print *,'llgpdcov: |xi|>10: ',p(2)
         llgpdcov = 3e33
-        goto 999
+        goto 999 
     end if
     if ( restrain < 0 ) then
-        write(0,*) 'llgpdcov: restrain<0 ',restrain
-        call abort
+        write(0,*) 'llgpdcov: error: restrain<0 ',restrain
+        call exit(-1)
     end if
 !
 !   get threshold
@@ -657,6 +726,16 @@ real function llgpdcov(p)
         xx = xx - athreshold
         if ( llwrite ) xxunsorted = xxunsorted - athreshold
     else
+        if ( llchangesign .and. init == 0 ) then
+            init = 1
+            write(0,*) 'Enforcing a hard lower bound of zero.'
+        end if
+        if ( llchangesign .and. xi >= 0 ) then
+            ! scaling implies (for climate) that the distribution cannot cross zero, 
+            ! so xi must be < 0
+            llgpdcov = 3e33
+            goto 999
+        end if
         ! iterative procedure I am afraid...
         ! assume athreshold has been set to a reasonable value higher up
         if ( llwrite ) then
@@ -694,7 +773,7 @@ real function llgpdcov(p)
                         nlo = n
                         aathreshold(ilohi) = aathreshold(ilohi) * delta
                     end if
-                    if ( llwrite ) print *,'bracketing ',ilohi,nthreshold,alo,nlo,ahi,nhi
+                    if ( .false. .and. llwrite ) print *,'bracketing ',ilohi,nthreshold,alo,nlo,ahi,nhi
                 else
                     ! bisect
                     if ( n <= nthreshold+1-ilohi .eqv. athreshold > 0 ) then
@@ -706,7 +785,7 @@ real function llgpdcov(p)
                     end if
                     aathreshold(ilohi) = (alo+ahi)/2
                     if ( abs((alo-ahi)/(alo+ahi)).lt.2e-7 ) exit
-                    if ( llwrite ) print *,'bisecting  ',ilohi,nthreshold,alo,nlo,ahi,nhi
+                    if ( .false. .and. llwrite ) print *,'bisecting  ',ilohi,nthreshold,alo,nlo,ahi,nhi
                 end if
             end do
             if ( iloop > maxloop ) then
@@ -719,6 +798,12 @@ real function llgpdcov(p)
             if ( llwrite ) print *,'aathreshold(ilohi) = ',aathreshold(ilohi)
         end do ! ilohoi
         athreshold = (aathreshold(1) + aathreshold(2))/2
+        if ( llchangesign .and. p(1) > athreshold*xi ) then
+            ! scaling implies (for climate) that the distribution cannot cross zero, 
+            ! so the upper limit must be <0 (for flipped signs)
+            llgpdcov = 3e33
+            goto 999
+        end if
         n = 0
         do i=1,ncur
             arg = alpha*data(2,i)/athreshold
@@ -761,14 +846,22 @@ real function llgpdcov(p)
             llgpdcov = 3e33
             goto 999
         end if
+        if ( cassume == 'scale' .and. ( llchangesign .eqv. athreshold > 0 ) ) then
+            if ( llwrite ) print *,'llgpdcov: threshold has wrong sign ',athreshold
+            llgpdcov = 3e33
+            goto 999
+        end if
+
         z = xx(i)
         if ( z < 0 ) then
             if ( z < -5e-5*abs(athreshold) ) then
                 write(0,*) 'llgpdcov: error: z<0 ',z,n,nthreshold
                 write(*,*) '# llgpdcov: error: z<0 ',z,n,nthreshold
-                do j=1,ncur
-                    print *,i,j,xx(j)
-                end do
+                if ( llwrite ) then
+                    do j=1,ncur
+                        print *,i,j,xx(j)
+                    end do
+                end if
             end if
             z = 0
         end if
@@ -842,8 +935,10 @@ real function gpdcovreturnlevel(a,b,xi,alpha,beta,xx,cov)
     logical lwrite
     integer ncur
     real restrain
-    logical llwrite
-    common /fitdata2/ restrain,ncur,llwrite
+    logical llwrite,llchangesign
+    common /fitdata2/ restrain,ncur,llwrite,llchangesign
+    character cassume*5
+    common /fitdata4/ cassume
     integer nthreshold
     real athreshold,pthreshold
     common /fitdata5/ nthreshold,athreshold,pthreshold
@@ -874,6 +969,10 @@ real function gpdcovreturnlevel(a,b,xi,alpha,beta,xx,cov)
         print *,'aa,bb             = ',aa,bb
         print *,'gpdcovreturnlevel = ',t
     end if
+    if ( cassume == 'scale' .and. ( llchangesign .eqv. t > 0 ) ) then
+        write(0,*) 'gpdcovreturnlevel: error: wrong sign return level ',t
+        t = 3e33
+    end if
     gpdcovreturnlevel = t
 end function
 
@@ -890,9 +989,9 @@ real function gpdcovreturnyear(a,b,xi,alpha,beta,xyear,cov,lchangesign)
     integer nmax,ncur
     parameter(nmax=100000)
     real data(2,nmax),restrain
-    logical llwrite
+    logical llwrite,llchangesign
     common /fitdata3/ data
-    common /fitdata2/ restrain,ncur,llwrite
+    common /fitdata2/ restrain,ncur,llwrite,llchangesign
     character cassume*5
     common /fitdata4/ cassume
     integer nthreshold
@@ -915,12 +1014,12 @@ real function gpdcovreturnyear(a,b,xi,alpha,beta,xyear,cov,lchangesign)
             tx = 3e33
         else if ( z <= 0 ) then
             tx = 1e20
+        else if ( abs(xi) < 1e-3 ) then
+            tx = exp(z - 0.5*xi*z**2)/(1-pthreshold/100)
         else if ( log(z)/xi > 45 ) then
             tx = 1e20
-        else if ( abs(xi) > 1e-3 ) then
-            tx = z**(1/xi)/(1-pthreshold/100)
         else
-            tx = exp(z - 0.5*xi*z**2)/(1-pthreshold/100)
+            tx = z**(1/xi)/(1-pthreshold/100)
         end if
         if ( .false. .and. tx > 1e20 ) then
             write(0,*) 'fitgpd: tx > 1e20: ',tx
@@ -937,7 +1036,7 @@ real function gpdcovreturnyear(a,b,xi,alpha,beta,xyear,cov,lchangesign)
         call adjustyy(ncur,data,cassume,a,b,alpha,beta,cov,yy,zz,aaa,bbb,lchangesign,llwrite)
         if ( .true. ) then
             do i=1,ncur
-                if ( yy(i) > xyear .eqv. lchangesign ) n = n + 1
+                if ( yy(i) > xyear ) n = n + 1
             end do
         else
             if ( cassume == 'shift' ) then
@@ -961,7 +1060,7 @@ real function gpdcovreturnyear(a,b,xi,alpha,beta,xyear,cov,lchangesign)
         ! approximately... I do not have this information here.
         ntot = nint(nthreshold/(1-pthreshold/100))
         if ( n < nthreshold/2 ) then
-            !!!write(0,*) 'gpdcovreturnyear: error: n<nhreshold/2 but xyear < aa ',n,nthreshold/2,xyear,aa
+            !!!write(0,*) 'gpdcovreturnyear: error: n<nthreshold/2 but xyear < aa ',n,nthreshold/2,xyear,aa
             if ( llwrite ) write(*,*) 'gpdcovreturnyear: error: n<nhreshold/2 but xyear < aa ',n,nthreshold/2,xyear,aa
             tx = 3e33
         else

@@ -22,9 +22,9 @@
         parameter(nmax=10000000)
         integer ncur
         real data(nmax),restrain
-        logical llwrite
+        logical llwrite,llchangesign
         common /fitdata1/ data
-        common /fitdata2/ restrain,ncur,llwrite
+        common /fitdata2/ restrain,ncur,llwrite,llchangesign
 *
         real llgauss,erfc
         real *8 ranf 
@@ -117,16 +117,16 @@
                     txtx(imc) = 2/erfc(z/sqrt(2.))
                 endif
             enddo               ! imc
+            if ( lchangesign ) then
+                t = -t
+                tt = -tt
+            endif
             do i=1,10
                 call getcut( t25(i),(100-confidenceinterval)/2,nmc,
      +               tt(1,i))
                 call getcut(t975(i),(100+confidenceinterval)/2,nmc,
      +               tt(1,i))
             enddo
-            if ( lchangesign ) then
-                t25 = -t25
-                t975 = -t975
-            endif
             if ( xyear.lt.1e33 ) then
                 call getcut( tx25,(100-confidenceinterval)/2,nmc,txtx)
                 call getcut(tx975,(100+confidenceinterval)/2,nmc,txtx)
@@ -135,10 +135,6 @@
                 call printreturnvalue(ntype,t,t25,t975,lweb)
                 call printreturntime(year,xyear,tx,tx25,tx975,lweb)
                 call plotreturnvalue(ntype,t25,t975,j2-j1+1)
-            endif
-            if ( lchangesign ) then
-                a = -a
-                b = -b
             endif
             return
         else
@@ -196,9 +192,9 @@
         integer nmax,ncur
         parameter(nmax=10000000)
         real data(nmax),restrain
-        logical llwrite
+        logical llwrite,llchangesign
         common /fitdata1/ data
-        common /fitdata2/ restrain,ncur,llwrite
+        common /fitdata2/ restrain,ncur,llwrite,llchangesign
 *       
         llgauss = 0
         do i=1,ncur

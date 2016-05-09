@@ -14,9 +14,9 @@
         integer nmax,ncur
         parameter(nmax=10000000)
         real data(nmax),restrain
-        logical llwrite
+        logical llwrite,llchangesign
         common /fitdata1/ data
-        common /fitdata2/ restrain,ncur,llwrite
+        common /fitdata2/ restrain,ncur,llwrite,llchangesign
 *
         real llpoisson
         external llpoisson
@@ -69,9 +69,9 @@
         integer nmax,ncur
         parameter(nmax=10000000)
         real data(nmax),restrain
-        logical llwrite
+        logical llwrite,llchangesign
         common /fitdata1/ data
-        common /fitdata2/ restrain,ncur,llwrite
+        common /fitdata2/ restrain,ncur,llwrite,llchangesign
 *
         real gammln
         external gammln

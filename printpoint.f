@@ -390,6 +390,7 @@
 *               IMSL routine
                 call merfi(ff,z,ier)
                 s = a + sqrt2*b*z
+                if ( lchangesign ) s = -s
             elseif ( nfit.eq.3 ) then
 *               Gamma distribution
                 f = snorm*f
@@ -404,6 +405,7 @@
                     s = s + exp(-exp(-(minindx-a)/b))
                 endif
                 s = a - b*log(-log(s))
+                if ( lchangesign ) s = -s
             elseif ( nfit.eq.5 ) then
 *               GEV distribution
                 s = snorm*f
@@ -428,6 +430,7 @@
                         s = b/xi*((1-s)**(-xi) - 1)
                     endif
                     s = mindata + s
+                    if ( lchangesign ) s = -s
                 endif
             else
                 write(0,*) 'histogram: error: '//
@@ -597,8 +600,8 @@
         if ( scalingpower.eq.1 ) return
         if ( smin.lt.0 ) smin = 0
         if ( scalingpower.eq.0 ) then
-            smin = exp(smin)
-            smax = exp(smax)
+            smin = 10.**smin
+            smax = 10.**smax
         else
             smin = smin**(1/scalingpower)
             smax = smax**(1/scalingpower)
@@ -630,8 +633,10 @@
                     write(string,'(a,i1,a)') '(a,i',n,',a,f15.4,a)'
                 end if
                 if ( scalingpower.eq.0 ) then
-                    write(unit,string) '#@ "',nint(i*delta),
-     +                   '" ',log(i*delta),'\\'
+                    if ( i /= 0 ) then
+                        write(unit,string) '#@ "',nint(i*delta),
+     +                       '" ',log10(i*delta),'\\'
+                    end if
                 else
                     write(unit,string) '#@ "',nint(i*delta),
      +               '" ',(i*delta)**(scalingpower),'\\'
@@ -643,7 +648,7 @@
      +               ',a,f15.4,a)'
                 if ( scalingpower.eq.0 ) then
                     write(unit,string) '#@ "',i*delta,
-     +                   '" ',log(i*delta),'\\'
+     +                   '" ',log10(i*delta),'\\'
                 else
                     write(unit,string) '#@ "',i*delta,
      +               '" ',(i*delta)**(scalingpower),'\\'
@@ -781,8 +786,8 @@
         common /fitdata4/ cassume
         integer ncur
         real restrain
-        logical llwrite
-        common /fitdata2/ restrain,ncur,llwrite
+        logical llwrite,llchangesign
+        common /fitdata2/ restrain,ncur,llwrite,llchangesign
         
         if ( cassume.eq.'shift' ) then
             aa = a + alpha*cov
@@ -870,37 +875,20 @@
             zz(i) = xx(2,i)
         end do
         if ( assume.eq.'shift' ) then
-            if ( lchangesign ) then
-                do i=1,ntot
-                    yy(i) = yy(i) + alpha*(zz(i)-cov)
-                end do
-            else
-                do i=1,ntot
-                    yy(i) = yy(i) - alpha*(zz(i)-cov)
-                end do
-            end if
+            do i=1,ntot
+                yy(i) = yy(i) - alpha*(zz(i)-cov)
+            end do
             aaa = a+cov*alpha
             bbb = b
         else if ( assume.eq.'scale' ) then
-            if ( lchangesign ) then
-                do i=1,ntot
-                    arg = alpha*(zz(i)-cov)/a
-                    if ( arg < 70 ) then
-                        yy(i) = yy(i)*exp(arg)
-                    else
-                        yy(i) = 3e33
-                    end if
-                end do
-            else
-                do i=1,ntot
-                    arg = -alpha*(zz(i)-cov)/a
-                    if ( arg < 70 ) then
-                        yy(i) = yy(i)*exp(arg)
-                    else
-                        yy(i) = 3e33
-                    end if
-                end do
-            end if
+            do i=1,ntot
+                arg = -alpha*(zz(i)-cov)/a
+                if ( arg < 70 ) then
+                    yy(i) = yy(i)*exp(arg)
+                else
+                    yy(i) = 3e33
+                end if
+            end do
             arg = alpha*cov/a
             if ( arg < 70 ) then
                 aaa = a*exp(arg)
@@ -918,7 +906,6 @@
             write(*,*) 'adjustyy: error: unknown assumption ',assume
             call abort            
         end if
-
         end
 *  #] adjustyy:
 *  #[ write_obscov:

@@ -29,9 +29,9 @@
         integer nmax,ncur
         parameter(nmax=100000)
         real data(nmax),restrain
-        logical llwrite
+        logical llwrite,llchangesign
         common /fitdata1/ data
-        common /fitdata2/ restrain,ncur,llwrite
+        common /fitdata2/ restrain,ncur,llwrite,llchangesign
 *
         real llgumbel,gevreturnlevel,gevreturnyear
         external llgumbel,gevreturnlevel,gevreturnyear
@@ -159,7 +159,7 @@
         enddo
         if ( lchangesign ) then
             a = -a
-            b = -b
+            aa = -aa
             t = -t
             tt = -tt
         endif
@@ -190,12 +190,12 @@
         if ( .not.lprint .and. .not.lwrite ) return
         if ( lweb ) then
             print '(a)','# <tr><td colspan="3">Fitted to '//
-     +           'Gumbel distribution P(x) = exp(-exp(-(x-a)/b))'//
-     +           '</td></tr>'
-            print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>a:</td><td>'
-     +           ,a,'</td><td>',a25,'...',a975,'</td></tr>'
-            print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>b:</td><td>'
-     +           ,b,'</td><td>',b25,'...',b975,'</td></tr>'
+     +           'Gumbel distribution P(x) = exp(-exp(-(x-&mu;)/'//
+     +           '&sigma;))</td></tr>'
+            print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>&mu;:'//
+     +           '</td><td>',a,'</td><td>',a25,'...',a975,'</td></tr>'
+            print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>&sigma;:'//
+     +           '</td><td>',b,'</td><td>',b25,'...',b975,'</td></tr>'
         else
             print '(a,i5,a)','# Fitted to Gumbel distribution in ',iter
      +        ,' iterations'
@@ -258,9 +258,9 @@
         integer nmax,ncur
         parameter(nmax=100000)
         real data(nmax),restrain
-        logical llwrite
+        logical llwrite,llchangesign
         common /fitdata1/ data
-        common /fitdata2/ restrain,ncur,llwrite
+        common /fitdata2/ restrain,ncur,llwrite,llchangesign
 *
         llgumbel = 0
         do i=1,ncur
