@@ -49,7 +49,7 @@ CU    USES amotry,funk
 	if ( iter.ge.ITMAX ) then            
             if ( nerr.ge.n2err ) then
                 n2err = 2*n2err
-		write(*,*) 'amoeba: warning: no convergence ',nerr
+		write(*,*) '# amoeba: warning: no convergence ',nerr
 		write(0,*) 'amoeba: warning: no convergence ',nerr
             endif
             nerr = nerr + 1
