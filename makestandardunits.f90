@@ -359,13 +359,14 @@ subroutine makestandardunits(mean,nperyear,invar,units,newunits,offset,slope,ndp
             if ( lwrite ) print *,'makestandardunits: converted '// &
      &               'precipitation from ',units,' to ',newunits,slope,ndpm
 !           does this make sense in mm/dy?
-            if ( mean.ne.0 .and. &
-     &               (var(1:3).ne.'pme' .and. var(1:7).ne.'evspsbl' &
-     &               .and. mean*slope*30.**ndpm.lt.1e-3 ) .or. &
-     &               mean*slope*30.**ndpm.gt.1200 ) then
+            if ( mean.ne.0 .and. mean < 1e33 .and. &
+     &               var(1:3).ne.'pme' .and. var(1:7).ne.'evspsbl' &
+     &               .and. ( mean*slope*30.**ndpm.lt.1e-3 .or. &
+     &               mean*slope*30.**ndpm.gt.1200 ) ) then
                 write(0,*) 'makestandardunits: warning: units were ' &
      &                   ,trim(units),' but this makes about ', &
      &                   mean*slope*30.**ndpm,' mm/day'
+                write(0,*) 'mean = ',mean
             end if
         elseif ( nperyear.eq. 12 ) then
 !               use mm/month
