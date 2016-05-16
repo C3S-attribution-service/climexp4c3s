@@ -18,7 +18,7 @@
         real s,s1,s2
         logical lwrite,lexist,standardunits
         character scenarios(nscenmax)*7
-        character models(nmodmax)*20,shortmodel*20
+        character models(nmodmax)*100,shortmodel*20
         character string*128,format*20,vars*80,units*30,file*255
      +       ,line*255,var*40,region_subregion*100,season*10
      +       ,oneall*3,inpattern*1023,quantfile*1023,spid*10
@@ -172,43 +172,53 @@
  1          continue
             read(1,'(a)',end=2,err=2) line
             if ( index(line,'modmean').ne.0 .or.
-     +           index(line,'onemean').ne.0 ) goto 1
+     +           index(line,'onemean').ne.0 .or.
+     +           index(line,'_ave').ne.0 ) goto 1
             ifirst = index(inpattern,'*')
-            if ( iscen.le.4 ) then
-                i = ifirst + index(line(ifirst:),'_') - 2
-            else
-                i = ifirst + index(line(ifirst:),'_144') - 2
-                j = i
-                if ( line(i-2:i-2).eq.'_' .and.
-     +               ichar(line(i:i)).ge.ichar('0') .and.
-     +               ichar(line(i:i)).le.ichar('9') .and.
-     +               ichar(line(i-1:i-1)).ge.ichar('0') .and.
-     +               ichar(line(i-1:i-1)).le.ichar('9') ) then
-                    i = i-3
+            if ( index(inpattern,'CORDEX').eq.0 ) then
+                if ( iscen.le.4 ) then
+                    i = ifirst + index(line(ifirst:),'_') - 2
+                else
+                    i = ifirst + index(line(ifirst:),'_144') - 2
+                    j = i
+                    if ( line(i-2:i-2).eq.'_' .and.
+     +                   ichar(line(i:i)).ge.ichar('0') .and.
+     +                   ichar(line(i:i)).le.ichar('9') .and.
+     +                   ichar(line(i-1:i-1)).ge.ichar('0') .and.
+     +                   ichar(line(i-1:i-1)).le.ichar('9') ) then
+                        i = i-3
+                    end if
                 end if
-            end if
-            string = line(ifirst:i)
-            iens = iens + 1
+                string = line(ifirst:i)
+                iens = iens + 1
 !!! YET ANOTHER SPECIAL CASE; I ASSUME ONLY GISS HAS DIFFERENT p's
-            if ( string(1:4).eq.'GISS' .and. index(string,'CC').eq.0 )
-     +           then
-                i = index(line,'i1p') + 3
-                string = trim(string)//'_p'//line(i:i)
-            end if
-            do imod=1,nmod
-                if ( trim(models(imod)).eq.trim(string) ) then
-                    nens(imod) = nens(imod) + 1
-                    call getensnumber(line,ifirst,iiens(nens(imod),imod)
-     +                   ,lwrite)
-                    goto 1
+                if ( string(1:4).eq.'GISS' .and. index(string,'CC').eq.0
+     +               ) then
+                    i = index(line,'i1p') + 3
+                    string = trim(string)//'_p'//line(i:i)
                 end if
-            end do
+                do imod=1,nmod
+                    if ( trim(models(imod)).eq.trim(string) ) then
+                        nens(imod) = nens(imod) + 1
+                        call getensnumber(line,ifirst,
+     +                       iiens(nens(imod),imod),lwrite)
+                        goto 1
+                    end if
+                end do
+            else
+                ! CORDEX
+                i = ifirst + index(line(ifirst:),'_v') - 2
+                string = line(ifirst:i)
+            end if
             nmod = nmod + 1
             models(nmod) = string
             nens(nmod) = 1
-            call getensnumber(line,ifirst,iiens(nens(nmod),nmod),lwrite)
-            if ( nmod.gt.1 .and. lwrite ) print *,
-     +           '         with ',nens(nmod-1),' realisations ',iens
+            if ( index(inpattern,'CORDEX').eq.0 ) then
+                call getensnumber(line,ifirst,iiens(nens(nmod),nmod),
+     +               lwrite)
+                if ( nmod.gt.1 .and. lwrite ) print *,
+     +               '         with ',nens(nmod-1),' realisations ',iens
+            end if
             if ( lwrite ) print *,'Found model ',nmod,' ',
      +           trim(models(nmod))
             goto 1
@@ -218,7 +228,8 @@
                 if ( lwrite) print *,'         with ',nens(nmod-1),
      +               ' realisations ',iens
             end if
-            if ( oneall.eq.'all' ) then
+            if ( oneall.eq.'all' .and. index(inpattern,'CORDEX').eq.0 )
+     +           then
                 print *,'Found ',nmod,' models with in all ',iens,
      +               ' ensemble members<br>'
             else
@@ -248,7 +259,20 @@
                     else
                         format= '(5a,i2,a,i1,5a)'
                     end if
-                    if ( iscen.le.4 ) then
+                    if ( index(inpattern,'CORDEX').ne.0 ) then
+                        write(file,'(5a)') inpattern(:ifirst-1)
+     +                       ,trim(models(imod)),
+     +                       '_v1_mon_195101-209912_latlon_',
+     +                       trim(region_subregion),'.dat'
+                        i = index(file,'rcp')
+                        file(i:i+4) = trim(scenarios(iscen)) !! quick dirty hack
+                        inquire(file=file,exist=lexist)
+                        if ( .not.lexist ) then
+                            ! some MOHC-forced runs only go to november
+                            i = index(file,'209912')
+                            file(i:i+5) = '209911'
+                        end if
+                    else if ( iscen.le.4 ) then
                         shortmodel = models(imod)
                         i = index(shortmodel,'_p')
                         if ( i.ne.0 ) then
