@@ -165,7 +165,7 @@ subroutine invgetcut1(pcut,cut,n,a,llwrite)
     logical lwrite
 !       first cut out the undefined ones
     lwrite = llwrite
-    lwrite = .true.
+    lwrite = .false.
     do m=n,1,-1
         if ( a(m) < 1e33 ) exit
     end do
