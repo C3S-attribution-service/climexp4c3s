@@ -22,7 +22,8 @@ program fieldclim
     lwrite = .false.
     if ( iargc().lt.2 ) then
         print *,'usage: fieldclim file.[nc|ctl] '// &
- &           ' [begin yr1] [end yr2] [ave n] anom.ctl'
+ &           ' [begin yr1] [end yr2] [ave n] clim.ctl'
+        print *,'computes climatology of field'
         stop
     endif
     call getarg(iargc(),file)
@@ -59,7 +60,7 @@ program fieldclim
 !       range of years
     lastyr = firstyr + (firstmo+nt-2)/nperyear
 !
-!       other options
+!   other options
 !
     n = iargc()
     call getopts(2,n,nperyear,firstyr,lastyr,.false.,0,0)
@@ -68,7 +69,7 @@ program fieldclim
     lastyr = min(yr2,lastyr)
     yr2 = lastyr
 !
-!       allocate arrays
+!   allocate arrays
 !
     allocate(nn(nx,ny,nperyear))
     allocate(mean(nx,ny,nperyear))
@@ -77,7 +78,7 @@ program fieldclim
     allocate(fxy(nperyear,firstyr:lastyr))
     allocate(fy(nperyear,firstyr:lastyr,nx))
 !
-!       read data
+!   read data
 !
     if ( ncid.eq.-1 ) then
         call readdatfile(datfile,field,nx,ny,nx,ny,nperyear,firstyr &
@@ -88,7 +89,7 @@ program fieldclim
  &           ,lastyr,yrbegin,firstmo,nt,undef,lwrite,yr1,yr2,jvars)
     endif
 !
-!       take N-period averages
+!   take N-period averages
 !
     if ( lsum.gt.1 ) then
         ! faster
@@ -114,13 +115,12 @@ program fieldclim
         end do
     end if
 !
-!       compute anomalies
+!   compute climatology
 !
     nn = 0
     mean = 0
     do yr=yr1,yr2
-        !!!print *,'anomalies of year ',yr
-        call keepalive1('Computing anomaly of year',yr-yr1+1,yr2-yr1+1)
+        call keepalive1('Processing year',yr-yr1+1,yr2-yr1+1)
         do mo=1,nperyear
             do j=1,ny
                 do i=1,nx
@@ -144,14 +144,14 @@ program fieldclim
         enddo
     enddo
 !
-!       smooth daily climatology with twice a 5-day running mean
+!   smooth daily climatology with twice a 5-day running mean
 !
     if ( nperyear.ge.360 ) then
         call smooth(mean,mean2,nn,nx,ny,nperyear,5)
         call smooth(mean2,mean,nn,nx,ny,nperyear,5)
     endif
 !
-!       write out
+!   write out
 !
     call getarg(iargc(),file)
     i=index(file,'.ctl')
@@ -163,9 +163,9 @@ program fieldclim
     datfile(i:) = '.grd'
     undef = 3e33
     if ( lsum.gt.1 ) then
-        title = 'anomalies of running mean of '//title
+        title = 'climatology of running mean of '//title
     else
-        title = 'anomalies of '//title
+        title = 'climatology of '//title
     end if
     ivars(1,1) = 0
     ivars(2,1) = 99
