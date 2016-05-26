@@ -37,8 +37,8 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     character assume*(*),idmax*(*)
     logical lweb,lchangesign,lboot,lprint,dump,plot,lwrite
 !
-    integer i,j,jj,k,l,n,nx,iter,iter1,iens,iiens,nfit,year
-    integer,allocatable :: yrs(:)
+    integer i,j,jj,k,l,n,nx,iter,iter1,iens,iiens,nfit,year,tsep
+    integer,allocatable :: yrs(:),bootyrs(:)
     real x,a,b,xi,alpha,beta,t(10,3),t25(10,3),t975(10,3), &
      &       tx(3),tx25(3),tx975(3),aa(nmc),bb(nmc),xixi(nmc), &
      &       alphaalpha(nmc),betabeta(nmc),tt(nmc,10,3), &
@@ -69,7 +69,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     real llgpdcov,gpdcovreturnlevel,gpdcovreturnyear
     external llgpdcov,gpdcovreturnlevel,gpdcovreturnyear
 !
-    allocate(yrs(0:nmax))
+    allocate(yrs(0:nmax),bootyrs(0:nmax))
     allocate(xx(2,nmax))
     if ( lwrite ) print *,'fitgpdcov: calling fill_linear_array'
     call fill_linear_array(yrseries,yrcovariate,npernew,j1,j2, &
@@ -79,7 +79,8 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
      &           ntot,'</td><td>&nbsp;</td></tr>'
     end if
     if ( npernew >= 360 ) then
-        call decluster(xx,yrs,ntot,pmindata,lwrite)
+        tsep = -9999
+        call decluster(xx,yrs,nmax,ntot,threshold,tsep,lwrite)
     end if
 
     year = yr2a
@@ -185,7 +186,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     end if
     if ( nthreshold >= ncur ) then
         write(0,*) 'fitgpdcov: error: nthreshold &gt ncur ',nthreshold,ncur
-        write(0,*) 'fitgpdcov: error: nthreshold &gt ncur ',nthreshold,ncur
+        write(*,*) 'fitgpdcov: error: nthreshold &gt ncur ',nthreshold,ncur
         nthreshold = ncur -1
     end if
     do i=1,ncur
@@ -298,9 +299,16 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
                 end if
             end do
         else
+            ndecor = tsep + 1
             call sample_bootstrap(yrseries,yrcovariate, &
      &               npernew,j1,j2,fyr,lyr,mens1,mens,crosscorr, &
      &               ndecor,data,nmax,ntot,sdecor,.false.)
+            if ( npernew >= 360 ) then
+                bootyrs = -9999 ! cannot yet keep track of discontinuities, just hope they are not too bad
+                ! or use the original ones
+                ! use the same tsep as the original one
+                call decluster(data,yrs,nmax,ntot,threshold,tsep,.true.)
+            end if
             scross = scross + sdecor
         end if
         aa(iens) = a
@@ -524,17 +532,21 @@ subroutine fit1gpdcov(a,b,xi,alpha,dalpha,iter)
     implicit none
     integer iter
     real a,b,xi,alpha,dalpha
-    integer i
+    integer i,j,n
     real q(4),p(4,3),y(4),tol
     logical lok
-    real llgpdcov
-    external llgpdcov
+    real,external :: llgpdcov
+    integer ncur
+    real restrain
+    logical llwrite,llchangesign
+    common /fitdata2/ restrain,ncur,llwrite,llchangesign
     character cassume*5
     common /fitdata4/ cassume
     integer nthreshold
     real athreshold,pthreshold
     common /fitdata5/ nthreshold,athreshold,pthreshold
 !
+    n = 0
 10  continue
     q(1) = b
     q(2) = xi
@@ -561,12 +573,27 @@ subroutine fit1gpdcov(a,b,xi,alpha,dalpha,iter)
         if ( y(i) < 1e33 ) lok = .true.
     end do
     if ( .not.lok ) then
+        n = n + 1
+        if ( llwrite ) then
+            print *,n,'searching for good initial values, these all give 3e33'
+            do i=1,4
+                print *,(p(i,j),j=1,3),y(i)
+            enddo
+        end if
         if ( xi /= 0 ) then
-            xi = xi + 0.1*xi/abs(xi)
-        else if ( cassume == 'scale' .and. athreshold < 0 ) then
-            xi = -0.1
-        else 
-            xi = 0.1
+            if ( cassume == 'scale' ) then
+                xi = xi + 0.1*xi/abs(xi)
+            else
+                xi = xi + 0.1
+            end if
+        else if ( cassume == 'scale' ) then
+            if ( athreshold < 0 ) then
+                xi = -0.1
+            else
+                xi = +0.1 ! most precip has positive \xi
+            end if
+        else
+            xi = -0.1 ! most temperature extremes negative
         end if
         if ( abs(xi).lt.2 ) then
             goto 10
@@ -867,7 +894,7 @@ real function llgpdcov(p)
         end if
         s = 1+xi*z/bb
         if ( s <= 0 ) then
-            if ( llwrite ) print *,'llgpdcov: 1+xi*z/bb < 0 ',s
+            if ( llwrite ) print *,'llgpdcov: 1+xi*z/bb < 0 ',i,s,xi,z,bb
             llgpdcov = 3e33
             goto 999
         end if

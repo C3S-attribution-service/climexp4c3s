@@ -611,6 +611,7 @@ subroutine fill_linear_array(series,covariate,nperyear,j1,j2,fyr,lyr,mens1,mens,
         print *,'fill_linear_array: nperyear,j1,j2,fyr,lyr,mens1,mens = ', &
         &   nperyear,j1,j2,fyr,lyr,mens1,mens
         if ( .true. ) then
+            print *,'first value each year to give an impression'
             do yr=fyr,lyr
                 if ( series(j1,yr,mens1).lt.1e33 .and. &
      &               covariate(j1,yr,mens1).lt.1e33 ) then
@@ -949,108 +950,134 @@ subroutine subtract_constant(covariate,series,nperyear,fyr,lyr,mens1,mens,cov1,c
 
 end subroutine subtract_constant
 
-subroutine decluster(xx,yrs,ntot,threshold,lwrite)
+subroutine decluster(xx,yrs,nmax,ntot,threshold,tsep,lwrite)
 !
 !   set all but the local maximum in a clustered maximum (t-tsep,t+tsep)
 !   equal to a low value. tsep is determined as in Roth et al, 2014.
 !
 !   input:  xx(2,ntot)  values of time series (1,1:ntot) and covariate (2,1:ntot)
 !           yrs(0:ntot) 10000*yr + 100*mo + dy
+!           if >=0      use, do not compute (for bootstrap)
 !   output: xx          with values adjusted so that only the maximum of each cluster remains
+!           tsep        separation computed
 !
     implicit none
-    integer nmax
-    parameter(nmax=25)
-    integer ntot,yrs(0:ntot)
-    real xx(2,ntot),threshold
+    integer mmax
+    parameter(mmax=25)
+    integer ntot,nmax,yrs(0:ntot),tsep
+    real xx(2,nmax),threshold
     logical lwrite
-    integer i,j,m,n,nn,yr,mo,dy,jul1,jul2,tsep,jmax
-    real p95,pcut,xmin,fracn(2:nmax),cutoff,s
+    integer i,j,m,n,nn,yr,mo,dy,jul1,jul2,jmax,nskip
+    real p95,pcut,xmin,fracn(2:mmax),cutoff,s
     real,allocatable :: yy(:)
     integer,external :: julday
     
-    cutoff = 0.05*0.002 ! number from Martin Roth, not in paper.
-!
-!   first obtain the 95th percentile
-!
-    allocate(yy(ntot))
-    do i=1,ntot
-        yy(i) = xx(1,i)
-    end do
-    pcut = 95
-    call getcut(p95,pcut,ntot,yy)
-    if ( lwrite ) then
-        print *,'decluster: p95 = ',p95
-    end if
-    xmin = yy(1)
-!
-!   next the fraction of clusters with length >= n for which val>=p95
-!
-    fracn = 0
-    do i=1,ntot
-        if ( xx(1,i).gt.p95 ) then
-            yr = yrs(i)/10000
-            mo = mod(yrs(i),10000)/100
-            dy = mod(yrs(i),100)
-            jul1 = julday(mo,dy,yr)
-            do n=2,nmax
-                m = i + n - 1
-                if ( m.le.ntot ) then
-                    if ( xx(1,m).gt.p95 ) then
-                        yr = yrs(m)/10000
-                        mo = mod(yrs(m),10000)/100
-                        dy = mod(yrs(m),100)
-                        jul2 = julday(mo,dy,yr)
-                        nn = jul2 - jul1 + 1
-                        if ( nn.eq.n ) then ! no break in the time series...
-                            fracn(n) = fracn(n) + 1
-                        else
-                            exit
-                        end if
-                    else
-                        exit ! end of run of points exceeding p95
-                    end if ! data(offset)>p95
-                end if ! in range
-            end do ! n
-        end if ! data>p95
-    end do ! i
-    fracn = fracn/ntot
-    if ( lwrite ) then
-        do i=2,nmax
-            print *,'decluster: fracn(',i,') = ',fracn(i)
+    if ( tsep >= 0 ) then
+        cutoff = 0.05*0.002 ! number from Martin Roth, not in paper.
+    !
+    !   first obtain the 95th percentile
+    !
+        allocate(yy(ntot))
+        do i=1,ntot
+            yy(i) = xx(1,i)
         end do
-    end if
-!
-!   the n for which the fraction is low enough defines tsep
-!
-    do n=2,nmax
-        if ( fracn(n).lt.cutoff ) then
-            tsep = n-2
-            exit
+        pcut = 95
+        call getcut(p95,pcut,ntot,yy)
+        if ( lwrite ) then
+            print *,'decluster: p95 = ',p95
         end if
-    end do
-    if ( lwrite ) then
-        print *,'decluster: tsep,cutoff = ',tsep,cutoff
+        xmin = yy(1)
+    !
+    !   next the fraction of clusters with length >= n for which val>=p95
+    !
+        fracn = 0
+        do i=1,ntot
+            if ( xx(1,i).gt.p95 ) then
+                if ( yrs(i) /= -9999 ) then
+                    yr = yrs(i)/10000
+                    mo = mod(yrs(i),10000)/100
+                    dy = mod(yrs(i),100)
+                    jul1 = julday(mo,dy,yr)
+                else
+                    jul1 = -9999
+                end if
+                do n=2,mmax
+                    m = i + n - 1
+                    if ( m.le.ntot ) then
+                        if ( xx(1,m).gt.p95 ) then
+                            if ( yrs(m) /= -9999 ) then
+                                yr = yrs(m)/10000
+                                mo = mod(yrs(m),10000)/100
+                                dy = mod(yrs(m),100)
+                                jul2 = julday(mo,dy,yr)
+                            else
+                                jul2 = -9999
+                            end if
+                            if ( jul1 /= -9999 .and. jul2 /= -9999 ) then
+                                nn = jul2 - jul1 + 1
+                            else
+                                nn = n ! ignore discontinuities...
+                            end if
+                            if ( nn.eq.n ) then ! no break in the time series...
+                                fracn(n) = fracn(n) + 1
+                            else
+                                exit
+                            end if
+                        else
+                            exit ! end of run of points exceeding p95
+                        end if ! data(offset)>p95
+                    end if ! in range
+                end do ! n
+            end if ! data>p95
+        end do ! i
+        fracn = fracn/ntot
+        if ( lwrite ) then
+            do i=2,mmax
+                print *,'decluster: fracn(',i,') = ',fracn(i)
+            end do
+        end if
+    !
+    !   the n for which the fraction is low enough defines tsep
+    !
+        do n=2,mmax
+            if ( fracn(n).lt.cutoff ) then
+                tsep = n-2
+                exit
+            end if
+        end do
+        if ( lwrite ) then
+            print *,'decluster: tsep,cutoff = ',tsep,cutoff
+        end if
+        write(0,*) 'declustering by considering only maxima of ',2*tsep+1,' points<p>'
     end if
  !
  !  set xx(1,i) to xmin when it is not the maximum value in a cluster
  !
     if ( tsep.gt.0 ) then
         yy = xmin
+        nskip = 0
         do i=1+tsep,ntot-tsep
+            if ( nskip > 0 ) then
+                nskip = nskip - 1
+                cycle
+            end if
             s = xx(1,i-tsep)
             jmax = -tsep
             do j=-tsep+1,tsep
-                if ( xx(1,i+j).gt.s ) then
+                if ( xx(1,i+j) > s .or. &
+                &    xx(1,i+j) == s .and. abs(j).lt. abs(jmax) ) then
                     s = xx(1,i+j)
                     jmax = j
                 end if
             end do
             if ( jmax.eq.0 ) then ! local maxmimum
                 yy(i) = xx(1,i)
+                nskip = tsep
             end if
         end do
+        if ( .false. .and. lwrite ) print *,'time series was/is after declustering'
         do i=1,ntot
+            if ( .false. .and. lwrite ) print *,i,xx(1,i),yy(i)
             xx(1,i) = yy(i)
         end do
 !
@@ -1067,13 +1094,14 @@ subroutine decluster(xx,yrs,ntot,threshold,lwrite)
             print *,'corresponding to threshold =      ',s,'% of ',ntot,' points'
             print *,'compare to user threshold =       ',threshold,'%'
         end if
+        s = (s+100)/2 ! make sure we also have some points below the threshold for the slope...
         if ( s.gt.threshold ) then
             write(0,*) 'decluster: adjusting threshold from ',threshold,' to ',s,'<br>'
             threshold = s
         end if
     end if
 !
-end
+end subroutine
     
 subroutine copyab3etc(a3,b3,xi3,alpha3,beta3,t3,tx3, &
      &           a,a25,a975,b,b975,xi,xi25,xi975,alpha,alpha25,alpha975, &
