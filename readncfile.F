@@ -213,8 +213,8 @@
                             noleap = noleap + nn
                         endif
                         call keepalive1('Reading day ',l,ck)
-                        if ( lwrite ) print *,'reading day '
-     +                       ,l,'/',ck,':',start(k),i,j
+                        if ( .false. .and. lwrite ) print *,
+     +                       'reading day ',l,'/',ck,':',start(k),i,j
                         status = nf_get_vara_real(ncid,jvars(1)
      +                           ,start,count,field(1,1,j,i))
                         ilast = i
