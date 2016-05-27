@@ -84,6 +84,8 @@ OBJS	      = makeabsent.o \
 		period.o \
 		getmean.o \
 		getwinmean.o \
+		seriesmoment.o \
+		seriesautocor.o \
 		rmean.o \
 		byteswapr4.o \
 		keepalive.o \
@@ -347,7 +349,8 @@ PROGRAMS      = scientific2decimal \
 		testwetbulb \
 		compute_wetbulb \
 		wetbulb_field \
-		outliers
+		outliers \
+		count_missing
 
 SHLIBS =	rkillfile.so \
        		rkeepalive.so
@@ -661,7 +664,7 @@ sstoi2dat:	sstoi2dat.o
 dat2grads:	dat2grads.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
 
-ar1:		ar1.o
+ar1:		ar1.o climexp.a
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
 
 dat2nc:		dat2nc.o climexp.a
@@ -743,6 +746,9 @@ wetbulb_field:	wetbulb_field.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)		
 
 outliers:	outliers.o $(LIBRARY)
+		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)		
+
+count_missing:	count_missing.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)		
 
 roc:		roc.o $(LIBRARY)
