@@ -36,7 +36,7 @@
         ! time series
         ntot = n
         do i=1,n
-            x = gasdev()
+            x = gasdev(i)
             xx(1,i) = (a + b*x + alpha*xx(2,i))
         end do
         mean = a

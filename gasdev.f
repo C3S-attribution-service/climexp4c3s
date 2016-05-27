@@ -1,5 +1,5 @@
 C  (C) Copr. 1986-92 Numerical Recipes Software +.-).
-      FUNCTION gasdev()
+      FUNCTION gasdev(iseed)
       REAL gasdev
 CU    USES ran1
       INTEGER iset,nerr,ntot

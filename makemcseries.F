@@ -137,13 +137,15 @@
                             cycle
                         endif   ! valid data
                         if ( nprev.eq.-999 ) then ! first point
-                            data(mo,yr,iens) = sd*gasdev()
+                            data(mo,yr,iens) = 
+     +                          sd*gasdev(mo+100*yr+10000*iens)
                         else
                             mo1 = mo - nprev
                             call normon(mo1,yr,yr1,nperyear)
                             data(mo,yr,iens) =
      +                           alpha**nprev *data(mo1,yr1,iens)
-     +                           + sd*sqrt(1-(alpha**nprev)**2)*gasdev()
+     +                           + sd*sqrt(1-(alpha**nprev)**2)
+     +                           *gasdev(mo+100*yr+10000*iens)
                         endif
                         nprev = 0
                     enddo       ! mo
@@ -161,12 +163,13 @@
                         cycle
                     endif       ! valid data
                     if ( nprev.eq.-999 ) then ! first point
-                        data(j1,yr,iens) = sd*gasdev()
+                        data(j1,yr,iens) = sd*gasdev(yr+100*iens)
                     else
                         yr1 = yr - nprev
                         data(j1,yr1,iens) =
      +                       alpha**nprev *data(j1,yr1,iens)
-     +                       + sd*sqrt(1-(alpha**nprev)**2)*gasdev()
+     +                       + sd*sqrt(1-(alpha**nprev)**2)
+     +                       *gasdev(yr+100*iens)
                     endif
                     nprev = 0
                 enddo           ! yr

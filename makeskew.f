@@ -1,10 +1,11 @@
-        subroutine makeskew(x,s)
+        subroutine makeskew(x,s,iran)
 !
 !       generate a random variable with zero mean, unit variance and
 !       skewness s by transforming a normal distrbution
 !
         implicit none
         real x,s
+        integer iran
         integer i
         real x1,x2,tol
         real,save :: sold,a
@@ -14,7 +15,7 @@
         data sold /3e33/
 !
 !       generate a random variable from a N(0,1)
-        x = gasdev()
+        x = gasdev(iran)
         if ( s.eq.0 ) then
             return
         end if

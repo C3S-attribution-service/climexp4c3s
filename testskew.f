@@ -11,7 +11,7 @@
         print *,'skew?'
         read *,s
         do i=1,nmax
-            call makeskew(x(i),s)
+            call makeskew(x(i),s,i)
         end do
 
         call moment(x,nmax,ave,adev,sdev,var,skew,curt)
