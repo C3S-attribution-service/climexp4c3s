@@ -6,8 +6,8 @@ program ar1
     implicit none
     include 'param.inc'
     integer nseedmax
-    parameter (nseedmax=34)
-    integer yr,mo,nperyear,i,n,iseed(nseedmax),iarray(8)
+    integer yr,mo,nperyear,i,n,iarray(8)
+    integer,allocatable :: iseed(:)
     real a1,a2,data(npermax,yrbeg:yrend),out(npermax,yrbeg:yrend)
     real ave(npermax),adev(npermax),sdev(npermax),var(npermax),skew(npermax),curt(npermax)
     real aa1(npermax),aa2(npermax),s1,s2
@@ -21,6 +21,23 @@ program ar1
         print *,'Usage: ar1 file|nperyear a1 a2 [dummy]'
         stop
     endif
+!
+!   load random number seed
+!   Due to a compiler bug in pgf90 this has to happen first
+!
+    call random_seed(size=n)
+    allocate(iseed(n))
+    call date_and_time(values=iarray)
+    do i=7,1,-1
+        iarray(i) = iarray(i)*iarray(i+1)
+    enddo
+    do i=1,n
+        iseed(i) = iarray(8-mod(i,8))
+    enddo
+    call random_seed(put=iseed)
+!
+!   process arguments
+!
     if ( iargc() >= 3 ) then
         call getarg(1,string)
         read(string,*,err=901) nperyear
@@ -46,23 +63,6 @@ program ar1
         call seriesmoment(data,npermax,yrbeg,yrend,nperyear,yrbeg,yrend,ave,adev,sdev,var,skew,curt)
         call seriesautocor(data,npermax,yrbeg,yrend,nperyear,yrbeg,yrend,ave,var,aa1,aa2)
     end if
-!
-!   load random number seed
-!
-    call random_seed(size=n)
-    if ( n > nseedmax ) then
-        write(0,*) 'ar1: error: n > 10 ',n,nseedmax
-        write(*,*) 'ar1: error: n > 10 ',n,nseedmax
-        call exit(-1)
-    endif
-    call date_and_time(values=iarray)
-    do i=7,1,-1
-        iarray(i) = iarray(i)*iarray(i+1)
-    enddo
-    do i=1,n
-        iseed(i) = iarray(8-mod(i,8))
-    enddo
-    call random_seed(put=iseed)
 
 !   make correct autocorrelation structure with mean zero and sd 1
 
