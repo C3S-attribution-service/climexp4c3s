@@ -80,7 +80,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     end if
     if ( npernew >= 360 ) then
         tsep = -9999
-        call decluster(xx,yrs,nmax,ntot,threshold,tsep,lwrite)
+        call decluster(xx,yrs,ntot,threshold,tsep,lwrite)
     end if
 
     year = yr2a
@@ -306,8 +306,8 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
             if ( npernew >= 360 ) then
                 bootyrs = -9999 ! cannot yet keep track of discontinuities, just hope they are not too bad
                 ! or use the original ones
-                ! use the same tsep as the original one
-                call decluster(data,yrs,nmax,ntot,threshold,tsep,.true.)
+                ! use the same tsep as the first call, otherwise the answer is *very* different
+                call decluster(data,yrs,ntot,threshold,tsep,lwrite)
             end if
             scross = scross + sdecor
         end if

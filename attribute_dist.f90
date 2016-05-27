@@ -969,15 +969,17 @@ subroutine decluster(xx,yrs,nmax,ntot,threshold,tsep,lwrite)
     logical lwrite
     integer i,j,m,n,nn,yr,mo,dy,jul1,jul2,jmax,nskip
     real p95,pcut,xmin,fracn(2:mmax),cutoff,s
+    logical lboot
     real,allocatable :: yy(:)
     integer,external :: julday
     
-    if ( tsep >= 0 ) then
+    allocate(yy(ntot))
+    if ( tsep < 0 ) then
+        lboot = .false.
         cutoff = 0.05*0.002 ! number from Martin Roth, not in paper.
     !
     !   first obtain the 95th percentile
     !
-        allocate(yy(ntot))
         do i=1,ntot
             yy(i) = xx(1,i)
         end do
@@ -1049,6 +1051,8 @@ subroutine decluster(xx,yrs,nmax,ntot,threshold,tsep,lwrite)
             print *,'decluster: tsep,cutoff = ',tsep,cutoff
         end if
         write(0,*) 'declustering by considering only maxima of ',2*tsep+1,' points<p>'
+    else
+        lboot = .true.
     end if
  !
  !  set xx(1,i) to xmin when it is not the maximum value in a cluster
@@ -1094,10 +1098,16 @@ subroutine decluster(xx,yrs,nmax,ntot,threshold,tsep,lwrite)
             print *,'corresponding to threshold =      ',s,'% of ',ntot,' points'
             print *,'compare to user threshold =       ',threshold,'%'
         end if
-        s = (s+100)/2 ! make sure we also have some points below the threshold for the slope...
-        if ( s.gt.threshold ) then
-            write(0,*) 'decluster: adjusting threshold from ',threshold,' to ',s,'<br>'
-            threshold = s
+        if ( .not.lboot ) then
+            s = (s+100)/2 ! make sure we also have some points below the threshold for the slope...
+            if ( s.gt.threshold ) then
+                write(0,*) 'decluster: adjusting threshold from ',threshold,' to ',s,'<br>'
+                threshold = s
+            end if
+        else
+            if ( s.gt.threshold ) then
+                write(0,*) 'decluster: found higher threshold than specified in bootstrap',s,threshold
+            end if
         end if
     end if
 !
