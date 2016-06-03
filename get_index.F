@@ -136,8 +136,10 @@
         character string*255,dipole*2,shortfilename*255,datadir*255
      +       ,letter*1,lsmaskfile*255,lsmasktype*4,lstitle*255,
      +       fieldname*100,outfile*255
-        character varsmask*40,lvarsmask(1)*80,titlemask*1000,unitsmask*40
+        character varsmask*40,lvarsmask(1)*80,titlemask*1000,
+     +       unitsmask*40
         character lsvars(1)*10,lslvars(1)*40,lsunits(1)*20,newunits*20
+        character oper*1
         integer iargc
         integer,external :: normx,get_endian,leap
 *
@@ -170,8 +172,8 @@
             npoints = 1 ! for the time being only one mask can be requested at a time
             lmask = .true.
             call getarg(3,string)
-            write(0,'(2a)') 'cutting out region defined by mask ',
-     +           trim(string)
+            write(0,'(3a)') 'cutting out region defined by mask ',
+     +           trim(string),'<br>'
             write(*,'(2a)') '# cutting out region defined by mask ',
      +           trim(string)
             ncidmask = 0
@@ -210,6 +212,7 @@
 *
         iskip = 0
         dipole = 'no'
+        oper = 'v'
         lsmasktype = 'all '
         do i=mopts,iargc()
             if ( iskip.gt.0 ) then
@@ -307,6 +310,14 @@
                     lstandardunits = .true.
                     if ( lwrite ) print *
      +                    ,'Converting to standard units'
+                endif
+                if ( string(1:3).eq.'max' ) then
+                    oper = 'x'
+                    if ( lwrite ) print *,'# Taking max over region'
+                endif
+                if ( string(1:3).eq.'min' ) then
+                    oper = 'n'
+                    if ( lwrite ) print *,'# Taking min over region'
                 endif
             endif
         enddo
@@ -437,7 +448,8 @@
 *
 *       get mean of whole field if multiple points are requested
 *
-        if ( npoints.gt.1 .and. (missing.or.anom) ) then
+        if ( npoints.gt.1 .and. (missing.or.anom) .and. oper.eq.'v' )
+     +       then
             call getmean(mean,nn,nx,ny,nperyear,field,nx,ny
      +            ,nperyear,firstyr,lastyr,nx,ny,firstyr,firstmo,nt
      +            ,lwrite)
@@ -694,7 +706,8 @@
 *           get mean of just the requested area if only one point is
 *           requested
 *
-            if ( npoints.eq.1 .and. (missing.or.anom) ) then
+            if ( npoints.eq.1 .and. (missing.or.anom) .and. oper.eq.'v'
+     +           ) then
                 call getwinmean(mean,nn,nx,ny,nperyear,field,nx,ny
      +                ,nperyear,firstyr,lastyr,nx,ny,firstyr,firstmo,nt
      +                ,x1,x2,y1,y2,lwrite)
@@ -703,7 +716,7 @@
 *
 *           cut out region
 *
-            if ( missing.or.anom ) then
+            if ( (missing.or.anom) .and. oper.eq.'v' ) then
                 month = -nperyear ! the first round (month<1) compute avemean
                 k1 = -nperyear+1
             else
@@ -801,10 +814,23 @@
                                 endif
                             endif
                             if ( month.gt.0 ) then
-                                ave(month) = ave(month) + sgn*w*
-     +                                field(ii,j,month,year) 
-                                if ( missing.or.anom ) ave(month) =
-     +                               ave(month) - sgn*w*mean(ii,j,month)
+                                if ( oper.eq.'v' ) then
+                                    ave(month) = ave(month) + sgn*w*
+     +                                   field(ii,j,month,year) 
+                                    if ( missing.or.anom ) ave(month) =
+     +                                   ave(month) - sgn*w*mean(ii,j,
+     +                                   month)
+                                else if ( oper.eq.'x' ) then
+                                    ave(month) = max(ave(month),
+     +                                   field(ii,j,month,year))
+                                else if ( oper.eq.'n' ) then
+                                    ave(month) = min(ave(month),
+     +                                   field(ii,j,month,year))
+                                else
+                                    write(0,*) 'get_index: error: '//
+     +                                   'unrecognised oper ',oper
+                                    call exit(-1)
+                                end if
                             else
                                 avemean(month+nperyear) = 
      +                               avemean(month+nperyear) + 
@@ -822,17 +848,20 @@
                         ave(month) = 3e33
                         if ( lwrite ) write(0,*) 'sw<minfac*area 1: ',sw
      +                        ,minfac/100,sw0,month
-                    elseif ( missing .and. .not.anom .and.
-     +                       avemean(month).gt.1e33 ) then
+                    elseif ( missing .and. .not.anom .and. oper.eq.'v'
+     +                       .and. avemean(month).gt.1e33 ) then
                         ave(month) = 3e33
                         if ( lwrite ) write(0,*) 'mean missing: ',
      +                       avemean(month)
-                    else
+                    else if ( oper.eq.'v' ) then
                         ave(month) = ave(month)/sw
                         if ( missing .and. .not.anom ) ave(month) =
      +                       ave(month) + avemean(month)
                         if ( lwrite ) write(*,*) 'ave(',month,') = '
      +                        ,ave(month)
+                    else if ( oper.eq.'n' .or. oper.eq.'x' ) then
+                        if ( lwrite ) write(*,*) 'ave(',month,') = '
+     +                        ,ave(month)                        
                     endif
                 else
                     if ( sw.eq.0 ) then
