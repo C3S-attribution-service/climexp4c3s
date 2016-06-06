@@ -284,6 +284,7 @@
      +           oper.eq.'bdif' .or. 
      +           oper.eq.'hime' .or. oper.eq.'hisd' .or. 
      +           oper.eq.'hisk' .or.
+     +           oper.eq.'himi' .or. oper.eq.'hima' .or. 
      +           oper(1:3).eq.'hig' .or.
      +           oper(1:3).eq.'hip' .or. oper(1:3).eq.'hiv' .or.
      +           oper(1:2).eq.'at' ) then
@@ -556,6 +557,10 @@
                         val = sd1
                     elseif ( oper.eq.'hisk' ) then
                         val = skew
+                    elseif ( oper.eq.'himi' ) then
+                        val = xmin
+                    elseif ( oper.eq.'hima' ) then
+                        val = xmax
                     elseif ( oper.eq.'higa' ) then
                         val = chsq
                         sign = prob
