@@ -919,12 +919,24 @@
 *       copy the header of time series file file to unit unit
 *
         implicit none
+        character file*(*)
+        integer unit
+        character newunits*40
+        newunits = ' '
+        call copyheader_newunits(file,unit,newunits)
+        end
+
+        subroutine copyheader_newunits(file,unit,newunits)
+*
+*       copy the header of time series file file to unit unit
+*
+        implicit none
 #include "netcdf.inc"
         integer mxmax,mymax,mzmax,nvmax
         parameter(mxmax=1,mymax=1,mzmax=1,nvmax=1)
-        character file*(*)
+        character file*(*),newunits*(*)
         integer unit
-        integer i,status,nx,ny,nz,nt,firstyr,firstmo,nvars,
+        integer i,j,k,status,nx,ny,nz,nt,firstyr,firstmo,nvars,
      +       ivars(6,nvmax),ncid,nperyear,iunit
         real xx(mxmax),yy(mymax),zz(mzmax),undef
         character line*256,vars(nvmax)*40,lvars(nvmax)*120,
@@ -956,6 +968,13 @@
                 do i=1,1000
                     read(iunit,'(a)',end=800) line
                     if ( line(1:1).ne.'#' ) exit
+                    if ( newunits /= ' ' ) then
+                        j = index(line,'[')
+                        k = index(line,']')
+                        if ( j /= 0 .and. k /= 0 ) then
+                            line = line(:j)//trim(newunits)//line(k:)
+                        end if
+                    end if
                     write(unit,'(a)') trim(line)
                 enddo
             endif
@@ -966,6 +985,7 @@
      +        ,nz,zz,nt,nperyear,firstyr,firstmo,undef,title,nvmax,nvars
      +        ,vars,ivars,lvars,units)
             status = nf_close(ncid)
+            if ( newunits /= ' ' ) units = newunits
             write(unit,'(2a)') '# ',trim(title)
             write(unit,'(6a)') '# ',trim(vars(1)),' [',trim(units(1))
      +           ,'] ',trim(lvars(1))
