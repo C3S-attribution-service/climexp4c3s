@@ -4,12 +4,13 @@ program count_missing
 !
     implicit none
     include 'param.inc'
-    integer yr,mo,nperyear,n,nmissing,yr1,yr2,mo1,mo2
+    integer yr,mo,nperyear,n,nmissing,yr1,yr2,mo1,mo2,nperday
     integer n0,n0missing,m1,m2,y1,y2,length,nlength(10)
     real data(npermax,yrbeg:yrend)
     logical lstandardunits,lwrite
     character file*1023,var*80,units*40,line*80
     integer iargc
+    integer,external :: leap
     lwrite = .false.
     
     if ( iargc() < 1 .or. iargc() > 3 ) then
@@ -70,8 +71,16 @@ program count_missing
         do mo=m1,m2
             n = n + 1
             if ( data(mo,yr) > 1e33 ) then
-                nmissing = nmissing + 1
-                length = length + 1
+                if ( nperyear.ge.360 ) then
+                    nperday = nint(nperyear/365.)
+                    if ( leap(yr) == 2 .or. mo <= 59*nperday .or. mo > 60*nperday ) then
+                        nmissing = nmissing + 1
+                        length = length + 1
+                    end if
+                else
+                    nmissing = nmissing + 1
+                    length = length + 1
+                end if
             else
                 if ( length > 0 ) nlength(min(length,10)) = nlength(min(length,10)) + 1
                 length = 0
