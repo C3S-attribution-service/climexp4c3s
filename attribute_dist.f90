@@ -30,8 +30,11 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     allocate(yy(nmax))
     allocate(crosscorr(0:mens,0:mens))
     xx = 3e33
-    if ( lwrite ) print *,'attribute_dist: series(:,2000,0) = ',(series(j,2000,0),j=1,min(15,nperyear))
-    
+    if ( lwrite ) then
+        print *,'mens1,mens = ',mens1,mens
+        print *,'attribute_dist: series(:,2000,0) = ',(series(j,2000,0),j=1,min(15,nperyear))
+    end if
+
     if ( distribution.eq.'gev' .or. distribution.eq.'gumbel' ) then
         allocate(yrseries(1,fyr:lyr,0:mens))
         allocate(yrcovariate(1,fyr:lyr,0:mens))
@@ -114,7 +117,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         &   lchangesign,lwrite)
     end if
     if ( lnormsd .and. mens.gt.mens1 ) then
-        if ( lwrite ) print *,'attrbute_dist: normalising all series'
+        if ( lwrite ) print *,'attrbute_dist: normalising all series',mens1,mens
         call normaliseseries(yrseries,npernew,fyr,lyr,mens1,mens,j1,j2,assume,lwrite)
     end if
     
@@ -1174,7 +1177,11 @@ subroutine normaliseseries(series,nperyear,fyr,lyr,mens1,mens,j1,j2,assume,lwrit
             ! compute mean of this member
             call getmeanseries(series,nperyear,iens,iens,fyr,lyr,j1,j2,.false.,mean)
             ! shift series so that it has the same mean as the ensemble mean
-            series(:,:,iens) = series(:,:,iens) - mean + ensmean
+            if ( mean < 1e33 ) then
+                series(:,:,iens) = series(:,:,iens) - mean + ensmean
+            else
+                series = 3e33
+            end if
         end do
     else if ( assume.eq.'scale' ) then
         ! compute overall multiplicative mean
@@ -1264,9 +1271,18 @@ subroutine getmeanseries(series,nperyear,mens1,mens,fyr,lyr,j1,j2,lmult,mean)
             end do
         end do
     end do
-    if ( lmult ) then
-        mean = exp(s/n)
+    if ( n == 0 ) then
+        mean = 3e33
     else
-        mean = s/n
-    end if    
+        if ( lmult ) then
+            s = s/n
+            if ( s > 75 ) then
+                s = 3e33
+            else
+                mean = exp(s)
+            end if
+        else
+            mean = s/n
+        end if
+    end if
 end subroutine
