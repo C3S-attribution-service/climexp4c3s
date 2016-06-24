@@ -43,7 +43,7 @@ program patchseries
     if ( iargc() == 3 ) then
         call getarg(3,method)
         ! "noscale" was recognised by a version that I mistakenly skipped
-        if ( method == 'nosc' ) method = bias
+        if ( method == 'nosc' ) method = 'bias'
     else
         method = 'none'
     end if
