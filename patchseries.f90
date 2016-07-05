@@ -20,7 +20,7 @@ program patchseries
     lreversefit = .false.
     sx = 0
     sy = 0
-    if ( iargc() < 3 ) then
+    if ( iargc() < 2 ) then
         write(0,*) 'usage: patchseries mainseries auxseries [regr|bias|none]'
         write(0,*) 'patches holes in mainseries using data from '// &
  &           'auxseries linearly regressed on mainseries | biascorrected to mainseries '// &
