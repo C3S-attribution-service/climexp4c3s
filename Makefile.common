@@ -185,6 +185,7 @@ OBJS	      = makeabsent.o \
 		ftest.o \
 		getweightedquant.o \
 		wetbulb.o \
+		getmissing.o \
 		calcCDD.o \
 		calcCFD.o \
 		calcCSU.o \
