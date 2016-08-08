@@ -374,12 +374,12 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                &
         print '(a)','# P(x) = exp(-(1+xi*(x-a''/b'')**'//               &
  &           '(-1/xi)) with'
         call printab(lweb)
-        print '(a,f16.3,a,f16.3,a,f16.3)','# a = ',a,' \\pm ',a975-a25
-        print '(a,f16.3,a,f16.3,a,f16.3)','# b = ',b,' \\pm ',b975-b25
-        print '(a,f16.3,a,f16.3,a,f16.3)','# xi  = ',xi,' \\pm ',xi975-xi25
-        print '(a,f16.3,a,f16.3,a,f16.3)','# alpha ',alpha,' \\pm ',alpha975-alpha25
+        print '(a,f16.3,a,f16.3,a,f16.3)','# a = ',a,' \\pm ',(a975-a25)/2
+        print '(a,f16.3,a,f16.3,a,f16.3)','# b = ',b,' \\pm ',(b975-b25)/2
+        print '(a,f16.3,a,f16.3,a,f16.3)','# xi  = ',xi,' \\pm ',(xi975-xi25)/2
+        print '(a,f16.3,a,f16.3,a,f16.3)','# alpha ',alpha,' \\pm ',(alpha975-alpha25)/2
         if ( assume.eq.'both' ) then
-            print '(a,f16.3,a,f16.3,a,f16.3)','# beta  ',beta,' \\pm ',beta975-beta25
+            print '(a,f16.3,a,f16.3,a,f16.3)','# beta  ',beta,' \\pm ',(beta975-beta25)/2
         end if
     end if
     call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot)

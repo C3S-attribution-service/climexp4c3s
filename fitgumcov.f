@@ -332,15 +332,15 @@
      +        ,' iterations'
             print '(a)','# P(x) = exp(-exp(-(x-a'')/b''))'
             call printab(lweb)
-            print '(a,f16.3,a,f16.3,a,f16.3)','# a = ',a,' \\pm ',a975
-     +           -a25
-            print '(a,f16.3,a,f16.3,a,f16.3)','# b = ',b,' \\pm ',b975
-     +           -b25
+            print '(a,f16.3,a,f16.3,a,f16.3)','# a = ',a,' \\pm ',(a975
+     +           -a25)/2
+            print '(a,f16.3,a,f16.3,a,f16.3)','# b = ',b,' \\pm ',(b975
+     +           -b25)/2
             print '(a,f16.3,a,f16.3,a,f16.3)','# alpha ',alpha,' \\pm ',
-     +           alpha975-alpha25
+     +           (alpha975-alpha25)/2
             if ( assume.eq.'both' ) then
                 print '(a,f16.3,a,f16.3,a,f16.3)','# beta  ',beta,
-     +               ' \\pm ',beta975-beta25
+     +               ' \\pm ',(beta975-beta25)/2
             end if
         endif
         call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot)

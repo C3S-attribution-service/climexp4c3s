@@ -464,10 +464,10 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         print '(a,i5,a)','# Fitted to GPD distribution in ',iter &
      &           ,' iterations'
         print '(a)','# H(x+a) = 1-(1+xi*x/b)**(-1/xi) with'
-        print '(a,f16.3,a,f16.3,a,f16.3)','# a = ',a,' \\pm ',a975-a25
-        print '(a,f16.3,a,f16.3,a,f16.3)','# b = ',b,' \\pm ',b975-b25
-        print '(a,f16.3,a,f16.3,a,f16.3)','# xi  = ',xi,' \\pm ',xi975-xi25
-        print '(a,f16.3,a,f16.3,a,f16.3)','# alpha ',alpha,' \\pm ',alpha975-alpha25
+        print '(a,f16.3,a,f16.3,a,f16.3)','# a = ',a,' \\pm ',(a975-a25)/2
+        print '(a,f16.3,a,f16.3,a,f16.3)','# b = ',b,' \\pm ',(b975-b25)/2
+        print '(a,f16.3,a,f16.3,a,f16.3)','# xi  = ',xi,' \\pm ',(xi975-xi25)/2
+        print '(a,f16.3,a,f16.3,a,f16.3)','# alpha ',alpha,' \\pm ',(alpha975-alpha25)/2
     end if
     call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot)
     call printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,lweb,plot)
