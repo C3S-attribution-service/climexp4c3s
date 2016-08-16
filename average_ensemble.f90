@@ -179,7 +179,7 @@ program average_ensemble
     if ( oper.eq.'num' ) then
         print '(a)','# N [1] number of series with valid data'
     else if ( oper.eq.'mis' ) then
-        print '(a)','# miss [1] fraction with valid data'
+        print '(a)','# miss [1] fraction with invalid data'
     else if ( .not.lset ) then
         call filloutens(file,mens1)
         call copyheader(file,6)
