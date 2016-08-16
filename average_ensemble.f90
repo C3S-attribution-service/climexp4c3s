@@ -5,7 +5,7 @@ program average_ensemble
     implicit none
     include 'param.inc'
     integer mensmax
-    parameter(mensmax=999)
+    parameter(mensmax=1999)
     integer i,mo,yr,iens,mens1,mens,nperyear,iarg,nens1,nens2
     integer fyr,lyr,nmissing(yrbeg:yrend),nnn(yrbeg:yrend),n0missing,n0,nlength(10)
     integer,allocatable :: nn(:,:)
