@@ -131,7 +131,7 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
         call abort
     end if
     dum = 0
-    call getreturnlevels(a,b,dum,alpha,beta,cov1,cov2,gaucovreturnlevel,j1,j2,t)
+    call getreturnlevels(a,b,dum,alpha,beta,cov1,cov2,gaucovreturnlevel,j1,j2,assume,t)
     if ( xyear.lt.1e33 ) then
         call getreturnyears(a,b,dum,alpha,beta,xyear,cov1,cov2,gaucovreturnyear,j1,j2,tx, &
         &   lchangesign,lwrite)
@@ -222,7 +222,7 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
         aacov(iens,2) = aaa
         call getreturnlevels(aa(iens),bb(iens),dum, &
      &           alphaalpha(iens),betabeta(iens), &
-     &           cov1,cov2,gaucovreturnlevel,j1,j2,ttt)
+     &           cov1,cov2,gaucovreturnlevel,j1,j2,assume,ttt)
         do i=1,10
             do j=1,3
                 tt(iens,i,j) = ttt(i,j)
@@ -317,7 +317,7 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
             print '(a,f16.3,a,f16.3)','# beta  ',beta,' \\pm ',(beta975-beta25)/2
         end if
     endif
-    call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot)
+    call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume)
     call printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,lweb,plot)
     call printcovpvalue(txtx,nmc,nmc,lweb)
 

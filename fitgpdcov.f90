@@ -222,7 +222,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     else
         write(0,*) 'fitgpdcov: error: unknown value for assume ',assume
     end if
-    call getreturnlevels(a,b,xi,alpha,beta,cov1,cov2,gpdcovreturnlevel,j1,j2,t)
+    call getreturnlevels(a,b,xi,alpha,beta,cov1,cov2,gpdcovreturnlevel,j1,j2,assume,t)
     if ( xyear < 1e33 ) then
         call getreturnyears(a,b,xi,alpha,beta,xyear,cov1,cov2, &
  &           gpdcovreturnyear,j1,j2,tx,lchangesign,lwrite)
@@ -332,7 +332,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         aacov(iens,2) = aaa
         call getreturnlevels(aa(iens),bb(iens),xixi(iens), &
      &           alphaalpha(iens),betabeta(iens), &
-     &           cov1,cov2,gpdcovreturnlevel,j1,j2,ttt)
+     &           cov1,cov2,gpdcovreturnlevel,j1,j2,assume,ttt)
         do i=1,10
             do j=1,3
                 tt(iens,i,j) = ttt(i,j)
@@ -469,7 +469,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         print '(a,f16.3,a,f16.3,a,f16.3)','# xi  = ',xi,' \\pm ',(xi975-xi25)/2
         print '(a,f16.3,a,f16.3,a,f16.3)','# alpha ',alpha,' \\pm ',(alpha975-alpha25)/2
     end if
-    call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot)
+    call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume)
     call printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,lweb,plot)
     call printcovpvalue(txtx,nmc,iens,lweb)
 

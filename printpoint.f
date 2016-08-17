@@ -52,7 +52,7 @@
 *  #] printreturnvalue:
 *  #[ printcovreturnvalue:
         subroutine printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,
-     +       plot)
+     +       plot,assume)
 *
 *       print return times
 *
@@ -60,9 +60,16 @@
         integer ntype,yr1a,yr2a
         real t(10,3),t25(10,3),t975(10,3)
         logical lweb,plot
+        character assume*(*)
         integer i
+        character units*1
 *
         if ( ntype.eq.2 .or. ntype.eq.3 .or. ntype.eq.4 ) then ! extreme value  plot
+            if ( assume == 'scale ' ) then
+                units = '%'
+            else
+                units = ' '
+            end if
             if ( lweb ) then
                 do i=1,10,3
                     print '(a,i5,a,i4,a,f16.3,a,f16.3,a,f16.3,a)'
@@ -74,10 +81,10 @@
      +                   ,'# <tr><td>&nbsp;</td><td>',yr2a
      +                   ,'</td><td>',t(i,2),'</td><td>',t25(i,2)
      +                   ,' ... ',t975(i,2),'</td></tr>'
-                    if ( i.eq.10 ) then ! they are all the same by construction...
-                        print '(a,f16.3,a,f16.3,a,f16.3,a)'
-     +                       ,'# <tr><td>&nbsp;</td><td>diff</td><td>'
-     +                       ,t(i,3),'</td><td>',t25(i,3)
+                    if ( i.eq.10 .or. assume == 'both' ) then
+                        print '(3a,f16.3,a,f16.3,a,f16.3,a)'
+     +                       ,'# <tr><td>&nbsp;</td><td>diff ',units,
+     +                       '</td><td>',t(i,3),'</td><td>',t25(i,3)
      +                       ,' ... ',t975(i,3),'</td></tr>'
                     end if
                     call print3untransf(t(i,1),t25(i,1),t975(i,1),yr1a)
@@ -101,9 +108,9 @@
      +                   ,'# value for return period ',10**i
      +                   ,' year at yr=',yr2a,': '
      +                   ,t(i,2),' 95% CI ',t25(i,2),t975(i,2)
-                    print '(a,i5,a,f16.3,a,2f16.3)'
+                    print '(a,i5,3a,f16.3,a,2f16.3)'
      +                   ,'# value for return period ',10**i
-     +                   ,' year, difference: '
+     +                   ,' year, difference',units,': '
      +                   ,t(i,3),' 95% CI ',t25(i,3),t975(i,3)
                     call print3untransf(t(i,1),t25(i,1),t975(i,1),yr1a)
                     call print3untransf(t(i,2),t25(i,2),t975(i,2),yr2a)
@@ -725,10 +732,11 @@
 *  #] plot_tx_cdfs:
 *  #[ getreturnlevels:
         subroutine getreturnlevels(a,b,xi,alpha,beta,cov1,cov2,
-     +       covreturnlevel,j1,j2,t)
+     +       covreturnlevel,j1,j2,assume,t)
         implicit none
         integer j1,j2
         real a,b,xi,alpha,beta,cov1,cov2,t(10,3)
+        character assume*(*)
         real,external :: covreturnlevel
         integer i
         real x,xx
@@ -746,6 +754,9 @@
             xx = x
             t(i,2) = covreturnlevel(a,b,xi,alpha,beta,xx,cov2)
             t(i,3) = t(i,2) - t(i,1)
+            if ( assume == 'scale' ) then ! relative change in %
+                t(i,3) = 100*t(i,3)/t(i,2)
+            end if
         enddo
         end
 *  #] getreturnlevels:
