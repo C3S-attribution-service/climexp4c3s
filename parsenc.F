@@ -13,7 +13,7 @@
         character file*(*),title*(*),vars(nvarmax)*(*)
      +       ,lvars(nvarmax)*(*),units(nvarmax)*(*)
         integer nens1,nens2,i,j
-        character lz(3)*20,svars(100)*100,ltime*120,history*10000,
+        character lz(3)*20,svars(100)*100,ltime*120,history*20000,
      +       cell_methods(100)*100
         logical tdefined(ntmax)
 	nens1 = 0

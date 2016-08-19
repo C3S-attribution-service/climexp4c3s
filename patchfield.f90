@@ -22,7 +22,7 @@ program patchfield
     real,allocatable :: mainfield(:,:,:,:,:),auxfield(:,:,:,:,:),maindata(:,:),auxdata(:,:)
     character &
  &      mainfile*255,auxfile*255,outfile*255,datfile*255,datfile1*255,lz(3)*20,ltime*120, &
- &      title*2000,history*10000,vars(nvarmax)*40,lvars(nvarmax)*120,svars(nvarmax)*80, &
+ &      title*2000,history*20000,vars(nvarmax)*40,lvars(nvarmax)*120,svars(nvarmax)*80, &
  &      units(nvarmax)*40,units1(nvarmax)*40,cell_methods(nvarmax)*40
     integer iargc
     data dpm /31,29,31,20,31,30,31,31,30,31,30,31/

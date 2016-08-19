@@ -62,9 +62,11 @@
         end do
         print '(a)',trim(title)
         call getarg(iargc(),line)
+        call keepalive1('Reading data',0,0)
         lstandardunits = .false. ! because we cannot call getopts before we know mens1,mens...
         call readensseries(line,data,npermax,yrbeg,yrend,nensmax
      +        ,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
+        call keepalive1('Reading data',0,0)
         call getopts(iarg,iargc()-1,nperyear,yrbeg,yrend,.true.,mens1
      +       ,mens)
         if ( lnormsd ) then
@@ -133,6 +135,7 @@
 *       print
 *       
         do iens=nens1,nens2
+            call keepalive1('Writing data',iens-nens1+1,nens2-nens1+1)
             if ( nens2.gt.nens1 ) then
                 print '(a,i4)','# ensemble member ',iens
                 print '(a)'

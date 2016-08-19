@@ -18,7 +18,7 @@
         real,allocatable :: field(:,:,:,:,:,:),quantiles(:,:,:,:,:)
      +       ,sdmod(:,:,:,:,:),sd(:,:,:,:),sdsd(:,:,:,:)
         character infile*255,outfile*255,datfile*255,lz(3)*20,ltime*100
-     +       ,title*255,history*10000,vars(nvarmax)*40
+     +       ,title*255,history*20000,vars(nvarmax)*40
      +       ,lvars(nvarmax)*140,svars(nvarmax)*100,units(nvarmax)*100
      +       ,cell_methods(nvarmax)*100
         character var*20,model*20,exp*20,rip*20,yrs*20,oldmodel*20

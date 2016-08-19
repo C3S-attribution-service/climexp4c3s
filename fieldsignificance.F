@@ -21,7 +21,7 @@
         real xx(nxmax),yy(nymax),zz(nzmax),undef,wx(nxmax),wy(nymax)
      +       ,cuts(ncuts),pcuts(6)
         character infile*255,datfile*255,string*20,lz(3)*20,ltime*100,
-     +       title*1000,history*10000,vars(nvarmax)*40,
+     +       title*1000,history*20000,vars(nvarmax)*40,
      +       lvars(nvarmax)*200,svars(nvarmax)*200,units(nvarmax)*100,
      +       cell_methods(nvarmax)*128,all*6
         logical xrev,yrev,xwrap

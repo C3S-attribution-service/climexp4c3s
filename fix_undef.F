@@ -18,7 +18,7 @@
         real,allocatable :: field(:,:,:,:,:),unique(:)
         character infile*255,datfile*255,outfile*255,line*255,lz(3)*20
      +       ,vars(nvmax)*15,lvars(nvmax)*255,svars(nvmax)*80
-     +       ,title*255,history*10000,units(nvmax)*40,
+     +       ,title*255,history*20000,units(nvmax)*40,
      +       cell_methods(nvmax)*100,ltime*120,yesno*1
         logical lexist
         integer iargc,leap

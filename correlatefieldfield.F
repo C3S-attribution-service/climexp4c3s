@@ -50,7 +50,7 @@
         character line*80,yesno*1,string*10,file*255,outfile*255,
      +       datfile*255,title*255,vars(9)*10,lvars(9)*128,svars(9)*128,
      +       dir*255,units(9)*40,lz1(3)*128,lz2(3)*128,ltime1*128,
-     +       ltime2*128,history1*10000,history2*10000,cell_methods1*100
+     +       ltime2*128,history1*20000,history2*20000,cell_methods1*100
      +       ,cell_methods2*100
         integer iargc,llen
         external llen,findx

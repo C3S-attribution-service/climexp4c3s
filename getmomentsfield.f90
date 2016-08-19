@@ -28,7 +28,7 @@ program getmomentsfield
         real,allocatable :: fxy(:,:,:),ddata(:)
         character infile*255,datfile*255,outfile*255,line*255,lz(3)*20 &
      &       ,vars(nvarmax)*15,lvars(nvarmax)*255,svars(nvarmax)*80 &
-     &       ,title*255,history*10000,units(nvarmax)*20, &
+     &       ,title*255,history*20000,units(nvarmax)*20, &
      &       cell_methods(nvarmax)*100,lsmasktype*4,ltime*120
         character yesno*1,dir*255,string*15,saveunits*20,format*10,assume*5
         integer iargc,llen,rindex

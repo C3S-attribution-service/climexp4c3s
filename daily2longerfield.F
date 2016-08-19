@@ -23,7 +23,7 @@
      +       fxy(:,:),refs(:)
         character file*256,datfile*256,string*40,lgt*1,opera*3
         character vars(nvmax)*20,lvars(nvmax)*255,title*200,
-     +       history*10000,units(nvmax)*20,cell_methods(nvmax)*200,
+     +       history*20000,units(nvmax)*20,cell_methods(nvmax)*200,
      +       lz(3)*20,ltime*100,svars(nvmax)*50,punits*40
         logical normal,tdefined(ntmax),lexist
         logical,allocatable :: lvalid(:,:,:,:),lvalid1(:,:)
