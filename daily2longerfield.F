@@ -10,7 +10,7 @@
 #include "netcdf.inc"
 #include "getopts.inc"
         integer ntmax
-        parameter(ntmax=60000)
+        parameter(ntmax=100000)
         integer nperyear,nperyearnew,yr,mo,dy,i,j,n,itype,jx,jy
         integer nx,ny,nz,nt,firstyr,firstmo,lastyr,nvars,
      +       ivars(2,nvmax),jvars(6,nvmax),ncid,endian,status,
