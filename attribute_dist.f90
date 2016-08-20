@@ -33,6 +33,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     if ( lwrite ) then
         print *,'mens1,mens = ',mens1,mens
         print *,'attribute_dist: series(:,2000,0) = ',(series(j,2000,0),j=1,min(15,nperyear))
+        print *,'attribute_dist: covariate(:,2000,0) = ',(covariate(j,2000,0),j=1,min(15,nperyear1))
     end if
 
     if ( distribution.eq.'gev' .or. distribution.eq.'gumbel' ) then

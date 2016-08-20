@@ -61,8 +61,10 @@ program attribute
     &    index(covariatefile,'++') == 0 ) then
         call readseries(covariatefile,covariate,npermax,yrbeg,yrend &
         & ,nperyear1,var1,units1,lstandardunits,lwrite)
-        do iens=mens1+1,mens
-            covariate(:,:,iens) = covariate(:,:,mens1)
+        do iens=mens1,mens
+            if ( iens /= 0 ) then
+                covariate(:,:,iens) = covariate(:,:,0)
+            end if
         end do
     else
         call readensseries(covariatefile,covariate,npermax,yrbeg,yrend &
@@ -158,6 +160,7 @@ program attribute
     endif
 
     lprint = .true.
+    if ( lwrite ) print *,'attribute: calling attribute_dist'
     call attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yrend,&
     &   mens1,mens,assume,distribution,seriesids,results,nresmax,nresults,lprint)
 
