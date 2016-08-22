@@ -122,7 +122,7 @@
      +       ivars(2,1),lsncid,ndpm,yr1,yr2,nyr,ntvarid,nxf,nyf,
      +       nzf,it,mo,yr,irec
         integer ncidmask,nxmask,nymask,nzmask,ntmask,fyr,fmo,
-     +       jvarsmask(6,1),iarray1(13),iarray2(13),iret1,iret2
+     +       jvarsmask(6,1),iarray1(13),iarray2(13),iret1,iret2,iret
         integer,allocatable :: itimeaxis(:)
         integer xlist(nxmax*nymax),ylist(nxmax*nymax)
         real minfac,ave(mypermax),avemean(mypermax),lon1,lon2,lat1,lat2,
@@ -884,7 +884,7 @@
             call outputave(out,year,ave,nperyear,lstandardunits,
      +           offset,slope,ndpm,year,yr1,yr2,nyr)
             if ( nyr.eq.0 ) then
-                write(0,*) 'get_index: error: cannot find any data'
+                !!!write(0,*) 'get_index: error: cannot find any data'
                 if ( out.ne.6 ) then
                     close(out,status='delete')
                 end if
@@ -901,6 +901,10 @@
 *           finito
             if ( npoints.gt.1 ) then
                 close(out)
+                ! make a netcdf copy for faster access by next program
+                call mysystem('./bin/dat2nc '//trim(string)//
+     +               ' i get_index '//trim(string(:index(string,'.dat')
+     +               ))//'nc',iret)
             endif
   900       continue
             call keepalive1('Writing grid points',ipoints,npoints)
