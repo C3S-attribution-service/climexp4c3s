@@ -12,7 +12,7 @@
         character ids(0:nensmax)*(*),var*(*),units*(*)
         integer i,m,iret,filetime,stringtime
         real lon,lat,elev
-        logical lexist
+        logical lexist,pexist
         character prog*100,extraargs*100,extraargs_*100,file*255,
      +       line*255,number*20,string*255,command*1023
         integer,external :: getfiletime
@@ -51,7 +51,16 @@
             extraargs_ = ' '
         end if
         call getarg(2,file)
+        open(1,file=file,status='old',err=101)
+        goto 102
+ 101    continue
+        do i=1,len(file)
+            if ( file(i:i+1).eq.'\\:' ) then
+                file(i:) = file(i+1:)
+            end if
+        end do
         open(1,file=file,status='old')
+ 102    continue
         mens = 0
         mens1 = 0
  1      continue
@@ -63,9 +72,11 @@
 !       first generate original timescale file
         file = './data/'//trim(prog)//trim(number)//'.dat'
         inquire(file=trim(file),exist=lexist)
+        inquire(file='./bin/'//trim(prog),exist=pexist)
         ! the getdutch* , gdcn*, eca* and GHCN get* programs 
         ! check themselves whether the file needs to be regenerated
-        if ( prog(1:8).eq.'getdutch' .or.
+        if ( pexist .and.
+     +       prog(1:8).eq.'getdutch' .or.
      +       prog(1:4).eq.'gdcn' .or.
      +       prog(1:3).eq.'eca' .or. prog(1:4).eq.'beca' .or.
      +       prog(1:7).eq.'getprcp' .or. prog(1:7).eq.'gettemp' .or.
@@ -76,7 +87,7 @@
      +           ' ',trim(number),' ',trim(file)
             if ( lwrite ) print *,trim(command),'<br>'
             call mysystem(trim(command),iret)
-        else if ( .not.lexist ) then
+        else if ( .not.lexist .and. pexist ) then
             ! generate it
             write(command,'(10a)') './bin/',trim(prog),
      +           ' ',trim(number),' ',trim(file),' > ',trim(file)
@@ -104,6 +115,11 @@
             file = string
         end if
         if ( lwrite ) print *,'reading ',trim(file)
+        inquire(file=trim(file),exist=lexist)
+        if ( .not.lexist ) then
+            write(0,'(a)') 'skipping file ',trim(file)
+            goto 1
+        end if
         call keepalive1('Reading series',mens,-1)
         call readseries(file,data(1,yrbeg,mens),npermax,yrbeg,yrend
      +       ,m,var,units,lstandardunits,.false.)
