@@ -62,6 +62,8 @@
         endif
         i = index(units,'since')
         if ( i.eq.0 ) then
+            if ( lwrite ) print *,'getperyear: cannot find "since" in ',
+     +           'time units ',trim(units),', trying time_origin'
             call gettextatt(ncid,varid,'time_origin',timeorigin,lwrite)
             units(len_trim(units)+1:) = ' since '//timeorigin(1:i)
             n = n + 7 + i
