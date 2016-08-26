@@ -149,8 +149,8 @@
      +               .not.foundtime .and. ( axis.eq.'t' .or.
      +               name(1:4).eq.'time' .or. name(1:4).eq.'TIME' .or. 
      +               name.eq.'T' .or. name.eq.'t' .or. name.eq.'T1' .or.
-     +               name(1:2).eq.'t_' .or. name.eq.'Time'  .or.
-     +               name.eq.'Tims' )) then
+     +               (name(1:2).eq.'t_' .and. name.ne.'t_ref') .or. 
+     +               name.eq.'Time'  .or. name.eq.'Tims' )) then
                 foundtime = .TRUE.
 *               (it could have been a timeseries)
                 if ( lwrite ) print *,'parsenc: found time axis'
