@@ -11,6 +11,7 @@
      +       ,nyf,nzf
         integer ncid,nx,ny,nz,nt,nperyear,firstyr,firstmo,endian,nvars
      +       ,ivars(2,1),jvars(6,1),lastyr,ntvarid,itimeaxis(ntmax)
+     +       ,nnt
         real xx(nxmax),yy(nymax),zz(1),undef,minfac,s,ss
         real,allocatable :: field(:,:,:,:)
         character file*255,datfile*255,title*255,vars(1)*20,lvars(1)*60
@@ -76,6 +77,25 @@
 *
 *       write output
 *
+        nnt = nt
+        if ( nperyear == 366 ) then
+            nnt = 0
+            yr = firstyr
+            mo = firstmo
+            do it=1,nt
+                nnt = nnt + 1
+                mo = mo + 1
+                if ( mo.gt.nperyear ) then
+                    mo = mo - nperyear
+                    yr = yr + 1
+                endif
+                if ( nperyear.eq.366 .and. mo.eq.60 ) then
+                    if ( leap(yr).eq.1 ) then
+                        nnt = nnt - 1
+                    end if
+                endif
+            end do
+        end if
         undef = 3e33
         write(title(llen(title)+2:),'(a,i2,a,i2,a)')
      +       ' averaged over ',avex,'x',avey,' grid boxes'
@@ -85,8 +105,8 @@
             datfile = file(1:i)
             datfile(i:) = '.grd'
             call writectl(file,datfile,nx,xx,ny,yy,nz,zz,
-     +        nt,nperyear,firstyr,firstmo,undef,title,nvars,vars,ivars
-     +        ,lvars,units)
+     +        nnt,nperyear,firstyr,firstmo,undef,title,nvars,vars,ivars,
+     +        lvars,units)
             open(1,file=datfile,access='direct',recl=recfa4*nx*ny)
             yr = firstyr
             mo = firstmo
@@ -98,18 +118,21 @@
                     yr = yr + 1
                 endif
                 if ( nperyear.eq.366 .and. mo.eq.60 ) then
-                    if ( leap(yr).eq.1 ) mo = mo + 1
+                    if ( leap(yr).eq.1 ) then
+                        mo = mo + 1
+                    end if
                 endif
             enddo
         elseif ( index(file,'.nc').ne.0 ) then
             ivars = 0
             call writenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny,yy
-     +           ,nz,zz,nt,nperyear,firstyr,firstmo,undef,title,nvars
+     +           ,nz,zz,nnt,nperyear,firstyr,firstmo,undef,title,nvars
      +           ,vars,ivars,lvars,units,0,0)
             open(1,file=datfile,access='direct',recl=recfa4*nx*ny)
             yr = firstyr
             mo = firstmo
-            do it=1,nt
+            do it=1,nnt
+                if ( lwrite ) print *,'writing ',yr,mo,it,nnt,nt
                 call writencslice(ncid,ntvarid,itimeaxis,ntmax,ivars
      +               ,field(1,1,mo,yr),nxf,nyf,nzf,nx,ny,nz,it,0)
                 mo = mo + 1
@@ -118,7 +141,9 @@
                     yr = yr + 1
                 endif
                 if ( nperyear.eq.366 .and. mo.eq.60 ) then
-                    if ( leap(yr).eq.1 ) mo = mo + 1
+                    if ( leap(yr).eq.1 ) then
+                        mo = mo + 1
+                    end if
                 endif
             enddo
             status = nf_close(ncid) ! otherwise the buffer won't be flushed...
