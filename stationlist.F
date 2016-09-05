@@ -83,7 +83,18 @@
         call getarg(2,file)
         open(2,file=file,status='unknown',err=900)
         call getarg(1,file)
+        open(1,file=file,status='old',err=1)
+        goto 2
+ 1      continue
+!       try again ith backslashes removed; Mac OS and linux differ in how
+!       they propagate arguments to cgi scripts. Some backslashes may have crept in...
+        do i=1,len(file)
+            if ( file(i:i).eq.'\\' ) then
+                file(I:) = file(i+1:)
+            end if
+        end do
         open(1,file=file,status='old',err=901)
+ 2      continue
         j=1
         options = ' '
         do i=nextarg,iargc()
