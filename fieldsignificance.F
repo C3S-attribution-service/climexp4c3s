@@ -197,12 +197,15 @@
                     do iy=1,ny
                         do ix=1,nx
                             if ( prob(ix,iy,iz).lt.1e33 ) then
-                                if ( corr(ix,iy,iz).lt.0 ) then
-                                    invprob(ix,iy,iz) = 
-     +                                   -log(1/prob(ix,iy,iz))
+                                if ( prob(ix,iy,iz).lt.1e-30 ) then
+                                    invprob(ix,iy,iz) = 70
                                 else
-                                    invprob(ix,iy,iz) =
+                                    invprob(ix,iy,iz) = 
      +                                   log(1/prob(ix,iy,iz))
+                                end if
+                                if ( corr(ix,iy,iz).lt.0 ) then
+                                    invprob(ix,iy,iz) =
+     +                                   -invprob(ix,iy,iz) 
                                 end if
                             end if
                         end do
