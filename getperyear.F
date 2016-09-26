@@ -872,7 +872,8 @@
                 print *,'         len:      ',len
             endif
             call tolower(name)
-            if ( index(name,'_bnd').ne.0 ) then
+            if ( index(name,'_bnd').ne.0 .or. 
+     +           index(name,'bounds').ne.0 ) then
                 if ( lwrite ) print *
      +               ,'getdims: disregarding boundary '
      +               ,trim(name)
@@ -905,7 +906,9 @@
                     endif
                     ix = dimid
                 else
-                    write(0,*) 'getdims: ignoring duplicate lon'
+                    if ( len > 2 ) then
+                        write(0,*) 'getdims: ignoring duplicate lon'
+                    end if
                 endif
             elseif ( name.eq.'y' .or. name(1:2).eq.'y_' .or. 
      +               name(1:3).eq.'lat'

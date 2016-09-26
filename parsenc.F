@@ -163,7 +163,8 @@
             else
                 n = 0
                 do i=1,ndimvar
-                    if ( it.ne.0 .and. dimids(i).eq.it ) then
+                    if ( it.ne.0 .and. dimids(i).eq.it .and.
+     +                   index(name,'bounds') == 0 ) then
                         n = n+1
                         if ( lwrite ) print *
      +                       ,'parsenc: time-varying variable ',varid
