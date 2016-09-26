@@ -79,7 +79,7 @@ program plotdaily
                 cumdata = data(mm,yr)+mean(mm)
                 cummean = mean(mm)
             end if
-            print '(i4,2i2.2,2f12.4)',yr,mo,dy,cumdata,cummean
+            print '(i4,2i2.2,2g12.4)',yr,mo,dy,cumdata,cummean
         else
             print '(a)'
         end if
