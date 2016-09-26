@@ -24,6 +24,8 @@ program plotdaily
     call getarg(3,enddate)
     read(string,*) nday
     allocate(data(npermax,yrbeg:yrend))
+    lstandardunits = .true.
+    lwrite = .false.
     call readseries(file,data,npermax,yrbeg,yrend,nperyear, &
     &   var,units,lstandardunits,lwrite)
     mens1 = 0
