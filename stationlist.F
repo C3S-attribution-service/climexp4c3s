@@ -24,7 +24,7 @@
      +       filterext*100,oper*4,name*40,options*1024,datfile*256
      +       ,rawfile*256,command*1024,tmpfile*29,aveline*10000,dir*256
      +       ,coordlist*30,field*255,fieldfile*255,letter*1,runfile*256
-     +       ,histoptions*80,email*80,attribute_args*1024
+     +       ,histoptions*80,email*80,attribute_args*1024,country*40
         logical lwrite,interp
         integer iargc,llen,getpid
         real erfc
@@ -81,9 +81,9 @@
             filterext = ' '
         endif
         call getarg(2,file)
-        open(2,file=file,status='unknown',err=900)
+        open(2,file=trim(file),status='unknown',err=900)
         call getarg(1,file)
-        open(1,file=file,status='old',err=1)
+        open(1,file=trim(file),status='old',err=1)
         goto 2
  1      continue
 !       try again ith backslashes removed; Mac OS and linux differ in how
@@ -93,7 +93,7 @@
                 file(I:) = file(i+1:)
             end if
         end do
-        open(1,file=file,status='old',err=901)
+        open(1,file=trim(file),status='old',err=901)
  2      continue
         j=1
         options = ' '
@@ -271,6 +271,7 @@
         endif
         n = 0
   200   continue
+        call readcountry(1,country)
         if ( lwrite ) print *,'stationlist: attempting to read station '
      +       ,n+1
         call readcoord(1,lon,lat,elev)
@@ -705,9 +706,10 @@
             print *,'stationlist: unknown operation code ',oper
             call abort
         endif
- 1000   format(a,2f10.4,' ',g10.4,f8.4,1x,a)
+ 1000   format(a,2f10.4,' ',g10.4,f8.4,1x,4a)
         if ( oper.ne.'aver' ) then
-            write(2,1000) code(1:llen(code)),lon,lat,val,sign,trim(name)
+            write(2,1000) code(1:llen(code)),lon,lat,val,sign,
+     +           trim(name),' (',trim(country),')'
         endif
 *       
 *       next

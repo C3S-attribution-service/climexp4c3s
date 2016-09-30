@@ -10,7 +10,7 @@
         character*80 line
 *
   200   continue
-        read(unit,'(a)',end=800,err=903) line
+        read(unit,'(a)',end=800,err=800) line
         i = index(line,'oordinates:')
         if ( i.eq.0 ) goto 200
         i = i+11
@@ -31,8 +31,6 @@
         lon = 3e33
         lat = 3e33
         return
-  903   print *,'stationlist: error: error reading in file'
-        call abort
         end
 
         subroutine readcodename(line,code,name,lwrite)
@@ -86,6 +84,31 @@
             write(0,*) command(1:llen(command))
             write(*,*) 'error ',retval,' in '
             write(*,*) command(1:llen(command))
-            call abort
+            call exit(-1)
         endif
+        end
+
+        subroutine readcountry(unit,country)
+*
+*       search file on unit for a line containing '(country)'
+*       and read the country from it.  Not very robust yet.
+*
+        implicit none
+        integer unit
+        character country*(*)
+        integer i,j
+        character*80 line
+*
+  200   continue
+        read(unit,'(a)',end=800,err=800) line
+        i = index(line,'(')
+        if ( i.eq.0 ) goto 200
+        i = i+1
+        j = index(line,')')-1
+        country = line(i:j)
+        if ( country(1:4) == 'pop.' ) goto 200
+        return
+  800   continue
+        country = 'unknown'
+        return
         end
