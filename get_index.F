@@ -432,7 +432,7 @@
                         cycle
                     end if
                     irec = irec + 1
-                    call keepalive1('Writing file',it,nt)
+                    call keepalive1('Writing day',it,nt)
                     call writencslice(ncid,ntvarid,itimeaxis,nt,ivars
      +                   ,field(1,1,mo,yr),nxf,nyf,nzf,nx,ny,nz,irec,1)
                     mo = mo + 1
