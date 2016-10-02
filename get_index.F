@@ -386,9 +386,11 @@
             nxf = nx
             nyf = ny
             nzf = nz
+            call keepalive1('Cutting out',0,1)
             call enscutoutwindow(x1,x2,y1,y2,xx,nx,xwrap,xrev,1,yy
      +           ,ny,1,wx,wy,field,nx,ny,0,0,nperyear,firstyr,lastyr
      +           ,firstyr,lastyr,lwrite)
+            call keepalive1('Cutting out',1,1)
             if ( lstandardunits) then
                 call makestandardfield(field,nxf,nyf,1,nperyear,firstyr
      +               ,lastyr,nx,ny,1,nperyear,firstyr,lastyr,vars(1)
@@ -430,6 +432,7 @@
                         cycle
                     end if
                     irec = irec + 1
+                    call keepalive1('Writing file',it,nt)
                     call writencslice(ncid,ntvarid,itimeaxis,nt,ivars
      +                   ,field(1,1,mo,yr),nxf,nyf,nzf,nx,ny,nz,irec,1)
                     mo = mo + 1
