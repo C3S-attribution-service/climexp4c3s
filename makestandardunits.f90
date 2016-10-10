@@ -449,6 +449,10 @@ subroutine estimatemean(data,nxf,nyf,nzf,npermax,yrbeg,yrend, &
     logical lwrite
     integer n,yr,mo,jx,jy,jz
 !   only a few numbers should be enough...
+    if ( lwrite ) then
+        print *,'estimatemean: yrbeg,yrend = ',yrbeg,yrend
+        print *,'              yr1,yr2     = ',yr1,yr2
+    end if
     n = 0
     mean = 0
     do yr=yr1,yr2
