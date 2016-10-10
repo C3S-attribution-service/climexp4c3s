@@ -245,6 +245,7 @@ subroutine makestandardunits(mean,nperyear,invar,units,newunits,offset,slope,ndp
 !       Temperature - slightly harder
 !
     elseif ( units.eq.'C' .or. units.eq.'Celsius' .or. units.eq.'celsius' .or. &
+     &       units.eq.'degrees Celsius' .or. &
      &       units(1:8).eq.'degree_C' .or. units(1:8).eq.'degree_c' .or. &
      &       units(1:7).eq.'degreeC' .or. &
      &       units(1:5).eq.'deg_C' .or. units(1:5).eq.'deg_c' .or. &
