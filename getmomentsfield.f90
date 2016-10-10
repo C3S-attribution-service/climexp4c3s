@@ -43,7 +43,7 @@ program getmomentsfield
      &            //'[lt cut] [gt cut] [diff [nyr]] [detrend] ' &
      &            //'outfile.[ctl|nc]'
             stop
-        endif
+        end if
         lwrite = .false.
         do i=1,n
             call getarg(i,line)
@@ -81,18 +81,18 @@ program getmomentsfield
             i = 4
         else
             i = 3
-        endif
+        end if
         call getlsmask(i,lsmasktype,nxmax,xxls,nymax,yyls,lwrite)
         if ( lsmasktype.ne.'all' ) then
             call checkgridequal(nx,ny,xx,yy,nxls,nyls,xxls,yyls)
-        endif
+        end if
         call getopts(i,n-1,nperyear,yrbeg,yrend,.true.,mens1,mens)
         call getarg(1,infile)
         if ( index(infile,'%').gt.0 .or. &
      &       index(infile,'++').gt.0 ) then
             write(0,*) 'Using ensemble members ',nens1,' to ',nens2 &
      &           ,'<br>'
-        endif
+        end if
         yr1 = max(yr1,firstyr)
         yr2 = min(yr2,lastyr)
         firstyr = yr1
@@ -125,7 +125,7 @@ program getmomentsfield
      &           then
                 call getarg(3,line)
                 read(line,*,err=905) year
-            endif
+            end if
         elseif ( line(1:4).eq.'skew' ) then
             imoment = 3
         elseif ( line(1:4).eq.'kurt' .or. line(1:4).eq.'curt' ) then
@@ -142,14 +142,14 @@ program getmomentsfield
             if ( line(1:6).eq.'pot_rt' ) then
                 call getarg(3,line)
                 read(line,*,err=905) year
-            endif
+            end if
             assume = 'shift'
             imoment = 200
         elseif ( line(1:3).eq.'gev' ) then
             if ( line(1:6).eq.'gev_rt' ) then
                 call getarg(3,line)
                 read(line,*,err=905) year
-            endif
+            end if
             imoment = 300
         elseif ( line(1:4).eq.'rank' ) then
             call getarg(3,line)
@@ -159,7 +159,7 @@ program getmomentsfield
             imoment = 1001
         else
             goto 901
-        endif
+        end if
         if ( lag1.ne.0 .or. lag2.ne.0 ) print * &
      &        ,'getmomentsfield: lags do not make sense'
         if ( dump ) print *,'getmomentsfield: dump not supported'
@@ -170,7 +170,7 @@ program getmomentsfield
         do i=1,indxuse
             if ( lincl(i) ) print *,'getmomentsfield: what do ', &
      &          'you mean with ',strindx(i),'?'
-        enddo
+        end do
         if ( itype.ne.0 .and. imoment.ne.1 ) then
             write(0,*) 'getmomemntsfield: error: can only compute ', &
      &           'mean of cyclical data, not ',trim(line)
@@ -194,7 +194,7 @@ program getmomentsfield
                     call filloutens(infile,iens)
                     if ( lwrite ) print *,'calling parsectl on ', &
      &                   trim(infile)
-                endif
+                end if
                 call parsectl(infile,datfile,nxmax,nx,xx,nymax,ny,yy &
      &               ,nzmax,nz,zz,nt,nperyear,f,firstmo,undef &
      &               ,endian,title,1,nvars,vars,ivars,lvars,units)
@@ -214,12 +214,12 @@ program getmomentsfield
                             write(0,*) 'Cannot locate file ' &
      &                            ,datfile(1:llen(dir))
                             call abort
-                        endif
-                    endif
-                endif
+                        end if
+                    end if
+                end if
                 if ( lwrite ) then
                     print *,'opening file ',trim(datfile)
-                endif
+                end if
                 call zreaddatfile(datfile,field(1,1,1,1,firstyr,iens), &
      &                nx,ny,nz,nx,ny,nz,nperyear,firstyr,lastyr, &
      &                f,firstmo,nt,undef,endian,lwrite,yr1,yr2,1,1 &
@@ -232,15 +232,15 @@ program getmomentsfield
                     if ( lwrite ) print *,'calling parsenc on ', &
      &                   infile(1:llen(infile))
                     status = nf_open(infile,nf_nowrite,ncid)
-                endif
+                end if
                 call parsenc(infile,ncid,nxmax,nx,xx,nymax,ny,yy &
      &               ,nzmax,nz,zz,nt,nperyear,f,firstmo &
      &               ,undef,title,1,nvars,vars,jvars,lvars,units)
                 call zreadncfile(ncid,field(1,1,1,1,firstyr,iens) &
      &               ,nx,ny,nz,nx,ny,nz,nperyear,firstyr,lastyr,f &
      &               ,firstmo,nt,undef,lwrite,yr1,yr2,jvars)
-            endif
-        enddo
+            end if
+        end do
     5   continue
 !
 !       apply land/sea mask
@@ -259,20 +259,20 @@ program getmomentsfield
             if (  yesno.ne.'y' .and. yesno.ne.'Y' .and. &
      &            yesno.ne.'j' .and. yesno.ne.'J' ) then
                 stop
-            endif            
+            end if            
             open(2,file=outfile)
             close(2,status='delete')
-        endif
+        end if
         if ( index(outfile,'.ctl').ne.0 ) then
             i = index(outfile,'.ctl')
             if ( i.ne.0 ) then
                 datfile = outfile(:i-1)//'.grd'
             else
                 datfile = outfile
-            endif
+            end if
             open(unit=2,file=datfile,form='unformatted',access='direct' &
      &            ,recl=recfac*nx*ny*nz,err=920)
-        endif
+        end if
 !
 !       compute minfac if it has not been set explicitly
 !
@@ -282,7 +282,7 @@ program getmomentsfield
      &            min(0.6, &
      &            1.5-log(1+real(min(nt,nperyear*(yr2-yr1+1))-1) &
      &            /nperyear)/4))
-        endif
+        end if
         write(0,'(a,i2,a)') 'Requiring at least ', &
      &            nint(100*minfac),'% valid points'
 !
@@ -295,7 +295,7 @@ program getmomentsfield
                 do jx=1,nx
                     do month=0,min(12,nperyear)
                         res(jx,jy,jz,month,1:nvarmax) = 3e33
-                    enddo
+                    end do
                     xyear = 3e33
 !
 !                   create 1-D series from field
@@ -308,14 +308,14 @@ program getmomentsfield
      &                                  field(jx,jy,jz,j,i,iens)
                                 if ( fxy(j,i,iens).lt.0.9*absent ) &
      &                                  n = n+1
-                            enddo
-                        enddo
-                    enddo
+                            end do
+                        end do
+                    end do
                     if ( n.lt.3 ) then
                         if ( lwrite ) print '(a,3i5)', &
      &                          'no valid points at ',jx,jy,jz
                         goto 800
-                    endif
+                    end if
                     do iens=nens1,nens2
 !
 !                       sum
@@ -323,7 +323,7 @@ program getmomentsfield
                         if ( lsum.gt.1 ) then
                             call sumit(fxy(1,yr1,iens),nperyear, &
      &                          nperyear,yr1,yr2,lsum,oper)
-                        endif
+                        end if
 !
 !                       log,sqrt
 !
@@ -337,10 +337,10 @@ program getmomentsfield
      &                                          log10(fxy(j,i,iens))
                                     else
                                         fxy(j,i,iens) = 3e33
-                                    endif
-                                enddo
-                            enddo
-                        endif
+                                    end if
+                                end do
+                            end do
+                        end if
                         if ( sqrtscale ) then
                             do i=yr1,yr2
                                 do j=1,nperyear
@@ -351,10 +351,10 @@ program getmomentsfield
      &                                          sqrt(fxy(j,i,iens))
                                     else
                                         fxy(j,i,iens) = 3e33
-                                    endif
-                                enddo
-                            enddo
-                        endif
+                                    end if
+                                end do
+                            end do
+                        end if
                         if ( squarescale ) then
                             do i=yr1,yr2
                                 do j=1,nperyear
@@ -363,10 +363,10 @@ program getmomentsfield
      &                                          fxy(j,i,iens)**2
                                     else
                                         fxy(j,i,iens) = 3e33
-                                    endif
-                                enddo
-                            enddo
-                        endif
+                                    end if
+                                end do
+                            end do
+                        end if
                         if ( cubescale ) then
                             do i=yr1,yr2
                                 do j=1,nperyear
@@ -375,10 +375,10 @@ program getmomentsfield
      &                                          fxy(j,i,iens)**3
                                     else
                                         fxy(j,i,iens) = 3e33
-                                    endif
-                                enddo
-                            enddo
-                        endif
+                                    end if
+                                end do
+                            end do
+                        end if
                         if ( twothirdscale ) then
                             do i=yr1,yr2
                                 do j=1,nperyear
@@ -389,10 +389,10 @@ program getmomentsfield
      &                                          fxy(j,i,iens)**(2./3.)
                                     else
                                         fxy(j,i,iens) = 3e33
-                                    endif
-                                enddo
-                            enddo
-                        endif
+                                    end if
+                                end do
+                            end do
+                        end if
 !
 !                       detrend
 !
@@ -401,7 +401,7 @@ program getmomentsfield
                             call detrend(fxy(1,yr1,iens),nperyear, &
      &                           nperyear,yr1,yr2,yr1,yr2,m1,m2,lsel &
      &                           )
-                        endif
+                        end if
 !
 !                       differentiate
 !
@@ -409,7 +409,7 @@ program getmomentsfield
                             if ( lwrite ) print *,'Taking differences'
                             call diffit(fxy(1,yr1,iens),nperyear, &
      &                          nperyear,yr1,yr2,ndiff)
-                        endif
+                        end if
 !
 !                       anomalies
 !
@@ -417,15 +417,15 @@ program getmomentsfield
      &                      then
                             call anomal(fxy(1,yr1,iens),nperyear, &
      &                          nperyear,yr1,yr2,yr1,yr2)
-                        endif
-                    enddo
+                        end if
+                    end do
 !
 !                   anomalies wrt ensemble mean
 !
                     if ( nens2.gt.nens1 .and. lensanom ) then
                         call anomalensemble(fxy,nperyear,nperyear, &
      &                       yr1,yr2,yr1,yr2,nens1,nens2)
-                    endif
+                    end if
 !
 !                   normalize to s.d.
 !
@@ -433,8 +433,8 @@ program getmomentsfield
                         if ( lnormsd ) then
                             call normsd(fxy(1,yr1,iens),nperyear, &
      &                          nperyear,yr1,yr2,yr1,yr2)
-                        endif
-                    enddo       ! iens
+                        end if
+                    end do       ! iens
 !
 !                   get moments or other properties
 !
@@ -459,7 +459,7 @@ program getmomentsfield
      &                                           //': error: cannot ' &
      &                                           //'handle ensembles'
                                             call abort
-                                        endif
+                                        end if
                                         if ( j1.ne.j2 ) then
                                             write(0,*)'getmomentsfield' &
      &                                           //': error: can only ' &
@@ -468,10 +468,10 @@ program getmomentsfield
      &                                           //': error: can only ' &
      &                                           //'handle annual data'
                                             call abort
-                                        endif
+                                        end if
                                         xyear = fxy(j,i,iens)
                                         fxy(j,i,iens) = absent
-                                    endif
+                                    end if
                                     if ( i.lt.yr1 .or.i.gt.yr2 ) &
      &                                  goto 710
                                     if (  fxy(j,i,iens).lt.absent/3.and. &
@@ -481,11 +481,11 @@ program getmomentsfield
                                         ddata(n) = fxy(j,i,iens)
                                         yrstart = min(yrstart,i)
                                         yrstop  = max(yrstop,i)
-                                    endif
+                                    end if
   710                               continue
-                                enddo
-                            enddo
-                        enddo
+                                end do
+                            end do
+                        end do
                         if ( month.eq.0 .and. &
      &                        n.lt.minfac*min(nt,nperyear*(yr2-yr1+1)) &
      &                        .or. &
@@ -497,7 +497,7 @@ program getmomentsfield
      &                          ,'not enough valid points at ',jx,jy,jz &
      &                          ,month,': ',n,nt
                             goto 790
-                        endif
+                        end if
 !
                         m = month-m1
                         if ( itype.gt.0 ) then
@@ -530,12 +530,12 @@ program getmomentsfield
      &                          var,xmom(3),xmom(4))
                             do i=1,5
                                 res(jx,jy,jz,m,i) = xmom(i)
-                            enddo
+                            end do
                             if ( xmom(1).ne.0 ) then
                                 res(jx,jy,jz,m,6) = xmom(2)/xmom(1)
                             else
                                 res(jx,jy,jz,m,6) = 3e33
-                            endif
+                            end if
                             res(jx,jy,jz,m,7) = minval(ddata(1:n))
                             res(jx,jy,jz,m,8) = maxval(ddata(1:n))
                             nvars = 8
@@ -567,7 +567,7 @@ program getmomentsfield
                                     res(jx,jy,jz,m,9) = 3e33
                                     res(jx,jy,jz,m,10) = 3e33
                                 end if
-                            endif
+                            end if
                         elseif ( imoment.eq.200 ) then
 !
 !                           GPD fit requested
@@ -575,15 +575,15 @@ program getmomentsfield
                             if ( lchangesign ) then
                                 do i=1,n
                                     ddata(i) = -ddata(i)
-                                enddo
+                                end do
                                 xyear = -xyear
-                            endif
+                            end if
                             if ( pmindata.le.0 .or. pmindata.ge.100 ) &
      &                           then
                                 write(0,*) 'getmomentsfield: error: '// &
      &                               'threshold invalid: ',pmindata
                                 call abort
-                            endif
+                            end if
                             call moment(ddata,n,xmom(1),xmom(5),xmom(2), &
      &                          var,xmom(3),xmom(4))
                             call fitgpd(ddata,n,xmom(1),xmom(2),b,xi, &
@@ -595,7 +595,7 @@ program getmomentsfield
                             res(jx,jy,jz,m,2) = xi
                             do i=1,10
                                 res(jx,jy,jz,m,i+2) = t(i)
-                            enddo
+                            end do
                             nvars = 12
                             if ( year.ne.0 ) then
                                 nvars = 13
@@ -603,8 +603,8 @@ program getmomentsfield
                                     res(jx,jy,jz,m,13) = tx
                                 else
                                     res(jx,jy,jz,m,13) = 3e33
-                                endif
-                            endif
+                                end if
+                            end if
                         elseif ( imoment.eq.300 ) then
 !
 !                           GEV fit requested
@@ -612,9 +612,9 @@ program getmomentsfield
                             if ( lchangesign ) then
                                 do i=1,n
                                     ddata(i) = -ddata(i)
-                                enddo
+                                end do
                                 xyear = -xyear
-                            endif
+                            end if
                             call moment(ddata,n,xmom(1),xmom(5),xmom(2), &
      &                          var,xmom(3),xmom(4))
                             call fitgev(ddata,n,xmom(1),xmom(2),a,b,xi, &
@@ -626,7 +626,7 @@ program getmomentsfield
                             res(jx,jy,jz,m,3) = xi
                             do i=1,10
                                 res(jx,jy,jz,m,i+3) = t(i)
-                            enddo
+                            end do
                             nvars = 13
                             if ( year.ne.0 ) then
                                 nvars = 14
@@ -634,8 +634,8 @@ program getmomentsfield
                                     res(jx,jy,jz,m,14) = tx
                                 else
                                     res(jx,jy,jz,m,14) = 3e33
-                                endif
-                            endif
+                                end if
+                            end if
                         elseif ( imoment.eq.1000 ) then
 !
 !                           rank requested
@@ -646,12 +646,11 @@ program getmomentsfield
                                 if ( lchangesign ) then
                                     do i=1,n
                                         ddata(i) = -ddata(i)
-                                    enddo
+                                    end do
                                     xyear = -xyear
-                                endif
+                                end if
                                 call nrsort(n,ddata)
                                 do i=1,n
-                                    print *,'@@@ comparing ',i,n,ddata(n-i+1),xyear
                                     if ( ddata(n-i+1).lt.xyear ) exit
                                 end do
                                 res(jx,jy,jz,m,1) = real(i)
@@ -694,41 +693,41 @@ program getmomentsfield
                         else
                             write(0,*) 'error: unknown imoment ',imoment
                             call abort
-                        endif
+                        end if
                         if ( lwrite ) then
                             do i=1,nvars
                                 print '(a,3i5,2i3,a,g23.6)', &
      &                               'res(',jx,jy,jz,m,i,') = ', &
      &                               res(jx,jy,jz,m,i)
-                            enddo
-                        endif    
+                            end do
+                        end if    
   790                   continue    ! valid point/month
-                    enddo           ! month
+                    end do           ! month
   800               continue        ! valid point
-                enddo               ! nx
-            enddo                   ! ny
-        enddo                       ! nz
+                end do               ! nx
+            end do                   ! ny
+        end do                       ! nz
 !
 !       convert to standard units
 !
         if ( lstandardunits ) then
             saveunits = units(1)
-            do i=1,nvars
-                if ( .not. ( abs(imoment).le.100 .and. &
-     &               (i.eq.3 .or. i.eq.4 .or. i.eq.6 .or. i.eq.9 &
-     &               .or. i.eq.10 ) ) &
-     &               .and. .not. ( imoment.eq.200 .and. i.eq.2 ) &
-     &               .and. .not. imoment.eq.1000 .and. .not. imoment.eq.1001 ) then
-                    units(i) = saveunits
-                    call makestandardfield(res(1,1,1,1,i),nx,ny,nz,12,0,0 &
-     &                   ,nx,ny,nz,12,0,0,vars(1),units(i),lwrite)
-                    units(i) = saveunits
-                    call makestandardfield(res(1,1,1,0,i),nx,ny,nz,1,0,0 &
-     &                   ,nx,ny,nz,1,0,0,vars(1),units(i),lwrite)
-                else
-                    units(i) = "1"
-                endif
-            enddo
+            do month=m1,m2
+                m = month-m1
+                do i=1,nvars
+                    if ( .not. ( abs(imoment).le.100 .and. &
+     &                   (i.eq.3 .or. i.eq.4 .or. i.eq.6 .or. i.eq.9 &
+     &                   .or. i.eq.10 ) ) &
+     &                   .and. .not. ( imoment.eq.200 .and. i.eq.2 ) &
+     &                  .and. .not. imoment.eq.1000 .and. .not. imoment.eq.1001 ) then
+                        units(i) = saveunits
+                        call makestandardfield(res(1,1,1,m,i),nx,ny,nz,12,0,0 &
+     &                      ,nx,ny,nz,12,0,0,vars(1),units(i),lwrite)
+                    else
+                        units(i) = "1"
+                    end if
+                end do
+            end do
         else
             if ( nvars.eq.8 .or. nvars.eq.9 ) then
                 units(3:9) = "1"
@@ -739,8 +738,8 @@ program getmomentsfield
             elseif ( nvars.eq.12 ) then
                 units(2) = "1"
                 units(3:12) = units(1)
-            endif
-        endif
+            end if
+        end if
 !
 !       write output field in GrADS or netcdf format
 !
@@ -751,7 +750,7 @@ program getmomentsfield
         if ( dir(ldir:ldir).ne.'/' ) then
             ldir = ldir + 1
             dir(ldir:ldir) = '/'
-        endif
+        end if
         call args2title(title)
         svars(2:) = ' '
         cell_methods(2:) = cell_methods(1)
@@ -797,7 +796,7 @@ program getmomentsfield
                 write(lvars(10),'(a,i4,a)') 'z-value of year ', &
      &               year,' in the context of the other years'
                 units(10) = '1'
-            endif
+            end if
         elseif ( imoment.eq.200 ) then
             svars(1:2) = ' '
             vars(1) = 'pot_scale'
@@ -814,7 +813,7 @@ program getmomentsfield
                 else
                     write(lvars(3*i),'(a)') &
      &                   'not quite sure what this number means'
-                endif
+                end if
                 if ( i.eq.4 ) cycle
                 write(vars(3*i+1),format) 't',2*10**i
                 if ( j1.eq.j2 ) then
@@ -823,7 +822,7 @@ program getmomentsfield
                 else
                     write(lvars(3*i+1),'(a)') &
      &                   'not quite sure what this number means'
-                endif
+                end if
                 write(vars(3*i+2),format) 't',5*10**i
                 if ( j1.eq.j2 ) then
                     write(lvars(3*i+2),format) 'return value at ', &
@@ -831,15 +830,15 @@ program getmomentsfield
                 else
                     write(lvars(3*i+2),'(a)') &
      &                   'not quite sure what this number means'
-                endif
-            enddo
+                end if
+            end do
             if ( year.ne.0 ) then
                 call check4(year)
                 write(vars(13),'(a,i4.4)') 'pot_rt_',year
                 write(lvars(13),'(a,i4,a)') 'return time of year ', &
      &               year,' in the context of the other years'
                 units(13) = 'yr'
-            endif
+            end if
         elseif ( imoment.eq.300 ) then
             svars(1:3) = ' '
             vars(1) = 'gev_pos'
@@ -858,7 +857,7 @@ program getmomentsfield
                 else
                     write(lvars(3*i+1),'(a)') &
      &                   'not quite sure what this number means'
-                endif
+                end if
                 if ( i.eq.4 ) cycle
                 write(vars(3*i+2),format) 't',2*10**i
                 if ( j1.eq.j2 ) then
@@ -867,7 +866,7 @@ program getmomentsfield
                 else
                     write(lvars(3*i+2),'(a)') &
      &                   'not quite sure what this number means'
-                endif
+                end if
                 write(vars(3*i+3),format) 't',5*10**i
                 if ( j1.eq.j2 ) then
                     write(lvars(3*i+3),format) 'return value at ', &
@@ -875,23 +874,23 @@ program getmomentsfield
                 else
                     write(lvars(3*i+3),'(a)') &
      &                   'not quite sure what this number means'
-                endif
-            enddo
+                end if
+            end do
             if ( year.ne.0 ) then
                 call check4(year)
                 write(vars(14),'(a,i4.4)') 'gev_rt_',year
                 write(lvars(14),'(a,i4,a)') 'return time of year ', &
      &               year,' in the context of the other years'
                 units(14) = 'yr'
-            endif
+            end if
         else
             write(0,*) 'getmomentsfield: error: imoment = ',imoment
             call abort
-        endif
+        end if
         do i=1,nvars
             ivars(1,i) = nz
             ivars(2,i) = 99
-        enddo
+        end do
 !       give correlations dates in 0-1
         if ( m1.eq.0 ) then
             i = 0
@@ -899,7 +898,7 @@ program getmomentsfield
         else
             i = 1
             j = m1
-        endif
+        end if
         if ( index(outfile,'.ctl').ne.0 ) then
             if ( lwrite ) print '(a)','# writing ctl file'
             call writectl(outfile,datfile,nx,xx,ny,yy,nz,zz &
@@ -913,8 +912,8 @@ program getmomentsfield
                     irec = irec + 1
                     write(2,rec=irec) (((res(jx,jy,jz,m,i),jx=1,nx),jy=1 &
      &                   ,ny),jz=1,nz)
-                enddo
-            enddo
+                end do
+            end do
             close(2)
         else
             if ( lwrite ) print '(a)','# writing netcdf metadata'
@@ -929,10 +928,10 @@ program getmomentsfield
                     call writencslice(ncid,ntvarid,itimeaxis,ntmax, &
      &                   ivars(1,i),res(1,1,1,m,i),nx,ny,nz,nx,ny,nz, &
      &                   m+1,1)
-                enddo
-            enddo
+                end do
+            end do
             i = nf_close(ncid)  ! do not forget to close file!!!!
-        endif
+        end if
 !
 !       error messages
 !
@@ -965,5 +964,5 @@ program getmomentsfield
             write(0,*) 'getmomentsfield: error: year = ',year
             write(*,*) 'getmomentsfield: error: year = ',year
             call abort
-        endif
+        end if
 end subroutine
