@@ -72,7 +72,7 @@
      +            //' more X grid points ','(',avex
      +            ,') than are available between ',lon1c,' and
      +            ',lon2c,'degrees east'
-            call abort
+            call exit(-1)
         endif
 	if ( lat1.ne.-90 .or. lat2.ne.+90 ) then
 	    call getlatwindow(lat1,lat2,y1,y2,yy,ny,lat1c,lat2c,lwrite)
@@ -171,7 +171,8 @@
             if ( lon1c.lt.2*xx(1)-xx(2) .or. lon2c.gt.2*xx(nx)-xx(nx-1) 
      +           ) then
                 write(0,*) 'getlonwindow: error: cannot extraplate to ',
-     +               lon1c,lon2c
+     +               lon1c,lon2c,' with an X-axis ',xx(1),xx(2),'...',
+     +               xx(nx-1),xx(nx)
                 lon1c = 3e33
                 lon2c = 3e33
                 return
@@ -330,14 +331,14 @@
         if ( yy(2).gt.yy(1) ) then
             if ( lat1c.lt.2*yy(1)-yy(2) ) then
                 write(0,*) 'getlatwindow: error: cannot extraplate to ',
-     +               lat1c
+     +               lat1c,' with a Y-axis ',yy(1),yy(2),'...'
                 lat1c = 3e33
                 lat2c = 3e33
                 return
             end if
             if ( lat2c.gt.2*yy(ny)-yy(ny-1) ) then
                 write(0,*) 'getlatwindow: error: cannot extraplate to ',
-     +               lat2c
+     +               lat2c,' with a Y-axis ',yy(ny),yy(ny-1),'...'
                 lat1c = 3e33
                 lat2c = 3e33
                 return
@@ -368,14 +369,14 @@
         else
             if ( lat1c.lt.2*yy(ny)-yy(ny-1) ) then
                 write(0,*) 'getlatwindow: error: cannot extraplate to ',
-     +               lat1c
+     +               lat1c,' with a Y-axis ',yy(ny),yy(ny-1),'...'
                 lat1c = 3e33
                 lat2c = 3e33
                 return
             end if
             if ( lat2c.gt.2*yy(1)-yy(2) ) then
                 write(0,*) 'getlatwindow: error: cannot extraplate to ',
-     +               lat2c
+     +               lat2c,' with a Y-axis ',yy(1),yy(2),'...'
                 lat1c = 3e33
                 lat2c = 3e33
                 return
