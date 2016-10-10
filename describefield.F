@@ -7,7 +7,7 @@
 #include "netcdf.inc"
         integer nxmax,nymax,nzmax,yrbeg,yrend,nvmax,npermax,ndata
      +        ,nensmax,ntmax
-        parameter (nxmax=1894,nymax=1974,nzmax=95,
+        parameter (nxmax=3600,nymax=1974,nzmax=95,
      +       yrbeg=1700,yrend=2300,nvmax=1,npermax=73,
      +       ndata=npermax*(yrend-yrbeg+1),nensmax=230,ntmax=2000000)
 *

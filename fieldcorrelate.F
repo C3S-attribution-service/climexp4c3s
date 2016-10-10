@@ -79,14 +79,6 @@
         nperyear = max(nper1,nper2)
         lastyr = min(firstyr1 + (nt1-1)/nperyear,firstyr2 + (nt2-1)
      +        /nperyear)
-        if ( nxf*nyf*nperyear*(lastyr-firstyr+1).gt.nxmax*nymax*12
-     +        *nyrmax) then
-            write(0,*) 'fieldcorrelate: error: fields too large: '
-     +            ,nxf,nyf,firstyr,yrend,nxmax,nymax,nyrmax
-            write(*,*) 'fieldcorrelate: error: fields too large: '
-     +            ,nxf,nyf,firstyr,yrend,nxmax,nymax,nyrmax
-            call abort
-        endif
         if ( nper1.ne.nper2 ) then
             write(0,*) 'correlatefield: error: cannot handle different'
      +            //' time scales yet',nper1,nper2
