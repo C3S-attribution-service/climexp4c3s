@@ -4,7 +4,7 @@
 *       time series on stdout
 *
         implicit none
-#include "params_s.h"
+#include "params.h"
 #include "netcdf.inc"
 *	maximum number of variables in the pattern file
         integer nvarmax,nyrmax
@@ -15,13 +15,8 @@
      +        ,month,endian1,endian2,status,nperyear,nxf,nyf
         real  xx1(nxmax),yy1(nymax),zz1(nzmax),
      +        xx2(nxmax),yy2(nymax),zz2(nzmax),
-     +        field1(nxmax,nymax,12,nyrmax),
-     +        field2(nxmax,nymax,npermax,2),
      +        u1,u2
         logical lwrite
-*
-*	for f2c
-	common /cpatternfield/ field1,field2
 *
         character line*80,datfile1*256,datfile2*256,variable*20,
      +        title1*256,title2*256
@@ -127,27 +122,9 @@
         enddo
         nxf = max(nx1,nx2)
         nyf = max(ny1,ny2)
-        if ( nxf*nyf*nt1.gt.nxmax*nymax*12*nyrmax ) then
-            write(0,*) 'patternfield: error: field too large: ',nxf,nyf
-     +            ,nt1,' vs ',nxmax,nymax,12,nyrmax
-            write(*,*) 'patternfield: error: field too large: ',nxf,nyf
-     +            ,nt1,' vs ',nxmax,nymax,12,nyrmax
-            write(0,*) 'patternfield: error: field too large: ',nxf*nyf
-     +            *nt1,' vs ',nxmax*nymax*12*nyrmax
-            write(*,*) 'patternfield: error: field too large: ',nxf*nyf
-     +            *nt1,' vs ',nxmax*nymax*12*nyrmax
-            call abort
-        endif
-        if ( nxf*nyf*nper2.gt.nxmax*nymax*npermax ) then
-            write(0,*) 'patternfield: error: pattern too large: ',nxf
-     +            ,nyf,nper2,' vs ',nxmax,nymax,npermax
-            write(*,*) 'patternfield: error: pattern too large: ',nxf
-     +            ,nyf,nper2,' vs ',nxmax,nymax,npermax
-            call abort
-        endif
         call patfield(nperyear,nxf,nyf,nvarmax,ivar
-     +        ,nvars,month,datfile1,ncid1,field1,nx1,xx1,ny1,yy1,nt1
-     +        ,firstyr1,firstmo1,u1,endian1,jvars1,datfile2,ncid2,field2
+     +        ,nvars,month,datfile1,ncid1,nx1,xx1,ny1,yy1,nt1
+     +        ,firstyr1,firstmo1,u1,endian1,jvars1,datfile2,ncid2
      +        ,nx2,xx2,ny2,yy2,nt2,firstyr2,firstmo2,u2,endian2,jvars2
      +       ,vars1,units1,lwrite)
 *
@@ -164,9 +141,9 @@
         end
 
         subroutine patfield(nperyear,nxf,nyf,nvarmax,ivar,nvars,month,
-     +        datfile1,ncid1,field1,nx1,xx1,ny1,yy1,nt1,firstyr1
+     +        datfile1,ncid1,nx1,xx1,ny1,yy1,nt1,firstyr1
      +        ,firstmo1,u1,endian1,jvars1,
-     +        datfile2,ncid2,field2,nx2,xx2,ny2,yy2,nt2,firstyr2
+     +        datfile2,ncid2,nx2,xx2,ny2,yy2,nt2,firstyr2
      +        ,firstmo2,u2,endian2,jvars2,vars,units,lwrite)
 *
 *       break to use the arrays field1,field2 compactly and conserve RAM
@@ -179,22 +156,23 @@
      +      ncid1,nx1,ny1,nt1,firstyr1,firstmo1,endian1,jvars1(6,nvmax),
      +      ncid2,nx2,ny2,nt2,firstyr2,firstmo2,endian2,
      +       jvars2(6,nvarmax)
-        real field1(nxf,nyf,nperyear,firstyr1:yrend),
-     +        field2(nxf,nyf,nperyear,0:1)
-     +        ,xx1(nx1),yy1(ny1),xx2(nx2),yy2(ny2),u1,u2
+        real xx1(nx1),yy1(ny1),xx2(nx2),yy2(ny2),u1,u2
         character*(*) datfile1,datfile2
         character vars(nvarmax)*(*),units(nvarmax)*(*)
         logical lwrite
 *       
         integer yr1,yr2,nx,ny,nz,i,j,n,yr,mo,iskip
         real xx(nxmax),yy(nymax),zz(nymax),minfac
-        real,allocatable :: var(:,:)
+        real,allocatable :: var(:,:),field1(:,:,:,:),field2(:,:,:,:)
         logical anom,lstandardunits
         character*80 line
         integer iargc,llen
         anom = .false.
         lstandardunits = .false.
         
+        allocate(field1(nxf,nyf,nperyear,firstyr1:yrend))
+        allocate(field2(nxf,nyf,nperyear,0:1))
+
         minfac = 0.5
         do i=5,iargc()-1
             if ( iskip.gt.0 ) then
