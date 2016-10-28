@@ -303,6 +303,7 @@ PROGRAMS      = scientific2decimal \
 		dat2grads \
 		get_depth \
 		yearly2shorter \
+		yearly2shorterfield \
 		getval \
 		diffdat \
 		getunits \
@@ -535,6 +536,9 @@ extremeseries:	extremeseries.o $(LIBRARY)
 
 yearly2shorter:	yearly2shorter.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ yearly2shorter.o $(LIBRARY) $(LIBS)
+
+yearly2shorterfield:	yearly2shorterfield.o $(LIBRARY)
+		$(LD) $(FFLAGS) -o $@ yearly2shorterfield.o $(LIBRARY) $(LIBS)
 
 difffield:	difffield.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBRARY) $(LIBS)
