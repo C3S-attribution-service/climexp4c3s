@@ -676,6 +676,10 @@ subroutine sample_bootstrap(series,covariate,nperyear,j1,j2,fyr,lyr,mens1,mens,&
         &   nperyear,j1,j2,fyr,lyr,mens1,mens
         print *,'                  ndecor = ',ndecor
     end if
+    if ( ndecor > nperyear*(lyr-fyr+1) ) then
+        write(0,*) 'sample_bootstrap: error: unreasonable decorrelation length ndecor = ',ndecor
+        call exit(-1)
+    end if
 !
 !   as this routine will often be called with far too large ranges in years,
 !   let's first narrow that down to get an acceptable hit rate later on

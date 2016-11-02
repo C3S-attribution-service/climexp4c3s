@@ -50,7 +50,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     real adev,var,skew,curt,aaa,bbb,siga,chi2,q,p(4)
     integer,allocatable :: ii(:),yyrs(:)
     real,allocatable :: xx(:,:),yy(:),ys(:),zz(:),sig(:)
-    logical lopen
+    logical lopen,lllwrite
     character lgt*4,string*1000,arg*250,method*3
     integer iargc
 !
@@ -78,6 +78,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         print '(a,i9,a)','# <tr><td>N:</td><td>&nbsp;</td><td>', &
      &           ntot,'</td><td>&nbsp;</td></tr>'
     end if
+    tsep = ndecor - 1
     if ( npernew >= 360 ) then
         tsep = -9999
         call decluster(xx,yrs,ntot,threshold,tsep,lwrite)
@@ -94,6 +95,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         print *,'year,xyear     = ',year,xyear
         print *,'cov1,cov2,offset ',cov1,cov2,offset
         print *,'ntot           = ',ntot
+        print *,'ndecor         = ',ndecor
         if ( .false. ) then
             do i=1,ntot
                 print *,i,(xx(j,i),j=1,2)
@@ -300,9 +302,10 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
             end do
         else
             ndecor = tsep + 1
+            lllwrite = .false. ! lwrite
             call sample_bootstrap(yrseries,yrcovariate, &
      &               npernew,j1,j2,fyr,lyr,mens1,mens,crosscorr, &
-     &               ndecor,data,nmax,ntot,sdecor,.false.)
+     &               ndecor,data,nmax,ntot,sdecor,lllwrite)
             if ( npernew >= 360 ) then
                 bootyrs = -9999 ! cannot yet keep track of discontinuities, just hope they are not too bad
                 ! or use the original ones
