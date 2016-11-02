@@ -26,6 +26,7 @@
 *       get units attribute
         call gettextatt(ncid,varid,'units',units,lwrite)
         call tolower(units)
+        if ( lwrite ) print *,'units = ',trim(units)
         if ( nt.gt.1 ) then
 !           choose second-smallest positive increment
             dtt1 = 3e33
