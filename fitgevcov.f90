@@ -401,6 +401,13 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                &
     ! GEV fit
     nfit = 5
 
+    if ( lchangesign ) then
+        ! we had flipped the sign on a,b,alpha but not yet on the rest, flip back...
+        a = -a
+        b = -b
+        alpha = -alpha
+        if ( assume == 'both' ) beta = -beta
+    end if
     ! compute distribution at past year and plot it
     call adjustyy(ntot,xx,assume,a,b,alpha,beta,cov1,yy,zz,aaa,bbb,lchangesign,lwrite)
     ys(1:ntot) = yy(1:ntot)
