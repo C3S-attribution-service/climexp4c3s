@@ -352,7 +352,8 @@ PROGRAMS      = scientific2decimal \
 		compute_wetbulb \
 		wetbulb_field \
 		outliers \
-		count_missing
+		count_missing \
+		setundef
 
 SHLIBS =	rkillfile.so \
        		rkeepalive.so
@@ -755,6 +756,9 @@ outliers:	outliers.o $(LIBRARY)
 
 count_missing:	count_missing.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)		
+
+setundef:	setundef.o $(LIBRARY)
+		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
 
 roc:		roc.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
