@@ -69,9 +69,9 @@ program ar1
     do yr=yrbeg,yrend
         do mo=1,nperyear
             out(mo,yr) = gasdev(iseed)
-            if ( mo > 1 .and. aa1(mO) < 1e33 ) then
+            if ( mo > 1 .and. aa1(mo) < 1e33 ) then
                 out(mo,yr) = (1-aa1(mo))*out(mo,yr) + aa1(mo)*out(mo-1,yr)
-            elseif ( yr > yrbeg .and. aa1(mO) < 1e33 ) then
+            elseif ( yr > yrbeg .and. aa1(mo) < 1e33 ) then
                 out(mo,yr) = (1-aa1(mo))*out(mo,yr) + aa1(mo)*out(nperyear,yr-1)
             endif
             if ( yr > yrbeg .and. aa2(mO) < 1e33 ) then
@@ -104,7 +104,7 @@ program ar1
         enddo
     end if
 
-!   compute som statistics
+!   compute some statistics
 
     n = 0
     s1 = 0
@@ -125,6 +125,11 @@ program ar1
     else
         write(6,'(2a)') '# based on detrended file ',trim(string)
         write(6,'(6a)') '# ',trim(varname),' [',trim(units),'] noise'
+        write(6,'(a,2000i10)')   '# day = ',(mo,mo=1,nperyear)
+        write(6,'(a,2000f10.4)') '# ave = ',(ave(mo),mo=1,nperyear)
+        write(6,'(a,2000f10.4)') '# sd  = ',(sqrt(var(mo)),mo=1,nperyear)
+        write(6,'(a,2000f10.4)') '# a1  = ',(aa1(mo),mo=1,nperyear)
+        write(6,'(a,2000f10.4)') '# a2  = ',(aa2(mo),mo=1,nperyear)
     end if
     write(6,'(a,f10.4)') '# mean = ',s1/n
     write(6,'(a,f10.4)') '# s.d. = ',sqrt(abs(s2/n - (s1/n)**2))
