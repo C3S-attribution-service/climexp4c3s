@@ -9,8 +9,8 @@ program fieldclim
     include 'recfac.inc'
     integer nx,ny,nz,nt,nperyear,firstyr,firstmo,lastyr,nvars, &
  &        ivars(2,nvmax),endian,status,ncid,jvars(6,nvmax)
-    integer yr,mo,i,j,n,yrbegin
-    integer,allocatable :: nn(:,:,:)
+    integer yr,mo,i,j,n,yrbegin,ntmax,ntvarid
+    integer,allocatable :: nn(:,:,:),itimeaxis(:)
     real xx(nxmax),yy(nymax),zz(nzmax),undef,lsmask(nxmax,nymax)
     real,allocatable :: field(:,:,:,:),mean(:,:,:),mean2(:,:,:),fxy(:,:), &
  &      fy(:,:,:)
@@ -20,7 +20,7 @@ program fieldclim
     integer iargc
 !
     lwrite = .false.
-    if ( iargc().lt.2 ) then
+    if ( iargc() < 2 ) then
         print *,'usage: fieldclim file.[nc|ctl] '// &
  &           ' [begin yr1] [end yr2] [ave n] clim.ctl'
         print *,'computes climatology of field'
@@ -32,8 +32,8 @@ program fieldclim
 !!!            print *,'output file exists, overwrite?'
 !!!            read(*,*) yesno
         yesno = 'y'
-        if ( yesno.eq.'y' .or. yesno.eq.'Y' .or. &
- &           yesno.eq.'j' .or. yesno.eq.'J' ) then
+        if ( yesno == 'y' .or. yesno == 'Y' .or. &
+ &           yesno == 'j' .or. yesno == 'J' ) then
             open(1,file=file)
             close(1,status='delete')
             i=index(file,'.ctl')
@@ -45,7 +45,7 @@ program fieldclim
     call getarg(1,file)
     if ( lwrite ) print *,'fieldclim: nf_opening file ',trim(file)
     status = nf_open(file,nf_nowrite,ncid)
-    if ( status.ne.nf_noerr ) then
+    if ( status /= nf_noerr ) then
         call parsectl(file,datfile,nxmax,nx,xx,nymax,ny,yy,nzmax,nz &
  &            ,zz,nt,nperyear,firstyr,firstmo,undef,endian,title,1 &
  &            ,nvars,vars,ivars,lvars,units)
@@ -80,7 +80,7 @@ program fieldclim
 !
 !   read data
 !
-    if ( ncid.eq.-1 ) then
+    if ( ncid == -1 ) then
         call readdatfile(datfile,field,nx,ny,nx,ny,nperyear,firstyr &
  &           ,lastyr,yrbegin,firstmo,nt,undef,endian,lwrite,yr1,yr2 &
  &           ,1,1)
@@ -91,7 +91,7 @@ program fieldclim
 !
 !   take N-period averages
 !
-    if ( lsum.gt.1 ) then
+    if ( lsum > 1 ) then
         ! faster
         do j=1,ny
             call keepalive1('Summing latitude',j,ny)
@@ -124,7 +124,7 @@ program fieldclim
         do mo=1,nperyear
             do j=1,ny
                 do i=1,nx
-                    if ( field(i,j,mo,yr).lt.1e33 ) then
+                    if ( field(i,j,mo,yr) < 1e33 ) then
                         nn(i,j,mo) = nn(i,j,mo) + 1
                         mean(i,j,mo) = mean(i,j,mo)+field(i,j,mo,yr)
                     endif
@@ -135,9 +135,9 @@ program fieldclim
     do mo=1,nperyear
         do j=1,ny
             do i=1,nx
-                if ( nn(i,j,mo).gt.5 ) then ! arbitrary
+                if ( nn(i,j,mo) > 5 ) then ! arbitrary
                     mean(i,j,mo) = mean(i,j,mo)/nn(i,j,mo)
-               else
+                else
                     mean(i,j,mo) = 3e33
                 endif
             enddo
@@ -153,31 +153,43 @@ program fieldclim
 !
 !   write out
 !
-    call getarg(iargc(),file)
-    i=index(file,'.ctl')
-    if ( i.eq.0 ) then
-        write(0,*) 'fieldclim: error: need .ctl in outfile'
-        call abort
-    endif
-    datfile = file
-    datfile(i:) = '.grd'
     undef = 3e33
-    if ( lsum.gt.1 ) then
+    if ( lsum > 1 ) then
         title = 'climatology of running mean of '//title
     else
         title = 'climatology of '//title
     end if
     ivars(1,1) = 0
     ivars(2,1) = 99
-    call writectl(file,datfile,nx,xx,ny,yy,nz,zz, &
- &       nperyear,nperyear,2000,1,undef,title,nvars,vars,ivars &
- &        ,lvars,units)
-    open(2,file=datfile,form='unformatted',access='direct',recl=recfa4*nx*ny)
-    do mo=1,nperyear
-        !!!print *,'writing mo ',mo
-        write(2,rec=mo) ((mean(i,j,mo),i=1,nx),j=1,ny)
-    enddo
-    close(1)
+    call getarg(iargc(),file)
+    i = index(file,'.ctl')
+    if ( i == 0 ) then
+        print *,'@@@ netcdf output',i
+        ! netcdf output
+        ntmax=nperyear
+        allocate(itimeaxis(ntmax))
+        call writenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny,yy  &
+            ,nz,zz,nperyear,nperyear,2000,1,3e33,title,nvars,vars,ivars,lvars,units,0,0)
+        do mo=1,nperyear
+            call writencslice(ncid,ntvarid,itimeaxis,nt,ivars,mean(1,1,mo),nx,ny,nz,nx,ny,nz,mo,1)
+        enddo
+        status = nf_close(ncid)        
+    else
+        print *,'@@@ grads output',i
+        ! GrADS ctl/dat output - deprecated
+        datfile = file
+        datfile(i:) = '.grd'
+        call writectl(file,datfile,nx,xx,ny,yy,nz,zz, &
+ &           nperyear,nperyear,2000,1,undef,title,nvars,vars,ivars &
+ &            ,lvars,units)
+        open(2,file=datfile,form='unformatted',access='direct',recl=recfa4*nx*ny)
+        do mo=1,nperyear
+            !!!print *,'writing mo ',mo
+            write(2,rec=mo) ((mean(i,j,mo),i=1,nx),j=1,ny)
+        enddo
+        close(1)
+
+    end if
 end program
 
 subroutine smooth(mean,mean2,nn,nx,ny,nperyear,nsmooth)
@@ -191,11 +203,11 @@ subroutine smooth(mean,mean2,nn,nx,ny,nperyear,nsmooth)
     do mo=1,nperyear
         do k=-nsmooth/2,nsmooth/2
             mo1 = mo + k
-            if ( mo1.lt.1 ) mo1 = mo1 + nperyear
-            if ( mo1.gt.nperyear ) mo1 = mo1 - nperyear
+            if ( mo1 < 1 ) mo1 = mo1 + nperyear
+            if ( mo1 > nperyear ) mo1 = mo1 - nperyear
             do j=1,ny
                 do i=1,nx
-                    if ( mean(i,j,mo1).lt.1e33 ) then
+                    if ( mean(i,j,mo1) < 1e33 ) then
                         nn(i,j,mo) = nn(i,j,mo) + 1
                         mean2(i,j,mo) = mean2(i,j,mo) + mean(i,j,mo1)
                     endif
