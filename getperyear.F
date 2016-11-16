@@ -28,24 +28,28 @@
         call tolower(units)
         if ( lwrite ) print *,'units = ',trim(units)
         if ( nt.gt.1 ) then
-!           choose second-smallest positive increment
-            dtt1 = 3e33
-            dtt2 = 3e33
-            do it=2,nt
-                dtt = tt(it) - tt(it-1)
-                if ( dtt.gt.0 ) then
-                    if ( dtt.lt.dtt1 ) then
-                        dtt2 = dtt1
-                        dtt1 = dtt
-                    else if ( dtt.lt.dtt2 ) then
-                        dtt2 = dtt
-                    end if
-                end if
-            end do
-            if ( nt.gt.2 ) then
-                dtt = dtt2
+            if ( units(1:4) == 'hour' .and. tt(2)-tt(1) == 24 ) then
+                dtt = 24
             else
-                dtt = dtt1
+!               choose second-smallest positive increment
+                dtt1 = 3e33
+                dtt2 = 3e33
+                do it=2,nt
+                    dtt = tt(it) - tt(it-1)
+                    if ( dtt.gt.0 ) then
+                        if ( dtt.lt.dtt1 ) then
+                            dtt2 = dtt1
+                            dtt1 = dtt
+                        else if ( dtt.lt.dtt2 ) then
+                            dtt2 = dtt
+                        end if
+                    end if
+                end do
+                if ( nt.gt.2 ) then
+                    dtt = dtt2
+                else
+                    dtt = dtt1
+                end if
             end if
             if ( dtt.le.0 ) then
                 write(0,*) 'getperyear: error: time step is zero'
