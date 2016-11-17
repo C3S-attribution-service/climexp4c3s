@@ -164,7 +164,6 @@ program fieldclim
     call getarg(iargc(),file)
     i = index(file,'.ctl')
     if ( i == 0 ) then
-        print *,'@@@ netcdf output',i
         ! netcdf output
         ntmax=nperyear
         allocate(itimeaxis(ntmax))
@@ -175,7 +174,6 @@ program fieldclim
         enddo
         status = nf_close(ncid)        
     else
-        print *,'@@@ grads output',i
         ! GrADS ctl/dat output - deprecated
         datfile = file
         datfile(i:) = '.grd'
