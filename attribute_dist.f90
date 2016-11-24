@@ -33,13 +33,15 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     if ( lwrite ) then
         print *,'mens1,mens = ',mens1,mens
         print *,'attribute_dist: series(:,2000,0) = ',(series(j,2000,0),j=1,min(15,nperyear))
-        print *,'attribute_dist: covariate(:,2000,0) = ',(covariate(j,2000,0),j=1,min(15,nperyear1))
+        if ( assume /= 'none' ) then
+            print *,'attribute_dist: covariate(:,2000,0) = ',(covariate(j,2000,0),j=1,min(15,nperyear1))
+        end if
     end if
 
     if ( distribution.eq.'gev' .or. distribution.eq.'gumbel' ) then
         allocate(yrseries(1,fyr:lyr,0:mens))
-        allocate(yrcovariate(1,fyr:lyr,0:mens))
         yrseries = 3e33
+        allocate(yrcovariate(1,fyr:lyr,0:mens))
         yrcovariate = 3e33
         if ( nperyear.eq.nperyear1 .and. nperyear.gt.1 ) then
             if ( lwrite ) print *,'attribute_dist: calling make_two_annual_values with max'
@@ -81,11 +83,11 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
             call print_bootstrap_message(max(1,ndecor),j1,j2)
         end if
         allocate(yrseries(nperyear,fyr:lyr,0:mens))
-        allocate(yrcovariate(nperyear,fyr:lyr,0:mens))
         yrseries = 3e33
-        yrcovariate = 3e33
         ! copy series to keep the code easier to handle GPD and Gauss at the same time :-(
         yrseries(1:nperyear,fyr:lyr,mens1:mens) = series(1:nperyear,fyr:lyr,mens1:mens)
+        allocate(yrcovariate(nperyear,fyr:lyr,0:mens))
+        yrcovariate = 3e33
         ! change covariate to the same time resolution as series
         if ( nperyear1.lt.nperyear ) then
             if ( lwrite ) print *,'repeating covariate from nperyear = ',nperyear1,' to ',nperyear
@@ -124,7 +126,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     
     if ( lwrite ) print *,'attribute_dist: calling handle_then_now'
     call handle_then_now(yrseries,yrcovariate,npernew,fyr,lyr,j1,j2,yr1a,yr2a,mens1,mens, &
-    & xyear,ensmax,cov1,cov2,lprint,lwrite)
+        & xyear,ensmax,cov1,cov2,lprint,lwrite)
     if ( cov1.gt.1e33 .or. cov2.gt.1e33 ) then
         if ( lwrite ) print *,'giving up, cov1,cov2 = ',cov1,cov2
         return
@@ -145,12 +147,18 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
             print '(a,f6.3,a)' ,'# <tr><th>parameter</th><th>year</th><th>value</th><th>' &
         &       ,confidenceinterval,'% CI</th></tr>'
         end if
-        print '(a,i4,a,g16.5,a)','# <tr><td>covariate:</td><td>',yr1a,'</td><td>',cov1, &
-        &   '</td><td>&nbsp;</td></tr>'
-        print '(a,i4,a,g19.5,a)','# <tr><td>&nbsp;</td><td>',yr2a,'</td><td>',cov2, &
-        &   '</td><td>&nbsp;</td></tr>'
+        if ( assume /= 'none' ) then
+            print '(a,i4,a,g16.5,a)','# <tr><td>covariate:</td><td>',yr1a,'</td><td>',cov1, &
+            &   '</td><td>&nbsp;</td></tr>'
+            print '(a,i4,a,g19.5,a)','# <tr><td>&nbsp;</td><td>',yr2a,'</td><td>',cov2, &
+            &   '</td><td>&nbsp;</td></tr>'
+        end if
     end if
-    subtract_offset = .true.
+    if ( assume /= 'none' ) then
+        subtract_offset = .true.
+    else
+        subtract_offset = .false.
+    end if
     if ( subtract_offset ) then
         if ( lwrite ) print *,'attribute_dist: calling subtract_constant'
         call subtract_constant(yrcovariate,yrseries,npernew,fyr,lyr,mens1,mens, &
@@ -255,10 +263,12 @@ subroutine attribute_init(file,distribution,assume,off,nperyear,yrbeg,yrend,nens
 !   the usual call to getopts comes way too late for these options...
     nperyear = 12
     call getarg(1,file)
-    if ( file /= 'file' ) then
-        off = 0
-    else
+    if ( file == 'gridpoints' ) then
+        off = 1
+    else if ( file == 'file' ) then
         off = 2
+    else
+        off = 0
     end if
     call getopts(6+off,iargc(),nperyear,yrbeg,yrend,.false.,0,nensmax)
 
@@ -641,7 +651,7 @@ subroutine fill_linear_array(series,covariate,nperyear,j1,j2,fyr,lyr,mens1,mens,
                         yrs(ntot) = 10000*yr + 100*month + day
                         if ( nperyear.gt.1000 ) then
                             yrs(ntot) = 100*yrs(ntot) + mod(ntot,nint(nperyear/366.))
-                            end if
+                        end if
                         yrstart = min(yrstart,yr)
                         yrstop = max(yrstop,yr)
                     end if

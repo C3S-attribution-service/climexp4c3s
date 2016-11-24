@@ -50,7 +50,7 @@ end subroutine printreturnvalue
 
 subroutine printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume)
 
-!   print return times
+!   print return values for a set of fixed return times
 
     implicit none
     integer :: ntype,yr1a,yr2a
@@ -68,48 +68,70 @@ subroutine printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume)
         end if
         if ( lweb ) then
             do i=1,10,3
-                print '(a,i5,a,i4,a,f16.3,a,f16.3,a,f16.3,a)' &
-                    ,'# <tr><td>return value ',10**(1+i/3) &
-                    ,' yr</td><td>',yr1a,'</td><td>' &
-                    ,t(i,1),'</td><td>',t25(i,1) &
-                    ,' ... ',t975(i,1),'</td></tr>'
-                print '(a,i4,a,f16.3,a,f16.3,a,f16.3,a)' &
-                    ,'# <tr><td>&nbsp;</td><td>',yr2a &
-                    ,'</td><td>',t(i,2),'</td><td>',t25(i,2) &
-                    ,' ... ',t975(i,2),'</td></tr>'
-                if ( i == 10 .or. assume == 'both' ) then
-                    print '(3a,f16.3,a,f16.3,a,f16.3,a)' &
-                        ,'# <tr><td>&nbsp;</td><td>diff ',units, &
-                        '</td><td>',t(i,3),'</td><td>',t25(i,3) &
-                        ,' ... ',t975(i,3),'</td></tr>'
+                if ( assume == 'none' ) then
+                    print '(a,i5,a,f16.3,a,f16.3,a,f16.3,a)' &
+                        ,'# <tr><td>return value ',10**(1+i/3) &
+                        ,' yr</td><td colspan=2>' &
+                        ,t(i,1),'</td><td>',t25(i,1) &
+                        ,' ... ',t975(i,1),'</td></tr>'
+                    call print3untransf(t(i,1),t25(i,1),t975(i,1),-1)
+                else
+                    print '(a,i5,a,i4,a,f16.3,a,f16.3,a,f16.3,a)' &
+                        ,'# <tr><td>return value ',10**(1+i/3) &
+                        ,' yr</td><td>',yr1a,'</td><td>' &
+                        ,t(i,1),'</td><td>',t25(i,1) &
+                        ,' ... ',t975(i,1),'</td></tr>'
+                    print '(a,i4,a,f16.3,a,f16.3,a,f16.3,a)' &
+                        ,'# <tr><td>&nbsp;</td><td>',yr2a &
+                        ,'</td><td>',t(i,2),'</td><td>',t25(i,2) &
+                        ,' ... ',t975(i,2),'</td></tr>'
+                    if ( i == 10 .or. assume == 'both' ) then
+                        print '(3a,f16.3,a,f16.3,a,f16.3,a)' &
+                            ,'# <tr><td>&nbsp;</td><td>diff ',units, &
+                            '</td><td>',t(i,3),'</td><td>',t25(i,3) &
+                            ,' ... ',t975(i,3),'</td></tr>'
+                    end if
+                    call print3untransf(t(i,1),t25(i,1),t975(i,1),yr1a)
+                    call print3untransf(t(i,2),t25(i,2),t975(i,2),yr2a)
                 end if
-                call print3untransf(t(i,1),t25(i,1),t975(i,1),yr1a)
-                call print3untransf(t(i,2),t25(i,2),t975(i,2),yr2a)
             enddo
             if ( plot ) then ! output for stationlist
                 do i=1,10
-                    write(11,'(4g20.4,i6,a)') t(i,1),t25(i,1), &
-                        t975(i,1),10**(1+i/3),yr1a,' return value'
-                    write(11,'(4g20.4,i6,a)') t(i,2),t25(i,2), &
-                        t975(i,2),10**(1+i/3),yr2a,' return value'
+                    if ( assume == 'none' ) then
+                        write(11,'(4g20.4,i6,a)') t(i,1),t25(i,1), &
+                            t975(i,1),10**(1+i/3),0,' return value'
+                    else
+                        write(11,'(4g20.4,i6,a)') t(i,1),t25(i,1), &
+                            t975(i,1),10**(1+i/3),yr1a,' return value'
+                        write(11,'(4g20.4,i6,a)') t(i,2),t25(i,2), &
+                            t975(i,2),10**(1+i/3),yr2a,' return value'
+                    end if
                 end do
             end if
         else
             do i=1,4
-                print '(a,i5,a,i4,a,f16.3,a,2f16.3)' &
-                    ,'# value for return period ',10**i &
-                    ,' year at yr=',yr1a,': ' &
-                    ,t(i,1),' 95% CI ',t25(i,1),t975(i,1)
-                print '(a,i5,a,i4,a,f16.3,a,2f16.3)' &
-                    ,'# value for return period ',10**i &
-                    ,' year at yr=',yr2a,': ' &
-                    ,t(i,2),' 95% CI ',t25(i,2),t975(i,2)
-                print '(a,i5,3a,f16.3,a,2f16.3)' &
-                    ,'# value for return period ',10**i &
-                    ,' year, difference',units,': ' &
-                    ,t(i,3),' 95% CI ',t25(i,3),t975(i,3)
-                call print3untransf(t(i,1),t25(i,1),t975(i,1),yr1a)
-                call print3untransf(t(i,2),t25(i,2),t975(i,2),yr2a)
+                if ( assume == 'none' ) then
+                    print '(a,i5,a,i4,a,f16.3,a,2f16.3)' &
+                        ,'# value for return period ',10**i &
+                        ,': ' &
+                        ,t(i,1),' 95% CI ',t25(i,1),t975(i,1)
+                    call print3untransf(t(i,1),t25(i,1),t975(i,1),0)
+                else
+                    print '(a,i5,a,i4,a,f16.3,a,2f16.3)' &
+                        ,'# value for return period ',10**i &
+                        ,' year at yr=',yr1a,': ' &
+                        ,t(i,1),' 95% CI ',t25(i,1),t975(i,1)
+                    print '(a,i5,a,i4,a,f16.3,a,2f16.3)' &
+                        ,'# value for return period ',10**i &
+                        ,' year at yr=',yr2a,': ' &
+                        ,t(i,2),' 95% CI ',t25(i,2),t975(i,2)
+                    print '(a,i5,3a,f16.3,a,2f16.3)' &
+                        ,'# value for return period ',10**i &
+                        ,' year, difference',units,': ' &
+                        ,t(i,3),' 95% CI ',t25(i,3),t975(i,3)
+                    call print3untransf(t(i,1),t25(i,1),t975(i,1),yr1a)
+                    call print3untransf(t(i,2),t25(i,2),t975(i,2),yr2a)
+                end if
             enddo
         endif
     endif
@@ -164,36 +186,48 @@ subroutine printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,lweb,plot
             call val_or_inf(atx975(i),tx975(i),lweb)
         end do
         if ( lweb ) then
-            print '(a,i5,a,i5,7a)' &
-                ,'# <tr><td><!--atr2-->return period ',year, &
-                '</td><td>',yr1a,'</td><td>',atx(1), &
-                '</td><td>',atx25(1),' ... ',atx975(1),'</td></tr>'
-            print '(a,g16.5,a,i5,7a)' &
-                ,'# <tr><td><!--atr1-->(value ',xyear,')</td><td>' &
-                ,yr2a,'</td><td>',atx(2), &
-                '</td><td>',atx25(2),' ... ',atx975(2),'</td></tr>'
-            if ( idmax == ' ' ) then
-                print '(8a)' &
-                    ,'# <tr><td><!--atra-->&nbsp;</td><td>ratio', &
-                    '</td><td>',atx(3),'</td><td>',atx25(3), &
-                    ' ... ',atx975(3),'</td></tr>'
+            if ( yr1a /= 0 ) then
+                print '(a,i5,a,i5,7a)' &
+                    ,'# <tr><td><!--atr2-->return period ',year, &
+                    '</td><td>',yr1a,'</td><td>',atx(1), &
+                    '</td><td>',atx25(1),' ... ',atx975(1),'</td></tr>'
+                print '(a,g16.5,a,i5,7a)' &
+                    ,'# <tr><td><!--atr1-->(value ',xyear,')</td><td>' &
+                    ,yr2a,'</td><td>',atx(2), &
+                    '</td><td>',atx25(2),' ... ',atx975(2),'</td></tr>'
+                if ( idmax == ' ' ) then
+                    print '(8a)' &
+                        ,'# <tr><td><!--atra-->&nbsp;</td><td>ratio', &
+                        '</td><td>',atx(3),'</td><td>',atx25(3), &
+                        ' ... ',atx975(3),'</td></tr>'
+                else
+                    print '(10a)' &
+                        ,'# <tr><td><!--atra-->(at ',trim(idmax), &
+                        ')</td><td>ratio', &
+                        '</td><td>',atx(3),'</td><td>',atx25(3), &
+                        ' ... ',atx975(3),'</td></tr>'
+                end if
             else
-                print '(10a)' &
-                    ,'# <tr><td><!--atra-->(at ',trim(idmax), &
-                    ')</td><td>ratio', &
-                    '</td><td>',atx(3),'</td><td>',atx25(3), &
-                    ' ... ',atx975(3),'</td></tr>'
+                print '(a,i5,7a)' &
+                    ,'# <tr><td><!--atr2-->return period ',year, &
+                    '</td><td colspan=2>',atx(1), &
+                    '</td><td>',atx25(1),' ... ',atx975(1),'</td></tr>'
             end if
         else
-            print '(a,i4,a,i4,5a)' &
-                ,'# return time ',year,' at yr=',yr1a &
-                ,' = ',atx(1),' 95% CI ',atx25(1),atx975(1)
-            print '(a,i4,a,i4,5a)' &
-                ,'# return time ',year,' at yr=',yr2a &
-                ,' = ',atx(2),' 95% CI ',atx25(2),atx975(2)
-            print '(a,i4,5a)' &
-                ,'# return time ',year,' ratio = ' &
-                ,atx(3),' 95% CI ',atx25(3),atx975(3)
+            if ( yr1a /= 0 ) then
+                print '(a,i4,a,i4,5a)' &
+                    ,'# return time ',year,' at yr=',yr1a &
+                    ,' = ',atx(1),' 95% CI ',atx25(1),atx975(1)
+                print '(a,i4,a,i4,5a)' &
+                    ,'# return time ',year,' at yr=',yr2a &
+                    ,' = ',atx(2),' 95% CI ',atx25(2),atx975(2)
+                print '(a,i4,5a)' &
+                    ,'# return time ',year,' ratio = ' &
+                    ,atx(3),' 95% CI ',atx25(3),atx975(3)
+            else
+                print '(a,i4,a,i4,5a)' &
+                    ,'# return time ',year,' = ',atx(1),' 95% CI ',atx25(1),atx975(1)                
+            end if
         endif
         if ( plot ) then    ! output for stationlist
             write(11,'(3g20.4,i6,a)') tx(1),tx25(1),tx975(1),yr1a,' return time'
@@ -795,6 +829,7 @@ subroutine printab(lweb)
     character cassume*5
     common /fitdata4/ cassume
 
+    if ( cassume == 'none' ) return
     if ( lweb ) then
         if ( cassume == 'shift' ) then
             print '(a)','# <tr><td colspan="4">'// &

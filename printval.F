@@ -107,6 +107,10 @@
                 print '(a,g16.5,a,g16.5,a,g16.5,a)',
      +               '# <tr><td>w/o transformation</td><td>',x(1),
      +               '</td><td>',x(2),'...',x(3),'</td></tr>'
+            else if ( year.eq.-1 ) then
+                print '(a,g16.5,a,g16.5,a,g16.5,a)',
+     +               '# <tr><td>w/o transformation</td><td colspan=2>'
+     +               ,x(1),'</td><td>',x(2),'...',x(3),'</td></tr>'
             else
                 print '(a,i4,a,g16.5,a,g16.5,a,g16.5,a)',
      +               '# <tr><td>w/o transformation</td><td>',year,

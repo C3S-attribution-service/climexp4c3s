@@ -1,9 +1,9 @@
 program attribute
 !
 !   do an empirical attribution study by fitting a time series to a
-!   GEV or GPD with the position parameter linearly dependent on a covariate
-!   and studying the difference in return time in the current climate and a
-!   previous climate.
+!   Gaussian, Gumbell, GEV or GPD with the position parameter and/or scale parameter
+!   linearly dependent on a covariate and studying the difference in return time
+!   in the current climate and a previous climate.
 !
     implicit none
     include 'param.inc'
@@ -22,7 +22,7 @@ program attribute
     common /c_scalingpower/ scalingpower
 
     if ( iargc().lt.8 ) then
-        write(0,*) 'usage: attribute series covariate_series ', &
+        write(0,*) 'usage: attribute series covariate_series|none ', &
         & 'GEV|Gumbel|GPD|Gauss assume shift|scale', &
         & 'mon n [sel m] [ave N] [log|sqrt] ', &
         & 'begin2 past_climate_year end2 year_under_study', &
@@ -38,7 +38,15 @@ program attribute
     call attribute_init(seriesfile,distribution,assume,off,nperyear,yrbeg,yrend,nensmax,lwrite)
 
     allocate(series(npermax,yrbeg:yrend,0:nensmax))
-    if ( seriesfile /= 'file' ) then
+    if ( seriesfile == 'file' ) then
+        ! set of stations
+        call readsetseries(series,seriesids,npermax,yrbeg,yrend &
+        & ,nensmax,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
+    else if ( seriesfile == 'gridpoints' ) then
+        ! netcdf file with gridpoints
+        call readgridpoints(series,seriesids,npermax,yrbeg,yrend &
+        & ,nensmax,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
+    else
         ! simple data
         call readensseries(seriesfile,series,npermax,yrbeg,yrend &
         & ,nensmax,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
@@ -49,18 +57,17 @@ program attribute
         else
             seriesids(mens) = ' '
         end if
-    else
-        ! set of stations
-        call readsetseries(series,seriesids,npermax,yrbeg,yrend &
-        & ,nensmax,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
     end if
     
     call getarg(2+off,covariatefile)
     allocate(covariate(npermax,yrbeg:yrend,0:nensmax))
-    if ( index(covariatefile,'%%') == 0 .and. &
+    if ( covariatefile == 'none' ) then
+        assume = 'none'
+        covariate = 0
+    else if ( index(covariatefile,'%%') == 0 .and. &
     &    index(covariatefile,'++') == 0 ) then
         call readseries(covariatefile,covariate,npermax,yrbeg,yrend &
-        & ,nperyear1,var1,units1,lstandardunits,lwrite)
+        &   ,nperyear1,var1,units1,lstandardunits,lwrite)
         do iens=mens1,mens
             if ( iens /= 0 ) then
                 covariate(:,:,iens) = covariate(:,:,0)
@@ -77,13 +84,18 @@ program attribute
     end if
     
     call getopts(6+off,iargc(),nperyear,yrbeg,yrend,.true.,mens1,mens)
-    if ( yr1a.lt.yr1 .or. yr1a.lt.yrbeg ) then
-        write(0,*) 'attribute: error: reference year should be after start of series ',yr1,yr1a
-        call exit(-1)
-    end if
-    if ( yr2a.gt.yr2 .or. yr2a.gt.yrend ) then
-        write(0,*) 'attribute: error: current year should be before end of series ',yr2,yr2a
-        call exit(-1)
+    if ( assume == 'none' ) then
+        yr1a = 0
+        yr2a = 0
+    else
+        if ( yr1a.lt.yr1 .or. yr1a.lt.yrbeg ) then
+            write(0,*) 'attribute: error: reference year should be after start of series ',yr1,yr1a
+            call exit(-1)
+        end if
+        if ( yr2a.gt.yr2 .or. yr2a.gt.yrend ) then
+            write(0,*) 'attribute: error: current year should be before end of series ',yr2,yr2a
+            call exit(-1)
+        end if
     end if
 !
 !   process data
@@ -91,7 +103,9 @@ program attribute
     if ( ldetrend ) then
         do iens=mens1,mens
             call detrend(series(1,yrbeg,iens),npermax,nperyear,yrbeg,yrend,yr1,yr2,m1,m2,lsel)
-            call detrend(covariate(1,yrbeg,iens),npermax,nperyear1,yrbeg,yrend,yr1,yr2,m1,m2,lsel)
+            if ( assume /= 'none' ) then
+                call detrend(covariate(1,yrbeg,iens),npermax,nperyear1,yrbeg,yrend,yr1,yr2,m1,m2,lsel)
+            end if
         end do
     end if
     if ( anom ) then

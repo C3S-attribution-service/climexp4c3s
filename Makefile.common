@@ -23,6 +23,7 @@ OBJS	      = makeabsent.o \
 		readseries.o \
 		readensseries.o \
 		readsetseries.o \
+		readgridpoints.o \
 		readensdat.o \
 		readncseries.o \
 		printdatfile.o \
@@ -167,6 +168,7 @@ OBJS	      = makeabsent.o \
 		getlsmask.o \
 		checklsmask.o \
 		applylsmask.o \
+		getmaskbox.o \
 		readonencfield.o \
 		project3.o \
 		fit.o \

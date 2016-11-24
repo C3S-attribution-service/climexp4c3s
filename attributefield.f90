@@ -51,7 +51,7 @@
     nyf = ny
     nzf = nz
     fyr = firstyr
-    lyr = firstyr + (nt-1)/nperyear
+    lyr = firstyr + (nt+firstmo-2)/nperyear
     yr1 = max(yr1,fyr)
     yr2 = min(lyr,lyr)
     nens1 = max(nens1,mens1)
