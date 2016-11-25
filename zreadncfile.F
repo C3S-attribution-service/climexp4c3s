@@ -127,7 +127,7 @@
         if ( jvars(6).gt.0 ) then
             k = k + 1
             start(k) = 1
-            count(k) = 1 ! we do not have the number of ensemble members in this routine yet.
+            count(k) = 1 ! we do noy have the number of ensemble members in this routine yet.
         endif
         if ( jvars(5).gt.0 ) then
             k = k + 1
@@ -155,7 +155,11 @@
                     count(k) = min( nt, 
      +                   nperyear*(yr2-yr1+1) - firstmo + 1)
                 else
-                    call getdymo(dy,mo,firstmo,nperyear)
+                    if ( leap(firstyr).eq.2 .or. firstmo.le.60 ) then
+                        call getdymo(dy,mo,firstmo,nperyear)
+                    else
+                        call getdymo(dy,mo,firstmo-1,nperyear)
+                    end if
                     j1 = julday(mo,dy,firstyr)
                     j2 = julday(1,1,yr1)
                     j3 = julday(12,31,yr2)
