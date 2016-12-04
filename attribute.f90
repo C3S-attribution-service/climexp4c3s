@@ -64,6 +64,7 @@ program attribute
     if ( covariatefile == 'none' ) then
         assume = 'none'
         covariate = 0
+        nperyear1 = 1
     else if ( index(covariatefile,'%%') == 0 .and. &
     &    index(covariatefile,'++') == 0 ) then
         call readseries(covariatefile,covariate,npermax,yrbeg,yrend &
@@ -84,18 +85,13 @@ program attribute
     end if
     
     call getopts(6+off,iargc(),nperyear,yrbeg,yrend,.true.,mens1,mens)
-    if ( assume == 'none' ) then
-        yr1a = 0
-        yr2a = 0
-    else
-        if ( yr1a.lt.yr1 .or. yr1a.lt.yrbeg ) then
-            write(0,*) 'attribute: error: reference year should be after start of series ',yr1,yr1a
-            call exit(-1)
-        end if
-        if ( yr2a.gt.yr2 .or. yr2a.gt.yrend ) then
-            write(0,*) 'attribute: error: current year should be before end of series ',yr2,yr2a
-            call exit(-1)
-        end if
+    if ( yr1a.lt.yr1 .or. yr1a.lt.yrbeg ) then
+        write(0,*) 'attribute: error: reference year should be after start of series ',yr1,yr1a
+        call exit(-1)
+    end if
+    if ( yr2a.gt.yr2 .or. yr2a.gt.yrend ) then
+        write(0,*) 'attribute: error: current year should be before end of series ',yr2,yr2a
+        call exit(-1)
     end if
 !
 !   process data

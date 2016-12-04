@@ -70,9 +70,8 @@ subroutine printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume)
             do i=1,10,3
                 if ( assume == 'none' ) then
                     print '(a,i5,a,f16.3,a,f16.3,a,f16.3,a)' &
-                        ,'# <tr><td>return value ',10**(1+i/3) &
-                        ,' yr</td><td colspan=2>' &
-                        ,t(i,1),'</td><td>',t25(i,1) &
+                        ,'# <tr><td colspan=2>return value ',10**(1+i/3) &
+                        ,' yr</td><td>',t(i,1),'</td><td>',t25(i,1) &
                         ,' ... ',t975(i,1),'</td></tr>'
                     call print3untransf(t(i,1),t25(i,1),t975(i,1),-1)
                 else
@@ -111,7 +110,7 @@ subroutine printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume)
         else
             do i=1,4
                 if ( assume == 'none' ) then
-                    print '(a,i5,a,i4,a,f16.3,a,2f16.3)' &
+                    print '(a,i5,a,f16.3,a,2f16.3)' &
                         ,'# value for return period ',10**i &
                         ,': ' &
                         ,t(i,1),' 95% CI ',t25(i,1),t975(i,1)
@@ -167,7 +166,7 @@ subroutine printreturntime(year,xyear,tx,tx25,tx975,lweb)
 end subroutine printreturntime
 
 
-subroutine printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,lweb,plot)
+subroutine printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,lweb,plot,assume)
 
 !   print return time of year at cov1 and cov2
 
@@ -175,7 +174,7 @@ subroutine printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,lweb,plot
     integer :: year,yr1a,yr2a
     real :: xyear,tx(3),tx25(3),tx975(3)
     logical :: lweb,plot
-    character idmax*(*)
+    character idmax*(*),assume*(*)
     integer :: i
     character atx(3)*16,atx25(3)*16,atx975(3)*16
 
@@ -186,7 +185,7 @@ subroutine printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,lweb,plot
             call val_or_inf(atx975(i),tx975(i),lweb)
         end do
         if ( lweb ) then
-            if ( yr1a /= 0 ) then
+            if ( assume /= 'none' ) then
                 print '(a,i5,a,i5,7a)' &
                     ,'# <tr><td><!--atr2-->return period ',year, &
                     '</td><td>',yr1a,'</td><td>',atx(1), &
@@ -208,25 +207,23 @@ subroutine printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,lweb,plot
                         ' ... ',atx975(3),'</td></tr>'
                 end if
             else
-                print '(a,i5,7a)' &
-                    ,'# <tr><td><!--atr2-->return period ',year, &
-                    '</td><td colspan=2>',atx(1), &
+                print '(a,g16.5,7a)' &
+                    ,'# <tr><td colspan=2><!--atr2-->return period ',xyear, &
+                    '</td><td>',atx(1), &
                     '</td><td>',atx25(1),' ... ',atx975(1),'</td></tr>'
             end if
         else
-            if ( yr1a /= 0 ) then
+            if ( assume /= 'none' ) then
                 print '(a,i4,a,i4,5a)' &
                     ,'# return time ',year,' at yr=',yr1a &
                     ,' = ',atx(1),' 95% CI ',atx25(1),atx975(1)
                 print '(a,i4,a,i4,5a)' &
                     ,'# return time ',year,' at yr=',yr2a &
                     ,' = ',atx(2),' 95% CI ',atx25(2),atx975(2)
-                print '(a,i4,5a)' &
-                    ,'# return time ',year,' ratio = ' &
+                print '(a,i4,5a)','# return time ',year,' ratio = ' &
                     ,atx(3),' 95% CI ',atx25(3),atx975(3)
             else
-                print '(a,i4,a,i4,5a)' &
-                    ,'# return time ',year,' = ',atx(1),' 95% CI ',atx25(1),atx975(1)                
+                print '(a,g16.5,7a)','# return time ',xyear,' = ',atx(1),' 95% CI ',atx25(1),atx975(1)                
             end if
         endif
         if ( plot ) then    ! output for stationlist
@@ -469,7 +466,7 @@ subroutine plot_ordered_points(xx,xs,yrs,ntot,ntype,nfit, &
         endif
     
         if ( lchangesign ) then
-            if ( x /= -999.9 ) x = -x
+            if ( x /= -999.9 .and. x < 1e33 ) x = -x
         endif
         call printpoint(i,f,ntype,x,s,yrs(j))
         smin = min(s,smin)
@@ -801,7 +798,10 @@ subroutine getabfromcov(a,b,alpha,beta,cov,aa,bb)
     logical :: llwrite,llchangesign
     common /fitdata2/ restrain,ncur,llwrite,llchangesign
             
-    if ( cassume == 'shift' ) then
+    if ( cassume == 'none' ) then
+        aa = a
+        bb = b
+    else if ( cassume == 'shift' ) then
         aa = a + alpha*cov
         bb = b
     else if ( cassume == 'scale' ) then

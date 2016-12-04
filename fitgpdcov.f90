@@ -46,7 +46,8 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
      &       db,dxi,f,z,ll,ll1,txtx(nmc,3),a25,a975,beta25,beta975, &
      &       ranf,mean,sd,dalpha,dbeta,mindata,minindx,pmindata,snorm,s, &
      &       xmin,cmin,cmax,c,xxyear,frac,ttt(10,3),txtxtx(3), &
-     &       acov(3,2),aacov(nmc,2),plo,phi,xyear,scross,sdecor
+     &       acov(3,2),aacov(nmc,2),plo,phi,xyear,scross,sdecor, &
+     &       aa25,aa975,bb25,bb975
     real adev,var,skew,curt,aaa,bbb,siga,chi2,q,p(4)
     integer,allocatable :: ii(:),yyrs(:)
     real,allocatable :: xx(:,:),yy(:),ys(:),zz(:),sig(:)
@@ -214,7 +215,11 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     else
         xi = 0.1
     end if
-    if ( assume == 'shift' .or. assume == 'scale' ) then
+    if ( assume == 'none' ) then
+        alpha = 3e33
+        beta = 3e33
+        call fit0gpdcov(a,b,xi,iter)
+    else if ( assume == 'shift' .or. assume == 'scale' ) then
         beta = 3e33
         call fit1gpdcov(a,b,xi,alpha,dalpha,iter)
     else if ( assume == 'both' ) then
@@ -255,9 +260,11 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         if ( lchangesign ) then
             a = -a
             t = -t
-            alpha = -alpha
-            if ( cassume == 'both' ) then
-                beta = -beta
+            if ( assume /= 'none' ) then
+                alpha = -alpha
+                if ( cassume == 'both' ) then
+                    beta = -beta
+                end if
             end if
         end if
         a3(1) = a
@@ -319,7 +326,11 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         xixi(iens) = xi
         alphaalpha(iens) = alpha
         llwrite = .false.
-        if ( assume == 'shift' .or. assume == 'scale' ) then
+        if ( assume == 'none' ) then
+            alphaalpha(iens) = 3e33
+            betabeta(iens) = 3e33
+            call fit0gpdcov(aa(iens),bb(iens),xixi(iens),iter)
+        else if ( assume == 'shift' .or. assume == 'scale' ) then
             betabeta(iens) = 3e33
             call fit1gpdcov(aa(iens),bb(iens),xixi(iens),alphaalpha(iens),dalpha,iter1)
         else if ( assume == 'both' ) then
@@ -370,11 +381,13 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
             if ( aacov(iiens,1) < 1e33 ) aacov(iiens,1) = -aacov(iiens,1)
             if ( aacov(iiens,2) < 1e33 ) aacov(iiens,2) = -aacov(iiens,2)
         end do
-        alpha = -alpha
-        alphaalpha = -alphaalpha
-        if ( assume == 'both' ) then
-            beta = -beta
-            betabeta = -betabeta
+        if ( assume /= 'none' ) then
+            alpha = -alpha
+            alphaalpha = -alphaalpha
+            if ( assume == 'both' ) then
+                beta = -beta
+                betabeta = -betabeta
+            end if
         end if
         do j=1,10
             do i=1,3
@@ -401,11 +414,13 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     call getcut(b975,phi,iens,bb)
     call getcut( xi25,plo,iens,xixi)
     call getcut(xi975,phi,iens,xixi)
-    call getcut( alpha25,plo,iens,alphaalpha)
-    call getcut(alpha975,phi,iens,alphaalpha)
-    if ( assume == 'both' ) then
-        call getcut( beta25,plo,iens,betabeta)
-        call getcut(beta975,phi,iens,betabeta)
+    if ( assume /= 'none' ) then
+        call getcut( alpha25,plo,iens,alphaalpha)
+        call getcut(alpha975,phi,iens,alphaalpha)
+        if ( assume == 'both' ) then
+            call getcut( beta25,plo,iens,betabeta)
+            call getcut(beta975,phi,iens,betabeta)
+        end if
     end if
     call getcut(acov(2,1),plo,iens,aacov(1,1))
     call getcut(acov(3,1),phi,iens,aacov(1,1))
@@ -447,34 +462,77 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         a = -a
     end if
     if ( lweb ) then
-    print '(a)','# <tr><td colspan="4">Fitted to GPD '// &
-     &           'distribution H(x+&mu;'') = 1 - (1+&xi;*x/&sigma;'')^(-1/&xi;)</td></tr>'
-        call printab(lweb)
-        print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
-     &           '&mu;:</td><td>',a,'</td><td>',a25,'...',a975,'</td></tr>'
-        print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
-     &           '&sigma;:</td><td>',b,'</td><td>',b25,'...',b975,'</td></tr>'
-        print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
-     &           '&xi;:</td><td>',xi,'</td><td>',xi25,'...',xi975,'</td></tr>'
-        print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
-     &           '&alpha;:</td><td>',alpha,'</td><td>',alpha25,'...',alpha975,'</td></tr>'
-        if ( assume == 'both' ) then
-            print '(a,f16.3,a,f16.3,a,f16.3,a)', &
-     &               '# <tr><td colspan=2>&beta;:</td><td>',beta, &
-     &               '</td><td>',beta25,'...',beta975,'</td></tr>'
+        if ( assume == 'none' ) then
+            print '(a)','# <tr><td colspan="4">Fitted to GPD '// &
+         &           'distribution H(x+&mu;) = 1 - (1+&xi;*x/&sigma;)^(-1/&xi;)</td></tr>'
+            print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
+         &           '&mu;:</td><td>',a,'</td><td>',a25,'...',a975,'</td></tr>'
+            print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
+         &           '&sigma;:</td><td>',b,'</td><td>',b25,'...',b975,'</td></tr>'
+            print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
+         &           '&xi;:</td><td>',xi,'</td><td>',xi25,'...',xi975,'</td></tr>'
+        else
+            print '(a)','# <tr><td colspan="4">Fitted to GPD '// &
+         &           'distribution H(x+&mu;'') = 1 - (1+&xi;*x/&sigma;'')^(-1/&xi;)</td></tr>'
+            call printab(lweb)
+            call getabfromcov(a,b,alpha,beta,cov1,aaa,bbb)
+            call getabfromcov(a25,b25,alpha,beta,cov1,aa25,bb25)
+            call getabfromcov(a975,b975,alpha,beta,cov1,aa975,bb975)
+            print '(a,i5,a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>'//         &
+     &           '&mu;'':</td><td>',yr1a,'</td><td>',aaa,'</td><td>',       &
+     &           aa25,'...',aa975,'</td></tr>'
+            print '(a,i5,a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>'//         &
+     &           '&sigma;'':</td><td>',yr1a,'</td><td>',bbb,'</td><td>',    &
+     &           bb25,'...',bb975,'</td></tr>'
+            call getabfromcov(a,b,alpha,beta,cov2,aaa,bbb)
+            call getabfromcov(a25,b25,alpha,beta,cov2,aa25,bb25)
+            call getabfromcov(a975,b975,alpha,beta,cov2,aa975,bb975)
+            print '(a,i5,a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>'//         &
+     &           '&mu;'':</td><td>',yr2a,'</td><td>',aaa,'</td><td>',       &
+     &           aa25,'...',aa975,'</td></tr>'
+            print '(a,i5,a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>'//         &
+     &           '&sigma;'':</td><td>',yr2a,'</td><td>',bbb,'</td><td>',    &
+     &           bb25,'...',bb975,'</td></tr>'
+            print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
+         &           '&xi;:</td><td>',xi,'</td><td>',xi25,'...',xi975,'</td></tr>'
+            print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
+         &           '&alpha;:</td><td>',alpha,'</td><td>',alpha25,'...',alpha975,'</td></tr>'
+            if ( assume == 'both' ) then
+                print '(a,f16.3,a,f16.3,a,f16.3,a)', &
+         &               '# <tr><td colspan=2>&beta;:</td><td>',beta, &
+         &               '</td><td>',beta25,'...',beta975,'</td></tr>'
+            end if
         end if
     else
         print '(a,i5,a)','# Fitted to GPD distribution in ',iter &
      &           ,' iterations'
-        print '(a)','# H(x+a) = 1-(1+xi*x/b)**(-1/xi) with'
-        print '(a,f16.3,a,f16.3,a,f16.3)','# a = ',a,' \\pm ',(a975-a25)/2
-        print '(a,f16.3,a,f16.3,a,f16.3)','# b = ',b,' \\pm ',(b975-b25)/2
-        print '(a,f16.3,a,f16.3,a,f16.3)','# xi  = ',xi,' \\pm ',(xi975-xi25)/2
-        print '(a,f16.3,a,f16.3,a,f16.3)','# alpha ',alpha,' \\pm ',(alpha975-alpha25)/2
+        if ( assume == 'none' ) then
+            print '(a)','# H(x+a) = 1-(1+xi*x/b)**(-1/xi) with'
+            print '(a,f16.3,a,f16.3,a,f16.3)','# a = ',a,' \\pm ',(a975-a25)/2
+            print '(a,f16.3,a,f16.3,a,f16.3)','# b = ',b,' \\pm ',(b975-b25)/2
+            print '(a,f16.3,a,f16.3,a,f16.3)','# xi  = ',xi,' \\pm ',(xi975-xi25)/2
+        else
+            print '(a)','# H(x+a'') = 1-(1+xi*x/b'')**(-1/xi) with'
+            call printab(lweb)
+            call getabfromcov(a,b,alpha,beta,cov1,aaa,bbb)
+            call getabfromcov(a25,b25,alpha,beta,cov1,aa25,bb25)
+            call getabfromcov(a975,b975,alpha,beta,cov1,aa975,bb975)
+            print '(a,i4,a,f16.3,a,f16.3,a,f16.3)','# ',yr1a,': a = ',aaa,' \\pm ',(aa975-aa25)/2
+            print '(a,i4,a,f16.3,a,f16.3,a,f16.3)','# ',yr1a,': b = ',bbb,' \\pm ',(bb975-bb25)/2
+            call getabfromcov(a,b,alpha,beta,cov2,aaa,bbb)
+            call getabfromcov(a25,b25,alpha,beta,cov2,aa25,bb25)
+            call getabfromcov(a975,b975,alpha,beta,cov2,aa975,bb975)
+            print '(a,i4,a,f16.3,a,f16.3,a,f16.3)','# ',yr2a,': a = ',aaa,' \\pm ',(aa975-aa25)/2
+            print '(a,i4,a,f16.3,a,f16.3,a,f16.3)','# ',yr2a,': b = ',bbb,' \\pm ',(bb975-bb25)/2
+            print '(a,f16.3,a,f16.3,a,f16.3)','# alpha ',alpha,' \\pm ',(alpha975-alpha25)/2
+            if ( assume == 'both' ) then
+                print '(a,f16.3,a,f16.3,a,f16.3)','# beta  ',beta,' \\pm ',(beta975-beta25)/2
+            end if
+        end if
     end if
     call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume)
-    call printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,lweb,plot)
-    call printcovpvalue(txtx,nmc,iens,lweb)
+    call printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,lweb,plot,assume)
+    if ( assume /= 'none' ) call printcovpvalue(txtx,nmc,iens,lweb)
 
     if ( dump ) then
         call plot_tx_cdfs(txtx,nmc,iens,ntype,j1,j2)
@@ -497,30 +555,42 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     if ( lchangesign ) then
         ! we had flipped the sign on a,alpha but not yet on the rest, flip back...
         a = -a
-        alpha = -alpha
-        if ( assume == 'both' ) beta = -beta
+        if ( assume /= 'none' ) then
+            alpha = -alpha
+            if ( assume == 'both' ) beta = -beta
+        end if
     end if
-    ! compute distribution at past year and plot it
-    call adjustyy(ncur,data,assume,a,b,alpha,beta,cov1,yy,zz,aaa,bbb,lchangesign,lwrite)
-    ys(1:ncur) = yy(1:ncur)
-    print '(a,i5)','# distribution in year ',yr1a
-    call plotreturnvalue(ntype,t25(1,1),t975(1,1),j2-j1+1)
-    mindata = aaa
-    call plot_ordered_points(yy,ys,yyrs,ncur,ntype,nfit, &
-     &       frac,aaa,bbb,xi,j1,j2,minindx,mindata,pmindata, &
-     &       year,xyear,snorm,lchangesign,lwrite,.false.)
-
-    ! compute distribution at present year and plot it
-    call adjustyy(ncur,data,assume,a,b,alpha,beta,cov2,yy,zz,aaa,bbb,lchangesign,lwrite)
-    ys(1:ncur) = yy(1:ncur)
-    print '(a)'
-    print '(a)'
-    print '(a,i5)','# distribution in year ',yr2a
-    call plotreturnvalue(ntype,t25(1,2),t975(1,2),j2-j1+1)
-    mindata = aaa
-    call plot_ordered_points(yy,ys,yyrs,ncur,ntype,nfit, &
-     &       frac,aaa,bbb,xi,j1,j2,minindx,mindata,pmindata, &
+    
+    if ( assume == 'none' ) then
+        call plotreturnvalue(ntype,t25(1,1),t975(1,1),j2-j1+1)
+        ys(1:ncur) = yy(1:ncur)
+        mindata = a
+        call plot_ordered_points(yy,ys,yrs,ncur,ntype,nfit,                 &
+     &       frac,a,b,xi,j1,j2,minindx,mindata,pmindata,                &
      &       year,xyear,snorm,lchangesign,lwrite,.true.)
+    else
+    ! compute distribution at past year and plot it
+        call adjustyy(ncur,data,assume,a,b,alpha,beta,cov1,yy,zz,aaa,bbb,lchangesign,lwrite)
+        ys(1:ncur) = yy(1:ncur)
+        print '(a,i5)','# distribution in year ',yr1a
+        call plotreturnvalue(ntype,t25(1,1),t975(1,1),j2-j1+1)
+        mindata = aaa
+        call plot_ordered_points(yy,ys,yyrs,ncur,ntype,nfit, &
+         &       frac,aaa,bbb,xi,j1,j2,minindx,mindata,pmindata, &
+         &       year,xyear,snorm,lchangesign,lwrite,.false.)
+
+        ! compute distribution at present year and plot it
+        call adjustyy(ncur,data,assume,a,b,alpha,beta,cov2,yy,zz,aaa,bbb,lchangesign,lwrite)
+        ys(1:ncur) = yy(1:ncur)
+        print '(a)'
+        print '(a)'
+        print '(a,i5)','# distribution in year ',yr2a
+        call plotreturnvalue(ntype,t25(1,2),t975(1,2),j2-j1+1)
+        mindata = aaa
+        call plot_ordered_points(yy,ys,yyrs,ncur,ntype,nfit, &
+         &       frac,aaa,bbb,xi,j1,j2,minindx,mindata,pmindata, &
+         &       year,xyear,snorm,lchangesign,lwrite,.true.)
+    end if
 801 continue
     deallocate(ii)
     deallocate(yyrs)
@@ -529,6 +599,83 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     deallocate(zz)
     deallocate(sig)
     return
+end subroutine
+
+subroutine fit0gpdcov(a,b,xi,iter)
+    implicit none
+    integer iter
+    real a,b,xi
+    integer i,j,n
+    real q(4),p(3,2),y(3),tol
+    logical lok
+    real,external :: llgpdcov
+    integer ncur
+    real restrain
+    logical llwrite,llchangesign
+    common /fitdata2/ restrain,ncur,llwrite,llchangesign
+    character cassume*5
+    common /fitdata4/ cassume
+    integer nthreshold
+    real athreshold,pthreshold
+    common /fitdata5/ nthreshold,athreshold,pthreshold
+!
+    n = 0
+10  continue
+    q(1) = b
+    q(2) = xi
+    q(3) = 0
+    q(4) = 0
+    p(1,1) = q(1) *0.9
+    p(1,2) = q(2) *0.9
+    p(2,1) = p(1,1) *1.2
+    p(2,2) = p(1,2)
+    p(3,1) = p(1,1)
+    p(3,2) = p(1,2) *1.2 + 0.1
+    lok = .false.
+    do i=1,3
+        q(1) = p(i,1)
+        q(2) = p(i,2)
+        y(i) = llgpdcov(q)
+        if ( y(i) < 1e33 ) lok = .true.
+    end do
+    if ( .not.lok ) then
+        n = n + 1
+        if ( llwrite ) then
+            print *,n,'searching for good initial values, these all give 3e33'
+            do i=1,4
+                print *,(p(i,j),j=1,3),y(i)
+            enddo
+        end if
+        if ( xi /= 0 ) then
+            if ( cassume == 'scale' ) then
+                xi = xi + 0.1*xi/abs(xi)
+            else
+                xi = xi + 0.1
+            end if
+        else if ( cassume == 'scale' ) then
+            if ( athreshold < 0 ) then
+                xi = -0.1
+            else
+                xi = +0.1 ! most precip has positive \xi
+            end if
+        else
+            xi = -0.1 ! most temperature extremes negative
+        end if
+        if ( abs(xi).lt.2 ) then
+            goto 10
+        else
+            write(0,*) 'fit1gpdcov: error: cannot find initial fit values'
+            a = 3e33
+            b = 3e33
+            xi = 3e33
+        end if
+    end if
+    tol = 1e-4
+    call amoeba(p,y,3,2,2,tol,llgpdcov,iter)
+!   maybe add restart later
+    a = athreshold
+    b = p(1,1)
+    xi = p(1,2)
 end subroutine
 
 subroutine fit1gpdcov(a,b,xi,alpha,dalpha,iter)
@@ -1028,6 +1175,7 @@ real function gpdcovreturnyear(a,b,xi,alpha,beta,xyear,cov,lchangesign)
     real athreshold,pthreshold
     common /fitdata5/ nthreshold,athreshold,pthreshold
 
+    llwrite = .true.
     if ( llwrite ) then
         print *,'gpdcovreturnyear: input'
         print *,'a,b,xi     = ',a,b,xi
@@ -1036,6 +1184,7 @@ real function gpdcovreturnyear(a,b,xi,alpha,beta,xyear,cov,lchangesign)
     end if
     x = xyear
     call getabfromcov(a,b,alpha,beta,cov,aa,bb)
+    if ( llwrite ) print *,'aa,bb = ',aa,bb
     if ( xyear > aa ) then
         x = xyear - aa
         z = (1 + xi*x/bb)
@@ -1045,7 +1194,7 @@ real function gpdcovreturnyear(a,b,xi,alpha,beta,xyear,cov,lchangesign)
         else if ( z <= 0 ) then
             tx = 1e20
         else if ( abs(xi) < 1e-3 ) then
-            tx = exp(z - 0.5*xi*z**2)/(1-pthreshold/100)
+            tx = exp(x/bb - 0.5*xi*(x/bb)**2)/(1-pthreshold/100)
         else if ( log(z)/xi > 45 ) then
             tx = 1e20
         else
