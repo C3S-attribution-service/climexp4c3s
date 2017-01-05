@@ -270,7 +270,7 @@ subroutine cfield(datfile,ncid,field,lsmask,nx,xx,ny,yy,nz,zz,nt &
  &        firstyr + (firstmo+nt-2)/nperyear - (max(lag1,lag2)       &
  &        -nperyear+1)/nperyear)
     if ( nyrwindow.gt.0 ) then
-        write(0,'(2a,i6,a)') ,'p-values are computed'               &
+        write(0,'(2a,i6,a)') 'p-values are computed'               &
  &           ,' against a ',nmc,' sample Monte Carlo<br>'
     end if
 !
