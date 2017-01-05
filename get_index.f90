@@ -427,29 +427,10 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
         if ( index(outfile,'.ctl') == 0 ) then
             allocate(itimeaxis(nt))
             ivars(1,1) = 0
-            if ( nperyear == 366 ) then
-                yr=firstyr
-                mo=firstmo
-                irec = 0
-                do it=1,nt
-                    if ( nperyear == 366 .AND. mo == 60 .AND. &
-                    leap(yr) == 1 ) then
-                        mo = mo + 1
-                        cycle
-                    end if
-                    irec = irec + 1
-                    mo = mo + 1
-                    if ( mo > nperyear ) then
-                        mo = mo - nperyear
-                        yr = yr + 1
-                    end if
-                end do
-            else
-                irec = nt
-            end if
+            call subtractleapyears(nt,firstyr,firstmo,nperyear,irec)
             call writenc(outfile,ncid,ntvarid,itimeaxis,nt,nx,xx &
-            ,ny,yy,nz,zz,irec,nperyear,firstyr,firstmo,3e33 &
-            ,title,1,vars,ivars,lvars,units,0,0)
+                ,ny,yy,nz,zz,irec,nperyear,firstyr,firstmo,3e33 &
+                ,title,1,vars,ivars,lvars,units,0,0)
             yr=firstyr
             mo=firstmo
             irec = 0
@@ -462,7 +443,7 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
                 irec = irec + 1
                 call keepalive1('Writing day',it,nt)
                 call writencslice(ncid,ntvarid,itimeaxis,nt,ivars &
-                ,field(1,1,mo,yr),nxf,nyf,nzf,nx,ny,nz,irec,1)
+                    ,field(1,1,mo,yr),nxf,nyf,nzf,nx,ny,nz,irec,1)
                 mo = mo + 1
                 if ( mo > nperyear ) then
                     mo = mo - nperyear
@@ -482,17 +463,17 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
     if ( npoints > 1 .AND. (missing .OR. anom) .AND. oper == 'v' ) &
     then
         call getmean(mean,nn,nx,ny,nperyear,field,nx,ny &
-        ,nperyear,firstyr,lastyr,nx,ny,firstyr,firstmo,nt &
-        ,lwrite)
+            ,nperyear,firstyr,lastyr,nx,ny,firstyr,firstmo,nt &
+            ,lwrite)
     endif
     call keepalive1('Computed climatology',3,5)
 
-!       compute weights
+!   compute weights
 
     call getweights('x',xx,wx,nx,xwrap,lwrite)
     call getweights('y',yy,wy,ny, .FALSE. ,lwrite)
 
-!       manage collection of grid points
+!   manage collection of grid points
 
     if ( gridpoints ) then
         write(*,'(2a,4(f10.3,a))') trim(fieldname), &
