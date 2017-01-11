@@ -820,7 +820,7 @@ subroutine sample_bootstrap(series,covariate,nperyear,j1,j2,fyr,lyr,mens1,mens,&
             end do ! ensemble members for spatial moving block
         end do ! while ( .not.ok )
     end do ! ntot, length of array
-    800 continue
+800 continue
     do i=1,ntot
         if ( xx(1,i).gt.1e10.or. xx(2,i).gt.1e10 ) then
             write(0,*) 'sample_bootstrap: error: xx:,',i,') = ',xx(:,i)
