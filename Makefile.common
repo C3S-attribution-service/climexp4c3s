@@ -350,6 +350,7 @@ PROGRAMS      = scientific2decimal \
 		gen_time \
 		ecmwf_times \
 		printbigtable \
+		synthesis \
 		testwetbulb \
 		compute_wetbulb \
 		wetbulb_field \
@@ -452,9 +453,6 @@ flattennc:	flattennc.o  $(LIBRARY)
 
 flattennc_dec:	flattennc_dec.o  $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ flattennc_dec.o $(LIBS)
-
-patternfield.o:	../patternfield.F
-		$(LD) $(FFLAGS) -c ../patternfield.F -o patternfield.o
 
 patternfield:	patternfield.o  $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
@@ -760,6 +758,9 @@ count_missing:	count_missing.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)		
 
 setundef:	setundef.o $(LIBRARY)
+		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
+
+synthesis:	synthesis.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
 
 roc:		roc.o $(LIBRARY)
