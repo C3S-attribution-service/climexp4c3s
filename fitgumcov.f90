@@ -248,7 +248,7 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr        &
             end do
         end if
     end do
-    if ( mens > mens1 ) call print_spatial_scale(scross/nmc)
+    if ( mens > mens1 ) call print_spatial_scale(scross/nmc,ntot/real(mens-mens1+1))
     iens = nmc
     if ( lchangesign ) then
         a = -a

@@ -278,7 +278,7 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                &
             end if
         endif
     enddo
-    if ( mens > mens1 ) call print_spatial_scale(scross/nmc)
+    if ( mens > mens1 ) call print_spatial_scale(scross/nmc,ntot/real(mens-mens1+1))
     if ( lchangesign ) then
         a = -a
         acov = -acov

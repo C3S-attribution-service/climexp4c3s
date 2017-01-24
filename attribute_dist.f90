@@ -38,16 +38,16 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         end if
     end if
 
-    if ( distribution.eq.'gev' .or. distribution.eq.'gumbel' ) then
+    if ( distribution == 'gev' .or. distribution == 'gumbel' ) then
         allocate(yrseries(1,fyr:lyr,0:mens))
         yrseries = 3e33
         allocate(yrcovariate(1,fyr:lyr,0:mens))
         yrcovariate = 3e33
-        if ( nperyear.eq.nperyear1 .and. nperyear.gt.1 ) then
+        if ( nperyear == nperyear1 .and. nperyear > 1 ) then
             if ( lwrite ) print *,'attribute_dist: calling make_two_annual_values with max'
             call make_two_annual_values(series,covariate,nperyear,npermax,yrbeg,yrend,mens1,mens, &
             &   yrseries,yrcovariate,fyr,lyr,'max')
-            if ( xyear.lt.1e33 ) then
+            if ( xyear < 1e33 ) then
                 call get_covariate_extrayear(covariate,nperyear1,npermax,yrbeg,yrend,mens1,mens, &
                 & yrcovariate,fyr,lyr)
             end if
@@ -69,11 +69,11 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
             init = 1
             call print_bootstrap_message(max(1,ndecor),j1,j2)
         end if
-    else if ( distribution.eq.'gpd' .or. distribution.eq.'gauss' ) then
+    else if ( distribution == 'gpd' .or. distribution == 'gauss' ) then
         ! in the others lsum inicates teh block maxima length...
         call getj1j2(j1,j2,m1,nperyear,lwrite)
         decor = max(decor,real(lsum)-1)
-        if ( j1.eq.j2 ) then
+        if ( j1 == j2 ) then
             ndecor = 1+int(decor/nperyear)
         else
             ndecor = 1+int(decor)
@@ -89,13 +89,13 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         allocate(yrcovariate(nperyear,fyr:lyr,0:mens))
         yrcovariate = 3e33
         ! change covariate to the same time resolution as series
-        if ( nperyear1.lt.nperyear ) then
+        if ( nperyear1 < nperyear ) then
             if ( lwrite ) print *,'repeating covariate from nperyear = ',nperyear1,' to ',nperyear
            do iens=mens1,mens
                 call annual2shorter(covariate(1,yrbeg,iens),npermax,yrbeg,yrend,nperyear1, &
                 &   yrcovariate(1,fyr,iens),nperyear,fyr,lyr,nperyear,1,nperyear,1,lwrite)
             end do
-        else if ( nperyear1.gt.nperyear ) then
+        else if ( nperyear1 > nperyear ) then
             ! this should not occur in the web interface
             write(0,*) 'atribute_dist: error: covariate should not have higher time resolution than series: ', &
             &   nperyear1,nperyear
@@ -119,7 +119,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         call checknonegative(yrseries,npernew,fyr,lyr,mens1,mens,j1,j2,assume, &
         &   lchangesign,lwrite)
     end if
-    if ( lnormsd .and. mens.gt.mens1 ) then
+    if ( lnormsd .and. mens > mens1 ) then
         if ( lwrite ) print *,'attrbute_dist: normalising all series',mens1,mens
         call normaliseseries(yrseries,npernew,fyr,lyr,mens1,mens,j1,j2,assume,lwrite)
     end if
@@ -127,20 +127,20 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     if ( lwrite ) print *,'attribute_dist: calling handle_then_now'
     call handle_then_now(yrseries,yrcovariate,npernew,fyr,lyr,j1,j2,yr1a,yr2a,mens1,mens, &
         & xyear,ensmax,cov1,cov2,lprint,lwrite)
-    if ( cov1.gt.1e33 .or. cov2.gt.1e33 ) then
+    if ( cov1 > 1e33 .or. cov2 > 1e33 ) then
         if ( lwrite ) print *,'giving up, cov1,cov2 = ',cov1,cov2
         return
     end if
-    if ( ensmax.ge.mens1 ) then
+    if ( ensmax >= mens1 ) then
         idmax = seriesids(ensmax)
     else
         idmax = ' ' ! undefined
     end if
     if ( lprint ) then
-        if ( namestring.ne.' ' ) then
+        if ( namestring /= ' ' ) then
             print '(4a)','# <tr><th colspan=4>',trim(namestring),'</th></tr>'
         endif
-        if ( abs(nint(confidenceinterval)-confidenceinterval).lt.0.0001 ) then
+        if ( abs(nint(confidenceinterval)-confidenceinterval) < 0.0001 ) then
             print '(a,i2,a)' ,'# <tr><th>parameter</th><th>year</th><th>value</th><th>' &
         &       ,nint(confidenceinterval),'% CI</th></tr>'
         else
@@ -166,7 +166,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     else
         offset = 0
     end if
-    if ( mens.gt.mens1 ) then
+    if ( mens > mens1 ) then
         n = (mens-mens1+1)
         n = n*(n-1)/2
         i = 0
@@ -186,14 +186,14 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     end if
 
     lboot = .true.
-    if ( distribution.eq.'gev' ) then
+    if ( distribution == 'gev' ) then
         ntype = 2 ! Gumbel plot
         if ( lwrite ) print *,'attribute_dist: calling fitgevcov',j1,j2
         call fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
     &       ,crosscorr,a,b,xi,alpha,beta,j1,j2 &
     &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2,offset &
     &       ,t,tx,restrain,assume,confidenceinterval,ndecor,lboot,lprint,dump,plot,lwrite)
-    else if ( distribution.eq.'gpd' ) then
+    else if ( distribution == 'gpd' ) then
         ntype = 3 ! log plot
         !!!print *,'DEBUG'
         !!!lboot = .false.
@@ -204,7 +204,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2,offset &
     &       ,t,tx,pmindata,restrain,assume,confidenceinterval,ndecor,lboot &
     &       ,lprint,dump,plot,lwrite)
-    else if  ( distribution.eq.'gumbel' ) then
+    else if  ( distribution == 'gumbel' ) then
         ntype = 2 ! Gumbel plot
         xi = 0
         if ( lwrite ) print *,'attribute_dist: calling fitgumcov'
@@ -212,7 +212,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     &       ,crosscorr,a,b,alpha,beta,j1,j2 &
     &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2,offset &
     &       ,t,tx,assume,confidenceinterval,ndecor,lboot,lprint,dump,plot,lwrite)
-    else if  ( distribution.eq.'gauss' ) then
+    else if  ( distribution == 'gauss' ) then
         ntype = 4 ! sqrtlog plot
         xi = 0
         if ( lwrite ) print *,'attribute_dist: calling fitgaucov'
@@ -236,7 +236,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         do j=1,3
             do i=1,10
                 k = k + 1
-                if ( k.gt.nresmax ) then
+                if ( k > nresmax ) then
                     write(0,*) 'attrubute_dist: internal error: results array to small: ',nresmax
                     call abort
                 end if
@@ -274,20 +274,20 @@ subroutine attribute_init(file,distribution,assume,off,nperyear,yrbeg,yrend,nens
 
     call getarg(3+off,distribution)
     call tolower(distribution)
-    if ( distribution.ne.'gev' .and. distribution.ne.'gumbel' .and. &
-    &    distribution.ne.'gpd' .and. distribution.ne.'gauss' ) then
+    if ( distribution /= 'gev' .and. distribution /= 'gumbel' .and. &
+    &    distribution /= 'gpd' .and. distribution /= 'gauss' ) then
         write(0,*) 'attribute: error: only GEV, GPD or Gauss supported, not ',distribution
         call abort
     end if
 
     call getarg(4+off,string)
-    if ( string(1:4).ne.'assu' ) then
+    if ( string(1:4) /= 'assu' ) then
         write(0,*) 'attribute: error: expecting "assume", not ',trim(string)
         call abort
     end if
     call getarg(5+off,assume)
     call tolower(assume)
-    if ( assume.ne.'shift' .and. assume.ne.'scale' .and. assume.ne.'both' ) then
+    if ( assume /= 'shift' .and. assume /= 'scale' .and. assume /= 'both' ) then
         write(0,*) 'attribute: error: only shift, scale or both supported, not ',assume
         call abort
     end if
@@ -299,16 +299,16 @@ subroutine getdpm(dpm,nperyear)
     integer dpm(12),nperyear
     integer dpm366(12)
     data dpm366 /31,29,31,30,31,30,31,31,30,31,30,31/
-    if ( nperyear.eq.366 ) then
+    if ( nperyear == 366 ) then
         dpm = dpm366
-    else if ( nperyear.eq.365 ) then
+    else if ( nperyear == 365 ) then
         dpm = dpm366
         dpm(2) = 28
-    else if ( nperyear.eq.360 ) then
+    else if ( nperyear == 360 ) then
         dpm = 30
-    else if ( nperyear.lt.360 .and. nperyear.ge.12 ) then
+    else if ( nperyear < 360 .and. nperyear >= 12 ) then
         dpm = nperyear/12
-    else if ( nperyear.le.4 .and. nperyear.ge.1 ) then
+    else if ( nperyear <= 4 .and. nperyear >= 1 ) then
         dpm = 1
     else
         write(0,*) 'getdpm: error: unknown nperyear = ',nperyear
@@ -343,21 +343,21 @@ subroutine make_annual_values(series,nperyear,npermax,yrbeg,yrend,mens1,mens, &
         do iens=mens1,mens
             do yr=yr1,yr2
                 m = 0
-                if ( operation.eq.'max' ) then
+                if ( operation == 'max' ) then
                     s = -3e33
-                else if ( operation.eq.'min' ) then
+                else if ( operation == 'min' ) then
                     s = 3e33
                 else
                     s = 0
                 end if
                 do dy=1,nperyear
-                    if ( series(dy,yr,iens).lt.1e33 ) then
+                    if ( series(dy,yr,iens) < 1e33 ) then
                         m = m + 1
-                        if ( operation.eq.'max' ) then
+                        if ( operation == 'max' ) then
                             s = max(s,series(dy,yr,iens))
-                        else if ( operation.eq.'min' ) then
+                        else if ( operation == 'min' ) then
                             s = min(s,series(dy,yr,iens))
-                        else if ( operation.eq.'mean' ) then
+                        else if ( operation == 'mean' ) then
                             s = s + series(dy,yr,iens)
                         else
                             write(0,*) 'make_annual_values: unknown operation ',trim(operation)
@@ -365,10 +365,10 @@ subroutine make_annual_values(series,nperyear,npermax,yrbeg,yrend,mens1,mens, &
                         end if
                     end if
                 end do
-                if ( m.gt.minfac*nperyear ) then
-                    if ( operation.eq.'min' .or. operation.eq.'max' ) then
+                if ( m > minfac*nperyear ) then
+                    if ( operation == 'min' .or. operation == 'max' ) then
                         yrseries(1,yr,iens) = s
-                    else if ( operation.eq.'mean' ) then
+                    else if ( operation == 'mean' ) then
                         yrseries(1,yr,iens) = s/m
                     else
                         write(0,*) 'make_annual_values: unknown operation ',trim(operation)
@@ -384,9 +384,9 @@ subroutine make_annual_values(series,nperyear,npermax,yrbeg,yrend,mens1,mens, &
         if ( lwrite ) print *,'                    dpm = ',dpm
         do iens=mens1,mens
             do yy=yr1,yr2
-                if ( operation.eq.'max' ) then
+                if ( operation == 'max' ) then
                     s = -3e33
-                else if ( operation.eq.'min' ) then
+                else if ( operation == 'min' ) then
                     s = 3e33
                 else
                     s = 0
@@ -403,15 +403,15 @@ subroutine make_annual_values(series,nperyear,npermax,yrbeg,yrend,mens1,mens, &
                     do k=dd+1,dd+dpm(mo)
                         dy = k
                         call normon(dy,yy,yr,nperyear)
-                        if ( yr.le.yr2 ) then
+                        if ( yr <= yr2 ) then
                             mtot = mtot + 1
-                            if ( series(dy,yr,iens).lt.1e33 ) then
+                            if ( series(dy,yr,iens) < 1e33 ) then
                                 m = m + 1
-                                if ( operation.eq.'max' ) then
+                                if ( operation == 'max' ) then
                                     s = max(s,series(dy,yr,iens))
-                                else if ( operation.eq.'min' ) then
+                                else if ( operation == 'min' ) then
                                     s = min(s,series(dy,yr,iens))
-                                else if ( operation.eq.'mean' ) then
+                                else if ( operation == 'mean' ) then
                                     s = s + series(dy,yr,iens)
                                 else
                                     write(0,*) 'make_annual_values: unknown operation ',trim(operation)
@@ -422,10 +422,10 @@ subroutine make_annual_values(series,nperyear,npermax,yrbeg,yrend,mens1,mens, &
                     end do
                     dd = dd + dpm(mo)
                 end do
-                if ( m.gt.minfac*mtot ) then
-                    if ( operation.eq.'min' .or. operation.eq.'max' ) then
+                if ( m > minfac*mtot ) then
+                    if ( operation == 'min' .or. operation == 'max' ) then
                         yrseries(1,yy,iens) = s
-                    else if ( operation.eq.'mean' ) then
+                    else if ( operation == 'mean' ) then
                         yrseries(1,yy,iens) = s/m
                     else
                         write(0,*) 'make_annual_values: unknown operation ',trim(operation)
@@ -466,28 +466,28 @@ subroutine make_two_annual_values(series,covariate,nperyear,npermax,yrbeg,yrend,
         do iens=mens1,mens
             do yr=yr1,yr2
                 m = 0
-                if ( operation.eq.'max' ) then
+                if ( operation == 'max' ) then
                     s = -3e33
-                else if ( operation.eq.'min' ) then
+                else if ( operation == 'min' ) then
                     s = 3e33
                 else
                     s = 0
                     yrcovariate(1,yr,iens) = 0
                 end if
                 do dy=1,nperyear
-                    if ( series(dy,yr,iens).lt.1e33 .and. covariate(dy,yr,iens).lt.1e33 ) then
+                    if ( series(dy,yr,iens) < 1e33 .and. covariate(dy,yr,iens) < 1e33 ) then
                         m = m + 1
-                        if ( operation.eq.'max' ) then
-                            if ( series(dy,yr,iens).gt.s ) then
+                        if ( operation == 'max' ) then
+                            if ( series(dy,yr,iens) > s ) then
                                 s = series(dy,yr,iens)
                                 yrcovariate(1,yr,iens) = covariate(dy,yr,iens)
                             end if
-                        else if ( operation.eq.'min' ) then
-                            if ( series(dy,yr,iens).lt.s ) then
+                        else if ( operation == 'min' ) then
+                            if ( series(dy,yr,iens) < s ) then
                                 s = series(dy,yr,iens)
                                 yrcovariate(1,yr,iens) = covariate(dy,yr,iens)
                             end if
-                        else if ( operation.eq.'mean' ) then
+                        else if ( operation == 'mean' ) then
                             s = s + series(dy,yr,iens)
                             yrcovariate(1,yr,iens) = yrcovariate(1,yr,iens) + covariate(dy,yr,iens)
                         else
@@ -496,10 +496,10 @@ subroutine make_two_annual_values(series,covariate,nperyear,npermax,yrbeg,yrend,
                         end if
                     end if
                 end do
-                if ( m.gt.minfac*nperyear ) then
-                    if ( operation.eq.'min' .or. operation.eq.'max' ) then
+                if ( m > minfac*nperyear ) then
+                    if ( operation == 'min' .or. operation == 'max' ) then
                         yrseries(1,yr,iens) = s
-                    else if ( operation.eq.'mean' ) then
+                    else if ( operation == 'mean' ) then
                         yrseries(1,yr,iens) = s/m
                         yrcovariate(1,yr,iens) = yrcovariate(1,yr,iens)/m
                     else
@@ -517,9 +517,9 @@ subroutine make_two_annual_values(series,covariate,nperyear,npermax,yrbeg,yrend,
         if ( lwrite ) print *,'                    dpm = ',dpm
         do iens=mens1,mens
             do yy=yr1,yr2
-                if ( operation.eq.'max' ) then
+                if ( operation == 'max' ) then
                     s = -3e33
-                else if ( operation.eq.'min' ) then
+                else if ( operation == 'min' ) then
                     s = 3e33
                 else
                     s = 0
@@ -537,17 +537,17 @@ subroutine make_two_annual_values(series,covariate,nperyear,npermax,yrbeg,yrend,
                     do k=dd+1,dd+dpm(mo)
                         dy = k
                         call normon(dy,yy,yr,nperyear)
-                        if ( yr.le.yr2 ) then
+                        if ( yr <= yr2 ) then
                             mtot = mtot + 1
-                            if ( series(dy,yr,iens).lt.1e33 ) then
+                            if ( series(dy,yr,iens) < 1e33 ) then
                                 m = m + 1
-                                if ( operation.eq.'max' ) then
+                                if ( operation == 'max' ) then
                                     s = max(s,series(dy,yr,iens))
                                     yrcovariate(1,yr,iens) = covariate(dy,yr,iens)
-                                else if ( operation.eq.'min' ) then
+                                else if ( operation == 'min' ) then
                                     s = min(s,series(dy,yr,iens))
                                     yrcovariate(1,yr,iens) = covariate(dy,yr,iens)
-                                else if ( operation.eq.'mean' ) then
+                                else if ( operation == 'mean' ) then
                                     s = s + series(dy,yr,iens)
                                     yrcovariate(1,yr,iens) = yrcovariate(1,yr,iens) + covariate(dy,yr,iens)
                                 else
@@ -559,10 +559,10 @@ subroutine make_two_annual_values(series,covariate,nperyear,npermax,yrbeg,yrend,
                     end do
                     dd = dd + dpm(mo)
                 end do
-                if ( m.gt.minfac*mtot ) then
-                    if ( operation.eq.'min' .or. operation.eq.'max' ) then
+                if ( m > minfac*mtot ) then
+                    if ( operation == 'min' .or. operation == 'max' ) then
                         yrseries(1,yy,iens) = s
-                    else if ( operation.eq.'mean' ) then
+                    else if ( operation == 'mean' ) then
                         yrseries(1,yy,iens) = s/m
                         yrcovariate(1,yr,iens) = yrcovariate(1,yr,iens)/m
                     else
@@ -586,7 +586,7 @@ subroutine get_covariate_extrayear(covariate,nperyear,npermax,yrbeg,yrend,mens1,
     integer n,j1,j2,iens,i,j,k
     real s
     
-    if ( yrcovariate(1,yr2a,0).gt.1e33 ) then
+    if ( yrcovariate(1,yr2a,0) > 1e33 ) then
         ! it may have been left out because there is no data in series
         ! take the mean value over the months (we do not know which time of year the
         ! user-supplied value refers to...)
@@ -597,13 +597,13 @@ subroutine get_covariate_extrayear(covariate,nperyear,npermax,yrbeg,yrend,mens1,
             do j=j1,j2
                 k = j
                 call normon(k,yr2a,i,nperyear)
-                if ( covariate(k,i,iens).lt.1e33 ) then
+                if ( covariate(k,i,iens) < 1e33 ) then
                     n = n + 1
                     s = s + covariate(k,i,iens)
                 end if
             end do
         end do
-        if ( n.gt.0 ) then
+        if ( n > 0 ) then
             yrcovariate(1,yr2a,mens1:mens) = s/n
         end if
     end if
@@ -627,8 +627,8 @@ subroutine fill_linear_array(series,covariate,nperyear,j1,j2,fyr,lyr,mens1,mens,
         if ( .true. ) then
             print *,'first value each year to give an impression'
             do yr=fyr,lyr
-                if ( series(j1,yr,mens1).lt.1e33 .and. &
-     &               covariate(j1,yr,mens1).lt.1e33 ) then
+                if ( series(j1,yr,mens1) < 1e33 .and. &
+     &               covariate(j1,yr,mens1) < 1e33 ) then
                     print *,yr,series(j1,yr,mens1),covariate(j1,yr,mens1)
                 end if
             end do
@@ -642,14 +642,14 @@ subroutine fill_linear_array(series,covariate,nperyear,j1,j2,fyr,lyr,mens1,mens,
             do mm=j1,j2
                 mo = mm
                 call normon(mo,yy,yr,nperyear)
-                if ( yr.ge.fyr .and. yr.le.lyr ) then
-                    if ( series(mo,yr,iens).lt.1e33 .and. covariate(mo,yr,iens).lt.1e33 ) then
+                if ( yr >= fyr .and. yr <= lyr ) then
+                    if ( series(mo,yr,iens) < 1e33 .and. covariate(mo,yr,iens) < 1e33 ) then
                         ntot = ntot + 1
                         xx(1,ntot) = series(mo,yr,iens)
                         xx(2,ntot) = covariate(mo,yr,iens)
                         call getdymo(day,month,mo,nperyear)
                         yrs(ntot) = 10000*yr + 100*month + day
-                        if ( nperyear.gt.1000 ) then
+                        if ( nperyear > 1000 ) then
                             yrs(ntot) = 100*yrs(ntot) + mod(ntot,nint(nperyear/366.))
                         end if
                         yrstart = min(yrstart,yr)
@@ -702,8 +702,8 @@ subroutine sample_bootstrap(series,covariate,nperyear,j1,j2,fyr,lyr,mens1,mens,&
             do mm=j1,j2
                 mo = mm
                 call normon(mo,yy,yr,nperyear)
-                if ( yr.ge.fyr .and. yr.le.lyr ) then
-                    if ( series(mo,yr,iens).lt.1e33 .and. covariate(mo,yr,iens).lt.1e33 ) then
+                if ( yr >= fyr .and. yr <= lyr ) then
+                    if ( series(mo,yr,iens) < 1e33 .and. covariate(mo,yr,iens) < 1e33 ) then
                         ntot = ntot + 1
                         yrstart = min(yrstart,yr)
                         yrstop = max(yrstop,yr)
@@ -724,7 +724,7 @@ subroutine sample_bootstrap(series,covariate,nperyear,j1,j2,fyr,lyr,mens1,mens,&
         ntry = 0
         do while ( .not.ok )
             ntry = ntry + 1
-            if ( ntry.gt.10000 ) then
+            if ( ntry > 10000 ) then
                 write(0,*) 'sample_bootstrap: too many tries ',ntry
                 call exit(-1)
             end if
@@ -746,10 +746,10 @@ subroutine sample_bootstrap(series,covariate,nperyear,j1,j2,fyr,lyr,mens1,mens,&
             end if
             if ( lwrite ) print *,'reference ',mo,yr,iens
             do jens = mens1,mens
-                if ( crosscorr(jens,iens).lt.1e33 .and. &
-                &    crosscorr(jens,iens).gt.cutoff ) then ! always true for the diagonal
+                if ( crosscorr(jens,iens) < 1e33 .and. &
+                &    crosscorr(jens,iens) > cutoff ) then ! always true for the diagonal
                     ! include in spatial moving block
-                    if ( series(mo,yr,jens).lt.1e33 .and. covariate(mo,yr,jens).lt.1e33 ) then
+                    if ( series(mo,yr,jens) < 1e33 .and. covariate(mo,yr,jens) < 1e33 ) then
                         ok = .true.
                         j = j + 1
                         if ( lwrite ) print *,'crosscorr(',jens,iens, &
@@ -757,17 +757,17 @@ subroutine sample_bootstrap(series,covariate,nperyear,j1,j2,fyr,lyr,mens1,mens,&
                         xx(1,j) = series(mo,yr,jens)
                         xx(2,j) = covariate(mo,yr,jens)
                         if ( lwrite ) print *,'xx(:,',j,') = ',xx(:,j),mo,yr,jens
-                        if ( ndecor.gt.1 ) then
+                        if ( ndecor > 1 ) then
                             ! handle serial autocorrelations with a moving block
                             if ( j1 == j2 ) then
                                 ! annual values, ndecor refers to year-on-year autocorrelations
                                 ! just skip undefineds, we do the same with the end of the series.
                                 do yy=yr+1,yr+ndecor-1
                                     if ( yy <= yrstop .and. j < ntot ) then
-                                        if ( series(mo,yy,jens).lt.1e33 .and. &
-                                        &    covariate(mo,yy,jens).lt.1e33 ) then
+                                        if ( series(mo,yy,jens) < 1e33 .and. &
+                                        &    covariate(mo,yy,jens) < 1e33 ) then
                                             j = j + 1
-                                            if ( j.gt.ntot ) goto 800
+                                            if ( j > ntot ) goto 800
                                             if ( lwrite ) print *,'also taking ',mo,yy,jens
                                             xx(1,j) = series(mo,yy,jens)
                                             xx(2,j) = covariate(mo,yy,jens)
@@ -783,10 +783,10 @@ subroutine sample_bootstrap(series,covariate,nperyear,j1,j2,fyr,lyr,mens1,mens,&
                                     mm = mmm
                                     call normon(mm,yr,yy,nperyear)
                                     if ( yy <= yrstop .and. j < ntot ) then
-                                        if ( series(mm,yy,jens).lt.1e33 .and. &
-                                        &    covariate(mm,yy,jens).lt.1e33 ) then
+                                        if ( series(mm,yy,jens) < 1e33 .and. &
+                                        &    covariate(mm,yy,jens) < 1e33 ) then
                                             j = j + 1
-                                            if ( j.gt.ntot ) goto 800
+                                            if ( j > ntot ) goto 800
                                             nleft = nleft - 1
                                             if ( lwrite ) print *,'also taking ',mm,yy,jens
                                             xx(1,j) = series(mm,yy,jens)
@@ -801,10 +801,10 @@ subroutine sample_bootstrap(series,covariate,nperyear,j1,j2,fyr,lyr,mens1,mens,&
                                     mm = mmm
                                     call normon(mm,yr,yy,nperyear)
                                     if ( yy >= yrstart .and. j < ntot ) then
-                                        if ( series(mm,yy,jens).lt.1e33 .and. &
-                                        &    covariate(mm,yy,jens).lt.1e33 ) then
+                                        if ( series(mm,yy,jens) < 1e33 .and. &
+                                        &    covariate(mm,yy,jens) < 1e33 ) then
                                             j = j + 1
-                                            if ( j.gt.ntot ) goto 800
+                                            if ( j > ntot ) goto 800
                                             nleft = nleft - 1
                                             if ( lwrite ) print *,'also taking ',mm,yy,jens
                                             xx(1,j) = series(mm,yy,jens)
@@ -822,19 +822,24 @@ subroutine sample_bootstrap(series,covariate,nperyear,j1,j2,fyr,lyr,mens1,mens,&
     end do ! ntot, length of array
 800 continue
     do i=1,ntot
-        if ( xx(1,i).gt.1e10.or. xx(2,i).gt.1e10 ) then
+        if ( xx(1,i) > 1e10.or. xx(2,i) > 1e10 ) then
             write(0,*) 'sample_bootstrap: error: xx:,',i,') = ',xx(:,i)
         end if
     end do
     sdecor = real(ntot)/real(nens)
 end subroutine sample_bootstrap
 
-subroutine print_spatial_scale(scross)
+subroutine print_spatial_scale(scross,years)
     implicit none
-    real scross
-    if ( scross.gt.1.05 ) then
+    real scross,years
+    if ( scross > 1.05 ) then
         print '(a,f6.1,a)','# Used spatial decorrelation blocks of ', & 
         &   scross,' stations on average in the bootstrap.'
+        if ( scross > years/3 ) then
+            print '(a,f6.1,a)','# <p><font color="#FF2222">This is not much smaller than ', &
+                'the number of years, which means the bootstrapped uncertainty ranges are ', &
+                'NOT VALID</font><p>'            
+        end if
     else
         print '(a)','# All series are considered independent in the bootstrap.'
     end if
@@ -868,14 +873,14 @@ subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xy
 
     cov = 3e33
     ensmax = -1
-    if ( yr.ne.9999 ) then
+    if ( yr /= 9999 ) then
         s = -3e33
         do iens=mens1,mens
             do mo=j1,j2
                 j = mo
                 call normon(j,yr,i,nperyear)
-                if ( i.ge.fyr .and. i.le.lyr ) then
-                    if ( series(j,i,iens).lt.1e33 .and. series(j,i,iens).gt.s ) then
+                if ( i >= fyr .and. i <= lyr ) then
+                    if ( series(j,i,iens) < 1e33 .and. series(j,i,iens) > s ) then
                         s = series(j,i,iens)
                         momax = j
                         yrmax = i
@@ -885,18 +890,18 @@ subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xy
             end do
         end do
     end if
-    if ( abs(s).gt.1e33 ) then
+    if ( abs(s) > 1e33 ) then
         momax = 1
         yrmax = yr
         ensmax = mens1
-        if ( yrmax.lt.fyr .or. yrmax.gt.lyr ) then
+        if ( yrmax < fyr .or. yrmax > lyr ) then
             if ( lprint ) then
                 write(0,*) 'find_cov: error: yr ',yr,' outside range of data<br>'
             end if
         end if
     end if
     cov = covariate(momax,yrmax,ensmax)
-    if ( cov.gt.1e33 ) then
+    if ( cov > 1e33 ) then
         if ( lprint ) then
             write(0,*) '<p>find_cov: error: no valid value in covariate(', &
             &   momax,yrmax,ensmax,') = ',cov,'<br>'
@@ -906,15 +911,15 @@ subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xy
             &   momax,yrmax,ensmax,') = ',cov
         end if
     end if
-    if ( i12.eq.2 ) then
-        if ( abs(xyear).gt.1e33 ) then
+    if ( i12 == 2 ) then
+        if ( abs(xyear) > 1e33 ) then
             xyear = series(momax,yrmax,ensmax)
         else
             ensmax = -1 ! xyear was given by user
         end if
         series(momax,yrmax,mens1:mens) = 3e33 ! for GPD we should also make a few values to the sides undef
         if ( lwrite ) print *,'find_cov: xyear = ',xyear,momax,yrmax,ensmax
-        if ( xyear.gt.1e33 ) then
+        if ( xyear > 1e33 ) then
             if ( lprint ) then
                 write(0,*) 'find_cov: error: cannot find valid data in ',yr,', periods ',j1,j2, &
                 & ', ensemble members ',mens1,mens
@@ -942,19 +947,19 @@ subroutine subtract_constant(covariate,series,nperyear,fyr,lyr,mens1,mens,cov1,c
     do iens=mens1,mens
         do yr=fyr,lyr
             do mo=1,nperyear
-                if ( covariate(mo,yr,iens).lt.1e33 .and. series(mo,yr,iens).lt.1e33 ) then
+                if ( covariate(mo,yr,iens) < 1e33 .and. series(mo,yr,iens) < 1e33 ) then
                     n = n + 1
                     s = s + covariate(mo,yr,iens)
                 end if
             end do
         end do
     end do
-    if ( n.eq.0 ) return
+    if ( n == 0 ) return
     s = s/n
     do iens=mens1,mens
         do yr=fyr,lyr
             do mo=1,nperyear
-                if ( covariate(mo,yr,iens).lt.1e33 ) then
+                if ( covariate(mo,yr,iens) < 1e33 ) then
                     covariate(mo,yr,iens) = covariate(mo,yr,iens) - s
                 end if
             end do
@@ -1012,7 +1017,7 @@ subroutine decluster(xx,yrs,nmax,ntot,threshold,tsep,lwrite)
     !
         fracn = 0
         do i=1,ntot
-            if ( xx(1,i).gt.p95 ) then
+            if ( xx(1,i) > p95 ) then
                 if ( yrs(i) /= -9999 ) then
                     yr = yrs(i)/10000
                     mo = mod(yrs(i),10000)/100
@@ -1023,8 +1028,8 @@ subroutine decluster(xx,yrs,nmax,ntot,threshold,tsep,lwrite)
                 end if
                 do n=2,mmax
                     m = i + n - 1
-                    if ( m.le.ntot ) then
-                        if ( xx(1,m).gt.p95 ) then
+                    if ( m <= ntot ) then
+                        if ( xx(1,m) > p95 ) then
                             if ( yrs(m) /= -9999 ) then
                                 yr = yrs(m)/10000
                                 mo = mod(yrs(m),10000)/100
@@ -1038,7 +1043,7 @@ subroutine decluster(xx,yrs,nmax,ntot,threshold,tsep,lwrite)
                             else
                                 nn = n ! ignore discontinuities...
                             end if
-                            if ( nn.eq.n ) then ! no break in the time series...
+                            if ( nn == n ) then ! no break in the time series...
                                 fracn(n) = fracn(n) + 1
                             else
                                 exit
@@ -1060,7 +1065,7 @@ subroutine decluster(xx,yrs,nmax,ntot,threshold,tsep,lwrite)
     !   the n for which the fraction is low enough defines tsep
     !
         do n=2,mmax
-            if ( fracn(n).lt.cutoff ) then
+            if ( fracn(n) < cutoff ) then
                 tsep = n-2
                 exit
             end if
@@ -1075,7 +1080,7 @@ subroutine decluster(xx,yrs,nmax,ntot,threshold,tsep,lwrite)
  !
  !  set xx(1,i) to xmin when it is not the maximum value in a cluster
  !
-    if ( tsep.gt.0 ) then
+    if ( tsep > 0 ) then
         yy = xmin
         nskip = 0
         do i=1+tsep,ntot-tsep
@@ -1087,12 +1092,12 @@ subroutine decluster(xx,yrs,nmax,ntot,threshold,tsep,lwrite)
             jmax = -tsep
             do j=-tsep+1,tsep
                 if ( xx(1,i+j) > s .or. &
-                &    xx(1,i+j) == s .and. abs(j).lt. abs(jmax) ) then
+                &    xx(1,i+j) == s .and. abs(j) <  abs(jmax) ) then
                     s = xx(1,i+j)
                     jmax = j
                 end if
             end do
-            if ( jmax.eq.0 ) then ! local maxmimum
+            if ( jmax == 0 ) then ! local maxmimum
                 yy(i) = xx(1,i)
                 nskip = tsep
             end if
@@ -1107,7 +1112,7 @@ subroutine decluster(xx,yrs,nmax,ntot,threshold,tsep,lwrite)
 !
         call nrsort(ntot,yy)
         do i=1,ntot
-            if ( yy(i).gt.xmin ) exit
+            if ( yy(i) > xmin ) exit
         end do
         s = 100*(i+1)/real(ntot+1)
         if ( lwrite ) then
@@ -1118,12 +1123,12 @@ subroutine decluster(xx,yrs,nmax,ntot,threshold,tsep,lwrite)
         end if
         if ( .not.lboot ) then
             s = (s+100)/2 ! make sure we also have some points below the threshold for the slope...
-            if ( s.gt.threshold ) then
+            if ( s > threshold ) then
                 write(0,*) 'decluster: adjusting threshold from ',threshold,' to ',s,'<br>'
                 threshold = s
             end if
         else
-            if ( s.gt.threshold ) then
+            if ( s > threshold ) then
                 write(0,*) 'decluster: found higher threshold than specified in bootstrap',s,threshold
             end if
         end if
@@ -1145,7 +1150,7 @@ subroutine copyab3etc(a3,b3,xi3,alpha3,beta3,t3,tx3, &
     integer i,j
     
     call copy3scalar(a3,a,a25,a975)
-    if ( b.ge.0 ) then
+    if ( b >= 0 ) then
         call copy3scalar(b3,b,b25,b975)
     else
         call copy3scalar(b3,-b,-b975,-b25)
@@ -1183,9 +1188,9 @@ subroutine normaliseseries(series,nperyear,fyr,lyr,mens1,mens,j1,j2,assume,lwrit
     integer iens
     real mean,ensmean
 
-    if ( mens1.eq.mens ) return
+    if ( mens1 == mens ) return
 
-    if ( assume.eq.'shift' ) then
+    if ( assume == 'shift' ) then
         ! compute overall mean
         call getmeanseries(series,nperyear,mens1,mens,fyr,lyr,j1,j2,.false.,ensmean)
         do iens=mens1,mens
@@ -1198,7 +1203,7 @@ subroutine normaliseseries(series,nperyear,fyr,lyr,mens1,mens,j1,j2,assume,lwrit
                 series = 3e33
             end if
         end do
-    else if ( assume.eq.'scale' ) then
+    else if ( assume == 'scale' ) then
         ! compute overall multiplicative mean
         call getmeanseries(series,nperyear,mens1,mens,fyr,lyr,j1,j2,.true.,ensmean)
         do iens=mens1,mens
@@ -1207,7 +1212,7 @@ subroutine normaliseseries(series,nperyear,fyr,lyr,mens1,mens,j1,j2,assume,lwrit
             ! scale series so that it has the same mean as the ensemble mean
             series(:,:,iens) = series(:,:,iens) / mean * ensmean
         end do 
-    else if ( assume.eq.'both'  ) then
+    else if ( assume == 'both'  ) then
         write(0,*) 'normaliseseries: error: cannot normalise with assumption "both"'
         write(*,*) 'normaliseseries: error: cannot normalise with assumption "both"'
         call exit(-1)
@@ -1237,10 +1242,10 @@ subroutine checknonegative(series,nperyear,fyr,lyr,mens1,mens,j1,j2,assume, &
             do mm=j1,j2
                 mo = mm
                 call normon(mo,yy,yr,nperyear)
-                if ( yr.ge.fyr .and. yr.le.lyr ) then
-                    if ( .not.lchangesign .and. series(mo,yr,iens).lt.0 .or. &
-                        & lchangesign .and. series(mo,yr,iens).gt.0 .and. &
-                        &       series(mo,yr,iens).lt.1e33 ) then
+                if ( yr >= fyr .and. yr <= lyr ) then
+                    if ( .not.lchangesign .and. series(mo,yr,iens) < 0 .or. &
+                        & lchangesign .and. series(mo,yr,iens) > 0 .and. &
+                        &       series(mo,yr,iens) < 1e33 ) then
                         write(0,*) 'error: option "scale" is not compatible '// &
                         &   'with negative values in the time series', &
                         &   series(mo,yr,iens)
@@ -1270,14 +1275,14 @@ subroutine getmeanseries(series,nperyear,mens1,mens,fyr,lyr,j1,j2,lmult,mean)
             do mm=j1,j2
                 mo = mm
                 call normon(mo,yy,yr,nperyear)
-                if ( yr.ge.fyr .and. yr.le.lyr ) then
+                if ( yr >= fyr .and. yr <= lyr ) then
                     if ( lmult ) then
-                        if ( series(mo,yr,iens).lt.1e33 .and. series(mo,yr,iens).gt.0 ) then
+                        if ( series(mo,yr,iens) < 1e33 .and. series(mo,yr,iens) > 0 ) then
                             n = n + 1
                             s = s + log(series(mo,yr,iens))
                         end if
                     else
-                        if ( series(mo,yr,iens).lt.1e33 ) then
+                        if ( series(mo,yr,iens) < 1e33 ) then
                             n = n + 1
                             s = s + series(mo,yr,iens)
                         end if
