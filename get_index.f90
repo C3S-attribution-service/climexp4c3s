@@ -31,9 +31,9 @@ program get_index
     ,lvars(nvmax)*100,units(nvmax)*60
     integer :: iargc
 
-    lwrite = .FALSE. 
+    lwrite = .false.
     call getarg(iargc(),file)
-    if ( file == 'debug' .OR. file == 'lwrite' ) lwrite = .TRUE. 
+    if ( file == 'debug' .or. file == 'lwrite' ) lwrite = .true.
     if ( iargc() < 3 ) then
         print *,'usage: get_index file.[nc|ctl] ' &
         //'lon1 lon2 lat1 lat2|file listfile|mask file ' &
@@ -143,14 +143,14 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
 
     pi = 4*atan(1d0)
     minfac = 40
-    interp = .FALSE. 
-    missing = .TRUE. 
-    anom = .FALSE. 
-    lstandardunits = .FALSE. 
-    gridpoints = .FALSE. 
-    outfield = .FALSE. 
+    interp = .false.
+    missing = .true.
+    anom = .false.
+    lstandardunits = .false.
+    gridpoints = .false.
+    outfield = .false.
     datadir = './data'
-    lmask = .FALSE. 
+    lmask = .false.
     allocate(mask(nx,ny))
     mask = 1 ! default
 
@@ -166,7 +166,7 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
         mopts = 4
     else if ( string(1:4) == 'mask' ) then
         npoints = 1 ! for the time being only one mask can be requested at a time
-        lmask = .TRUE. 
+        lmask = .true.
         call getarg(3,string)
         write(0,'(3a)') 'cutting out region defined by mask ', &
         trim(string),'<br>'
@@ -226,13 +226,13 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
                 endif
             endif
             if ( string(1:6) == 'interp' ) then
-                interp = .TRUE. 
+                interp = .true.
             endif
             if ( string(1:7) == 'nearest' ) then
-                interp = .FALSE. 
+                interp = .false.
             endif
             if ( string(1:4) == 'anom' ) then
-                anom = .TRUE. 
+                anom = .true.
                 write(*,'(a)') '# anomalies'
             endif
             if ( string(1:6) == 'dipole' ) then
@@ -262,19 +262,19 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
                     xxls,yyls)
                 end if
             endif
-            if ( string(1:6) == 'lwrite' .OR. string(1:5) == 'debug' &
+            if ( string(1:6) == 'lwrite' .or. string(1:5) == 'debug' &
             ) then
-                lwrite = .TRUE. 
+                lwrite = .true.
                 if ( lwrite ) print * &
                 ,'Debugging information requested'
             endif
             if ( string(1:5) == 'nomis' ) then
-                missing = .FALSE. 
+                missing = .false.
                 if ( lwrite ) print *,'No missing data'
             endif
             if ( string(1:4) == 'grid' ) then
                 npoints = 100000
-                gridpoints = .TRUE. 
+                gridpoints = .true.
                 iskip = 1
                 call getarg(i+1,fieldname)
                 if ( fieldname == ' ' ) then
@@ -285,13 +285,13 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
                     call abort
                 endif
             !                   if the field is home-constructed, it may have slashes in it
-                fieldname=fieldname(1+index(fieldname,'/', .TRUE. ):)
+                fieldname=fieldname(1+index(fieldname,'/', .true.):)
                 if ( lwrite ) print *,'make grid points of ' &
                 ,trim(fieldname),' in region'
             !                   no possibility to skip points yet
             endif
             if ( string(1:4) == 'outf' ) then
-                outfield = .TRUE. 
+                outfield = .true.
                 iskip = 1
                 call getarg(i+1,outfile)
                 if ( outfile == ' ' ) then
@@ -303,7 +303,7 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
                 end if
             end if
             if ( string(1:13) == 'standardunits' ) then
-                lstandardunits = .TRUE. 
+                lstandardunits = .true.
                 if ( lwrite ) print * &
                 ,'Converting to standard units'
             endif
@@ -357,7 +357,7 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
         do mo=1,nperyear
             do j=1,ny
                 do i=1,nx
-                    if ( field(i,j,mo,yr) < -999 .AND. &
+                    if ( field(i,j,mo,yr) < -999 .and. &
                          field(i,j,mo,yr) > -1000 ) then
                         write(0,*) 'get_index: suspicious field(', &
                         i,j,mo,yr,') = ', field(i,j,mo,yr)
@@ -435,7 +435,7 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
             mo=firstmo
             irec = 0
             do it=1,nt
-                if ( nperyear == 366 .AND. mo == 60 .AND. &
+                if ( nperyear == 366 .and. mo == 60 .and. &
                 leap(yr) == 1 ) then
                     mo = mo + 1
                     cycle
@@ -460,7 +460,7 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
 
 !   get mean of whole field if multiple points are requested
 
-    if ( npoints > 1 .AND. (missing .OR. anom) .AND. oper == 'v' ) &
+    if ( npoints > 1 .and. (missing .or. anom) .and. oper == 'v' ) &
     then
         call getmean(mean,nn,nx,ny,nperyear,field,nx,ny &
             ,nperyear,firstyr,lastyr,nx,ny,firstyr,firstmo,nt &
@@ -471,7 +471,7 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
 !   compute weights
 
     call getweights('x',xx,wx,nx,xwrap,lwrite)
-    call getweights('y',yy,wy,ny, .FALSE. ,lwrite)
+    call getweights('y',yy,wy,ny, .false.,lwrite)
 
 !   manage collection of grid points
 
@@ -480,14 +480,14 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
         ' grid points in ', &
         lat1,'N:',lat2,'N,',lon1,'E:',lon2,'E'
         call getlonwindow(lon1,lon2,x1,x2,xx,nx,lon1c,lon2c,lwrite)
-        if ( lon1c > 1e33 .OR. lon2c > 1e33 ) then
+        if ( lon1c > 1e33 .or. lon2c > 1e33 ) then
             write(0,*) &
             'get_index: something went wrong in getlonwindow' &
             ,lon1c,lon2c
             call abort
         endif
         call getlatwindow(lat1,lat2,y1,y2,yy,ny,lat1c,lat2c,lwrite)
-        if ( lat1c > 1e33 .OR. lat2c > 1e33 ) then
+        if ( lat1c > 1e33 .or. lat2c > 1e33 ) then
             write(0,*) &
             'get_index: something went wrong in getlatwindow' &
             ,lat1c,lat2c
@@ -498,7 +498,7 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
         do j=y1,y2
             do i=x1,x2
                 ii = normx(i,nx)
-                if ( lsmasktype == 'land' .OR. &
+                if ( lsmasktype == 'land' .or. &
                 lsmasktype == 'notl' ) then
                     if ( abs(lsmask(ii,j)-1) > 1e-4 .eqv. &
                     lsmasktype == 'land' ) then
@@ -506,7 +506,7 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
                         ' point ',ii,j,lsmask(ii,j)
                         cycle
                     endif
-                elseif ( lsmasktype == 'sea ' .OR. &
+                elseif ( lsmasktype == 'sea ' .or. &
                     lsmasktype == 'nots' ) then
                     if ( abs(lsmask(ii,j)-0) > 1e-4 .eqv. &
                     lsmasktype == 'sea' ) then
@@ -514,7 +514,7 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
                         ' point ',ii,j,lsmask(ii,j)
                         cycle
                     endif
-                elseif ( lsmasktype == '5lan' .OR. &
+                elseif ( lsmasktype == '5lan' .or. &
                     lsmasktype == '5sea' ) then
                     if ( lsmask(ii,j) < 0.5 .eqv. &
                     lsmasktype == '5lan' ) then
@@ -534,7 +534,7 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
 
 !       loop over all points
 
-    if ( npoints == 1 .AND. .NOT. gridpoints) then
+    if ( npoints == 1 .and. .NOT. gridpoints) then
         out = 6
     else
         call rsunit(out)
@@ -543,7 +543,7 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
         yr1 = +10000
         yr2 = -10000
         nyr = 0
-        if ( npoints > 1 .AND. .NOT. gridpoints ) then
+        if ( npoints > 1 .and. .NOT. gridpoints ) then
             fieldname = shortfilename
             read(in,*,end=999) lon1,lat1
             lon2 = lon1
@@ -565,7 +565,7 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
             write(*,'(3a)') trim(string),' ',trim(fieldname)
         !               this should be identical to the file name opened below
         endif
-        if ( npoints > 1 .OR. gridpoints ) then
+        if ( npoints > 1 .or. gridpoints ) then
             write(string,'(4a,f7.2,a,f6.2,3a)') &
             trim(datadir),'/grid' &
             ,trim(fieldname),'_',lon1,'_',lat1,'_',letter &
@@ -578,7 +578,7 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
             ! check whether it is up-to-date
                 call mystat(trim(fieldname),iarray1,iret1)
                 call mystat(trim(string),iarray2,iret2)
-                if ( iret1 == 0 .AND. iret2 == 0 ) then
+                if ( iret1 == 0 .and. iret2 == 0 ) then
                     if ( iarray2(10) >= iarray1(10) ) then
                     ! file already there and seems valid, next point
                         if ( lwrite ) print *,'file ',trim(string), &
@@ -626,12 +626,12 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
         else
             call getlonwindow(lon1,lon2,x1,x2,xx,nx,lon1c,lon2c &
             ,lwrite)
-            if ( lon1c > 1e33 .OR. lon2c > 1e33 ) goto 900
+            if ( lon1c > 1e33 .or. lon2c > 1e33 ) goto 900
             call getlatwindow(lat1,lat2,y1,y2,yy,ny,lat1c,lat2c &
             ,lwrite)
-            if ( lat1c > 1e33 .OR. lat2c > 1e33 ) goto 900
+            if ( lat1c > 1e33 .or. lat2c > 1e33 ) goto 900
             if ( interp ) then
-                if ( lon1 /= lon2 .OR. lat1 /= lat2 ) then
+                if ( lon1 /= lon2 .or. lat1 /= lat2 ) then
                     write(0,*) 'get_index: error: cannot interpolate area yet'
                     call abort
                 else
@@ -649,8 +649,8 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
                     if ( lwrite ) write(0,*) 'x1,x2,dx = ',x1,x2,dx,xx(x1),xx(x2)
                     dl = xx(normx(x2,nx)) - xx(normx(x1,nx))
                     if ( abs(dl) > 180 ) dl = dl - 360*nint(dl/360)
-                    if ( .NOT. xrev .AND. (dx < 0 .OR. dx > dl) .or. &
-                               xrev .AND. (dx > 0 .OR. dx < dl) ) then
+                    if ( .NOT. xrev .and. (dx < 0 .or. dx > dl) .or. &
+                               xrev .and. (dx > 0 .or. dx < dl) ) then
                         write(0,*) 'get_index: error: dx,dl = ',dx,dl,xrev
                     endif
                     ii = normx(x1,nx)
@@ -674,8 +674,8 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
                     if ( lwrite ) write(0,*) 'y1,y2,dy = ',y1,y2,dy &
                     ,yy(y1),yy(y2)
                     dl = yy(y2) - yy(y1)
-                    if ( .NOT. yrev .AND. (dy < 0 .OR. dy > dl) .OR. &
-                    yrev .AND. (dy > 0 .OR. dy < dl) ) then
+                    if ( .NOT. yrev .and. (dy < 0 .or. dy > dl) .or. &
+                    yrev .and. (dy > 0 .or. dy < dl) ) then
                         write(0,*) 'get_index: error: dy,dl = ',dy &
                         ,dl,yrev
                     endif
@@ -686,7 +686,7 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
                     wy(y2) = wy(y2)*dy/dl
                     lat2c = yy(y2)
                 endif
-                if ( npoints == 1 .AND. .NOT. gridpoints ) then
+                if ( npoints == 1 .and. .NOT. gridpoints ) then
                     write(0,1000) 'interpolating points lon=',lon1c &
                     ,lon2c,', lat=',lat1c,lat2c,'<br>'
                 endif
@@ -713,7 +713,7 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
     !           get mean of just the requested area if only one point is
     !           requested
     
-        if ( npoints == 1 .AND. (missing .OR. anom) .AND. oper == 'v' &
+        if ( npoints == 1 .and. (missing .or. anom) .and. oper == 'v' &
         ) then
             call getwinmean(mean,nn,nx,ny,nperyear,field,nx,ny &
             ,nperyear,firstyr,lastyr,nx,ny,firstyr,firstmo,nt &
@@ -723,7 +723,7 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
     
     !           cut out region
     
-        if ( (missing .OR. anom) .AND. oper == 'v' ) then
+        if ( (missing .or. anom) .and. oper == 'v' ) then
             month = -nperyear ! the first round (month<1) compute avemean
             k1 = -nperyear+1
         else
@@ -758,7 +758,7 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
                     else
                         f = mean(ii,j,month+nperyear)
                     endif
-                    if ( lsmasktype == 'land' .OR. &
+                    if ( lsmasktype == 'land' .or. &
                     lsmasktype == 'notl' ) then
                         if ( abs(lsmask(ii,j)-1) > 1e-4 .eqv. &
                         lsmasktype == 'land' ) then
@@ -766,7 +766,7 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
                             if ( lwrite ) print *,'not ',lsmasktype, &
                             ' point ',ii,j,lsmask(ii,j)
                         endif
-                    elseif ( lsmasktype == 'sea ' .OR. &
+                    elseif ( lsmasktype == 'sea ' .or. &
                         lsmasktype == 'nots' ) then
                         if ( abs(lsmask(ii,j)-0) > 1e-4 .eqv. &
                         lsmasktype == 'sea' ) then
@@ -774,7 +774,7 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
                             if ( lwrite ) print *,'not ',lsmasktype, &
                             ' point ',ii,j,lsmask(ii,j)
                         endif
-                    elseif ( lsmasktype == '5sea' .OR. &
+                    elseif ( lsmasktype == '5sea' .or. &
                         lsmasktype == '5lan' ) then
                         if ( lsmask(ii,j) < 0.5 .eqv. &
                         lsmasktype == '5lan' ) then
@@ -783,23 +783,23 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
                             ' point ',ii,j,lsmask(ii,j)
                         endif
                     endif
-                    if ( f < -999 .AND. f > -1000 ) then
+                    if ( f < -999 .and. f > -1000 ) then
                         write(0,*)'get_index: warning: suspicious ', &
                         'point field(',ii,j,month,year,') = ',f
                     end if
                     if ( f < 1e33 ) then
-                        if (  dipole == 'no' .OR. &
-                        dipole == 'll' .AND. i < (x1+x2)/2. .OR. &
-                        dipole == 'rr' .AND. i > (x1+x2)/2. .OR. &
-                        dipole == 'tt' .AND. j < (y1+y2)/2. .OR. &
-                        dipole == 'bb' .AND. j > (y1+y2)/2. .OR. &
-                        (dipole == 'bl' .OR. dipole == 'lb') .AND. &
-                        (i-x1)*(y1-y2) < (x2-x1)*(j-y2) .OR. &
-                        (dipole == 'tr' .OR. dipole == 'rt') .AND. &
-                        (i-x1)*(y1-y2) > (x2-x1)*(j-y2) .OR. &
-                        (dipole == 'br' .OR. dipole == 'rb') .AND. &
-                        (i-x1)*(y2-y1) > (x2-x1)*(j-y1) .OR. &
-                        (dipole == 'tl' .OR. dipole == 'lt') .AND. &
+                        if (  dipole == 'no' .or. &
+                        dipole == 'll' .and. i < (x1+x2)/2. .or. &
+                        dipole == 'rr' .and. i > (x1+x2)/2. .or. &
+                        dipole == 'tt' .and. j < (y1+y2)/2. .or. &
+                        dipole == 'bb' .and. j > (y1+y2)/2. .or. &
+                        (dipole == 'bl' .or. dipole == 'lb') .and. &
+                        (i-x1)*(y1-y2) < (x2-x1)*(j-y2) .or. &
+                        (dipole == 'tr' .or. dipole == 'rt') .and. &
+                        (i-x1)*(y1-y2) > (x2-x1)*(j-y2) .or. &
+                        (dipole == 'br' .or. dipole == 'rb') .and. &
+                        (i-x1)*(y2-y1) > (x2-x1)*(j-y1) .or. &
+                        (dipole == 'tl' .or. dipole == 'lt') .and. &
                         (i-x1)*(y2-y1) < (x2-x1)*(j-y1) ) then
                             sgn = +1
                         else
@@ -807,7 +807,7 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
                         endif
                         w = wx(ii)*wy(j)
                         if ( lmask ) w = w*mask(ii,j)
-                        if ( lwrite .AND. .FALSE. ) then
+                        if ( lwrite .and. .false.) then
                             if ( month > 0 ) then
                                 write(0,*) 'adding field(',ii,j &
                                 ,month,year,') = ',field(ii,j &
@@ -822,17 +822,17 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
                         endif
                         if ( month > 0 ) then
                             if ( oper == 'v' ) then
-                                ave(month) = ave(month) + sgn*w* &
-                                field(ii,j,month,year)
-                                if ( missing .OR. anom ) ave(month) = &
-                                ave(month) - sgn*w*mean(ii,j, &
-                                month)
+                                ave(month) = ave(month) + sgn*w*field(ii,j,month,year)
+                                if ( missing .or. anom ) &
+                                    ave(month) = ave(month) - sgn*w*mean(ii,j,month)
                             else if ( oper == 'x' ) then
-                                ave(month) = max(ave(month), &
-                                field(ii,j,month,year))
+                                if ( mask(ii,j).gt.0.5 ) then
+                                    ave(month) = max(ave(month),field(ii,j,month,year))
+                                end if
                             else if ( oper == 'n' ) then
-                                ave(month) = min(ave(month), &
-                                field(ii,j,month,year))
+                                if ( mask(ii,j).gt.0.5 ) then
+                                    ave(month) = min(ave(month),field(ii,j,month,year))
+                                end if
                             else
                                 write(0,*) 'get_index: error: '// &
                                 'unrecognised oper ',oper
@@ -845,28 +845,28 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
                         endif
                         sw = sw + w
                     else
-                        if ( lwrite .AND. .FALSE. ) print *, &
+                        if ( lwrite .and. .false.) print *, &
                         'get_index: invalid point'
                     endif
                 enddo
             enddo
             if ( month > 0 ) then
-                if ( sw < minfac/100*sw0 .OR. sw == 0 ) then
+                if ( sw < minfac/100*sw0 .or. sw == 0 ) then
                     ave(month) = 3e33
                     if ( lwrite ) write(0,*) 'sw<minfac*area 1: ',sw &
                     ,minfac/100,sw0,month
-                elseif ( missing .AND. .NOT. anom .AND. oper == 'v' &
-                     .AND. avemean(month) > 1e33 ) then
+                elseif ( missing .and. .NOT. anom .and. oper == 'v' &
+                     .and. avemean(month) > 1e33 ) then
                     ave(month) = 3e33
                     if ( lwrite ) write(0,*) 'mean missing: ', &
                     avemean(month)
                 else if ( oper == 'v' ) then
                     ave(month) = ave(month)/sw
-                    if ( missing .AND. .NOT. anom ) ave(month) = &
+                    if ( missing .and. .NOT. anom ) ave(month) = &
                     ave(month) + avemean(month)
                     if ( lwrite ) write(*,*) 'ave(',month,') = ' &
                     ,ave(month)
-                else if ( oper == 'n' .OR. oper == 'x' ) then
+                else if ( oper == 'n' .or. oper == 'x' ) then
                     if ( lwrite ) write(*,*) 'ave(',month,') = ' &
                     ,ave(month)
                 endif
@@ -946,7 +946,7 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
         do mo=1,nperyear
             if ( ave(mo) < 1e33 ) then
                 if ( ndpm /= 0 ) then
-                    if ( nperyear == 366 .AND. mo == 2 .AND. &
+                    if ( nperyear == 366 .and. mo == 2 .and. &
                     leap(yr) == 2 ) then
                         ave(mo) = ave(mo)*29.**ndpm
                     else
@@ -979,7 +979,7 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
     integer :: i,j,i1,i2,di,j1,j2,dj
     logical :: foundit
 
-    foundit = .FALSE. 
+    foundit = .false.
     if ( axis == 'y' ) then
         if ( sign == 1 ) then
             j1 = 1
@@ -999,7 +999,7 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
         do j=j1,j2,dj
             do i=1,nx
                 if ( mask(i,j) > 0 ) then
-                    foundit = .TRUE. 
+                    foundit = .true.
                     exit
                 end if
             end do
@@ -1025,7 +1025,7 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
         do i=i1,i2,di
             do j=1,ny
                 if ( mask(i,j) > 0 ) then
-                    foundit = .TRUE. 
+                    foundit = .true.
                     exit
                 end if
             end do
