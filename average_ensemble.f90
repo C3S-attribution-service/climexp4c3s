@@ -91,7 +91,7 @@ program average_ensemble
         fyr = yrbeg
         lyr = yrend
         call getmissing(data,npermax,yrbeg,yrend,nens1,nens2, &
-        &   nperyear,fyr,lyr,nmissing,nnn,n0missing,n0,nlength)
+        &   nperyear,1,nperyear,fyr,lyr,nmissing,nnn,n0missing,n0,nlength)
     else
         write(0,*) 'average_ensemble: error: unknown operation ',oper
         call exit(-1)
