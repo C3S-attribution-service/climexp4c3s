@@ -402,12 +402,12 @@
         do i=len(plotfile),1,-1
             if ( plotfile(i:i) == '/' ) goto 510
         enddo
-        510 continue
+    510 continue
         i = i+1
         plotfile(i:) = 'iadded'
         i = i+6
         ii = 0
-        520 continue
+    520 continue
         ii = ii + 1
         if ( ii < 10 ) then
             write(plotfile(i:),'(i1,a)') ii,'.dat'
@@ -433,7 +433,6 @@
         nfac = 1
         do k=1,indxuse
             if ( lincl(k) ) then
-            !!!print *,k,strindx(k),jindx
                 if ( k == 10 ) then
                     ! assume the first user-defined file is the main one...
                     call copyheader(indexfiles(k),99)
@@ -496,8 +495,8 @@
                         ilen = index(bbfile,'.dat') - 1
                         if ( ilen <= 0 ) ilen = len_trim(bbfile)
                         call readseries(bbfile(:ilen)//'_a.dat', &
-                        aa1(1,yrbg,k),nperyear,yrbg,yred,i, &
-                        dum1,dum2,.false.,lwrite)
+                            aa1(1,yrbg,k),nperyear,yrbg,yred,i, &
+                            dum1,dum2,.false.,lwrite)
                         if ( i /= nperyear ) then
                             write(0,*) 'error: found nperyear = ',i, &
                                 ' in ',trim(line),', expected ',nperyear
@@ -551,6 +550,44 @@
                 addfac(1,k) = 0
             endif
         enddo
+!
+!       transform time series if requested
+!
+        if ( logscale ) then
+            if ( lwrite ) print '(a,2i3)','# Taking log of series '
+            call takelog(indx(1,yrbg,0,10),nperyear,nperyear,yrbg,yred)
+        endif
+        if ( logfield ) then
+            do k=1,indxuse
+                if ( lincl(k) .and. k /= 10 ) then
+                    if ( lwrite ) print '(a,2i3)','# Taking log of index ',k
+                    call takelog(indx(1,yrbg,iens,k),nperyear,nperyear,yrbg,yred)
+                endif
+            enddo
+        endif
+        if ( sqrtscale ) then
+            if ( lwrite ) print '(a,2i3)','# Taking sqrt of series '
+            call takesqrt(indx(1,yrbg,0,10),nperyear,nperyear,yrbg,yred)
+        endif
+        if ( sqrtfield ) then
+            do k=1,indxuse
+                if ( lincl(k) .and. k /= 10 ) then
+                    if ( lwrite ) print '(a,2i3)','# Taking sqrt of index ',k
+                    call takesqrt(indx(1,yrbg,iens,k),nperyear,nperyear,yrbg,yred)
+                endif
+            enddo
+        endif
+!
+!       take anomalies of indices to preserve mean of series
+!
+        do k=1,indxuse
+            if ( lincl(k) .and. k /= 10 .and. .not.laddfile(k) ) then
+                call anomal(indx(1,yrbg,iens,k),nperyear,nperyear,yrbg,yred,yrbg,yred)
+            end if
+        end do        
+!
+!       perform the subtraction
+!
         do yr=yrbg,yred
             n = 0
             do jj=1,nperyear
@@ -574,10 +611,7 @@
                                 if ( laddfile(k) ) then
                                     if ( aa1(j,i,k) < 1e33 .and. &
                                     bb1(j,i,k) < 1e33 ) then
-                                        print *,'data(',j,i,') was ',data(j,i,0)
                                         data(j,i,0) = data(j,i,0) - aa1(j,i,k) - bb1(j,i,k)*indx(j,i,0,k)
-                                        print *,'aa1,bb1(',j,i,k,') = ',aa1(j,i,k),bb1(j,i,k)
-                                        print *,'data(',j,i,')  is ',data(j,i,0)
                                     else
                                         data(j,i,0) = absent
                                     end if
@@ -606,16 +640,21 @@
                         endif
                     endif
                 enddo
-                if ( data(j,i,0) < 0.9*absent ) then
-                    n = n + 1
-                else
-                    data(j,i,0) = -999.9
-                endif
-            enddo
-            if ( n > 0 ) then
-                write(99,'(i5,366f12.4)') i,(data(j,i,0),j=1,nperyear)
-            endif
-        enddo
+            end do ! nperyear
+        end do ! yr
+!
+!       transform back (only one ensemble member)
+!
+        if ( logscale ) then
+            call takeexp(data,nperyear,nperyear,yrbg,yred)
+        endif
+        if ( sqrtscale ) then
+            call takesquare(data,nperyear,nperyear,yrbg,yred)
+        end if
+!
+!       output
+!
+        call printdatfile(99,data,nperyear,nperyear,yrbg,yred)
         goto 999
     endif
 !  #] addseries:
