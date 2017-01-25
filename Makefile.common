@@ -379,8 +379,8 @@ testprog:	testprog.o $(LIBRARY)
 testprog.o:	../testprog.F
 		$(LD) -g -c -o testprog.o ../testprog.F 
 
-correlate:	correlations.o $(LIBRARY)
-		$(LD) $(FFLAGS) $(LDBIGFLAG) -o $@ correlations.o $(LIBS)
+correlate:	correlate.o $(LIBRARY)
+		$(LD) $(FFLAGS) $(LDBIGFLAG) -o $@ correlate.o $(LIBS)
 
 correlatefield:	correlatefield.o $(LIBRARY)
 		$(LD) $(FFLAGS) $(LDBIGFLAG) -o $@ correlatefield.o $(LIBS)
