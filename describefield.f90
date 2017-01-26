@@ -39,7 +39,7 @@ program describefield
     end if
     ensemble = .false. 
     iens = 0
-    call getarg(1,infile)
+    call getarg(nargs,infile)
     if ( index(infile,'%') /= 0 .or. index(infile,'++') /= 0 ) then
         ensemble = .true. 
         nens1 = 0
@@ -52,7 +52,7 @@ program describefield
                 nens1 = max(nens1,1)
             endif
         enddo
-        10 continue
+     10 continue
         iens = iens-1
         write(0,'(a,i4,a,i4,a)') 'Found ensemble members ',nens1,' to ',iens,' <br>'
         call filloutens(infile,nens1)
