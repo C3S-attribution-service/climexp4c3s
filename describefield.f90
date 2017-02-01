@@ -9,7 +9,7 @@ program describefield
         yrbeg=1700,yrend=2300,nvmax=1,npermax=73, &
         ndata=npermax*(yrend-yrbeg+1),nensmax=230,ntmax=2000000
     integer :: i,n,nx,ny,nz,nt,nperyear,firstyr,firstmo,nvars,ivars(2 &
-        ,nvmax),jvars(6,nvmax),ncid,endian,status,iens,nens1, &
+        ,nvmax),jvars(6,nvmax),ncid,endian,status,iens,nens1,nens2, &
         dy1,mo1,dy2,mo2,yr,ntp,ntt,it,iarg,nargs,nt1,firstyr1, &
         firstmo1
     real :: xx(nxmax),yy(nymax),zz(nzmax),undef,dx,dy,dz,yg(nymax) &
@@ -39,33 +39,40 @@ program describefield
     end if
     ensemble = .false. 
     iens = 0
-    call getarg(nargs,infile)
+    call getarg(1,infile)
     if ( index(infile,'%') /= 0 .or. index(infile,'++') /= 0 ) then
         ensemble = .true. 
         nens1 = 0
-        do iens=0,nensmax
-            outfile = infile
-            call filloutens(outfile,iens)
-            inquire(file=outfile,exist=lexist)
-            if ( iens > 0 .and. .not. lexist ) goto 10
-            if ( iens == 0 .and. .not. lexist ) then
-                nens1 = max(nens1,1)
-            endif
-        enddo
-     10 continue
-        iens = iens-1
-        write(0,'(a,i4,a,i4,a)') 'Found ensemble members ',nens1,' to ',iens,' <br>'
-        call filloutens(infile,nens1)
+        nens2 = 0
+        do iarg=1,nargs
+            call getarg(iarg,infile)
+            do iens=0,nensmax
+                outfile = infile
+                call filloutens(outfile,iens)
+                inquire(file=trim(outfile),exist=lexist)
+                if ( iens > 0 .and. .not. lexist ) goto 10
+                if ( iens == 0 .and. .not. lexist ) then
+                    nens1 = max(nens1,1)
+                endif
+                nens2 = max(nens2,iens)
+            enddo
+         10 continue
+        end do
+        write(0,'(a,i4,a,i4,a)') 'Found ensemble members ',nens1,' to ',nens2,' <br>'
     endif
     nt = 0
     ntt = 0
     firstmo = 9999
     firstyr = 9999
     do iarg = 1,nargs
-!       no indent for the time being
         call getarg(iarg,infile)
         if ( ensemble ) call filloutens(infile,nens1)
-        if ( lwrite ) print *,'describefield: nf_opening file ',infile(1:llen(infile))
+        if ( lwrite ) print *,'describefield: nf_opening file ',trim(infile)
+        inquire(file=trim(infile),exist=lexist)
+        if ( .not.lexist ) then
+            write(0,*) 'describefield: error: cannot find ',trim(infile)
+            cycle
+        end if
         status = nf_open(infile,nf_nowrite,ncid)
         if ( status /= nf_noerr ) then
             if ( lwrite ) print *,'error opening as netcdf file',status
