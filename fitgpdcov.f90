@@ -1175,7 +1175,7 @@ real function gpdcovreturnyear(a,b,xi,alpha,beta,xyear,cov,lchangesign)
     real athreshold,pthreshold
     common /fitdata5/ nthreshold,athreshold,pthreshold
 
-    llwrite = .true.
+    llwrite = .false.
     if ( llwrite ) then
         print *,'gpdcovreturnyear: input'
         print *,'a,b,xi     = ',a,b,xi
