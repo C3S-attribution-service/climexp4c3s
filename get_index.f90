@@ -47,21 +47,21 @@ program get_index
     call killfile(file,datfile,title,1)
 
     call getarg(1,file)
-    if ( lwrite ) print *,'get_index: nf_opening file ' &
-    ,trim(file)
-    status = nf_open(file,nf_nowrite,ncid)
+    if ( lwrite ) print *,'get_index: nf_opening file ',trim(file)
+    status = nf_open(trim(file),nf_nowrite,ncid)
+    if ( lwrite ) print *,'           returns ',status
     if ( status /= nf_noerr ) then
         call parsectl(file,datfile,nxmax,nx,xx,nymax,ny,yy,nzmax,nz &
-        ,zz,nt,nperyear,firstyr,firstmo,undef,endian,title,1 &
-        ,nvars,vars,ivars,lvars,units)
+            ,zz,nt,nperyear,firstyr,firstmo,undef,endian,title,1 &
+            ,nvars,vars,ivars,lvars,units)
         ncid = -1
     else
         call parsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
-        ,nz,zz,nt,nperyear,firstyr,firstmo,undef,title,1,nvars &
-        ,vars,jvars,lvars,units)
+            ,nz,zz,nt,nperyear,firstyr,firstmo,undef,title,1,nvars &
+            ,vars,jvars,lvars,units)
         datfile = file
     endif
-!       range of years
+!   range of years
     if ( nperyear == 366 ) then
         lastyr = firstyr + int((firstmo+nt-2)/365.24)
         if ( lwrite ) print *,'lastyr: ',lastyr,' = ', firstyr, &
