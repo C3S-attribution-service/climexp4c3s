@@ -65,6 +65,7 @@ program describefield
     firstmo = 9999
     firstyr = 9999
     do iarg = 1,nargs
+        call keepalive1('Processing chunk',iarg,nargs)
         call getarg(iarg,infile)
         if ( ensemble ) call filloutens(infile,nens1)
         if ( lwrite ) print *,'describefield: nf_opening file ',trim(infile)
