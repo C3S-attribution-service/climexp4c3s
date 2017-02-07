@@ -836,7 +836,7 @@ subroutine print_spatial_scale(scross,years)
         print '(a,f6.1,a)','# Used spatial decorrelation blocks of ', & 
         &   scross,' stations on average in the bootstrap.'
         if ( scross > years/3 ) then
-            print '(a,f6.1,a)','# <p><font color="#FF2222">This is not much smaller than ', &
+            print '(3a)','# <p><font color="#FF2222">This is not much smaller than ', &
                 'the number of years, which means the bootstrapped uncertainty ranges are ', &
                 'NOT VALID</font><p>'            
         end if
