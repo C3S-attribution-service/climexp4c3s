@@ -16,22 +16,28 @@ program patchfield
  &      nvars1,ivars1(6,nvarmax)
     integer ix,iy,iz,i,j,dy,mo,yr,n,nperday,dpm(12),fyr,lyr,status,itimeaxis(ntmax),ntvarid
     real xi(30*(yrend-yrbeg+1)),yi(30*(yrend-yrbeg+1))
-    real scale(12),offset(12),siga,sigb,chi2,q,sig(1)
+    real scale(12),offset(12),a,b,siga,sigb,chi2,q,sig(1),sx(12),sy(12)
     real xx(nxmax),yy(nymax),zz(nzmax),undef
     real xx1(nxmax),yy1(nymax),zz1(nzmax),undef1
     real,allocatable :: mainfield(:,:,:,:,:),auxfield(:,:,:,:,:),maindata(:,:),auxdata(:,:)
+    logical lreversefit
     character &
  &      mainfile*255,auxfile*255,outfile*255,datfile*255,datfile1*255,lz(3)*20,ltime*120, &
  &      title*2000,history*20000,vars(nvarmax)*40,lvars(nvarmax)*120,svars(nvarmax)*80, &
  &      units(nvarmax)*40,units1(nvarmax)*40,cell_methods(nvarmax)*40
+    character method*4
     integer iargc
     data dpm /31,29,31,20,31,30,31,31,30,31,30,31/
+!
+!   init
+!
     lwrite = .false.
+    lreversefit = .false.
     if ( iargc().lt.3 ) then
-        write(0,*) 'usage: patchfield mainfield auxfield outfield'
+        write(0,*) 'usage: patchfield mainfield auxfield outfield [regr|bias|none]'
         write(0,*) 'patches holes in mainfield using data from '// &
- &           'auxfield linearly regressed on mainfield at each '// &
- &           'grid point'
+ &           'auxfield using a linear regression, bias correction or straight copy '// &
+ &           'for each grid point'
         call exit(-1)
     endif
 !
@@ -47,6 +53,13 @@ program patchfield
  &       ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo &
  &       ,ltime,undef,endian,title,history,nvarmax,nvars,vars,ivars &
  &       ,lvars,svars,units,cell_methods,lwrite)
+    if ( iargc() >= 4 ) then
+        call getarg(3,method)
+        ! "noscale" was recognised by a version that I mistakenly skipped
+        if ( method == 'nosc' ) method = 'bias'
+    else
+        method = 'none'
+    end if
 !
 !   check grids are equal
 !
@@ -98,6 +111,8 @@ program patchfield
 !               determine regression coefficents per month or less
 !
                 if ( nperyear.le.12 ) then
+                    sx = 0
+                    sy = 0
                     do mo=1,nperyear
                         n = 0
                         do yr=fyr,lyr
@@ -105,20 +120,43 @@ program patchfield
              &                   auxdata(mo,yr).lt.1e33 ) then
                                 n = n + 1
                                 xi(n) = auxdata(mo,yr)
+                                sx(mo) = sx(mo) + xi(n)
                                 yi(n) = maindata(mo,yr)
+                                sy(mo) = sy(mo) + yi(n)
                             end if
                         end do
-                        if ( n.lt.7 ) then ! arbitrary
-                            scale(mo) = 3e33
-                            offset(mo) = 3e33
-                        else
-                            call fit(xi,yi,n,sig,0,offset(mo),scale(mo),siga &
-             &                   ,sigb,chi2,q)
-                            if ( scale(mo).lt.0.67 .or. scale(mo).gt.1.5 ) then
-                                if ( lwrite ) write(0,*) 'warning: scale(',mo,') = ', &
-             &                      scale(mo),xx(ix),yy(iy),zz(iz)
+                        if ( n.gt.0 ) then
+                            sx(mo) = sx(mo)/n
+                            sy(mo) = sy(mo)/n
+                        end if
+                        if ( method == 'none' ) then
+                            scale(mo) = 1
+                            offset(mo) = 0
+                        else if ( method == 'bias' ) then
+                            if ( n.lt.7 ) then
                                 scale(mo) = 3e33
-                                maindata = 3e33 ! otherwise we get a discontinuity
+                                offset(mo) = 3e33
+                            else
+                                scale(mo) = 1
+                                offset(mo) = sy(mo) - sx(mo)
+                            end if
+                        else if ( method == 'regr' ) then
+                            if ( n.lt.7 ) then ! arbitrary
+                                scale(mo) = 3e33
+                                offset(mo) = 3e33
+                            else if ( lreversefit ) then
+                                call fit(xi,yi,n,sig,0,offset(mo),scale(mo),siga &
+                 &                   ,sigb,chi2,q)
+                            else
+                                call fit(yi,xi,n,sig,0,a,b,siga,sigb,chi2,q)
+                                scale(mo) = 1/b
+                                offset(mo) = -a/b
+                                if ( scale(mo).lt.0.67 .or. scale(mo).gt.1.5 ) then
+                                    if ( lwrite ) write(0,*) 'warning: scale(',mo,') = ', &
+                 &                      scale(mo),xi(ix),yi(iy),zz(iz)
+                                    scale(mo) = 3e33
+                                    maindata = 3e33 ! otherwise we get a discontinuity
+                                end if
                             end if
                         end if
                     end do
@@ -142,6 +180,8 @@ program patchfield
                     else
                         nperday = nint(nperyear/366.)
                     end if
+                    sx = 0
+                    sy = 0
                     do mo=1,12
                         n = 0
                         do yr=fyr,lyr
@@ -151,16 +191,45 @@ program patchfield
              &                       auxdata(j,yr).lt.1e33 ) then
                                     n = n + 1
                                     xi(n) = auxdata(j,yr)
+                                    sx(mo) = sx(mo) + xi(n)
                                     yi(n) = maindata(j,yr)
+                                    sy(mo) = sy(mo) + yi(n)
                                 end if
                             end do
                         end do
-                        if ( n.lt.7 ) then ! arbitrary
-                            scale(mo) = 3e33
-                            offset(mo) = 3e33
-                        else
-                            call fit(xi,yi,n,sig,0,offset(mo),scale(mo),siga &
-             &                   ,sigb,chi2,q)
+                        if ( n.gt.0 ) then
+                            sx(mo) = sx(mo)/n
+                            sy(mo) = sy(mo)/n
+                        end if
+                        if ( method == 'none' ) then
+                            scale(mo) = 1
+                            offset(mo) = 0
+                        else if ( method == 'bias' ) then
+                            if ( n.lt.7 ) then
+                                scale(mo) = 3e33
+                                offset(mo) = 3e33
+                            else
+                                scale(mo) = 1
+                                offset(mo) = sy(mo) - sx(mo)
+                            end if
+                        else if ( method == 'regr' ) then
+                            if ( n.lt.7 ) then ! arbitrary
+                                scale(mo) = 3e33
+                                offset(mo) = 3e33
+                            else if ( lreversefit ) then
+                                call fit(xi,yi,n,sig,0,offset(mo),scale(mo),siga &
+                 &                   ,sigb,chi2,q)
+                            else
+                                call fit(yi,xi,n,sig,0,a,b,siga,sigb,chi2,q)
+                                scale(mo) = 1/b
+                                offset(mo) = -a/b
+                                if ( scale(mo).lt.0.67 .or. scale(mo).gt.1.5 ) then
+                                    if ( lwrite ) write(0,*) 'warning: scale(',mo,') = ', &
+                 &                      scale(mo),xi(ix),yi(iy),zz(iz)
+                                    scale(mo) = 3e33
+                                    maindata = 3e33 ! otherwise we get a discontinuity
+                                end if
+                            end if
                         end if
                     end do
                     do yr=fyr,lyr
@@ -194,7 +263,7 @@ program patchfield
 !
 !   output
 !
-    call getarg(3,outfile)
+    call getarg(iargc(),outfile)
     i = index(outfile,'.ctl')
     if ( i.ne.0 ) then
         write(0,*) 'error: grads output not supported'

@@ -51,6 +51,8 @@ program patchseries
 !   determine regression coefficents per month or less
 !
     if ( nperyear.le.12 ) then
+        sx = 0
+        sy = 0
         do mo=1,nperyear
             n = 0
             do yr=yrbeg,yrend
@@ -112,6 +114,8 @@ program patchseries
         else
             nperday = nint(nperyear/366.)
         end if
+        sx = 0
+        sy = 0
         do mo=1,12
             n = 0
             do yr=yrbeg,yrend
