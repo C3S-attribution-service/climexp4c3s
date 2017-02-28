@@ -32,11 +32,14 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     xx = 3e33
     if ( lwrite ) then
         print *,'mens1,mens = ',mens1,mens
+        print *,'nens1,nens2 = ',nens1,nens2
         print *,'attribute_dist: series(:,2000,0) = ',(series(j,2000,0),j=1,min(15,nperyear))
         if ( assume /= 'none' ) then
             print *,'attribute_dist: covariate(:,2000,0) = ',(covariate(j,2000,0),j=1,min(15,nperyear1))
         end if
     end if
+    mens1 = max(mens1,nens1)
+    mens = min(mens,nens2)
 
     if ( distribution == 'gev' .or. distribution == 'gumbel' ) then
         allocate(yrseries(1,fyr:lyr,0:mens))
@@ -1190,7 +1193,7 @@ subroutine normaliseseries(series,nperyear,fyr,lyr,mens1,mens,j1,j2,assume,lwrit
 
     if ( mens1 == mens ) return
 
-    if ( assume == 'shift' ) then
+    if ( assume == 'shift' .or. assume == 'none' ) then
         ! compute overall mean
         call getmeanseries(series,nperyear,mens1,mens,fyr,lyr,j1,j2,.false.,ensmean)
         do iens=mens1,mens
