@@ -1062,11 +1062,9 @@
                     enddo
                     if ( lwrite ) call getsign('result ',result,results,nmc,1,sign,.true.)
                     if ( lweb ) then
-                        print '(2a,i6,a)','Significances are computed against a ',nmc &
-                            ,' sample Monte Carlo<br>'
+                        print '(a,i6,a)','Significances are computed against a ',nmc,' sample Monte Carlo<br>'
                     else
-                        print '(2a,i6,a)','# significances are computed against a ',nmc &
-                            ,' sample Monte Carlo'
+                        print '(a,i6,a)','# significances are computed against a ',nmc,' sample Monte Carlo'
                     endif
                     call getsign(runs(1,irunvar),rmin,rmins,nmc,-1,signmin, .true. )
                     call getsign(runs(2,irunvar),rmax,rmaxs,nmc,1,signmax, .true. )
