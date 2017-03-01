@@ -721,8 +721,8 @@ program getmomentsfield
      &                   .and. .not. ( imoment.eq.200 .and. i.eq.2 ) &
      &                  .and. .not. imoment.eq.1000 .and. .not. imoment.eq.1001 ) then
                         units(i) = saveunits
-                        call makestandardfield(res(1,1,1,m,i),nx,ny,nz,12,0,0 &
-     &                      ,nx,ny,nz,12,0,0,vars(1),units(i),lwrite)
+                        call makestandardfield(res(1,1,1,m,i),nx,ny,nz,1,0,0 &
+     &                      ,nx,ny,nz,1,0,0,vars(1),units(i),lwrite)
                     else
                         units(i) = "1"
                     end if
