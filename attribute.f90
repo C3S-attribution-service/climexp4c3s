@@ -96,6 +96,12 @@ program attribute
 !
 !   process data
 !
+    if ( biasmul /= 1 .or. biasadd /= 0 ) then
+        print '(a,g20.4,a,g20.4,a)','# Applying bias correction of scale ',biasmul,' and offset ',biasadd
+        do iens=mens1,mens
+            call scaleseries(series(1,yrbeg,iens),npermax,nperyear,yrbeg,yrend,biasmul,biasadd,0)
+        end do
+    end if
     if ( ldetrend ) then
         do iens=mens1,mens
             call detrend(series(1,yrbeg,iens),npermax,nperyear,yrbeg,yrend,yr1,yr2,m1,m2,lsel)

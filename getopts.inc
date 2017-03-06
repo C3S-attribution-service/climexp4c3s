@@ -1,7 +1,7 @@
         real decor,kscut,minfac,minindx,maxindx,mindata,maxdata,         &
      &      pminindx,pmaxindx,pmindata,pmaxdata,lon1,lon2,lat1,lat2,     &
      &      lev1,lev2,altlon1,altlon2,altlat1,altlat2,altlev1,altlev2,   &
-     &      confidenceinterval,restrain,minfacsum,xyear
+     &      confidenceinterval,restrain,minfacsum,xyear,biasadd,biasmul
         integer lag1,lag2,m1,m2,yr1,yr2,yr1a,yr2a,lsum,lsum2,lsel,       &
      &      ndiff,ndiff2,indxuse,avex,avey,nfittime,minnum,intertype,    &
      &      mdiff,mdiff2,nens1,nens2,nyrwindow,lead1,lead2,irunvar,      &
@@ -33,6 +33,6 @@
      &      logfield,sqrtfield,lfitnoise,lrandom,lrmse,                  &
      &      lchangesign,lmakeensfull,lweb,lstandardunits,lallobs,        &
      &      lstartstop,lnomissing,lensanom,lnooverlap,ncrossvalidate,    &
-     &      day0,minfacsum,lmae,xyear,add_option
+     &      day0,minfacsum,lmae,xyear,add_option,biasadd,biasmul
         common /cc_getopts/ oper,strindx,plotfile,indexfiles,            &
      &      plotrunfile,corrmonths,namestring,bbfile

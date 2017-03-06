@@ -120,6 +120,11 @@
                 end do
             end do
             
+            if ( biasmul /= 1 .or. biasadd /= 0 ) then
+                do iens=mens1,mens
+                    call scaleseries(series(1,fyr,iens),npermax,nperyear,fyr,lyr,biasmul,biasadd,0)
+                end do
+            end if
             if ( lchangesign ) then
                 do iens=mens1,mens
                     call changesign(series(1,fyr,iens),npermax,nperyear,fyr,lyr)

@@ -917,10 +917,10 @@ subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xy
     if ( i12 == 2 ) then
         if ( abs(xyear) > 1e33 ) then
             xyear = series(momax,yrmax,ensmax)
+            series(momax,yrmax,mens1:mens) = 3e33 ! for GPD we should also make a few values to the sides undef
         else
-            ensmax = -1 ! xyear was given by user
+            ensmax = -1 ! xyear was given by user, note that there is no need to set the series to undef in this case
         end if
-        series(momax,yrmax,mens1:mens) = 3e33 ! for GPD we should also make a few values to the sides undef
         if ( lwrite ) print *,'find_cov: xyear = ',xyear,momax,yrmax,ensmax
         if ( xyear > 1e33 ) then
             if ( lprint ) then
