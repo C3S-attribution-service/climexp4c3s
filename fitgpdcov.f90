@@ -1,5 +1,5 @@
 subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
-     &       ,mens1,mens,crosscorr,a3,b3,xi3,alpha3,beta3,j1,j2 &
+     &       ,mens1,mens,crosscorr,a3,b3,xi3,alpha3,beta3,j1,j2,nens1,nens2 &
      &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyearin,idmax,cov1,cov2 &
      &       ,offset,t3,tx3,threshold,inrestrain,assume &
      &       ,confidenceinterval,ndecor,lboot,lprint,dump,plot,lwrite)
@@ -28,7 +28,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
 !
     integer nmc
     parameter(nmc=1000)
-    integer npernew,fyr,lyr,mens1,mens,ntot,j1,j2,ntype,yr1a,yr2a,ndecor
+    integer npernew,fyr,lyr,mens1,mens,ntot,j1,j2,nens1,nens2,ntype,yr1a,yr2a,ndecor
     real yrseries(npernew,fyr:lyr,0:mens), &
      &       yrcovariate(npernew,fyr:lyr,0:mens),crosscorr(0:mens,0:mens), &
      &       a3(3),b3(3),xi3(3),alpha3(3),beta3(3),xyearin, &
@@ -311,7 +311,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
             ndecor = tsep + 1
             lllwrite = .false. ! lwrite
             call sample_bootstrap(yrseries,yrcovariate, &
-     &               npernew,j1,j2,fyr,lyr,mens1,mens,crosscorr, &
+     &               npernew,j1,j2,fyr,lyr,nens1,nens2,crosscorr, &
      &               ndecor,data,nmax,ntot,sdecor,lllwrite)
             if ( npernew >= 360 ) then
                 bootyrs = -9999 ! cannot yet keep track of discontinuities, just hope they are not too bad

@@ -97,6 +97,7 @@ program attribute
 !   process data
 !
     if ( biasmul /= 1 .or. biasadd /= 0 ) then
+        write(0,*) 'Applying bias correction of scale ',biasmul,' and offset ',biasadd
         print '(a,g20.4,a,g20.4,a)','# Applying bias correction of scale ',biasmul,' and offset ',biasadd
         do iens=mens1,mens
             call scaleseries(series(1,yrbeg,iens),npermax,nperyear,yrbeg,yrend,biasmul,biasadd,0)

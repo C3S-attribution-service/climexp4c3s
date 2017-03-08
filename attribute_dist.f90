@@ -193,7 +193,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         ntype = 2 ! Gumbel plot
         if ( lwrite ) print *,'attribute_dist: calling fitgevcov',j1,j2
         call fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
-    &       ,crosscorr,a,b,xi,alpha,beta,j1,j2 &
+    &       ,crosscorr,a,b,xi,alpha,beta,j1,j2,nens1,nens2 &
     &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2,offset &
     &       ,t,tx,restrain,assume,confidenceinterval,ndecor,lboot,lprint,dump,plot,lwrite)
     else if ( distribution == 'gpd' ) then
@@ -203,7 +203,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         !!!lwrite = .true.
         if ( lwrite ) print *,'attribute_dist: calling fitgpdcov'
         call fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
-    &       ,crosscorr,a,b,xi,alpha,beta,j1,j2 &
+    &       ,crosscorr,a,b,xi,alpha,beta,j1,j2,nens1,nens2 &
     &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2,offset &
     &       ,t,tx,pmindata,restrain,assume,confidenceinterval,ndecor,lboot &
     &       ,lprint,dump,plot,lwrite)
@@ -212,7 +212,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         xi = 0
         if ( lwrite ) print *,'attribute_dist: calling fitgumcov'
         call fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
-    &       ,crosscorr,a,b,alpha,beta,j1,j2 &
+    &       ,crosscorr,a,b,alpha,beta,j1,j2,nens1,nens2 &
     &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2,offset &
     &       ,t,tx,assume,confidenceinterval,ndecor,lboot,lprint,dump,plot,lwrite)
     else if  ( distribution == 'gauss' ) then
@@ -220,7 +220,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         xi = 0
         if ( lwrite ) print *,'attribute_dist: calling fitgaucov'
         call fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
-    &       ,crosscorr,a,b,alpha,beta,j1,j2 &
+    &       ,crosscorr,a,b,alpha,beta,j1,j2,nens1,nens2 &
     &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2,offset &
     &       ,t,tx,assume,confidenceinterval,ndecor,lboot,lprint,dump,plot,lwrite)
     else
@@ -665,7 +665,7 @@ subroutine fill_linear_array(series,covariate,nperyear,j1,j2,fyr,lyr,mens1,mens,
     call savestartstop(yrstart,yrstop)
 end subroutine fill_linear_array
 
-subroutine sample_bootstrap(series,covariate,nperyear,j1,j2,fyr,lyr,mens1,mens,&
+subroutine sample_bootstrap(series,covariate,nperyear,j1,j2,fyr,lyr,nens1,nens2,&
 &   crosscorr,ndecor,xx,nmax,ntot,sdecor,lwrite)
 
     ! transfer random samples of the valid pairs in series, covariate to xx(1:2,1:ntot)
@@ -673,9 +673,9 @@ subroutine sample_bootstrap(series,covariate,nperyear,j1,j2,fyr,lyr,mens1,mens,&
     ! for j1==j2 this is counted in years, for j1/=j2 in months/days
     
     implicit none
-    integer nperyear,j1,j2,fyr,lyr,mens1,mens,ndecor,nmax,ntot
-    real series(nperyear,fyr:lyr,0:mens),covariate(nperyear,fyr:lyr,0:mens),sdecor
-    real crosscorr(0:mens,0:mens),xx(2,nmax)
+    integer nperyear,j1,j2,fyr,lyr,nens1,nens2,ndecor,nmax,ntot
+    real series(nperyear,fyr:lyr,0:nens2),covariate(nperyear,fyr:lyr,0:nens2),sdecor
+    real crosscorr(0:nens2,0:nens2),xx(2,nmax)
     logical lwrite
     integer yy,yr,mm,mmm,mo,day,month,yrstart,yrstop,iens,i,j,ntry,nleft,jens,nens
     real ranf,cutoff
@@ -685,8 +685,8 @@ subroutine sample_bootstrap(series,covariate,nperyear,j1,j2,fyr,lyr,mens1,mens,&
                         ! this is half the distance as we go in all directions.
     cutoff = exp(-1.)
     if ( lwrite ) then
-        print *,'sample_bootstrap: nperyear,j1,j2,fyr,lyr,mens1,mens = ', &
-        &   nperyear,j1,j2,fyr,lyr,mens1,mens
+        print *,'sample_bootstrap: nperyear,j1,j2,fyr,lyr,nens1,nens2 = ', &
+        &   nperyear,j1,j2,fyr,lyr,nens1,nens2
         print *,'                  ndecor = ',ndecor
     end if
     if ( ndecor > nperyear*(lyr-fyr+1) ) then
@@ -700,7 +700,7 @@ subroutine sample_bootstrap(series,covariate,nperyear,j1,j2,fyr,lyr,mens1,mens,&
     yrstart = lyr
     yrstop = fyr
     ntot = 0
-    do iens=mens1,mens
+    do iens=nens1,nens2
         do yy=fyr,lyr
             do mm=j1,j2
                 mo = mm
@@ -731,11 +731,11 @@ subroutine sample_bootstrap(series,covariate,nperyear,j1,j2,fyr,lyr,mens1,mens,&
                 write(0,*) 'sample_bootstrap: too many tries ',ntry
                 call exit(-1)
             end if
-            if ( mens1 == mens ) then
-                iens = mens1
+            if ( nens1 == nens2 ) then
+                iens = nens1
             else
                 call random_number(ranf)
-                iens = 0 + int((mens-mens1+1)*ranf)
+                iens = 0 + int((nens2-nens1+1)*ranf)
             end if
             call random_number(ranf)
             yy = yrstart + int((yrstop-yrstart+1)*ranf)
@@ -748,7 +748,7 @@ subroutine sample_bootstrap(series,covariate,nperyear,j1,j2,fyr,lyr,mens1,mens,&
                 call normon(mo,yy,yr,nperyear)
             end if
             if ( lwrite ) print *,'reference ',mo,yr,iens
-            do jens = mens1,mens
+            do jens = nens1,nens2
                 if ( crosscorr(jens,iens) < 1e33 .and. &
                 &    crosscorr(jens,iens) > cutoff ) then ! always true for the diagonal
                     ! include in spatial moving block

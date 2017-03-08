@@ -951,8 +951,8 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
     if ( lsum2 < 0 ) lsum2 = lsum
     if ( mdiff2 < 0 ) mdiff2 = mdiff
     if ( minfac < 0 ) minfac = 0.5 ! the original algorithm does not work well
-    if ( minfacsum < 0 ) minfacsum = 0.76
-    if ( lrank .AND. ncrossvalidate > 0 ) then
+    if ( minfacsum < 0 ) minfacsum = 0.999
+    if ( lrank .and. ncrossvalidate > 0 ) then
         write(0,*) 'getopts: error: cannot use cross-validation with rank correlations yet'
         call exit(-1)
     end if

@@ -1,5 +1,5 @@
 subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
-     &       ,mens1,mens,crosscorr,a3,b3,alpha3,beta3,j1,j2 &
+     &       ,mens1,mens,crosscorr,a3,b3,alpha3,beta3,j1,j2,nens1,nens2 &
      &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2 &
      &       ,offset,t3,tx3,assume,confidenceinterval,ndecor,lboot &
      &       ,lprint,dump,plot,lwrite)
@@ -9,7 +9,7 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
 !
     implicit none
 !
-    integer npernew,fyr,lyr,mens1,mens,ntot,ntype,j1,j2,yr1a,yr2a,ndecor
+    integer npernew,fyr,lyr,mens1,mens,ntot,ntype,j1,j2,nens1,nens2,yr1a,yr2a,ndecor
     real yrseries(npernew,fyr:lyr,0:mens), &
      &       yrcovariate(npernew,fyr:lyr,0:mens),crosscorr(0:mens,0:mens), &
      &       a3(3),b3(3),alpha3(3),beta3(3),xyear,cov1,cov2, &
@@ -206,7 +206,7 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
             enddo
         else
             call sample_bootstrap(yrseries,yrcovariate, &
-     &               npernew,j1,j2,fyr,lyr,mens1,mens,crosscorr, &
+     &               npernew,j1,j2,fyr,lyr,nens1,nens2,crosscorr, &
      &               ndecor,data,nmax,ntot,sdecor,lwrite)
             scross = scross + sdecor
         end if
