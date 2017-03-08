@@ -4,14 +4,16 @@ subroutine sumit(data,npermax,nperyear,yrbeg,yrend,lsum,oper)
 
     implicit none
     integer :: npermax,nperyear,yrbeg,yrend,lsum
-    real :: data(npermax,yrbeg:yrend)
+    real :: data(npermax,yrbeg:yrend),minfacsum
     character(1) :: oper
-    integer :: i,j,m,n,ii
+    integer :: i,j,m,n,ii,ns
     real :: s
     real,parameter :: absent=3e33
     logical,parameter :: lwrite=.FALSE.
     integer,external :: leap
 
+    ! DEBUG, will become an argument RSN
+    minfacsum = 0.9999 ! demand all months/days always
     if ( lsum > 1 ) then
         if ( lwrite ) then
             print *,'sumit: npermax,nperyear = ',npermax,nperyear
@@ -22,16 +24,17 @@ subroutine sumit(data,npermax,nperyear,yrbeg,yrend,lsum,oper)
         endif
         do i=yrbeg,yrend
             do j=1,nperyear
-                s = data(j,i)
+                s = 0
+                ns = 0
                 if ( data(j,i) < 0.9*absent ) then
-                    do n=1,lsum-1
+                    do n=0,lsum-1
                         m = j+n
-                        if ( nperyear == 366 .AND. leap(i) == 1 .AND. j < 60 .AND. m >= 60 ) m = m + 1
+                        if ( nperyear == 366 .and. leap(i) == 1 .and. j < 60 .and. m >= 60 ) m = m + 1
                         call normon(m,i,ii,nperyear)
-                        if ( ii > yrend ) then
-                            s = absent
-                        elseif ( s < 0.9*absent .AND. data(m,ii) < 0.9*absent ) then
-                            if ( oper == '+' .OR. oper == 'v' ) then
+                        if ( ii > yrend ) cycle
+                        if ( data(m,ii) < 0.9*absent ) then
+                            ns = ns + 1
+                            if ( oper == '+' .or. oper == 'v' ) then
                                 s = s + data(m,ii)
                             elseif ( oper == 'a' ) then
                                 s = max(s,data(m,ii))
@@ -39,13 +42,13 @@ subroutine sumit(data,npermax,nperyear,yrbeg,yrend,lsum,oper)
                                 s = min(s,data(m,ii))
                             else
                                 print *,'sumit: error: cannot handle oper = ',oper,', only [+vai]'
-                                call abort
+                                call exit(-1)
                             endif
-                        else
-                            s = absent
                         endif
                     enddo
-                    if ( oper == 'v' .AND. s < 0.9*absent ) then
+                    if ( ns < minfacsum*lsum ) then
+                        s = absent
+                    else if ( oper == 'v' .and. s < 0.9*absent ) then
                         s = s/lsum
                     endif
                     data(j,i) = s
