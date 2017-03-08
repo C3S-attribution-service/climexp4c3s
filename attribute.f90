@@ -93,6 +93,9 @@ program attribute
         write(0,*) 'attribute: error: current year should be before end of series ',yr2,yr2a
         call exit(-1)
     end if
+    ! workaround, maybe debug more fully later
+    mens1 = max(mens1,nens1)
+    mens = min(mens,nens2)
 !
 !   process data
 !
