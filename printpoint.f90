@@ -886,7 +886,10 @@ subroutine adjustyy(ntot,xx,assume,a,b,alpha,beta,cov,yy,zz,aaa,bbb,lchangesign,
         yy(i) = xx(1,i)
         zz(i) = xx(2,i)
     end do
-    if ( assume == 'shift' ) then
+    if ( assume == 'none' ) then
+        aaa = a
+        bbb = b
+    else if ( assume == 'shift' ) then
         do i=1,ntot
             yy(i) = yy(i) - alpha*(zz(i)-cov)
         end do
