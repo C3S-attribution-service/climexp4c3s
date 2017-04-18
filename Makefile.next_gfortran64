@@ -10,3 +10,6 @@ SYSLIBS=-L/sw/lib -lnetcdff -lnetcdf
 RANLIB = ranlib
 
 include ../Makefile.common
+
+EXTRAOBJS =	getppid.o \
+			swapbyte.o
