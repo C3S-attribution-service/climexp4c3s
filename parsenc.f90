@@ -8,13 +8,13 @@ subroutine parsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
     integer :: ntmax,nensmax
     parameter (ntmax=2000000,nensmax=230)
     integer :: ncid,nxmax,nymax,nzmax,nx,ny,nz,nt,nperyear,firstyr &
-    ,firstmo,nvarmax,ntvars,ivars(6,nvarmax)
+        ,firstmo,nvarmax,ntvars,ivars(6,nvarmax)
     real :: xx(nxmax),yy(nymax),zz(nzmax),undef
     character file*(*),title*(*),vars(nvarmax)*(*) &
-    ,lvars(nvarmax)*(*),units(nvarmax)*(*)
+        ,lvars(nvarmax)*(*),units(nvarmax)*(*)
     integer :: nens1,nens2,i,j
     character lz(3)*20,svars(100)*100,ltime*120,history*20000, &
-    cell_methods(100)*100
+        cell_methods(100)*100
     logical :: tdefined(ntmax)
     nens1 = 0
     nens2 = 0
