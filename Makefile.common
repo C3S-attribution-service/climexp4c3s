@@ -356,7 +356,8 @@ PROGRAMS      = scientific2decimal \
 		wetbulb_field \
 		outliers \
 		count_missing \
-		setundef
+		setundef \
+		diff_hist_nat
 
 SHLIBS =	rkillfile.so \
        		rkeepalive.so
@@ -763,6 +764,9 @@ setundef:	setundef.o $(LIBRARY)
 synthesis:	synthesis.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
 
+diff_hist_nat:	diff_hist_nat.o
+		$(LD) $(FFLAGS) -o $@ $@.o
+
 roc:		roc.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
 
@@ -824,7 +828,7 @@ WAVEFILES = 	wave.F param.inc getopts.inc recfac.h netcdf.inc \
 		makeabsent.f readdat.F readncseries.f90 getopts.f90 \
 		sumit.f90 operations.f90 diffit.f anomal.f normon.f \
 		wavelet.f cfftpack.f chisqr.f \
-		parsectl.f writectl.F parsenc.F readncfile.F \
+		parsectl.f writectl.F parsenc.f90 readncfile.f90 \
 		llen.f rsunit.f getnumwords.f get_endian.f tolower.f
 
 wavecode.zip:	$(WAVEFILES)
