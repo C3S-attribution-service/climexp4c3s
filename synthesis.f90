@@ -5,6 +5,7 @@ program synthesis
 !   - a consolidated range assuming all input is independent and only differs in natural variability
 !   - or the same inflated with a factor to take model spread into account if chi2/dof >> 1
 !   - or an unweighted average
+!   - or no average
 !   Input is a file in the format 
 !   # title
 !   yr0 yr1 bestfit lowbound highbound conf name
@@ -25,12 +26,12 @@ program synthesis
     integer,parameter :: nmax=100,yrbeg=1765,yrend=2300
     integer :: i,j,n,yr1,yr2,iskip,years(2,nmax),nblank(nmax),oldyears(2,nmax),m,ncolor,colors(3)
     real :: data(3,nmax),s1,s2,w1,ss2(2:3),refs(yrbeg:yrend),x,xlo,xhi,factor,w,chi2,f,ci(nmax),cc
-    logical :: lweighted,llog,lperc,lflip,printit
+    logical :: lnoave,lweighted,llog,lperc,lflip,printit
     character :: file*1024,line*128,home*1024,reffile*1024,names(nmax)*40
     integer :: iargc
     
     if ( iargc() < 3 ) then
-        write(0,*) 'usage: synthesis file reffile weighted|unweighted [log] [perc] [flipsign] [factor X] > outfile'
+        write(0,*) 'usage: synthesis file reffile weighted|unweighted|noave [log] [perc] [flipsign] [factor X] > outfile'
         call exit(-1)
     end if
 !
@@ -38,10 +39,14 @@ program synthesis
 !
     call getarg(3,line)
     call tolower(line)
+    lweighted = .false.
+    lnoave = .false.
     if ( line(1:2) == 'un' ) then
         lweighted = .false.
     else if ( line(1:2) == 'we' ) then
         lweighted = .true.
+    else if ( line(1:2) == 'no' ) then
+        lnoave = .true.
     else
         write(0,*) 'synthesis: third argument should be [un]weighted, not ',trim(line)
         call exit(-1)
@@ -132,8 +137,9 @@ program synthesis
         data(3,n) = xhi
         ci(n) = cc
         do j=1,len(line)
-            if ( ichar(line(j:j)).ge.ichar('a') .and. ichar(line(j:j)).le.ichar('z') &
-            .or. ichar(line(j:j)).ge.ichar('A') .and. ichar(line(j:j)).le.ichar('Z') ) then
+            if ( ( ichar(line(j:j)).ge.ichar('a') .and. ichar(line(j:j)).le.ichar('z') &
+              .or. ichar(line(j:j)).ge.ichar('A') .and. ichar(line(j:j)).le.ichar('Z') ) & 
+                .and. line(j:j+1) /= 'E-' .and. line(1:2) /= 'E+' ) then
                 names(n) = line(j:)
                 exit
             end if
@@ -143,7 +149,7 @@ program synthesis
 !
 !   sanity check
 !
-    if ( lweighted .and. factor == -1 .and. n <= 3 ) then
+    if ( .not. lnoave .and. lweighted .and. factor == -1 .and. n <= 3 ) then
         write(0,*) 'Autoscaling does not work for such a small number of results.'
         write(0,*) 'Specifiy the scaling by hand or use an unweighted average'
         write(0,*) 'I''ll do the latter now.'
@@ -208,14 +214,15 @@ program synthesis
                      years(2,i) == oldyears(2,j) ) printit = .false.
             end do
             if ( printit ) then
-                print *,'# transformed from ',years(1,i),years(2,i),' to ',yr1,yr2,' with factor ',f
+                print '(a,i4,a,i4,a,i4,a,i4,a,f6.2)', '# transformed from ', &
+                    years(1,i),'-',years(2,i),' to ',yr1,'-',yr2,' with factor ',f
                 m = m + 1
                 oldyears(1,m) = years(1,i)
                 oldyears(2,m) = years(2,i)
             end if
         end do
-        print *,'# using common interval ',yr1,yr2
-        print *,'# with reference values ',s1,s2 
+        print '(a,i4,a,i4)','# using common interval ',yr1,'-',yr2
+        print '(a,2g14.4)','# with reference values ',s1,s2 
     end if
 !
 !   compute mean & uncertainties
@@ -266,15 +273,15 @@ program synthesis
             call exit(-1)
         end if
     end do
-    chi2 = chi2/4 ! transformed to use 95%~2sigma CIs
-    print *,'# chi2/dof = ',chi2/(n-2)
-    if ( chi2/(n-2) > 1 .and. factor == -1 ) then
+    chi2 = chi2*4 ! transformed to use 95%~2sigma CIs
+    print '(a,g14.4)','# chi2/dof = ',chi2/(n-2)
+    if ( .not.lnoave .and. chi2/(n-2) > 1 .and. factor == -1 ) then
         factor = sqrt(chi2/(n-2)) ! n-1 but n has been increased by 1 to accomodate the mean
     end if
 !
 !   scale error bounds
 !
-    if ( lweighted .and. factor /= 1 ) then
+    if ( .not.lnoave .and. lweighted .and. factor /= 1 ) then
         data(2,n) = s1 - factor*ss2(2)
         data(3,n) = s1 + factor*ss2(3)
         write(names(n)(len_trim(names(n))+1:),'(a,f4.2)') ' inflated ',factor
@@ -303,6 +310,7 @@ program synthesis
     colors(2) = 1 ! red
     colors(3) = 4 ! purple
     ncolor = 1
+    if ( lnoave ) n = n-1
     do i=1,n
         print '(2i5,3f12.3,i3,4a)',yr1,yr2,(data(j,i),j=1,3),colors(ncolor),' "',trim(names(i)),'"'
         do j=1,nblank(i)
