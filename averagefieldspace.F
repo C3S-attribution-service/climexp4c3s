@@ -81,7 +81,7 @@
         if ( nperyear == 366 ) then
             nnt = 0
             yr = firstyr
-            mo = firstmo
+            mo = firstmo - 1
             do it=1,nt
                 nnt = nnt + 1
                 mo = mo + 1
@@ -89,7 +89,7 @@
                     mo = mo - nperyear
                     yr = yr + 1
                 endif
-                if ( nperyear.eq.366 .and. mo.eq.60 ) then
+                if ( mo.eq.60 ) then
                     if ( leap(yr).eq.1 ) then
                         nnt = nnt - 1
                     end if
@@ -133,6 +133,7 @@
             mo = firstmo
             do it=1,nnt
                 if ( lwrite ) print *,'writing ',yr,mo,it,nnt,nt
+                call keepalive1('Writing time step ',it,nnt)
                 call writencslice(ncid,ntvarid,itimeaxis,ntmax,ivars
      +               ,field(1,1,mo,yr),nxf,nyf,nzf,nx,ny,nz,it,0)
                 mo = mo + 1
