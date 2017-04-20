@@ -550,20 +550,20 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
             lat2 = lat1
         endif
         if ( gridpoints ) then
+            ! stationlist expects a country these days
+            write(*,'(i8,a)') ipoints,' (grid)'
             lon1 = xx(xlist(ipoints))
             lon2 = lon1
             lat1 = yy(ylist(ipoints))
             lat2 = lat1
-            write(*,'(a,f6.2,a,f7.2,a)') 'coordinates: ',lat1,'N, ' &
-            ,lon1,'E'
-        !               stationlist expects the pattern ':(.*)N.*,(.*)E'
-            write(string,'(a,f7.2,a,f6.2,2a)') 'grid point: _',lon1, &
-            '_',lat1,'_',letter
+            write(*,'(a,f6.2,a,f7.2,a)') 'coordinates: ',lat1,'N, ',lon1,'E'
+        !   stationlist expects the pattern ':(.*)N.*,(.*)E'
+            write(string,'(a,f7.2,a,f6.2,2a)') 'grid point: _',lon1,'_',lat1,'_',letter
             do i=14,len_trim(string)
                 if ( string(i:i) == ' ' ) string(i:i) = '0'
             enddo
             write(*,'(3a)') trim(string),' ',trim(fieldname)
-        !               this should be identical to the file name opened below
+        !   this should be identical to the file name opened below
         endif
         if ( npoints > 1 .or. gridpoints ) then
             write(string,'(4a,f7.2,a,f6.2,3a)') &
