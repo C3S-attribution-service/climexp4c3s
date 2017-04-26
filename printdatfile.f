@@ -51,8 +51,8 @@
                         if ( nperday.eq.1 ) then
                             i = i + 1
                             if ( data(i,year).lt.1e33 ) then
-                                write(unit,'(i4,2i3,g15.7)') year,mo,dy
-     +                               ,data(i,year)
+                                write(unit,'(i4,2i2.2,g15.7)') 
+     +                              year,mo,dy,data(i,year)
                             end if
                         else
                             do hr=1,nperday
