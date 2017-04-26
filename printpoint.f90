@@ -798,7 +798,7 @@ subroutine getabfromcov(a,b,alpha,beta,cov,aa,bb)
     logical :: llwrite,llchangesign
     common /fitdata2/ restrain,ncur,llwrite,llchangesign
             
-    if ( cassume == 'none' ) then
+    if ( alpha > 1e33 ) then
         aa = a
         bb = b
     else if ( cassume == 'shift' ) then
@@ -829,7 +829,6 @@ subroutine printab(lweb)
     character cassume*5
     common /fitdata4/ cassume
 
-    if ( cassume == 'none' ) return
     if ( lweb ) then
         if ( cassume == 'shift' ) then
             print '(a)','# <tr><td colspan="4">'// &
@@ -886,7 +885,7 @@ subroutine adjustyy(ntot,xx,assume,a,b,alpha,beta,cov,yy,zz,aaa,bbb,lchangesign,
         yy(i) = xx(1,i)
         zz(i) = xx(2,i)
     end do
-    if ( assume == 'none' ) then
+    if ( alpha > 1e33 ) then
         aaa = a
         bbb = b
     else if ( assume == 'shift' ) then

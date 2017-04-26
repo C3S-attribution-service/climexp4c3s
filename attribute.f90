@@ -48,6 +48,7 @@ program attribute
         & ,nensmax,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
     else
         ! simple data
+        !!!write(0,*) 'Reading time series...<p>'
         call readensseries(seriesfile,series,npermax,yrbeg,yrend &
         & ,nensmax,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
         if ( mens.gt.mens1 ) then
@@ -62,11 +63,11 @@ program attribute
     call getarg(2+off,covariatefile)
     allocate(covariate(npermax,yrbeg:yrend,0:nensmax))
     if ( covariatefile == 'none' ) then
-        assume = 'none'
         covariate = 0
         nperyear1 = 1
     else if ( index(covariatefile,'%%') == 0 .and. &
     &    index(covariatefile,'++') == 0 ) then
+        !!!write(0,*) 'Reading covariate series...<p>'
         call readseries(covariatefile,covariate,npermax,yrbeg,yrend &
         &   ,nperyear1,var1,units1,lstandardunits,lwrite)
         do iens=mens1,mens
@@ -75,6 +76,7 @@ program attribute
             end if
         end do
     else
+        !!!write(0,*) 'Reading covariate series...<p>'
         call readensseries(covariatefile,covariate,npermax,yrbeg,yrend &
         & ,nensmax,nperyear1,mmens1,mmens,var1,units1,lstandardunits,lwrite)
         if ( mmens1 /= mens1 .or. mmens /= mens ) then
@@ -99,6 +101,7 @@ program attribute
 !
 !   process data
 !
+    !!!write(0,*) 'Transforming series...<p>'
     if ( biasmul /= 1 .or. biasadd /= 0 ) then
         write(0,*) 'Applying bias correction of scale ',biasmul,' and offset ',biasadd
         print '(a,g20.4,a,g20.4,a)','# Applying bias correction of scale ',biasmul,' and offset ',biasadd
@@ -109,7 +112,7 @@ program attribute
     if ( ldetrend ) then
         do iens=mens1,mens
             call detrend(series(1,yrbeg,iens),npermax,nperyear,yrbeg,yrend,yr1,yr2,m1,m2,lsel)
-            if ( assume /= 'none' ) then
+            if ( covariatefile /= 'none' ) then
                 call detrend(covariate(1,yrbeg,iens),npermax,nperyear1,yrbeg,yrend,yr1,yr2,m1,m2,lsel)
             end if
         end do

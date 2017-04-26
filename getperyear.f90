@@ -836,13 +836,13 @@ subroutine getdims(ncid,ndims,ix,nx,nxmax,iy,ny,nymax,iz,nz &
     implicit none
     include 'netcdf.inc'
     integer :: ncid,ndims,ix,nx,nxmax,iy,ny,nymax,iz,nz,nzmax,it,nt &
-    ,ntmax,ie,nens1,nens2,nensmax
+        ,ntmax,ie,nens1,nens2,nensmax
     logical :: lwrite
     integer :: status,dimid,len,l
     character name*(nf_max_name)
     if ( lwrite ) print *,'getdims: ncid,ndims = ',ncid,ndims
 
-!       which dimension is time?  latitude?  longitude?
+!   which dimension is time?  latitude?  longitude?
 
     nx = 1
     ny = 1

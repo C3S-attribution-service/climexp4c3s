@@ -215,7 +215,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     else
         xi = 0.1
     end if
-    if ( assume == 'none' ) then
+    if ( cov1 == 0 .and. cov2 == 0 ) then
         alpha = 3e33
         beta = 3e33
         call fit0gpdcov(a,b,xi,iter)
@@ -260,9 +260,9 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         if ( lchangesign ) then
             a = -a
             t = -t
-            if ( assume /= 'none' ) then
+            if ( alpha < 1e33 ) then
                 alpha = -alpha
-                if ( cassume == 'both' ) then
+                if ( beta < 1e33 ) then
                     beta = -beta
                 end if
             end if
@@ -326,7 +326,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         xixi(iens) = xi
         alphaalpha(iens) = alpha
         llwrite = .false.
-        if ( assume == 'none' ) then
+        if ( cov1 == 0 .and. cov2 == 0 ) then
             alphaalpha(iens) = 3e33
             betabeta(iens) = 3e33
             call fit0gpdcov(aa(iens),bb(iens),xixi(iens),iter)
@@ -381,10 +381,10 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
             if ( aacov(iiens,1) < 1e33 ) aacov(iiens,1) = -aacov(iiens,1)
             if ( aacov(iiens,2) < 1e33 ) aacov(iiens,2) = -aacov(iiens,2)
         end do
-        if ( assume /= 'none' ) then
+        if ( alpha < 1e33 ) then
             alpha = -alpha
             alphaalpha = -alphaalpha
-            if ( assume == 'both' ) then
+            if ( beta < 1e33 ) then
                 beta = -beta
                 betabeta = -betabeta
             end if
@@ -414,10 +414,10 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     call getcut(b975,phi,iens,bb)
     call getcut( xi25,plo,iens,xixi)
     call getcut(xi975,phi,iens,xixi)
-    if ( assume /= 'none' ) then
+    if ( alpha < 1e33 ) then
         call getcut( alpha25,plo,iens,alphaalpha)
         call getcut(alpha975,phi,iens,alphaalpha)
-        if ( assume == 'both' ) then
+        if ( beta < 1e33 ) then
             call getcut( beta25,plo,iens,betabeta)
             call getcut(beta975,phi,iens,betabeta)
         end if
@@ -462,7 +462,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         a = -a
     end if
     if ( lweb ) then
-        if ( assume == 'none' ) then
+        if ( cov1 == 0 .and. cov2 == 0 ) then
             print '(a)','# <tr><td colspan="4">Fitted to GPD '// &
          &           'distribution H(x+&mu;) = 1 - (1+&xi;*x/&sigma;)^(-1/&xi;)</td></tr>'
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
@@ -506,7 +506,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     else
         print '(a,i5,a)','# Fitted to GPD distribution in ',iter &
      &           ,' iterations'
-        if ( assume == 'none' ) then
+        if ( cov1 == 0 .and. cov2 == 0 ) then
             print '(a)','# H(x+a) = 1-(1+xi*x/b)**(-1/xi) with'
             print '(a,f16.3,a,f16.3,a,f16.3)','# a = ',a,' \\pm ',(a975-a25)/2
             print '(a,f16.3,a,f16.3,a,f16.3)','# b = ',b,' \\pm ',(b975-b25)/2
@@ -532,7 +532,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     end if
     call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume)
     call printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,lweb,plot,assume)
-    if ( assume /= 'none' ) call printcovpvalue(txtx,nmc,iens,lweb)
+    if ( cov1 /= 0 .or. cov2 /= 0 ) call printcovpvalue(txtx,nmc,iens,lweb)
 
     if ( dump ) then
         call plot_tx_cdfs(txtx,nmc,iens,ntype,j1,j2)
@@ -555,16 +555,17 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     if ( lchangesign ) then
         ! we had flipped the sign on a,alpha but not yet on the rest, flip back...
         a = -a
-        if ( assume /= 'none' ) then
+        if ( alpha < 1e33 ) then
             alpha = -alpha
             if ( assume == 'both' ) beta = -beta
         end if
     end if
     
-    if ( assume == 'none' ) then
+    if ( cov1 == 0 .and. cov2 == 0 ) then
         call plotreturnvalue(ntype,t25(1,1),t975(1,1),j2-j1+1)
         ys(1:ncur) = yy(1:ncur)
         mindata = a
+        write(0,*) '@@@ mindata,yy(ncur) = ',mindata,yy(ncur),ys(ncur)
         call plot_ordered_points(yy,ys,yrs,ncur,ntype,nfit,                 &
      &       frac,a,b,xi,j1,j2,minindx,mindata,pmindata,                &
      &       year,xyear,snorm,lchangesign,lwrite,.true.)
@@ -575,6 +576,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         print '(a,i5)','# distribution in year ',yr1a
         call plotreturnvalue(ntype,t25(1,1),t975(1,1),j2-j1+1)
         mindata = aaa
+        write(0,*) '@@@ mindata,yy(ncur) = ',mindata,yy(ncur),ys(ncur)
         call plot_ordered_points(yy,ys,yyrs,ncur,ntype,nfit, &
          &       frac,aaa,bbb,xi,j1,j2,minindx,mindata,pmindata, &
          &       year,xyear,snorm,lchangesign,lwrite,.false.)
@@ -648,9 +650,9 @@ subroutine fit0gpdcov(a,b,xi,iter)
         end if
         if ( xi /= 0 ) then
             if ( cassume == 'scale' ) then
-                xi = xi + 0.1*xi/abs(xi)
+                xi = xi + 0.03*xi/abs(xi)
             else
-                xi = xi + 0.1
+                xi = xi + 0.03
             end if
         else if ( cassume == 'scale' ) then
             if ( athreshold < 0 ) then
@@ -732,9 +734,9 @@ subroutine fit1gpdcov(a,b,xi,alpha,dalpha,iter)
         end if
         if ( xi /= 0 ) then
             if ( cassume == 'scale' ) then
-                xi = xi + 0.1*xi/abs(xi)
+                xi = xi + 0.03*xi/abs(xi)
             else
-                xi = xi + 0.1
+                xi = xi + 0.03
             end if
         else if ( cassume == 'scale' ) then
             if ( athreshold < 0 ) then
@@ -746,6 +748,7 @@ subroutine fit1gpdcov(a,b,xi,alpha,dalpha,iter)
             xi = -0.1 ! most temperature extremes negative
         end if
         if ( abs(xi).lt.2 ) then
+            if ( llwrite ) print *,'trying again with xi = ',xi
             goto 10
         else
             write(0,*) 'fit1gpdcov: error: cannot find initial fit values'
@@ -815,7 +818,7 @@ subroutine fit2gpdcov(a,b,xi,alpha,beta,dalpha,dbeta,iter)
     end do
     if ( .not.lok ) then
         if ( xi /= 0 ) then
-            xi = xi + 0.1*xi/abs(xi)
+            xi = xi + 0.03*xi/abs(xi)
         else if ( cassume == 'scale' .and. athreshold < 0 ) then
             xi = -0.1
         else 
@@ -978,8 +981,11 @@ real function llgpdcov(p)
         if ( llchangesign .and. p(1) > athreshold*xi ) then
             ! scaling implies (for climate) that the distribution cannot cross zero, 
             ! so the upper limit must be <0 (for flipped signs)
+            if ( llwrite ) print *,'GPD limit below zero, invalid: ',p(1),' > ',athreshold,'*',xi
             llgpdcov = 3e33
             goto 999
+        else
+            if ( llwrite ) print *,'GPD limit above zero, OK: ',p(1),' <= ',athreshold,'*',xi
         end if
         n = 0
         do i=1,ncur

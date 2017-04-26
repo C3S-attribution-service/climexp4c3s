@@ -34,9 +34,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         print *,'mens1,mens = ',mens1,mens
         print *,'nens1,nens2 = ',nens1,nens2
         print *,'attribute_dist: series(:,2000,0) = ',(series(j,2000,0),j=1,min(15,nperyear))
-        if ( assume /= 'none' ) then
-            print *,'attribute_dist: covariate(:,2000,0) = ',(covariate(j,2000,0),j=1,min(15,nperyear1))
-        end if
+        print *,'attribute_dist: covariate(:,2000,0) = ',(covariate(j,2000,0),j=1,min(15,nperyear1))
     end if
     mens1 = max(mens1,nens1)
     mens = min(mens,nens2)
@@ -150,14 +148,14 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
             print '(a,f6.3,a)' ,'# <tr><th>parameter</th><th>year</th><th>value</th><th>' &
         &       ,confidenceinterval,'% CI</th></tr>'
         end if
-        if ( assume /= 'none' ) then
+        if ( cov1 /= 0 .or. cov2 /= 0 ) then
             print '(a,i4,a,g16.5,a)','# <tr><td>covariate:</td><td>',yr1a,'</td><td>',cov1, &
             &   '</td><td>&nbsp;</td></tr>'
             print '(a,i4,a,g19.5,a)','# <tr><td>&nbsp;</td><td>',yr2a,'</td><td>',cov2, &
             &   '</td><td>&nbsp;</td></tr>'
         end if
     end if
-    if ( assume /= 'none' ) then
+    if ( cov1 /= 0 .or. cov2 /= 0 ) then
         subtract_offset = .true.
     else
         subtract_offset = .false.
@@ -188,6 +186,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         crosscorr(mens1,mens1) = 1
     end if
 
+    write(0,*) 'Fitting...<p>'
     lboot = .true.
     if ( distribution == 'gev' ) then
         ntype = 2 ! Gumbel plot
@@ -1193,7 +1192,7 @@ subroutine normaliseseries(series,nperyear,fyr,lyr,mens1,mens,j1,j2,assume,lwrit
 
     if ( mens1 == mens ) return
 
-    if ( assume == 'shift' .or. assume == 'none' ) then
+    if ( assume == 'shift' ) then
         ! compute overall mean
         call getmeanseries(series,nperyear,mens1,mens,fyr,lyr,j1,j2,.false.,ensmean)
         do iens=mens1,mens
