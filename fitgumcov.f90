@@ -27,12 +27,13 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
 !
     integer i,j,nx,iter,iens,nfit,year
     integer,allocatable :: yrs(:)
-    real,allocatable :: aa(:),bb(:),xixi(:),tt(:,:,:),         &
- &       txtx(:,:),alphaalpha(:),betabeta(:),aacov(:,:)
-    real x,a,b,xi,alpha,beta,t5(10,3),t1(10,3),db,f            &
+    real,allocatable :: aa(:),bb(:),baba(:),xixi(:),           &
+ &       tt(:,:,:),txtx(:,:),alphaalpha(:),betabeta(:),        &
+ &       aacov(:,:)
+    real x,a,b,ba,xi,alpha,beta,t5(10,3),t1(10,3),db,f         &
  &       ,threshold,thens,z,ll,ll1                             &
  &       ,a25,a975,b25,b975,alpha25,alpha975,beta25,beta975    &
- &       ,aa25,aa975,bb25,bb975                                &
+ &       ,aa25,aa975,bb25,bb975,ba25,ba975                     &
  &       ,ranf,mean,sd,dalpha,dbeta,mindata,minindx,pmindata   &
  &       ,snorm,s,frac,t(10,3),t25(10,3),t975(10,3)            &
  &       ,tx(3),tx25(3),tx975(3),ttt(10,3),txtxtx(3),xi3(3)    &
@@ -57,7 +58,7 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
 !
     nmc = max(1000,nint(25*2/(1-confidenceinterval/100)))
     allocate(yrs(0:nmax))
-    allocate(xx(2,nmax),aa(nmc),bb(nmc),xixi(nmc),tt(nmc,10,3),  &
+    allocate(xx(2,nmax),aa(nmc),bb(nmc),baba(nmc),xixi(nmc),tt(nmc,10,3),  &
  &       txtx(nmc,3),alphaalpha(nmc),betabeta(nmc),aacov(nmc,2))
     year = yr2a
 
@@ -144,6 +145,7 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
         write(0,*) 'fitgumcov: error: unknown value for assume ', &
  &           assume
     end if
+    if ( assume == 'scale' ) ba = b/a
     xi = 0
     call getreturnlevels(a,b,xi,alpha,beta,cov1,cov2,             &
  &       gevcovreturnlevel,j1,j2,assume,t)
@@ -226,6 +228,7 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
             write(0,*) 'fitgumcov: cannot handle assume = ',assume
             call abort
         end if
+        if ( assume == 'scale' ) baba(iens) = bb(iens)/aa(iens)
         call getabfromcov(aa(iens),bb(iens),                         &
  &           alphaalpha(iens),betabeta(iens),cov1,aaa,bbb)
         aacov(iens,1) = aaa
@@ -274,6 +277,10 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
     call getcut(a975,phi,nmc,aa)
     call getcut( b25,plo,nmc,bb)
     call getcut(b975,phi,nmc,bb)
+    if ( assume == 'scale' ) then
+        call getcut( ba25,plo,iens,baba)
+        call getcut(ba975,phi,iens,baba)
+    end if
     if ( assume /= 'none' ) then
         call getcut( alpha25,plo,nmc,alphaalpha)
         call getcut(alpha975,phi,nmc,alphaalpha)
@@ -329,6 +336,10 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'//         &
      &           '&sigma;:</td><td>',b,'</td><td>',    &
      &           b25,'...',b975,'</td></tr>'
+            if ( assume == 'scale' ) then
+                print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
+            &           '&sigma;/&mu;:</td><td>',ba,'</td><td>',ba25,'...',ba975,'</td></tr>'
+            end if
         else
             print '(a)','# <tr><td colspan="4">Fitted to Gumbel '//       &
      &           'distribution P(x) = exp(-exp(-(x-&mu;'')/&sigma;''))'   &
@@ -340,6 +351,10 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'//  &
      &           '&sigma;:</td><td>',b,'</td><td>',b25,'...',b975,        &
      &           '</td></tr>'
+            if ( assume == 'scale' ) then
+                print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
+            &           '&sigma;/&mu;:</td><td>',ba,'</td><td>',ba25,'...',ba975,'</td></tr>'
+            end if
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'//  &
      &           '&alpha;:</td><td>',alpha,'</td><td>',alpha25,'...',     &
      &           alpha975,'</td></tr>'
@@ -355,6 +370,8 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
             print '(a)','# P(x) = exp(-exp(-(x-a)/b))'
             print '(a,f16.3,a,f16.3,a,f16.3)','# a = ',a,' \\pm ',(a975-a25)/2
             print '(a,f16.3,a,f16.3,a,f16.3)','# b = ',b,' \\pm ',(b975-b25)/2
+            if ( assume == 'scale' ) print '(a,f16.3,a,f16.3,a,f16.3)', &
+                '# b/a = ',ba,' \\pm ',(ba975-ba25)/2
         else
             print '(a)','# P(x) = exp(-exp(-(x-a'')/b''))'
             call printab(lweb)
@@ -363,6 +380,8 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
             call getabfromcov(a975,b975,alpha,beta,cov1,aa975,bb975)
             print '(a,i4,a,f16.3,a,f16.3,a,f16.3)','# ',yr1a,': a = ',aaa,' \\pm ',(aa975-aa25)/2
             print '(a,i4,a,f16.3,a,f16.3,a,f16.3)','# ',yr1a,': b = ',bbb,' \\pm ',(bb975-bb25)/2
+            if ( assume == 'scale' ) print '(a,f16.3,a,f16.3,a,f16.3)', &
+                '# b/a = ',ba,' \\pm ',(ba975-ba25)/2
             call getabfromcov(a,b,alpha,beta,cov2,aaa,bbb)
             call getabfromcov(a25,b25,alpha,beta,cov2,aa25,bb25)
             call getabfromcov(a975,b975,alpha,beta,cov2,aa975,bb975)

@@ -35,11 +35,10 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
 !
     integer i,j,k,l,n,nx,iter,iens,iiens,nfit,year,yr
     integer,allocatable :: yrs(:)
-    real x,a,b,xi,alpha,beta,t(10,3),t25(10,3),t975(10,3),              &
- &       tx(3),tx25(3),tx975(3),                                        &
- &       aa(nmc),bb(nmc),xixi(nmc),alphaalpha(nmc),betabeta(nmc)        &
- &       ,tt(nmc,10,3),b25,b975,xi25,xi975,alpha25,alpha975             &
- &       ,beta25,beta975,t5(10,3),t1(10,3)                              &
+    real x,a,b,ba,xi,alpha,beta,t(10,3),t25(10,3),t975(10,3),           &
+ &       tx(3),tx25(3),tx975(3),aa(nmc),bb(nmc),baba(nmc),xixi(nmc),    &
+ &       alphaalpha(nmc),betabeta(nmc),tt(nmc,10,3),b25,b975,ba25,ba975 &
+ &       ,xi25,xi975,alpha25,alpha975,beta25,beta975,t5(10,3),t1(10,3)  &
  &       ,db,dxi,f,threshold,thens,z,ll,ll1,txtx(nmc,3)                 &
  &       ,a25,a975,ranf,mean,sd,dalpha,dbeta                            &
  &       ,mindata,minindx,pmindata,snorm,s,xxyear,frac,                 &
@@ -159,6 +158,7 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
     else
         write(0,*) 'fitgevcov: error: unknown value for assume ',assume
     end if
+    if ( assume == 'scale' ) ba = b/a
     call getreturnlevels(a,b,xi,alpha,beta,cov1,cov2,gevcovreturnlevel,j1,j2,assume,t)
     if ( xyear < 1e33 ) then
         call getreturnyears(a,b,xi,alpha,beta,xyear,cov1,cov2,          &
@@ -245,6 +245,7 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
         else
             write(0,*) 'fitgevcov: error: unknown value for assume ',assume
         end if
+        if ( assume == 'scale' ) baba(iens) = bb(iens)/aa(iens)
         if ( lwrite ) print *,'a,b,xi,alpha = ',aa(iens),bb(iens),xixi(iens),alphaalpha(iens)
         call getabfromcov(aa(iens),bb(iens),alphaalpha(iens),betabeta(iens),cov1,aaa,bbb)
         aacov(iens,1) = aaa
@@ -303,6 +304,10 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
     call getcut(a975,phi,iens,aa)
     call getcut( b25,plo,iens,bb)
     call getcut(b975,phi,iens,bb)
+    if ( assume == 'scale' ) then
+        call getcut( ba25,plo,iens,baba)
+        call getcut(ba975,phi,iens,baba)
+    end if
     call getcut( xi25,plo,iens,xixi)
     call getcut(xi975,phi,iens,xixi)
     if ( assume /= 'none' ) then
@@ -359,6 +364,10 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'//         &
      &           '&sigma;:</td><td>',b,'</td><td>',    &
      &           b25,'...',b975,'</td></tr>'
+            if ( assume == 'scale' ) then
+                print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
+     &           '&sigma;/&mu;:</td><td>',ba,'</td><td>',ba25,'...',ba975,'</td></tr>'
+            end if
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'//    &
      &           '&xi;:</td><td>',xi,'</td><td>',xi25,'...',xi975,          &
      &           '</td></tr>'
@@ -385,6 +394,10 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
             print '(a,i5,a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>'//         &
      &           '&sigma;'':</td><td>',yr2a,'</td><td>',bbb,'</td><td>',    &
      &           bb25,'...',bb975,'</td></tr>'
+            if ( assume == 'scale' ) then
+                print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
+             &           '&sigma;/&mu;:</td><td>',ba,'</td><td>',ba25,'...',ba975,'</td></tr>'
+            end if
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'//    &
      &           '&xi;:</td><td>',xi,'</td><td>',xi25,'...',xi975,          &
      &           '</td></tr>'
@@ -419,6 +432,8 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
             print '(a,i4,a,f16.3,a,f16.3,a,f16.3)','# ',yr2a,': a = ',aaa,' \\pm ',(aa975-aa25)/2
             print '(a,i4,a,f16.3,a,f16.3,a,f16.3)','# ',yr2a,': b = ',bbb,' \\pm ',(bb975-bb25)/2
         end if
+        if ( assume == 'scale' ) print '(a,f16.3,a,f16.3,a,f16.3)', &
+            '# b/a  = ',ba,' \\pm ',(ba975-ba25)/2
         print '(a,f16.3,a,f16.3,a,f16.3)','# xi  = ',xi,' \\pm ',(xi975-xi25)/2
         if ( assume /= 'none' ) then
             print '(a,f16.3,a,f16.3,a,f16.3)','# alpha ',alpha,' \\pm ',(alpha975-alpha25)/2

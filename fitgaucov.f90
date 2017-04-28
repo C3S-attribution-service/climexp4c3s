@@ -21,11 +21,11 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
     parameter(nmc=1000)
     integer i,j,jj,n,nx,iter,iens,nfit,imc,ier,year
     integer,allocatable :: yrs(:)
-    real a,b,t(10,3),t25(10,3),t975(10,3),tx(3),tx25(3),tx975(3), &
-     &       aa(nmc),bb(nmc),tt(nmc,10,3),xi,alpha,beta,dalpha,dbeta, &
+    real a,b,ba,t(10,3),t25(10,3),t975(10,3),tx(3),tx25(3),tx975(3), &
+     &       aa(nmc),bb(nmc),baba(nmc),tt(nmc,10,3),xi,alpha,beta,dalpha,dbeta, &
      &       xmin,z,x,f,txtx(nmc,3),alphaalpha(nmc),betabeta(nmc), &
      &       mean,sd,ranf,mindata,minindx,pmindata,snorm,s,frac,scross,sdecor
-    real a25,a975,b25,b975,alpha25,alpha975,beta25,beta975,aa25,aa975,bb25,bb975
+    real a25,a975,b25,b975,ba25,ba975,alpha25,alpha975,beta25,beta975,aa25,aa975,bb25,bb975
     real adev,var,skew,curt,aaa,bbb,siga,chi2,q,cmin,cmax,plo,phi
     real ttt(10,3),txtxtx(3),dum,xi3(3),acov(3,2),aacov(nmc,2)
     real,allocatable :: xx(:,:),yy(:),ys(:),zz(:),sig(:)
@@ -134,6 +134,7 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
         write(0,*) 'fitgaucov: cannot handle assume = ',assume
         call abort
     end if
+    if ( assume == 'scale' ) ba = b/a
     dum = 0
     call getreturnlevels(a,b,dum,alpha,beta,cov1,cov2,gaucovreturnlevel,j1,j2,assume,t)
     if ( xyear.lt.1e33 ) then
@@ -228,6 +229,7 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
             write(0,*) 'fitgaucov: cannot handle assume = ',assume
             call abort
         end if
+        if ( assume == 'scale' ) baba(iens) = bb(iens)/aa(iens)
         call getabfromcov(aa(iens),bb(iens),alphaalpha(iens),betabeta(iens),cov1,aaa,bbb)
         aacov(iens,1) = aaa
         call getabfromcov(aa(iens),bb(iens),alphaalpha(iens),betabeta(iens),cov2,aaa,bbb)
@@ -273,6 +275,10 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
     call getcut(a975,phi,nmc,aa)
     call getcut( b25,plo,nmc,bb)
     call getcut(b975,phi,nmc,bb)
+    if ( assume == 'scale' ) then
+        call getcut( ba25,plo,iens,baba)
+        call getcut(ba975,phi,iens,baba)
+    end if
     call getcut( alpha25,plo,nmc,alphaalpha)
     call getcut(alpha975,phi,nmc,alphaalpha)
     if ( assume /= 'none' ) then
@@ -320,6 +326,10 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
          &           '&mu;:</td><td>',a,'</td><td>',a25,'...',a975,'</td></tr>'
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
          &           '&sigma;:</td><td>',b,'</td><td>',b25,'...',b975,'</td></tr>'
+            if ( assume == 'scale' ) then
+                print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
+            &           '&sigma;/&mu;:</td><td>',ba,'</td><td>',ba25,'...',ba975,'</td></tr>'
+            end if
         else
             print '(a)','# <tr><td colspan="4">Fitted to normal '// &
          &           'distribution P(x) = exp(-(x-&mu;'')&sup2;'// &
@@ -343,6 +353,10 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
             print '(a,i5,a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>'//         &
      &           '&sigma;'':</td><td>',yr2a,'</td><td>',bbb,'</td><td>',    &
      &           bb25,'...',bb975,'</td></tr>'
+            if ( assume == 'scale' ) then
+                print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
+            &           '&sigma;/&mu;:</td><td>',ba,'</td><td>',ba25,'...',ba975,'</td></tr>'
+            end if
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
          &           '&alpha;:</td><td>',alpha,'</td><td>',alpha25,'...', &
          &           alpha975,'</td></tr>'
@@ -358,6 +372,8 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
             print '(a)','# p(x) = exp(-(x-a)^2/(2*b^2))/(b''*sqrt(2*pi))'
             print '(a,f16.3,a,f16.3)','# a = ',a,' \\pm ',(a975-a25)/2
             print '(a,f16.3,a,f16.3)','# b = ',b,' \\pm ',(b975-b25)/2
+            if ( assume == 'scale' ) print '(a,f16.3,a,f16.3,a,f16.3)', &
+                '# b/a = ',ba,' \\pm ',(ba975-ba25)/2
         else
             print '(a)','# p(x) = exp(-(x-a'')^2/(2*b''^2))/(b''*sqrt(2*pi)) with'
             call printab(lweb)
@@ -371,6 +387,8 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
             call getabfromcov(a975,b975,alpha,beta,cov2,aa975,bb975)
             print '(a,i4,a,f16.3,a,f16.3,a,f16.3)','# ',yr2a,': a = ',aaa,' \\pm ',(aa975-aa25)/2
             print '(a,i4,a,f16.3,a,f16.3,a,f16.3)','# ',yr2a,': b = ',bbb,' \\pm ',(bb975-bb25)/2
+            if ( assume == 'scale' ) print '(a,f16.3,a,f16.3,a,f16.3)', &
+                '# b/a = ',ba,' \\pm ',(ba975-ba25)/2
             print '(a,f16.3,a,f16.3)','# alpha = ',alpha,' \\pm ',(alpha975-alpha25)/2
             if ( assume.eq.'both' ) then
                 print '(a,f16.3,a,f16.3)','# beta  ',beta,' \\pm ',(beta975-beta25)/2
