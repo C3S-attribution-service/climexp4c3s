@@ -82,7 +82,7 @@ program get_index
     allocate(field(nx,ny,nperyear,firstyr:lastyr),stat=status)
     if ( status /= 0 ) then
         write(0,*) 'could not allocate field'
-        call abort
+        call exit(-1)
     end if
 
 !   now superfluous...
@@ -168,23 +168,19 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
         npoints = 1 ! for the time being only one mask can be requested at a time
         lmask = .true.
         call getarg(3,string)
-        write(0,'(3a)') 'cutting out region defined by mask ', &
-        trim(string),'<br>'
-        write(*,'(2a)') '# cutting out region defined by mask ', &
-        trim(string)
+        write(0,'(3a)') 'cutting out region defined by mask ',trim(string),'<br>'
+        write(*,'(2a)') '# cutting out region defined by mask ',trim(string)
         ncidmask = 0
         call parsenc(string,ncidmask,nxmax,nxmask,xxmask, &
             nymax,nymask,yymask,nzmax,nzmask,zzmask,ntmask,n, &
             fyr,fmo,undefmask,titlemask,1,nvars,varsmask,jvarsmask, &
             lvarsmask,unitsmask)
         if ( nzmask > 1 ) then
-            write(0,*) 'get_index: error: can only handle X-Y ', &
-            'masks, not with ',nzmask,' levels'
-            call abort
+            write(0,*) 'get_index: error: can only handle X-Y masks, not with ',nzmask,' levels'
+            call exit(-1)
         end if
         call checkgridequal(nx,ny,xx,yy,nxmask,nymask,xxmask,yymask)
-        call readonencfield(ncidmask,jvarsmask,mask,nxmask,nymask, &
-        lwrite)
+        call readonencfield(ncidmask,jvarsmask,mask,nxmask,nymask,lwrite)
         call checklsmask(mask,nx,ny,lwrite)
         mopts = 4
     else
@@ -249,24 +245,20 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
                 if (noisemodel /= 1 ) then
                     write(0,*) 'noisemodel ',noisemodel &
                     ,' not yet ready'
-                    call abort
+                    call exit(-1)
                 endif
             endif
             if ( string(1:6) == 'lsmask' ) then
                 iskip = 2
                 j = i ! getlsmask overwrites its first argument :-(
-                call getlsmask(j,lsmasktype,nxmax,xxls,nymax &
-                ,yyls,lwrite)
+                call getlsmask(j,lsmasktype,nxmax,xxls,nymax,yyls,lwrite)
                 if ( lsmasktype /= 'all' ) then
-                    call checkgridequal(nx,ny,xx,yy,nxls,nyls, &
-                    xxls,yyls)
+                    call checkgridequal(nx,ny,xx,yy,nxls,nyls,xxls,yyls)
                 end if
             endif
-            if ( string(1:6) == 'lwrite' .or. string(1:5) == 'debug' &
-            ) then
+            if ( string(1:6) == 'lwrite' .or. string(1:5) == 'debug' ) then
                 lwrite = .true.
-                if ( lwrite ) print * &
-                ,'Debugging information requested'
+                if ( lwrite ) print *,'Debugging information requested'
             endif
             if ( string(1:5) == 'nomis' ) then
                 missing = .false.
@@ -278,17 +270,14 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
                 iskip = 1
                 call getarg(i+1,fieldname)
                 if ( fieldname == ' ' ) then
-                    write(0,*) &
-                    'get_index: error: expecting fieldname'
-                    write(*,*) &
-                    'get_index: error: expecting fieldname'
-                    call abort
+                    write(0,*) 'get_index: error: expecting fieldname'
+                    write(*,*) 'get_index: error: expecting fieldname'
+                    call exit(-1)
                 endif
-            !                   if the field is home-constructed, it may have slashes in it
+!               if the field is home-constructed, it may have slashes in it
                 fieldname=fieldname(1+index(fieldname,'/', .true.):)
-                if ( lwrite ) print *,'make grid points of ' &
-                ,trim(fieldname),' in region'
-            !                   no possibility to skip points yet
+                if ( lwrite ) print *,'make grid points of ',trim(fieldname),' in region'
+!               no possibility to skip points yet
             endif
             if ( string(1:4) == 'outf' ) then
                 outfield = .true.
@@ -299,7 +288,7 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
                     'get_index: error: expecting outfile'
                     write(*,*) &
                     'get_index: error: expecting outfile'
-                    call abort
+                    call exit(-1)
                 end if
             end if
             if ( string(1:13) == 'standardunits' ) then
@@ -410,7 +399,7 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
         if ( (y2-y1)*(x2-x1) > 0.2*nx*ny ) then
             write(0,*) 'Region too large (',(y2-y1)*(x2-x1),'&gt;0.2*',nx*ny, &
                 ').  Please download the whole dataset.'
-            call abort
+            call exit(-1)
         end if
         nxf = nx
         nyf = ny
@@ -453,15 +442,14 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
             status = nf_close(ncid)
         else
             write(0,*) 'GrADS .ctl/.grd file output not yet ready'
-            call abort
+            call exit(-1)
         end if
         goto 999
     end if
 
 !   get mean of whole field if multiple points are requested
 
-    if ( npoints > 1 .and. (missing .or. anom) .and. oper == 'v' ) &
-    then
+    if ( npoints > 1 .and. (missing .or. anom) .and. oper == 'v' ) then
         call getmean(mean,nn,nx,ny,nperyear,field,nx,ny &
             ,nperyear,firstyr,lastyr,nx,ny,firstyr,firstmo,nt &
             ,lwrite)
@@ -476,53 +464,59 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
 !   manage collection of grid points
 
     if ( gridpoints ) then
-        write(*,'(2a,4(f10.3,a))') trim(fieldname), &
-        ' grid points in ', &
-        lat1,'N:',lat2,'N,',lon1,'E:',lon2,'E'
-        call getlonwindow(lon1,lon2,x1,x2,xx,nx,lon1c,lon2c,lwrite)
-        if ( lon1c > 1e33 .or. lon2c > 1e33 ) then
-            write(0,*) &
-            'get_index: something went wrong in getlonwindow' &
-            ,lon1c,lon2c
-            call abort
-        endif
-        call getlatwindow(lat1,lat2,y1,y2,yy,ny,lat1c,lat2c,lwrite)
-        if ( lat1c > 1e33 .or. lat2c > 1e33 ) then
-            write(0,*) &
-            'get_index: something went wrong in getlatwindow' &
-            ,lat1c,lat2c
-            call abort
-        endif
+        if ( lmask ) then
+            !!!call getarg(3,string)
+            !!!write(*,'(3a)') trim(fieldname),' grid points within mask ',trim(string)
+            ! compute the bounding box of the mask
+            call getfirstnonzero(mask,nx,ny,'y',1,y1)
+            call getfirstnonzero(mask,nx,ny,'y',-1,y2)
+            call getfirstnonzero(mask,nx,ny,'x',1,x1)
+            call getfirstnonzero(mask,nx,ny,'x',-1,x2)
+            if ( lwrite ) print *,'mask is only non-zero over x ',x1,x2,' and y ',y1,y2
+            lon1 = xx(x1)
+            lon2 = xx(x2)
+            lat1 = yy(y1)
+            lat2 = yy(y2)
+            write(*,'(2a,4(f10.3,a))') trim(fieldname),' grid points in ', &
+                lat1,'N:',lat2,'N,',lon1,'E:',lon2,'E'
+        else
+            write(*,'(2a,4(f10.3,a))') trim(fieldname),' grid points in ', &
+                lat1,'N:',lat2,'N,',lon1,'E:',lon2,'E'
+            call getlonwindow(lon1,lon2,x1,x2,xx,nx,lon1c,lon2c,lwrite)
+            if ( lon1c > 1e33 .or. lon2c > 1e33 ) then
+                write(0,*) 'get_index: something went wrong in getlonwindow',lon1c,lon2c
+                call exit(-1)
+            endif
+            call getlatwindow(lat1,lat2,y1,y2,yy,ny,lat1c,lat2c,lwrite)
+            if ( lat1c > 1e33 .or. lat2c > 1e33 ) then
+                write(0,*) 'get_index: something went wrong in getlatwindow',lat1c,lat2c
+                call exit(-1)
+            endif
+        end if
 
         npoints = 0
         do j=y1,y2
             do i=x1,x2
                 ii = normx(i,nx)
-                if ( lsmasktype == 'land' .or. &
-                lsmasktype == 'notl' ) then
-                    if ( abs(lsmask(ii,j)-1) > 1e-4 .eqv. &
-                    lsmasktype == 'land' ) then
-                        if ( lwrite ) print *,'not ',lsmasktype, &
-                        ' point ',ii,j,lsmask(ii,j)
+                if ( lsmasktype == 'land' .or. lsmasktype == 'notl' ) then
+                    if ( abs(lsmask(ii,j)-1) > 1e-4 .eqv. lsmasktype == 'land' ) then
+                        if ( lwrite ) print *,'not ',lsmasktype,' point ',ii,j,lsmask(ii,j)
                         cycle
                     endif
-                elseif ( lsmasktype == 'sea ' .or. &
-                    lsmasktype == 'nots' ) then
-                    if ( abs(lsmask(ii,j)-0) > 1e-4 .eqv. &
-                    lsmasktype == 'sea' ) then
-                        if ( lwrite ) print *,'not ',lsmasktype, &
-                        ' point ',ii,j,lsmask(ii,j)
+                elseif ( lsmasktype == 'sea ' .or. lsmasktype == 'nots' ) then
+                    if ( abs(lsmask(ii,j)-0) > 1e-4 .eqv. lsmasktype == 'sea' ) then
+                        if ( lwrite ) print *,'not ',lsmasktype,' point ',ii,j,lsmask(ii,j)
                         cycle
                     endif
-                elseif ( lsmasktype == '5lan' .or. &
-                    lsmasktype == '5sea' ) then
-                    if ( lsmask(ii,j) < 0.5 .eqv. &
-                    lsmasktype == '5lan' ) then
-                        if ( lwrite ) print *,'not ',lsmasktype, &
-                        ' point ',ii,j,lsmask(ii,j)
+                elseif ( lsmasktype == '5lan' .or. lsmasktype == '5sea' ) then
+                    if ( lsmask(ii,j) < 0.5 .eqv. lsmasktype == '5lan' ) then
+                        if ( lwrite ) print *,'not ',lsmasktype,' point ',ii,j,lsmask(ii,j)
                         cycle
                     endif
                 endif
+                if ( lmask ) then
+                    if ( mask(ii,j) == 0 ) cycle
+                end if
                 npoints = npoints + 1
                 xlist(npoints) = ii
                 ylist(npoints) = j
@@ -532,7 +526,7 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
         print '(a)','========='
     endif
 
-!       loop over all points
+!   loop over all points
 
     if ( npoints == 1 .and. .NOT. gridpoints) then
         out = 6
@@ -601,13 +595,11 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
         write(out,'(6a)') '# ',trim(vars(1)),' [',trim(newunits) &
         ,'] from ',trim(title)
     
-    !           compute indices of region to be cut out
+!       compute indices of region to be cut out
     
         if ( lwrite ) then
-            write(0,'(a,i4,1000f7.1)') 'get_index: found X axis ',nx &
-            ,(xx(i),i=1,nx)
-            write(0,'(a,i4,1000f7.1)') 'get_index: found Y axis ',ny &
-            ,(yy(i),i=1,ny)
+            write(0,'(a,i4,1000f7.1)') 'get_index: found X axis ',nx,(xx(i),i=1,nx)
+            write(0,'(a,i4,1000f7.1)') 'get_index: found Y axis ',ny,(yy(i),i=1,ny)
         endif
         if ( gridpoints ) then
             x1 = xlist(ipoints)
@@ -616,7 +608,7 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
             y2 = y1
             write(out,1000) '# grid point lon,lat =',lon1,lat1
         else if ( lmask ) then
-        ! save time by computing the bounding box of the mask
+            ! save time by computing the bounding box of the mask
             call getfirstnonzero(mask,nx,ny,'y',1,y1)
             call getfirstnonzero(mask,nx,ny,'y',-1,y2)
             call getfirstnonzero(mask,nx,ny,'x',1,x1)
@@ -624,16 +616,14 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
             if ( lwrite ) print *,'mask is only non-zero over x ', &
             x1,x2,' and y ',y1,y2
         else
-            call getlonwindow(lon1,lon2,x1,x2,xx,nx,lon1c,lon2c &
-            ,lwrite)
+            call getlonwindow(lon1,lon2,x1,x2,xx,nx,lon1c,lon2c,lwrite)
             if ( lon1c > 1e33 .or. lon2c > 1e33 ) goto 900
-            call getlatwindow(lat1,lat2,y1,y2,yy,ny,lat1c,lat2c &
-            ,lwrite)
+            call getlatwindow(lat1,lat2,y1,y2,yy,ny,lat1c,lat2c,lwrite)
             if ( lat1c > 1e33 .or. lat2c > 1e33 ) goto 900
             if ( interp ) then
                 if ( lon1 /= lon2 .or. lat1 /= lat2 ) then
                     write(0,*) 'get_index: error: cannot interpolate area yet'
-                    call abort
+                    call exit(-1)
                 else
                 !                       find other points around the requested point
                     dx = lon1 - xx(normx(x1,nx))
@@ -826,11 +816,15 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
                                 if ( missing .or. anom ) &
                                     ave(month) = ave(month) - sgn*w*mean(ii,j,month)
                             else if ( oper == 'x' ) then
-                                if ( mask(ii,j).gt.0.5 ) then
+                                if ( lmask ) then
+                                    if ( mask(ii,j).gt.0.5 ) ave(month) = max(ave(month),field(ii,j,month,year))
+                                else
                                     ave(month) = max(ave(month),field(ii,j,month,year))
                                 end if
                             else if ( oper == 'n' ) then
-                                if ( mask(ii,j).gt.0.5 ) then
+                                if ( lmask ) then
+                                    if ( mask(ii,j).gt.0.5 ) ave(month) = min(ave(month),field(ii,j,month,year))
+                                else
                                     ave(month) = min(ave(month),field(ii,j,month,year))
                                 end if
                             else
@@ -918,13 +912,13 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
     enddo
     goto 999
     901 write(0,*) 'get_index: error reading lon1 from ',trim(string)
-    call abort
+    call exit(-1)
     902 write(0,*) 'get_index: error reading lon2 from ',trim(string)
-    call abort
+    call exit(-1)
     903 write(0,*) 'get_index: error reading lat1 from ',trim(string)
-    call abort
+    call exit(-1)
     904 write(0,*) 'get_index: error reading lat2 from ',trim(string)
-    call abort
+    call exit(-1)
     999 continue
     if ( allocated(lsmask) ) deallocate(lsmask)
     end subroutine gindx
@@ -994,7 +988,7 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
             ,', not ',sign
             write(*,*) 'getfirstnonzero: error: sign should be +/-1' &
             ,', not ',sign
-            call abort
+            call exit(-1)
         end if
         do j=j1,j2,dj
             do i=1,nx
@@ -1020,7 +1014,7 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
             ,', not ',sign,axis
             write(*,*) 'getfirstnonzero: error: sign should be +/-1' &
             ,', not ',sign,axis
-            call abort
+            call exit(-1)
         end if
         do i=i1,i2,di
             do j=1,ny
@@ -1037,7 +1031,7 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
         ,', not ',axis
         write(*,*) 'getfirstnonzero: error: axis should x or y' &
         ,', not ',axis
-        call abort
+        call exit(-1)
     end if
     if ( .NOT. foundit ) then
         write(0,*) 'getfirstnonzero: error: mask is all zero ',axis &
@@ -1049,7 +1043,7 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
         else
             print *,'j1,j2,dj = ',j1,j2,dj
         end if
-        call abort
+        call exit(-1)
     end if
      
 end subroutine getfirstnonzero
