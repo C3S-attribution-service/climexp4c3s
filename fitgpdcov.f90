@@ -51,7 +51,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     real adev,var,skew,curt,aaa,bbb,siga,chi2,q,p(4)
     integer,allocatable :: ii(:),yyrs(:)
     real,allocatable :: xx(:,:),yy(:),ys(:),zz(:),sig(:)
-    logical lopen,lllwrite
+    logical lopen,lllwrite,lnone
     character lgt*4,string*1000,arg*250,method*3
     integer iargc
 !
@@ -72,6 +72,11 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
 !
     allocate(yrs(0:nmax),bootyrs(0:nmax))
     allocate(xx(2,nmax))
+    if ( lnone ) then
+        lnone = .true.
+    else
+        lnone = .false.
+    end if
     if ( lwrite ) print *,'fitgpdcov: calling fill_linear_array'
     call fill_linear_array(yrseries,yrcovariate,npernew,j1,j2, &
      &       fyr,lyr,mens1,mens,xx,yrs,nmax,ntot,lwrite)
@@ -215,7 +220,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     else
         xi = 0.1
     end if
-    if ( cov1 == 0 .and. cov2 == 0 ) then
+    if ( lnone ) then
         alpha = 3e33
         beta = 3e33
         call fit0gpdcov(a,b,xi,iter)
@@ -327,7 +332,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         xixi(iens) = xi
         alphaalpha(iens) = alpha
         llwrite = .false.
-        if ( cov1 == 0 .and. cov2 == 0 ) then
+        if ( lnone ) then
             alphaalpha(iens) = 3e33
             betabeta(iens) = 3e33
             call fit0gpdcov(aa(iens),bb(iens),xixi(iens),iter)
@@ -468,7 +473,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         a = -a
     end if
     if ( lweb ) then
-        if ( cov1 == 0 .and. cov2 == 0 ) then
+        if ( lnone ) then
             print '(a)','# <tr><td colspan="4">Fitted to GPD '// &
          &           'distribution H(x+&mu;) = 1 - (1+&xi;*x/&sigma;)^(-1/&xi;)</td></tr>'
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
@@ -520,7 +525,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     else
         print '(a,i5,a)','# Fitted to GPD distribution in ',iter &
      &           ,' iterations'
-        if ( cov1 == 0 .and. cov2 == 0 ) then
+        if ( lnone ) then
             print '(a)','# H(x+a) = 1-(1+xi*x/b)**(-1/xi) with'
             print '(a,f16.3,a,f16.3,a,f16.3)','# a = ',a,' \\pm ',(a975-a25)/2
             print '(a,f16.3,a,f16.3,a,f16.3)','# b = ',b,' \\pm ',(b975-b25)/2
@@ -549,9 +554,9 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
             end if
         end if
     end if
-    call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume)
-    call printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,lweb,plot,assume)
-    if ( cov1 /= 0 .or. cov2 /= 0 ) call printcovpvalue(txtx,nmc,iens,lweb)
+    call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume,lnone)
+    call printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,lweb,plot,assume,lnone)
+    if ( .not. lnone ) call printcovpvalue(txtx,nmc,iens,lweb)
 
     if ( dump ) then
         call plot_tx_cdfs(txtx,nmc,iens,ntype,j1,j2)
@@ -580,7 +585,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         end if
     end if
     
-    if ( cov1 == 0 .and. cov2 == 0 ) then
+    if ( lnone ) then
         call plotreturnvalue(ntype,t25(1,1),t975(1,1),j2-j1+1)
         ys(1:ncur) = yy(1:ncur)
         mindata = a

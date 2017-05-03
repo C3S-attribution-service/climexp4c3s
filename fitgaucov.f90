@@ -36,7 +36,7 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
     parameter(nmax=100000)
     integer ncur
     real data(2,nmax),restrain
-    logical llwrite,llchangesign
+    logical llwrite,llchangesign,lnone
     common /fitdata3/ data
     common /fitdata2/ restrain,ncur,llwrite,llchangesign
     character cassume*5
@@ -45,6 +45,11 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
     year = yr2a
     allocate(yrs(0:nmax))
     allocate(xx(2,nmax))
+    if ( cov1 == 0 .and. cov2 == 0 ) then
+        lnone = .true.
+    else
+        lnone = .false.
+    end if
 
     if ( lwrite ) print *,'fitgaucov: calling fill_linear_array'
     call fill_linear_array(yrseries,yrcovariate,npernew,j1,j2, &
@@ -121,7 +126,7 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
 !
     a = mean
     b = sd
-    if ( assume == 'none' ) then
+    if ( lnone ) then
         alpha = 3e33
         beta = 3e33
         call fit0gaucov(a,b,iter)
@@ -155,7 +160,7 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
             acov = -acov
             aacov = -aacov
             t = -t
-            if ( assume /= 'none' ) then
+            if ( .not. lnone ) then
                 alpha = -alpha
                 if ( cassume == 'both' ) then
                     beta = -beta
@@ -215,7 +220,7 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
         bb(iens) = b
         alphaalpha(iens) = alpha
         llwrite = .false.
-        if ( assume == 'none' ) then
+        if ( lnone ) then
             alphaalpha(iens) = 3e33
             betabeta(iens) = 3e33
             call fit0gaucov(aa(iens),bb(iens),iter)
@@ -258,7 +263,7 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
         acov = -acov
         aa = -aa
         aacov = -aacov
-        if ( assume /= 'none' ) then
+        if ( .not. lnone ) then
             alpha = -alpha
             alphaalpha = -alphaalpha
             if ( assume == 'both' ) then
@@ -281,7 +286,7 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
     end if
     call getcut( alpha25,plo,nmc,alphaalpha)
     call getcut(alpha975,phi,nmc,alphaalpha)
-    if ( assume /= 'none' ) then
+    if ( .not. lnone ) then
         call getcut( alpha25,plo,iens,alphaalpha)
         call getcut(alpha975,phi,iens,alphaalpha)
         if ( assume == 'both' ) then
@@ -318,7 +323,7 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
         if ( .not.lwrite ) return
     end if
     if ( lweb ) then
-        if ( assume == 'none' ) then
+        if ( lnone ) then
             print '(a)','# <tr><td colspan="4">Fitted to normal '// &
          &           'distribution P(x) = exp(-(x-&mu;)&sup2;'// &
          &           '/(2&sigma;&sup2;))/(&sigma;&radic;(2&pi;))</td></tr>'
@@ -368,7 +373,7 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
         end if
     else
         print '(a,i5,a)','# Fitted to Gaussian distribution in ',iter,' iterations'
-        if ( assume == 'none' ) then
+        if ( lnone ) then
             print '(a)','# p(x) = exp(-(x-a)^2/(2*b^2))/(b''*sqrt(2*pi))'
             print '(a,f16.3,a,f16.3)','# a = ',a,' \\pm ',(a975-a25)/2
             print '(a,f16.3,a,f16.3)','# b = ',b,' \\pm ',(b975-b25)/2
@@ -395,9 +400,9 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
             end if
         end if
     endif
-    call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume)
-    call printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,lweb,plot,assume)
-    if ( assume /= 'none' ) call printcovpvalue(txtx,nmc,nmc,lweb)
+    call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume,lnone)
+    call printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,lweb,plot,assume,lnone)
+    if ( .not. lnone ) call printcovpvalue(txtx,nmc,nmc,lweb)
 
     if ( dump ) then
         call plot_tx_cdfs(txtx,nmc,nmc,ntype,j1,j2)
@@ -414,13 +419,13 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
     nfit = 2
     if ( lchangesign ) then
         a = -a
-        if ( assume /= 'none' ) then
+        if ( .not. lnone ) then
             alpha = -alpha
             if ( assume == 'both' ) beta = -beta
         end if
     end if
 
-    if ( assume == 'none' ) then
+    if ( lnone ) then
         call plotreturnvalue(ntype,t25(1,1),t975(1,1),j2-j1+1)
         ys(1:ntot) = yy(1:ntot)
         call plot_ordered_points(yy,ys,yrs,ntot,ntype,nfit,                 &

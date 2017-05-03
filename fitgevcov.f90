@@ -46,6 +46,7 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
     real ttt(10,3),txtxtx(3)
     real adev,var,skew,curt,aaa,bbb,aa25,aa975,bb25,bb975,siga,chi2,q
     real,allocatable :: xx(:,:),yy(:),ys(:),zz(:),sig(:)
+    logical lnone
     character lgt*4,method*3
 !
     integer nmax,ncur
@@ -62,6 +63,11 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
 !
     allocate(yrs(0:nmax))
     allocate(xx(2,nmax))
+    if ( lnone ) then
+        lnone = .true.
+    else
+        lnone = .false.
+    end if
     year = yr2a
 
     if ( lwrite ) print *,'fitgevcov: calling fill_linear_array'
@@ -144,7 +150,7 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
     else
         xi = 0.1
     end if
-    if ( assume == 'none' ) then
+    if ( lnone ) then
         alpha = 3e33
         beta = 3e33
         call fit0gevcov(a,b,xi,iter)
@@ -177,7 +183,7 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
             a = -a
             b = -b
             t = -t
-            if ( assume /= 'none' ) then
+            if ( .not. lnone ) then
                 alpha = -alpha
                 if ( cassume == 'both' ) then
                     beta = -beta
@@ -231,7 +237,7 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
         xixi(iens) = xi
         alphaalpha(iens) = alpha
         llwrite = .false.
-        if ( assume == 'none' ) then
+        if ( lnone ) then
             alphaalpha(iens) = 3e33
             betabeta(iens) = 3e33
             call fit0gevcov(aa(iens),bb(iens),xixi(iens),iter)
@@ -287,7 +293,7 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
         aacov = -aacov
         b = -b
         bb = -bb
-        if ( assume /= 'none' ) then
+        if ( .not. lnone ) then
             alpha = -alpha
             alphaalpha = -alphaalpha
             if ( assume == 'both' ) then
@@ -310,7 +316,7 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
     end if
     call getcut( xi25,plo,iens,xixi)
     call getcut(xi975,phi,iens,xixi)
-    if ( assume /= 'none' ) then
+    if ( .not. lnone ) then
         call getcut( alpha25,plo,iens,alphaalpha)
         call getcut(alpha975,phi,iens,alphaalpha)
         if ( assume == 'both' ) then
@@ -354,7 +360,7 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
         if ( .not.lwrite ) return
     end if
     if ( lweb ) then
-        if ( assume == 'none' ) then
+        if ( lnone ) then
             print '(a)','# <tr><td colspan="4">Fitted to GEV '//            &
      &           'distribution P(x) = exp(-(1+&xi;(x-&mu;)'//             &
      &               '/&sigma;)^(-1/&xi;))</td></tr>'
@@ -413,7 +419,7 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
     else
         print '(a,i5,a)','# Fitted to GEV distribution in ',iter        &
  &           ,' iterations'
-        if ( assume == 'none' ) then
+        if ( lnone ) then
             print '(a)','# P(x) = exp(-(1+xi*(x-a/b)**'//               &
      &           '(-1/xi)) with'
             print '(a,f16.3,a,f16.3,a,f16.3)','# a = ',a,' \\pm ',(a975-a25)/2
@@ -435,16 +441,16 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
         if ( assume == 'scale' ) print '(a,f16.3,a,f16.3,a,f16.3)', &
             '# b/a  = ',ba,' \\pm ',(ba975-ba25)/2
         print '(a,f16.3,a,f16.3,a,f16.3)','# xi  = ',xi,' \\pm ',(xi975-xi25)/2
-        if ( assume /= 'none' ) then
+        if ( .not. lnone ) then
             print '(a,f16.3,a,f16.3,a,f16.3)','# alpha ',alpha,' \\pm ',(alpha975-alpha25)/2
             if ( assume == 'both' ) then
                 print '(a,f16.3,a,f16.3,a,f16.3)','# beta  ',beta,' \\pm ',(beta975-beta25)/2
             end if
         end if
     end if
-    call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume)
-    call printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,lweb,plot,assume)
-    if ( assume /= 'none' ) call printcovpvalue(txtx,nmc,iens,lweb)
+    call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume,lnone)
+    call printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,lweb,plot,assume,lnone)
+    if ( .not. lnone ) call printcovpvalue(txtx,nmc,iens,lweb)
 
     if ( dump ) then
         call plot_tx_cdfs(txtx,nmc,iens,ntype,j1,j2)
@@ -465,12 +471,12 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
         ! we had flipped the sign on a,b,alpha but not yet on the rest, flip back...
         a = -a
         b = -b
-        if ( assume /= 'none' ) then
+        if ( .not. lnone ) then
             alpha = -alpha
             if ( assume == 'both' ) beta = -beta
         end if
     end if
-    if ( assume == 'none' ) then
+    if ( lnone ) then
         call plotreturnvalue(ntype,t25(1,1),t975(1,1),j2-j1+1)
         ys(1:ntot) = yy(1:ntot)
         call plot_ordered_points(yy,ys,yrs,ntot,ntype,nfit,                 &

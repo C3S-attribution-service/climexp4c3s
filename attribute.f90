@@ -8,14 +8,13 @@ program attribute
     implicit none
     include 'param.inc'
     include 'getopts.inc'
-    integer nresmax
-    parameter(nresmax=100)
+    integer,parameter :: nresmax=100,mensmax=2000
     integer nperyear,nperyear1,mens1,mens,mmens1,mmens,iens,nresults
     integer i,yr,mo,n,off
     real results(3,nresmax)
     real,allocatable :: series(:,:,:),covariate(:,:,:)
     character seriesfile*1024,covariatefile*1024,distribution*6,assume*5,string*80
-    character var*40,units*80,var1*40,units1*80,seriesids(0:nensmax)*30
+    character var*40,units*80,var1*40,units1*80,seriesids(0:mensmax)*30
     logical lprint
     integer iargc
     real scalingpower
@@ -35,22 +34,22 @@ program attribute
 !
 !   initialisation
 !
-    call attribute_init(seriesfile,distribution,assume,off,nperyear,yrbeg,yrend,nensmax,lwrite)
+    call attribute_init(seriesfile,distribution,assume,off,nperyear,yrbeg,yrend,mensmax,lwrite)
 
-    allocate(series(npermax,yrbeg:yrend,0:nensmax))
+    allocate(series(npermax,yrbeg:yrend,0:mensmax))
     if ( seriesfile == 'file' ) then
         ! set of stations
         call readsetseries(series,seriesids,npermax,yrbeg,yrend &
-        & ,nensmax,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
+        & ,mensmax,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
     else if ( seriesfile == 'gridpoints' ) then
         ! netcdf file with gridpoints
         call readgridpoints(series,seriesids,npermax,yrbeg,yrend &
-        & ,nensmax,nperyear,mens1,mens,nens1,nens2,var,units,lstandardunits,lwrite)
+        & ,mensmax,nperyear,mens1,mens,nens1,nens2,var,units,lstandardunits,lwrite)
     else
         ! simple data
         !!!write(0,*) 'Reading time series...<p>'
         call readensseries(seriesfile,series,npermax,yrbeg,yrend &
-        & ,nensmax,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
+        & ,mensmax,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
         if ( mens.gt.mens1 ) then
             do i=mens1,mens
                 write(seriesids(i),'(i3.3)') i
@@ -61,7 +60,7 @@ program attribute
     end if
     
     call getarg(2+off,covariatefile)
-    allocate(covariate(npermax,yrbeg:yrend,0:nensmax))
+    allocate(covariate(npermax,yrbeg:yrend,0:mensmax))
     if ( covariatefile == 'none' ) then
         covariate = 0
         nperyear1 = 1
@@ -78,7 +77,7 @@ program attribute
     else
         !!!write(0,*) 'Reading covariate series...<p>'
         call readensseries(covariatefile,covariate,npermax,yrbeg,yrend &
-        & ,nensmax,nperyear1,mmens1,mmens,var1,units1,lstandardunits,lwrite)
+        & ,mensmax,nperyear1,mmens1,mmens,var1,units1,lstandardunits,lwrite)
         if ( mmens1 /= mens1 .or. mmens /= mens ) then
             write(0,*) 'attribute: error: number of ensemble members should be the same ' &
             & ,'found covariate: ',mmens1,'-',mmens,', series ',mens1,'-',mens

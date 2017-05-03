@@ -40,6 +40,7 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
  &       ,acov(3,2),cmin,cmax,plo,phi,scross,sdecor
     real adev,var,skew,curt,aaa,bbb,siga,chi2,q
     real,allocatable :: xx(:,:),yy(:),ys(:),zz(:),sig(:)
+    logical lnone
     character lgt*4,method*3
 !
     integer nmax,ncur
@@ -61,6 +62,11 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
     allocate(xx(2,nmax),aa(nmc),bb(nmc),baba(nmc),xixi(nmc),tt(nmc,10,3),  &
  &       txtx(nmc,3),alphaalpha(nmc),betabeta(nmc),aacov(nmc,2))
     year = yr2a
+    if ( cov1 == 0 .and. cov2 == 0 ) then
+        lnone = .true.
+    else
+        lnone = .false.
+    end if
 
     if ( lwrite ) print *,'fitgumcov: calling fill_linear_array'
     call fill_linear_array(yrseries,yrcovariate,npernew,j1,j2,   &
@@ -130,7 +136,7 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
 !
     b = sd*sqrt(6.)/(4*atan(1.))
     a = mean - 0.57721*b
-    if ( assume == 'none' ) then
+    if ( lnone ) then
         alpha = 3e33
         beta = 3e33
         call fit0gumcov(a,b,iter)
@@ -166,7 +172,7 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
         if ( lchangesign ) then
             a = -a
             t = -t
-            if ( assume /= 'none' ) then
+            if ( .not. lnone ) then
                 alpha = -alpha
                 if ( cassume == 'both' ) then
                     beta = -beta
@@ -213,7 +219,7 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
         aa(iens) = a
         bb(iens) = b
         alphaalpha(iens) = alpha
-        if ( assume == 'none' ) then
+        if ( lnone ) then
             alphaalpha(iens) = 3e33
             betabeta(iens) = 3e33
             call fit0gumcov(aa(iens),bb(iens),iter)
@@ -260,7 +266,7 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
         aa = -aa
         aacov = -aacov
         alpha = -alpha
-        if ( assume /= 'none' ) then
+        if ( .not. lnone ) then
             alpha = -alpha
             alphaalpha = -alphaalpha
             if ( assume == 'both' ) then
@@ -281,7 +287,7 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
         call getcut( ba25,plo,iens,baba)
         call getcut(ba975,phi,iens,baba)
     end if
-    if ( assume /= 'none' ) then
+    if ( .not. lnone ) then
         call getcut( alpha25,plo,nmc,alphaalpha)
         call getcut(alpha975,phi,nmc,alphaalpha)
         if ( assume == 'both' ) then
@@ -326,7 +332,7 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
         if ( .not.lwrite ) return
     end if
     if ( lweb ) then
-        if ( assume == 'none' ) then
+        if ( lnone ) then
             print '(a)','# <tr><td colspan="4">Fitted to Gumbel '//            &
      &           'distribution P(x) = exp(-exp(-(x-&mu;)/&sigma;))'   &
      &           //'</td></tr>'
@@ -366,7 +372,7 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
         end if
     else
         print '(a,i5,a)','# Fitted to Gumbel distribution in ',iter,' iterations'
-        if ( assume == 'none' ) then
+        if ( lnone ) then
             print '(a)','# P(x) = exp(-exp(-(x-a)/b))'
             print '(a,f16.3,a,f16.3,a,f16.3)','# a = ',a,' \\pm ',(a975-a25)/2
             print '(a,f16.3,a,f16.3,a,f16.3)','# b = ',b,' \\pm ',(b975-b25)/2
@@ -393,9 +399,9 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
             end if
         end if
     end if
-    call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume)
-    call printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,lweb,plot,assume)
-    if ( assume /= 'none' ) call printcovpvalue(txtx,nmc,nmc,lweb)
+    call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume,lnone)
+    call printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,lweb,plot,assume,lnone)
+    if ( .not. lnone ) call printcovpvalue(txtx,nmc,nmc,lweb)
 
     if ( dump ) then
         call plot_tx_cdfs(txtx,nmc,nmc,ntype,j1,j2)
@@ -415,7 +421,7 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
         alpha = -alpha
     end if
 
-    if ( assume == 'none' ) then
+    if ( lnone ) then
         call plotreturnvalue(ntype,t25(1,1),t975(1,1),j2-j1+1)
         ys(1:ntot) = yy(1:ntot)
         call plot_ordered_points(yy,ys,yrs,ntot,ntype,nfit,                 &

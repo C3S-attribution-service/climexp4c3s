@@ -48,14 +48,14 @@ subroutine printreturnvalue(ntype,t,t25,t975,lweb)
 end subroutine printreturnvalue
 
 
-subroutine printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume)
+subroutine printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume,lnone)
 
 !   print return values for a set of fixed return times
 
     implicit none
     integer :: ntype,yr1a,yr2a
     real :: t(10,3),t25(10,3),t975(10,3)
-    logical :: lweb,plot
+    logical :: lweb,plot,lnone
     character assume*(*)
     integer :: i
     character units*1
@@ -68,7 +68,7 @@ subroutine printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume)
         end if
         if ( lweb ) then
             do i=1,10,3
-                if ( assume == 'none' ) then
+                if ( lnone ) then
                     print '(a,i5,a,f16.3,a,f16.3,a,f16.3,a)' &
                         ,'# <tr><td colspan=2>return value ',10**(1+i/3) &
                         ,' yr</td><td>',t(i,1),'</td><td>',t25(i,1) &
@@ -96,7 +96,7 @@ subroutine printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume)
             enddo
             if ( plot ) then ! output for stationlist
                 do i=1,10
-                    if ( assume == 'none' ) then
+                    if ( lnone ) then
                         write(11,'(4g20.4,i6,a)') t(i,1),t25(i,1), &
                             t975(i,1),10**(1+i/3),0,' return value'
                     else
@@ -109,7 +109,7 @@ subroutine printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume)
             end if
         else
             do i=1,4
-                if ( assume == 'none' ) then
+                if ( lnone ) then
                     print '(a,i5,a,f16.3,a,2f16.3)' &
                         ,'# value for return period ',10**i &
                         ,': ' &
@@ -166,14 +166,14 @@ subroutine printreturntime(year,xyear,tx,tx25,tx975,lweb)
 end subroutine printreturntime
 
 
-subroutine printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,lweb,plot,assume)
+subroutine printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,lweb,plot,assume,lnone)
 
 !   print return time of year at cov1 and cov2
 
     implicit none
     integer :: year,yr1a,yr2a
     real :: xyear,tx(3),tx25(3),tx975(3)
-    logical :: lweb,plot
+    logical :: lweb,plot,lnone
     character idmax*(*),assume*(*)
     integer :: i
     character atx(3)*16,atx25(3)*16,atx975(3)*16
@@ -185,7 +185,7 @@ subroutine printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,lweb,plot
             call val_or_inf(atx975(i),tx975(i),lweb)
         end do
         if ( lweb ) then
-            if ( assume /= 'none' ) then
+            if ( .not. lnone ) then
                 print '(a,i5,a,i5,7a)' &
                     ,'# <tr><td><!--atr2-->return period ',year, &
                     '</td><td>',yr1a,'</td><td>',atx(1), &
@@ -213,7 +213,7 @@ subroutine printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,lweb,plot
                     '</td><td>',atx25(1),' ... ',atx975(1),'</td></tr>'
             end if
         else
-            if ( assume /= 'none' ) then
+            if ( .not. lnone ) then
                 print '(a,i4,a,i4,5a)' &
                     ,'# return time ',year,' at yr=',yr1a &
                     ,' = ',atx(1),' 95% CI ',atx25(1),atx975(1)
