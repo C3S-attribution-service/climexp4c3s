@@ -1,11 +1,11 @@
 subroutine readgridpoints(data,ids,npermax,yrbeg,yrend,nensmax, &
-    nperyear,mens1,mens,outvar,outunits,lstandardunits,lwrite)
+    nperyear,mens1,mens,nens1,nens2,outvar,outunits,lstandardunits,lwrite)
 !
 !   read the grid points of a netcdf file into a set of time series
 !
     implicit none
     integer,parameter :: nxmax=1000,nymax=1000
-    integer   :: npermax,yrbeg,yrend,nensmax,nperyear,mens1,mens
+    integer   :: npermax,yrbeg,yrend,nensmax,nperyear,mens1,mens,nens1,nens2
     real      :: data(npermax,yrbeg:yrend,0:nensmax)
     logical   :: lwrite,lstandardunits
     character :: ids(0:nensmax)*(*),outvar*(*),outunits*(*)
@@ -23,6 +23,8 @@ subroutine readgridpoints(data,ids,npermax,yrbeg,yrend,nensmax, &
         ,ltime,undef,endian,title,history,1,nvars,vars,ivars    &
         ,lvars,svars,units,cell_methods,lwrite)
     lastyr = firstyr + (firstmo+nt-2)/nperyear
+    mens1 = max(nens1,nens1)
+    mens = min(mens,nens2)
     allocate(field(nx,ny,nz,nperyear,firstyr:lastyr,0:mens))
     field = 3e33
     call readfield(ncid,file,datfile,field,nx,ny,nz &

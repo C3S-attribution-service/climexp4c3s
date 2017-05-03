@@ -45,7 +45,7 @@ program attribute
     else if ( seriesfile == 'gridpoints' ) then
         ! netcdf file with gridpoints
         call readgridpoints(series,seriesids,npermax,yrbeg,yrend &
-        & ,nensmax,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
+        & ,nensmax,nperyear,mens1,mens,nens1,nens2,var,units,lstandardunits,lwrite)
     else
         ! simple data
         !!!write(0,*) 'Reading time series...<p>'
