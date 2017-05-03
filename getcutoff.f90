@@ -91,7 +91,7 @@ subroutine getcut1(cut,pcut,n,a,lwrite)
     parameter (eps=1e-5)
     integer i,m
     real x
-    if ( n.le.1 ) then
+    if ( n <= 1 ) then
         cut = 3e33
         return
     endif
@@ -99,6 +99,10 @@ subroutine getcut1(cut,pcut,n,a,lwrite)
     m = n
     do while ( a(m) > 1e33 )
         m = m-1
+        if ( m == 0 ) then
+            cut = 3e33
+            return
+        end if
     end do
 !   find elements around pcut
     x = pcut/100*m + 0.5
