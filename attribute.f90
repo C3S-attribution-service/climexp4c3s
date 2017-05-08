@@ -105,7 +105,7 @@ program attribute
         write(0,*) 'Applying bias correction of scale ',biasmul,' and offset ',biasadd
         print '(a,g20.4,a,g20.4,a)','# Applying bias correction of scale ',biasmul,' and offset ',biasadd
         do iens=mens1,mens
-            call scaleseries(series(1,yrbeg,iens),npermax,nperyear,yrbeg,yrend,biasmul,biasadd,0)
+            call scaleseries(series(1,yrbeg,iens),npermax,nperyear,yrbeg,yrend,biasmul,1,biasadd,1,0)
         end do
     end if
     if ( ldetrend ) then

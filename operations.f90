@@ -247,14 +247,15 @@ subroutine takefieldlog(data,nxmax,nymax,npermax,nperyear,nx,ny,yrbeg,yrend)
 
 end subroutine takefieldlog
 
-subroutine scaleseries(data,npermax,nperyear,yrbeg,yrend,factor,offset,ndpm)
+subroutine scaleseries(data,npermax,nperyear,yrbeg,yrend,factor,nfactor,offset,noffset,ndpm)
 
-!   add a factor & offset to a series, possibly 
+!   add a factor & offset to a series, possibly different for each month
 
     implicit none
-    integer :: yrbeg,yrend,npermax,nperyear,ndpm
-    real :: data(npermax,yrbeg:yrend),factor,offset
+    integer :: yrbeg,yrend,npermax,nperyear,nfactor,noffset,ndpm
+    real :: data(npermax,yrbeg:yrend),factor(nfactor),offset(noffset)
     integer :: i,j,dpm(12,2)
+    real :: fac,off
     integer :: leap
     data dpm &
     /31,28,31,30,31,30,31,31,30,31,30,31 &
@@ -263,11 +264,27 @@ subroutine scaleseries(data,npermax,nperyear,yrbeg,yrend,factor,offset,ndpm)
     do i=yrbeg,yrend
         do j=1,nperyear
             if ( data(j,i) < 1e33 ) then
-                data(j,i) = factor*data(j,i)
+                if ( nfactor == 1 ) then
+                    fac = factor(1)
+                else if ( nfactor == nperyear ) then
+                    fac = factor(j)
+                else
+                    write(0,*) 'scaleseries: cannot handle yet nfactor,nperyear = ',nfactor,nperyear
+                    call exit(-1)
+                end if
+                if ( noffset == 1 ) then
+                    off = offset(1)
+                else if ( noffset == nperyear ) then
+                    off = offset(j)
+                else
+                    write(0,*) 'scaleseries: cannot handle yet noffset,nperyear = ',noffset,nperyear
+                    call exit(-1)
+                end if
+                data(j,i) = fac*data(j,i)
                 if ( ndpm /= 0 ) then
                     data(j,i) = (real(dpm(j,leap(i)))**ndpm)*data(j,i)
                 endif
-                data(j,i) = data(j,i) + offset
+                data(j,i) = data(j,i) + off
             endif
         enddo
     enddo

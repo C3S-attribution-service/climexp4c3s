@@ -122,7 +122,7 @@
             
             if ( biasmul /= 1 .or. biasadd /= 0 ) then
                 do iens=mens1,mens
-                    call scaleseries(series(1,fyr,iens),npermax,nperyear,fyr,lyr,biasmul,biasadd,0)
+                    call scaleseries(series(1,fyr,iens),npermax,nperyear,fyr,lyr,biasmul,1,biasadd,1,0)
                 end do
             end if
             if ( lchangesign ) then
