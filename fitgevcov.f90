@@ -63,7 +63,7 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
 !
     allocate(yrs(0:nmax))
     allocate(xx(2,nmax))
-    if ( lnone ) then
+    if ( cov1 == 0 .and. cov2 == 0 ) then
         lnone = .true.
     else
         lnone = .false.
