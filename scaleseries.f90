@@ -13,7 +13,7 @@ program scaletimeseries
     lwrite = .false. 
     if ( iargc() < 2 ) then
         print *,'usage: scaleseries factor[:offset] file [ndpm]'
-        print *,'       factor and offset cab be 12 values as "val1;val2;val3;...;val12"'
+        print *,'       factor and offset can be 12 values as "val1;val2;val3;...;val12"'
         call exit(-1)
     endif
     call getarg(1,string)
