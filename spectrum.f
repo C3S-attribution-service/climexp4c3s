@@ -236,7 +236,7 @@
             else
                 write(0,'(a)') 'The most significant peaks are at '
                 do i=nimax,2,-1
-                    write(0,'(f8.2,a)') ,1/epx(imax(i)),', '
+                    write(0,'(f8.2,a)') 1/epx(imax(i)),', '
                 enddo
                 write(0,'(a,f8.2,a,f6.3,a)') ' and ',1/epx(imax(1)),
      +               ' years (p=',probmax,').'
