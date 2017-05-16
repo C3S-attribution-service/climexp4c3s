@@ -68,7 +68,7 @@
      +               ,title,1,nvars,tmpvars,jvars,lvars,tmpunits)
                 if ( ix.ne.nx .or. iy.ne.ny .or. iz.ne.nz ) then
                     write(0,*) 'readfield: error: unequal grids'
-                    write(0,*) ,ix,iy,iz,nx,ny,nz
+                    write(0,*) ix,iy,iz,nx,ny,nz
                     call abort
                 end if
                 if ( fiyr.gt.10000 ) then
