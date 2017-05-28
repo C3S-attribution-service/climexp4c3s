@@ -745,6 +745,7 @@ subroutine sample_bootstrap(series,covariate,nperyear,j1,j2,fyr,lyr,nens1,nens2,
                 call random_number(ranf)
                 mo = j1 + int((j2-j1+1)*ranf)
                 call normon(mo,yy,yr,nperyear)
+                if ( yr > yrstop ) cycle
             end if
             if ( lwrite ) print *,'reference ',mo,yr,iens
             do jens = nens1,nens2
