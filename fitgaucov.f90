@@ -241,7 +241,7 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
         aacov(iens,2) = aaa
         call getreturnlevels(aa(iens),bb(iens),dum, &
      &           alphaalpha(iens),betabeta(iens), &
-     &           cov1,cov2,gaucovreturnlevel,j1,j2,assume,ttt)
+     &           cov1,cov2,gaucovreturnlevel,j1,j1,assume,ttt)
         do i=1,10
             do j=1,3
                 tt(iens,i,j) = ttt(i,j)
@@ -250,7 +250,7 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
         if ( xyear.lt.1e33 ) then
             call getreturnyears(aa(iens),bb(iens),dum, &
      &               alphaalpha(iens),betabeta(iens),xyear,cov1,cov2, &
-     &               gaucovreturnyear,j1,j2,txtxtx,lchangesign,lwrite)
+     &               gaucovreturnyear,j1,j1,txtxtx,lchangesign,lwrite)
             do j=1,3
                 txtx(iens,j) = txtxtx(j)
             end do
@@ -405,7 +405,7 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
     if ( .not. lnone ) call printcovpvalue(txtx,nmc,nmc,lweb)
 
     if ( dump ) then
-        call plot_tx_cdfs(txtx,nmc,nmc,ntype,j1,j2)
+        call plot_tx_cdfs(txtx,nmc,nmc,ntype,j1,j1)
     end if
     if ( plot ) write(11,'(3g20.4,a)') alpha,alpha25,alpha975,' alpha'
 
@@ -426,19 +426,20 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
     end if
 
     if ( lnone ) then
-        call plotreturnvalue(ntype,t25(1,1),t975(1,1),j2-j1+1)
+        ! we give the probability per month, not per N months selection...
+        call plotreturnvalue(ntype,t25(1,1),t975(1,1),1)
         ys(1:ntot) = yy(1:ntot)
         call plot_ordered_points(yy,ys,yrs,ntot,ntype,nfit,                 &
-     &       frac,a,b,xi,j1,j2,minindx,mindata,pmindata,                &
+     &       frac,a,b,xi,j1,j1,minindx,mindata,pmindata,                &
      &       year,xyear,snorm,lchangesign,lwrite,.true.)
     else
         ! compute distribution at past year and plot it
         call adjustyy(ntot,xx,assume,a,b,alpha,beta,cov1,yy,zz,aaa,bbb,lchangesign,lwrite)
         ys(1:ntot) = yy(1:ntot)
         print '(a,i5)','# distribution in year ',yr1a
-        call plotreturnvalue(ntype,t25(1,1),t975(1,1),j2-j1+1)
+        call plotreturnvalue(ntype,t25(1,1),t975(1,1),1)
         call plot_ordered_points(yy,ys,yrs,ntot,ntype,nfit, &
-         &       frac,aaa,bbb,dum,j1,j2,minindx,mindata,pmindata, &
+         &       frac,aaa,bbb,dum,j1,j1,minindx,mindata,pmindata, &
          &       year,xyear,snorm,lchangesign,lwrite,.false.)
 
         ! compute distribution at present year and plot it
@@ -447,9 +448,9 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
         print '(a)'
         print '(a)'
         print '(a,i5)','# distribution in year ',yr2a
-        call plotreturnvalue(ntype,t25(1,2),t975(1,2),j2-j1+1)
+        call plotreturnvalue(ntype,t25(1,2),t975(1,2),1)
         call plot_ordered_points(yy,ys,yrs,ntot,ntype,nfit, &
-         &       frac,aaa,bbb,dum,j1,j2,minindx,mindata,pmindata, &
+         &       frac,aaa,bbb,dum,j1,j1,minindx,mindata,pmindata, &
          &       year,xyear,snorm,lchangesign,lwrite,.true.)
      end if
 end subroutine
