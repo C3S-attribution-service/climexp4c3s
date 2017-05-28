@@ -141,9 +141,9 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
     end if
     if ( assume == 'scale' ) ba = b/a
     dum = 0
-    call getreturnlevels(a,b,dum,alpha,beta,cov1,cov2,gaucovreturnlevel,j1,j2,assume,t)
+    call getreturnlevels(a,b,dum,alpha,beta,cov1,cov2,gaucovreturnlevel,j1,j1,assume,t)
     if ( xyear.lt.1e33 ) then
-        call getreturnyears(a,b,dum,alpha,beta,xyear,cov1,cov2,gaucovreturnyear,j1,j2,tx, &
+        call getreturnyears(a,b,dum,alpha,beta,xyear,cov1,cov2,gaucovreturnyear,j1,j1,tx, &
         &   lchangesign,lwrite)
     endif
     call getabfromcov(a,b,alpha,beta,cov1,aaa,bbb)
