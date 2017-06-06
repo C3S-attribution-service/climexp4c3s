@@ -256,6 +256,10 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
             end do
         endif
     enddo
+    if ( j1 /= j2 ) then
+        write(0,'(2a,i3,a)') 'The return times are for a given month, for any month ', &
+            'in the season they are a factor ',j2-j1+1,' lower.'
+    end if
     if ( mens > mens1 ) call print_spatial_scale(scross/nmc,ntot/real(mens-mens1+1))
     iens = nmc
     if ( lchangesign ) then
