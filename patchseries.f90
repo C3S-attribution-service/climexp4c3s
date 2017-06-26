@@ -181,7 +181,7 @@ program patchseries
 !   output
 !
     call copyheader_newunits(mainfile,6,units)
-    write(6,'(a,g16.6)') '# patched with data from ',trim(auxfile)
+    write(6,'(2a)') '# patched with data from ',trim(auxfile)
     if ( method == 'bias' ) then
         write(6,'(a,g16.6)') '# using bias correction '
         do mo=1,min(12,nperyear)
