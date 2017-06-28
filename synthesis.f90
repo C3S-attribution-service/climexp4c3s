@@ -187,6 +187,11 @@ program synthesis
         yr1 = years(1,1)
         s1 = refs(years(1,1))
         do i=2,n
+            if ( s1 > 1e33 .or. refs(years(1,i)) > 1e33 ) then
+                if ( s1 < 1e33 ) yr1 = years(1,i)
+                write(0,*) 'synthesis: error: reference series is undefined at ',yr1
+                call exit(-1)
+            end if
             if ( refs(years(1,i)) < s1 .neqv. lflip ) then
                 yr1 = years(1,i)
                 s1 = refs(years(1,i))
@@ -232,6 +237,10 @@ program synthesis
     w1 = 0
     do i=1,n
         if ( lweighted ) then
+            if ( abs(data(3,i) - data(2,i)) < 1e-6 ) then
+                write(0,*) 'synthesis: error: upper and lower bound are equal: ',i,data(2,i),data(3,i)
+                call exit(-1)
+            end if
             w = 1/(data(3,i) - data(2,i))**2
         else
             w = 1
