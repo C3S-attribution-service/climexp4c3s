@@ -235,9 +235,7 @@ subroutine fieldday2period( &
 
     do yr=yrbeg,yrend
         call keepalive2('Year',yr-yrbeg+1,yrend-yrbeg+1, .true. )
-        write(0,*) 'Year',yr-yrbeg+1,yrend-yrbeg+1
         do jy=1,ny
-            write(0,*) 'Lat',jy,ny
             do jx=1,nx
                 call keepalive1('Grid point',jx+nx*(jy-1),nx*ny)
                 if ( (oper == 'sd' .or. oper == 'var' ) .and. &
