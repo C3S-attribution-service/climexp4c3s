@@ -28,14 +28,14 @@ subroutine readensseries(file,data,npermax,yrbeg,yrend,nensmax &
         mens1 = 0
         if ( lwrite ) print *,'not an ensemble, calling readseries'
         call readseries(file,data(1,yrbeg,0),npermax,yrbeg,yrend &
-        ,nperyear,var,units,lstandardunits,lwrite)
+            ,nperyear,var,units,lstandardunits,lwrite)
     else
         mens = -1
         mens1 = 0
         do iens=0,nensmax
             ensfile = file
             call filloutens(ensfile,iens)
-        !!!if ( lwrite) print *,'looking for file ',trim(ensfile)
+            !!!if ( lwrite) print *,'looking for file ',trim(ensfile)
             inquire(file=ensfile,exist=lexist)
             if ( .NOT. lexist ) then
                 if ( mens == -1 ) then
@@ -46,9 +46,8 @@ subroutine readensseries(file,data,npermax,yrbeg,yrend,nensmax &
             end if
         end do
         if ( mens < 0 ) then
-            write(0,*) &
-            'readensseries: error: could not find ensemble ' &
-            ,trim(file),trim(ensfile)
+            write(0,*) 'readensseries: error: could not find ensemble ' &
+                ,trim(file),trim(ensfile)
             call abort
         endif
         do iens=mens1,mens
@@ -61,8 +60,8 @@ subroutine readensseries(file,data,npermax,yrbeg,yrend,nensmax &
                 if ( lwrite) print *,'reading file ',trim(ensfile)
                 call keepalive1('Reading ensemble member',iens,mens)
                 call readseries(ensfile,data(1,yrbeg,iens),npermax &
-                ,yrbeg,yrend,nperyear,var,units,lstandardunits &
-                , .FALSE. )
+                    ,yrbeg,yrend,nperyear,var,units,lstandardunits &
+                    ,lwrite)
             end if
         enddo
     endif
