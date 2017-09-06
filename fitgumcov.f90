@@ -44,7 +44,7 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
     character lgt*4,method*3
 !
     integer nmax,ncur
-    parameter(nmax=100000)
+    parameter(nmax=1000000)
     real data(2,nmax),restrain
     logical llwrite,llchangesign
     common /fitdata3/ data
@@ -128,6 +128,10 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
 !   copy to common for routine llgumbel
 !
     ncur = ntot
+    if ( ncur > nmax ) then
+        write(0,*) 'fitgumcov: error: data array too small, increase to ',ncur
+        call exit(-1)
+    end if
     do i=1,ncur
         data(:,i) = xx(:,i)
     end do
@@ -595,7 +599,7 @@ real function llgumbelcov(p)
     real z,s,aa,bb
 !
     integer nmax,ncur
-    parameter(nmax=100000)
+    parameter(nmax=1000000)
     real data(2,nmax),restrain
     logical llwrite,llchangesign
     common /fitdata3/ data

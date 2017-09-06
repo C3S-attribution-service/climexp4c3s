@@ -33,7 +33,7 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
     external gaucovreturnlevel,gaucovreturnyear
 !
     integer nmax
-    parameter(nmax=100000)
+    parameter(nmax=1000000)
     integer ncur
     real data(2,nmax),restrain
     logical llwrite,llchangesign,lnone
@@ -117,6 +117,10 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
 !   copy to common for routine llgausscov
 !
     ncur = ntot
+    if ( ncur > nmax ) then
+        write(0,*) 'fitgaucov: error: data array too small, increase to ',ncur
+        call exit(-1)
+    end if
     do i=1,ncur
         data(:,i) = xx(:,i)
     enddo
@@ -597,7 +601,7 @@ real function llgausscov(p)
     real z,s,aa,bb
 !
     integer nmax
-    parameter(nmax=100000)
+    parameter(nmax=1000000)
     integer ncur
     real data(2,nmax),restrain
     logical llwrite,llchangesign

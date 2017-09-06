@@ -56,7 +56,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     integer iargc
 !
     integer nmax,ncur
-    parameter(nmax=100000)
+    parameter(nmax=1000000)
     real data(2,nmax),restrain
     logical llwrite,llchangesign
     common /fitdata3/ data
@@ -196,6 +196,10 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         write(0,*) 'fitgpdcov: error: nthreshold &gt ncur ',nthreshold,ncur
         write(*,*) 'fitgpdcov: error: nthreshold &gt ncur ',nthreshold,ncur
         nthreshold = ncur -1
+    end if
+    if ( ncur > nmax ) then
+        write(0,*) 'fitgpdcov: error: data array too small, increase to ',ncur
+        call exit(-1)
     end if
     do i=1,ncur
         data(:,i) = xx(:,ii(i))
@@ -885,7 +889,7 @@ real function llgpdcov(p)
     real,allocatable :: xx(:),xxunsorted(:)
 !
     integer nmax,ncur
-    parameter(nmax=100000)
+    parameter(nmax=1000000)
     real data(2,nmax),restrain
     logical llwrite,llchangesign
     common /fitdata3/ data
@@ -1194,7 +1198,7 @@ real function gpdcovreturnyear(a,b,xi,alpha,beta,xyear,cov,lchangesign)
     real,allocatable :: yy(:),zz(:)
     logical lchangesign
     integer nmax,ncur
-    parameter(nmax=100000)
+    parameter(nmax=1000000)
     real data(2,nmax),restrain
     logical llwrite,llchangesign
     common /fitdata3/ data
