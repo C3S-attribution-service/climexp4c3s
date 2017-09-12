@@ -197,10 +197,6 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         write(*,*) 'fitgpdcov: error: nthreshold &gt ncur ',nthreshold,ncur
         nthreshold = ncur -1
     end if
-    if ( ncur > nmax ) then
-        write(0,*) 'fitgpdcov: error: data array too small, increase to ',ncur
-        call exit(-1)
-    end if
     do i=1,ncur
         data(:,i) = xx(:,ii(i))
     end do

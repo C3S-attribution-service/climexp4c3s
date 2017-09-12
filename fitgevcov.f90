@@ -129,10 +129,6 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
 !       copy to common for routine llgevcov
 !
     ncur = ntot
-    if ( ncur > nmax ) then
-        write(0,*) 'fitgevcov: error: data array too small, increase to ',ncur
-        call exit(-1)
-    end if
     do i=1,ncur
         data(:,i) = xx(:,i)
     enddo

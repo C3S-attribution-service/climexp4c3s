@@ -128,10 +128,6 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
 !   copy to common for routine llgumbel
 !
     ncur = ntot
-    if ( ncur > nmax ) then
-        write(0,*) 'fitgumcov: error: data array too small, increase to ',ncur
-        call exit(-1)
-    end if
     do i=1,ncur
         data(:,i) = xx(:,i)
     end do
