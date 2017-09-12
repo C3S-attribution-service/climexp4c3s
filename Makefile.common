@@ -282,6 +282,7 @@ PROGRAMS      = scientific2decimal \
 		ctl2dat \
 		grads2ascii \
 		grads2nc \
+		catnc \
 		histogram \
 		attribute \
 		attributefield \
@@ -589,6 +590,9 @@ grads2ascii:	grads2ascii.o $(LIBRARY)
 
 grads2nc:	grads2nc.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ grads2nc.o $(LIBS)
+
+catnc:	catnc.o $(LIBRARY)
+		$(LD) $(FFLAGS) -o $@ catnc.o $(LIBS)
 
 extendyear:	extendyear.o llen.o
 		$(LD) $(FFLAGS) -o $@ $@.o llen.o
