@@ -26,12 +26,11 @@ program describefield
 
 !   process command line
 
-    n = iargc()
-    if ( n < 1 ) then
+    nargs = iargc()
+    if ( nargs < 1 ) then
         write(0,*) 'usage: describefield infile.[ctl|nc] [file2 ...]'
         stop
     endif
-    nargs = iargc()
     call getarg(nargs,string)
     if ( string == 'debug' .or. string == 'lwrite' ) then
         lwrite = .true. 
@@ -111,6 +110,7 @@ program describefield
         end do
 
     end do ! loop over files
+    if ( nt == 0 ) call exit(-1)
     write(0,'(2a)') title(1:llen(title)),'<br>'
     call getxyprop(xx,nx,yy,ny,xrev,yrev,xwrap)
 
