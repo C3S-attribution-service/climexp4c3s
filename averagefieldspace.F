@@ -135,7 +135,7 @@
                 if ( lwrite ) print *,'writing ',yr,mo,it,nnt,nt
                 call keepalive1('Writing time step ',it,nnt)
                 call writencslice(ncid,ntvarid,itimeaxis,ntmax,ivars
-     +               ,field(1,1,mo,yr),nxf,nyf,nzf,nx,ny,nz,it,0)
+     +               ,field(1,1,mo,yr),nxf,nyf,nzf,nx,ny,nz,it,1)
                 mo = mo + 1
                 if ( mo.gt.nperyear ) then
                     mo = mo - nperyear

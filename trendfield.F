@@ -195,7 +195,7 @@
                 mo = firstmo
                 do it=1,nt
                     call writencslice(ncid,ntvarid,itimeaxis,nt,jvars,
-     +                   field(1,1,1,mo,yr),nx,ny,nz,nx,ny,nz,it,0)
+     +                   field(1,1,1,mo,yr),nx,ny,nz,nx,ny,nz,it,1)
                     mo = mo + 1
                     if ( mo.gt.nperyear ) then
                         mo = 1

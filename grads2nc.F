@@ -61,7 +61,7 @@
      +                   ,ix=1,nx),iy=1,ny),iz=1,nz)
                 end if
                 call writencslice(ncid,ntvarid,itimeaxis,ntmax,
-     +               ivars(1,iv),data,nx,ny,nz,nx,ny,nz,it,0)
+     +               ivars(1,iv),data,nx,ny,nz,nx,ny,nz,it,1)
             end do
         enddo
         status = nf_close(ncid)
