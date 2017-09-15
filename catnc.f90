@@ -59,9 +59,21 @@
         fyrall = min(fyrall,f1yr)
         lyrall = max(lyrall,l1yr)
         allocate(onefield(nx,ny,nz,nperyear,f1yr:l1yr))
-        call zreadncfile(ncid,field,nx,ny,nz,nx,ny,nz,nperyear, &
+        call zreadncfile(ncid,onefield,nx,ny,nz,nx,ny,nz,nperyear, &
             f1yr,l1yr,yrbegin,mobegin,nt,undef,lwrite,f1yr,l1yr,jvars)
-        field(:,:,:,:,f1yr:l1yr) = onefield(:,:,:,:,f1yr:l1yr)
+        do yr=f1yr,l1yr
+            do mo=1,nperyear
+                do k=1,nz
+                    do j=1,ny
+                        do i=1,nx
+                            if ( onefield(i,j,k,mo,yr) < 1e33 ) then
+                                field(i,j,k,mo,yr) = onefield(i,j,k,mo,yr)
+                            end if
+                        end do
+                    end do
+                end do
+            end do
+        end do
         deallocate(onefield)
     end do        
 
