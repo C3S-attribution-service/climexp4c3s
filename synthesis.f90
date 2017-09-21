@@ -78,6 +78,7 @@ program synthesis
             write(0,*) 'synthesis: warning: unrecognised argument ',trim(line)
         end if
     end do
+    if ( lperc ) llog = .false.
 !
 !   read reference data
 !
@@ -248,7 +249,7 @@ program synthesis
         w1 = w1 + w
         s1 = s1 + w*data(1,i)
         do j=2,3
-            ss2(j) = ss2(j) + (w*(data(1,i)-data(j,i)))**2
+            ss2(j) = ss2(j) + w*(data(1,i)-data(j,i))**2
         end do
     end do
     s1 = s1/w1
