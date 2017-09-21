@@ -37,6 +37,8 @@
     lyrall = -9999
     do iarg=1,nargs-1
         call getarg(iarg,ncfile)
+        if ( lwrite ) print *,'reading metadata ',trim(ncfile)
+        ncid = 0
         call ensparsenc(ncfile,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
             ,nz,zz,lz,nt,nperyear,yrbegin,mobegin,ltime,tdefined,ntmax &
             ,nens1,nens2,undef,title,history,nvarmax,nvars,vars,jvars,lvars &
@@ -59,6 +61,7 @@
         fyrall = min(fyrall,f1yr)
         lyrall = max(lyrall,l1yr)
         allocate(onefield(nx,ny,nz,nperyear,f1yr:l1yr))
+        if ( lwrite ) print *,'reading data ',trim(ncfile)
         call zreadncfile(ncid,onefield,nx,ny,nz,nx,ny,nz,nperyear, &
             f1yr,l1yr,yrbegin,mobegin,nt,undef,lwrite,f1yr,l1yr,jvars)
         do yr=f1yr,l1yr
@@ -79,10 +82,12 @@
 
     call getarg(nargs,ncfile)
     nt = nperyear*(lyrall - fyrall + 1)
+    if ( lwrite ) print *,'writing metadata'
     call enswritenc(ncfile,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny,yy &
         ,nz,zz,lz,nt,nperyear,fyrall,1,ltime,undef,title,history,nvars &
         ,vars,ivars,lvars,svars,units,cell_methods,0,0) ! no ensembles yet
     it = 0
+    if ( lwrite ) print *,'writing data'
     do yr=fyrall,lyrall
         do mo=1,nperyear
             it = it + 1
