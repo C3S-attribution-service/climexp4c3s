@@ -284,9 +284,9 @@ program synthesis
         end if
     end do
     chi2 = chi2*4 ! transformed to use 95%~2sigma CIs
-    print '(a,g14.4)','# chi2/dof = ',chi2/(n-2)
+    print '(a,g14.4)','# chi2/dof = ',chi2/(n-2) ! n-1 but n has been increased by 1 to accomodate the mean
     if ( .not.lnoave .and. chi2/(n-2) > 1 .and. factor == -1 ) then
-        factor = sqrt(chi2/(n-2)) ! n-1 but n has been increased by 1 to accomodate the mean
+        factor = sqrt(chi2/(n-2)) 
     end if
 !
 !   scale error bounds
