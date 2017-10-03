@@ -358,7 +358,8 @@ PROGRAMS      = scientific2decimal \
 		outliers \
 		count_missing \
 		setundef \
-		diff_hist_nat
+		diff_hist_nat \
+		cumul
 
 SHLIBS =	rkillfile.so \
        		rkeepalive.so
@@ -770,6 +771,9 @@ synthesis:	synthesis.o $(LIBRARY)
 
 diff_hist_nat:	diff_hist_nat.o
 		$(LD) $(FFLAGS) -o $@ $@.o
+
+cumul:	cumul.o $(LIBRARY)
+		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
 
 roc:		roc.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
