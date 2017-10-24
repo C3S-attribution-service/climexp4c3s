@@ -21,8 +21,8 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
 
     results = 3e33
     nresults = 0
-    fyr = yr1
-    lyr = yr2
+    fyr = min(yr1,yr1a,yr2a)
+    lyr = max(yr2,yr1a,yr2a)
     nmax = nperyear*(yr2-yr1+1)*(1+mens-mens1)
     !!!write(0,*) 'assume,distribution = ',assume,distribution
     allocate(xx(2,nmax))
@@ -337,13 +337,13 @@ subroutine make_annual_values(series,nperyear,npermax,yrbeg,yrend,mens1,mens, &
     end if
     if ( nperyear == 1 ) then
         do iens=mens1,mens
-            do yy=yr1,yr2
+            do yy=fyr,lyr
                 yrseries(1,yy,iens) = series(1,yy,iens)
             end do
         end do
     else if ( nperyear < 12 ) then
         do iens=mens1,mens
-            do yr=yr1,yr2
+            do yr=fyr,lyr
                 m = 0
                 if ( operation == 'max' ) then
                     s = -3e33
@@ -385,7 +385,7 @@ subroutine make_annual_values(series,nperyear,npermax,yrbeg,yrend,mens1,mens, &
         call getdpm(dpm,nperyear)
         if ( lwrite ) print *,'                    dpm = ',dpm
         do iens=mens1,mens
-            do yy=yr1,yr2
+            do yy=fyr,lyr
                 if ( operation == 'max' ) then
                     s = -3e33
                 else if ( operation == 'min' ) then
@@ -459,14 +459,14 @@ subroutine make_two_annual_values(series,covariate,nperyear,npermax,yrbeg,yrend,
     end if
     if ( nperyear == 1 ) then
         do iens=mens1,mens
-            do yy=yr1,yr2
+            do yy=fyr,lyr
                 yrseries(1,yy,iens) = series(1,yy,iens)
                 yrcovariate(1,yy,iens) = covariate(1,yy,iens)
             end do
         end do
     else if ( nperyear < 12 ) then
         do iens=mens1,mens
-            do yr=yr1,yr2
+            do yr=fyr,lyr
                 m = 0
                 if ( operation == 'max' ) then
                     s = -3e33
@@ -518,7 +518,7 @@ subroutine make_two_annual_values(series,covariate,nperyear,npermax,yrbeg,yrend,
         call getdpm(dpm,nperyear)
         if ( lwrite ) print *,'                    dpm = ',dpm
         do iens=mens1,mens
-            do yy=yr1,yr2
+            do yy=fyr,lyr
                 if ( operation == 'max' ) then
                     s = -3e33
                 else if ( operation == 'min' ) then
