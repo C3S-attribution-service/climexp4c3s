@@ -56,7 +56,7 @@ subroutine readsetseries(data,ids,npermax,yrbeg,yrend,nensmax, &
     open(1,file=file,status='old',err=101)
     goto 102
 101 continue
-    do i=1,len(file)
+    do i=1,len(file)-1
         if ( file(i:i+1) == '\\:' ) then
             file(i:) = file(i+1:)
         end if
