@@ -16,7 +16,7 @@ program describefield
         ,wg(nymax),pi
     character infile*255,datfile*255,outfile*255,units(nvmax)*60 &
         ,vars(nvmax)*40,lvars(nvmax)*200,svars(nvmax)*80,title*1024 &
-        ,history*20000,months(12)*3,seasons(4)*3,lz(3)*20,ltime*100 &
+        ,history*50000,months(12)*3,seasons(4)*3,lz(3)*20,ltime*100 &
         ,cell_methods(nvmax)*128,ew(2),ns(2),string*20,format*100
     logical :: xwrap,xrev,yrev,lwrite,lexist,ensemble,tdefined(ntmax)
     integer :: iargc,llen,leap

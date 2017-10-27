@@ -18,7 +18,7 @@ subroutine readncseries(file,data,npermx,nperyear,yr1,yr2,ncid,var,units,lwrite)
     real,allocatable :: ddata(:,:,:,:)
     logical :: tdefined(mtmax)
     character title*512,vars(nvmax)*20,lvars(nvmax)*80, &
-        lz(3)*20,svars(100)*100,ltime*120,history*20000, &
+        lz(3)*20,svars(100)*100,ltime*120,history*50000, &
         cell_methods(100)*100
 
     if ( .false. ) then
