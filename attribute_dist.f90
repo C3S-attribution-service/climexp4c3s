@@ -55,10 +55,10 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         else
             if ( lwrite ) print *,'attribute_dist: calling make_annual_values for series with max'
             call make_annual_values(series,nperyear,npermax,yrbeg,yrend,mens1,mens, &
-            &   yrseries,fyr,lyr,'max')
+            &   yrseries,fyr,lyr,yr1,yr2,'max')
             if ( lwrite ) print *,'attribute_dist: calling make_annual_values for covariate with mean'
             call make_annual_values(covariate,nperyear1,npermax,yrbeg,yrend,mens1,mens, &
-            &   yrcovariate,fyr,lyr,'mean')
+            &   yrcovariate,fyr,lyr,fyr,lyr,'mean')
         end if
         npernew = 1
         j1 = 1
@@ -86,7 +86,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         allocate(yrseries(nperyear,fyr:lyr,0:mens))
         yrseries = 3e33
         ! copy series to keep the code easier to handle GPD and Gauss at the same time :-(
-        yrseries(1:nperyear,fyr:lyr,mens1:mens) = series(1:nperyear,fyr:lyr,mens1:mens)
+        yrseries(1:nperyear,yr1:yr2,mens1:mens) = series(1:nperyear,yr1:yr2,mens1:mens)
         allocate(yrcovariate(nperyear,fyr:lyr,0:mens))
         yrcovariate = 3e33
         ! change covariate to the same time resolution as series
@@ -319,13 +319,13 @@ subroutine getdpm(dpm,nperyear)
 end subroutine getdpm
 
 subroutine make_annual_values(series,nperyear,npermax,yrbeg,yrend,mens1,mens, &
-&   yrseries,fyr,lyr,operation)
+&   yrseries,fyr,lyr,yy1,yy2,operation)
     
     ! construct an annual time series with the maxima
 
     implicit none
     include 'getopts.inc'
-    integer nperyear,npermax,yrbeg,yrend,mens1,mens,fyr,lyr
+    integer nperyear,npermax,yrbeg,yrend,mens1,mens,fyr,lyr,yy1,yy2
     real series(npermax,yrbeg:yrend,0:mens),yrseries(1,fyr:lyr,0:mens)
     character operation*(*)
     integer j1,j2,yy,yr,mm,mo,dd,dy,k,m,mtot,n,dpm(12),iens
@@ -337,13 +337,13 @@ subroutine make_annual_values(series,nperyear,npermax,yrbeg,yrend,mens1,mens, &
     end if
     if ( nperyear == 1 ) then
         do iens=mens1,mens
-            do yy=fyr,lyr
+            do yy=yy1,yy2
                 yrseries(1,yy,iens) = series(1,yy,iens)
             end do
         end do
     else if ( nperyear < 12 ) then
         do iens=mens1,mens
-            do yr=fyr,lyr
+            do yr=yy1,yy2
                 m = 0
                 if ( operation == 'max' ) then
                     s = -3e33
@@ -385,7 +385,7 @@ subroutine make_annual_values(series,nperyear,npermax,yrbeg,yrend,mens1,mens, &
         call getdpm(dpm,nperyear)
         if ( lwrite ) print *,'                    dpm = ',dpm
         do iens=mens1,mens
-            do yy=fyr,lyr
+            do yy=yy1,yy2
                 if ( operation == 'max' ) then
                     s = -3e33
                 else if ( operation == 'min' ) then
@@ -459,8 +459,10 @@ subroutine make_two_annual_values(series,covariate,nperyear,npermax,yrbeg,yrend,
     end if
     if ( nperyear == 1 ) then
         do iens=mens1,mens
-            do yy=fyr,lyr
+            do yy=yr1,yr2
                 yrseries(1,yy,iens) = series(1,yy,iens)
+            end do
+            do yy=fyr,lyr
                 yrcovariate(1,yy,iens) = covariate(1,yy,iens)
             end do
         end do
