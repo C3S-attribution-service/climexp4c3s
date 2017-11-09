@@ -508,7 +508,7 @@ subroutine readyrfracval(data,npermax,yrbeg,yrend,nperyear,line &
         year = int(x+1e-4)
     else
         read(line,*,err=904,end=500) ymdh,y
-        call yyyymmddhh(ymdh,year,month,day,hour)
+        call yyyymmddhh(line,ymdh,year,month,day,hour)
         if ( lwrite ) print *,'read and interpreted ',year,month,day &
         ,hour,y
     endif
@@ -540,7 +540,7 @@ subroutine readyrfracval(data,npermax,yrbeg,yrend,nperyear,line &
         year1 = int(x+1e-4)
     else
         read(line,*,err=904,end=500) ymdh,y1
-        call yyyymmddhh(ymdh,year1,month1,day1,hour1)
+        call yyyymmddhh(line,ymdh,year1,month1,day1,hour1)
         if ( lwrite ) print *,'read and interpreted ',year1,month1 &
         ,day1,hour1,y1
         if ( day > dpm(month) .or. &
@@ -651,7 +651,7 @@ subroutine readyrfracval(data,npermax,yrbeg,yrend,nperyear,line &
         call adjustnperyear(nperyear1,lwrite)
     else
         read(line,*,err=904,end=500) ymdh,y1
-        call yyyymmddhh(ymdh,year1,month1,day1,hour1)
+        call yyyymmddhh(line,ymdh,year1,month1,day1,hour1)
         if ( day1 > dpm(month1) .or. &
         day1 > 28 .and. month1 == 2 .and. leap(year1) == 1 ) &
         then
@@ -998,29 +998,41 @@ subroutine copyheader_newunits(file,unit,newunits)
     end if
 end subroutine copyheader_newunits
 
-subroutine yyyymmddhh(ymdh,year,month,day,hour)
+subroutine yyyymmddhh(line,ymdh,year,month,day,hour)
     implicit none
     integer :: ymdh,year,month,day,hour
-    if ( ymdh < 9999 ) then
+    integer :: i
+    character line*(*)
+    logical isnumchar
+    
+    do i=1,len(line)
+        if ( isnumchar(line(i:i)) ) then
+            exit
+        end if
+    end do
+    if ( .not.isnumchar(line(i+4:i+4)) ) then
         year = ymdh
         month = 1
         day = 1
         hour = 0
-    elseif ( ymdh < 999999 ) then
+    elseif ( .not.isnumchar(line(i+6:i+6)) ) then
         year = ymdh/100
         month = mod(ymdh,100)
         day = 1
         hour = 0
-    elseif ( ymdh < 99999999 ) then
+    elseif ( .not.isnumchar(line(i+8:i+8)) ) then
         year = ymdh/10000
         month = mod(ymdh,10000)/100
         day = mod(ymdh,100)
         hour = 0
-    else
+    elseif ( .not.isnumchar(line(i+10:i+10)) ) then
         year = ymdh/1000000
         month = mod(ymdh,1000000)/10000
         day = mod(ymdh,10000)/100
         hour = mod(ymdh,100)
+    else
+        write(0,*) 'yyyymmddhh: error: cannot parse line ',trim(line)
+        call exit(-1)
     endif
     if ( month < 1 .or. month > 12 ) then
         write(0,*) 'yyyymmddhh: error: found month ',month,' in ', &
@@ -1139,3 +1151,12 @@ subroutine checkvalid(year,mon,val)
         if ( lwrite) print *,'checkvalid: val invalid '
     endif
 end subroutine checkvalid
+
+logical function isnumchar(char)
+    character char*1
+    if ( ichar(char) >= ichar('0') .and. ichar(char) <= ichar('9') ) then
+        isnumchar = .true.
+    else
+        isnumchar = .false.
+    end if
+end function isnumchar
