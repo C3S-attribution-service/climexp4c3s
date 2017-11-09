@@ -308,7 +308,7 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
         if ( status /= nf_noerr ) then
             string = 'def long_name '
             string(15:) = lvars(ivar)
-            call handle_err(status,string)
+            call handle_err(status,trim(string))
         endif
         if ( svars(ivar) /= ' ' ) then
             status = nf_put_att_text(ncid,ivars(2,ivar) &
@@ -316,7 +316,7 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
             if ( status /= nf_noerr ) then
                 string = 'def standard_name '
                 string(19:) = svars(ivar)
-                call handle_err(status,string)
+                call handle_err(status,trim(string))
             endif
         endif
         if ( units(ivar) /= ' ' ) then
@@ -324,7 +324,7 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
             if ( status /= nf_noerr ) then
                 string = 'def units'
                 string(11:) = lvars(ivar)
-                call handle_err(status,string)
+                call handle_err(status,trim(string))
             endif
         endif
         if ( cell_methods(ivar) /= ' ' ) then
@@ -333,7 +333,7 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
             if ( status /= nf_noerr ) then
                 string = 'def cell_methods'
                 string(18:) = lvars(ivar)
-                call handle_err(status,string)
+                call handle_err(status,trim(string))
             endif
         endif
         array(1) = undef
@@ -341,7 +341,7 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
         if ( status /= nf_noerr ) then
             string = 'def _FillValue '
             string(16:) = lvars(ivar)
-            call handle_err(status,string)
+            call handle_err(status,trim(string))
         endif
         if ( lnetcdf4 ) then
             chunks(1) = max(1,nx)
@@ -354,13 +354,13 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
             if ( status /= nf_noerr ) then
                 string = 'def chunking '
                 string(16:) = lvars(ivar)
-                call handle_err(status,string)
+                call handle_err(status,trim(string))
             endif
             status = nf_def_var_deflate(ncid,ivars(2,ivar),0,1,3)
             if ( status /= nf_noerr ) then
                 string = 'def deflate '
                 string(16:) = lvars(ivar)
-                call handle_err(status,string)
+                call handle_err(status,trim(string))
             endif
         end if
     enddo
