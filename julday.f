@@ -2,7 +2,8 @@
 C  (C) Copr. 1986-92 Numerical Recipes Software +.-).
       FUNCTION julday(mm,id,iyyy)
       INTEGER julday,id,iyyy,mm,IGREG
-      PARAMETER (IGREG=15+31*(10+12*1582))
+      !!!PARAMETER (IGREG=15+31*(10+12*1582))
+      PARAMETER (IGREG=0)
       INTEGER ja,jm,jy
       jy=iyyy
       !!!if (jy.eq.0) write(0,*) 'julday: warning: there is no year zero'
