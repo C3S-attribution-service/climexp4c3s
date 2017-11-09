@@ -1,7 +1,7 @@
 subroutine writencseries(file,data,npermax,yrbeg,yrend,nperyear,title,comment,var,lvar,units)
 !
-!       writes a time series to a netCDF file
-!       part of the KNMI Climate Explorer, GJvO, 2011
+!   writes a time series to a netCDF file
+!   part of the KNMI Climate Explorer, GJvO, 2011
 !
     implicit none
     include 'netcdf.inc'
@@ -14,11 +14,11 @@ subroutine writencseries(file,data,npermax,yrbeg,yrend,nperyear,title,comment,va
 !   local variables
     integer status,ncid,ntdimid,idim,i,j,l,ii(8),dy,mo,yr,yr0,yr1
     integer yr2,nt,ivar,ntvarid,year,month,n,nperday
-    integer dpm(12),firstmo,firstdy
+    integer dpm(12),firstmo,firstdy,chunks(5)
     integer,allocatable :: itimeaxis(:)
     real array(1)
     real,allocatable :: linear(:)
-    logical lwrite
+    logical lwrite,lcompress
     character string*10000,months(0:12,2)*3,clwrite*10
 
 !   externals
@@ -35,13 +35,13 @@ subroutine writencseries(file,data,npermax,yrbeg,yrend,nperyear,title,comment,va
     call getenv('WRITENC_LWRITE',clwrite)
     if ( index(clwrite,'T') + index(clwrite,'t') .gt.0 ) then
         lwrite = .true.
-    endif
+    end if
     if ( lwrite ) then
         print *,'writencseries called with'
         print *,'file = ',trim(file)
         print *,'npermax,nperyear,yrbeg,yrend = ',npermax,nperyear,yrbeg,yrend
         print *,'var,lvar,units = ',var,lvar,units
-    endif
+    end if
 !
 !   find beginning, end of data (rounded to the nearest whole year)
 !
@@ -78,8 +78,8 @@ subroutine writencseries(file,data,npermax,yrbeg,yrend,nperyear,title,comment,va
 !
 !   open file, overwriting old file if it exists
 !
-    if ( lwrite ) print *,'calling nf_create(',trim(file),0,ncid,')'
-    status = nf_create(file,0,ncid)
+    if ( lwrite ) print *,'calling nf_create(',trim(file),NF_NETCDF4+NF_CLASSIC_MODEL,ncid,')'
+    status = nf_create(file,NF_NETCDF4+NF_CLASSIC_MODEL,ncid)
     if ( status.ne.nf_noerr ) call handle_err(status,file)
     if ( lwrite ) print *,'writenc: created ',file(1:len_trim(file)),' with ncid = ',ncid
     status = nf_put_att_text(ncid,nf_global,'title',len_trim(title),title)
@@ -102,11 +102,11 @@ subroutine writencseries(file,data,npermax,yrbeg,yrend,nperyear,title,comment,va
         call getarg(i,string(l:))
         if ( index(string(l:),'startstop').ne.0 ) then
             string(l:) = ' '
-        endif
-    enddo
+        end if
+    end do
     if ( lwrite ) then
         print *,'History: ',string(1:len_trim(string))
-    endif
+    end if
     status = nf_put_att_text(ncid,nf_global,'history',len_trim(string),string)
     if ( status.ne.nf_noerr ) call handle_err(status,'put att history')
 !
@@ -117,7 +117,7 @@ subroutine writencseries(file,data,npermax,yrbeg,yrend,nperyear,title,comment,va
         status = nf_def_dim(ncid,'time',nt,ntdimid)
     else
         status = nf_def_dim(ncid,'time',nf_unlimited,ntdimid)
-    endif
+    end if
     if ( status.ne.nf_noerr ) call handle_err(status,'def time dim')
 !
 !   define variables: first the axis
@@ -145,7 +145,7 @@ subroutine writencseries(file,data,npermax,yrbeg,yrend,nperyear,title,comment,va
         write(0,*) 'writencseries: cannot handle nperyear = ',nperyear
         write(0,*) '               in defining units string'
         call exit(-1)
-    endif
+    end if
     l = len_trim(string) + 2
     write(string(l:),'(i4,a,i2.2,a,i2.2)') yr1,'-',firstmo,'-',firstdy
     if ( nperyear.gt.366 ) string = trim(string)//' 00:00:00'
@@ -164,7 +164,7 @@ subroutine writencseries(file,data,npermax,yrbeg,yrend,nperyear,title,comment,va
         status = nf_put_att_text(ncid,ntvarid,'calendar',7,'360_day')
     elseif ( n.eq.365 ) then
         status = nf_put_att_text(ncid,ntvarid,'calendar',7,'365_day')
-    endif
+    end if
 !
 !   next the variable itself
 !
@@ -178,25 +178,43 @@ subroutine writencseries(file,data,npermax,yrbeg,yrend,nperyear,title,comment,va
         write(0,*) 'ivar = ',ivar
         string = 'def var '//var
         call handle_err(status,trim(string))
-    endif
+    end if
     status = nf_put_att_text(ncid,ivar,'long_name',len_trim(lvar),lvar)
     if ( status.ne.nf_noerr ) then
         string = 'def long_name '//lvar
         call handle_err(status,trim(string))
-    endif
+    end if
     if ( units.ne.' ' ) then
         status = nf_put_att_text(ncid,ivar,'units',len_trim(units),units)
         if ( status.ne.nf_noerr ) then
             string = 'def units '//lvar
             call handle_err(status,trim(string))
-        endif
-    endif
+        end if
+    end if
     array(1) = 3e33
     status = nf_put_att_real(ncid,ivar,'_FillValue',nf_float,1,array)
     if ( status.ne.nf_noerr ) then
         string = 'def _FillValue '//lvar
         call handle_err(status,trim(string))
-    endif
+    end if
+    lcompress = .false. ! increases file size...
+    if ( lcompress ) then
+        chunks = 1
+        chunks(4) = nperyear
+        if ( lwrite ) print *,'chunks = ',chunks
+        status = nf_def_var_chunking(ncid,ivar,nf_chunked,chunks)
+        if ( status /= nf_noerr ) then
+            string = 'def chunking '
+            string(16:) = lvar
+            call handle_err(status,trim(string))
+        end if
+        status = nf_def_var_deflate(ncid,ivar,0,1,1)
+        if ( status /= nf_noerr ) then
+            string = 'def deflate '
+            string(16:) = lvar
+            call handle_err(status,trim(string))
+        end if
+    end if
 !
 !   end definition mode, put in data mode
 !       
