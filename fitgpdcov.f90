@@ -554,8 +554,8 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
             end if
         end if
     end if
-    call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume,lnone)
     call printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,lweb,plot,assume,lnone)
+    call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume,lnone)
     if ( .not. lnone ) call printcovpvalue(txtx,nmc,iens,lweb)
 
     if ( dump ) then

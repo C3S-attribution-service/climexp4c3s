@@ -58,8 +58,10 @@ subroutine printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume,lnone
     logical :: lweb,plot,lnone
     character assume*(*)
     integer :: i
+    logical lprintreturnvalue
     character units*1
 
+    lprintreturnvalue = .false.
     if ( ntype == 2 .or. ntype == 3 .or. ntype == 4 ) then ! extreme value  plot
         if ( assume == 'scale ' ) then
             units = '%'
@@ -69,29 +71,35 @@ subroutine printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume,lnone
         if ( lweb ) then
             do i=1,10,3
                 if ( lnone ) then
-                    print '(a,i5,a,f16.3,a,f16.3,a,f16.3,a)' &
-                        ,'# <tr><td colspan=2>return value ',10**(1+i/3) &
-                        ,' yr</td><td>',t(i,1),'</td><td>',t25(i,1) &
-                        ,' ... ',t975(i,1),'</td></tr>'
-                    call print3untransf(t(i,1),t25(i,1),t975(i,1),-1)
+                    if ( lprintreturnvalue ) then
+                        print '(a,i5,a,f16.3,a,f16.3,a,f16.3,a)' &
+                            ,'# <tr><td colspan=2>return value ',10**(1+i/3) &
+                            ,' yr</td><td>',t(i,1),'</td><td>',t25(i,1) &
+                            ,' ... ',t975(i,1),'</td></tr>'
+                        call print3untransf(t(i,1),t25(i,1),t975(i,1),-1)
+                    end if
                 else
-                    print '(a,i5,a,i4,a,f16.3,a,f16.3,a,f16.3,a)' &
-                        ,'# <tr><td>return value ',10**(1+i/3) &
-                        ,' yr</td><td>',yr1a,'</td><td>' &
-                        ,t(i,1),'</td><td>',t25(i,1) &
-                        ,' ... ',t975(i,1),'</td></tr>'
-                    print '(a,i4,a,f16.3,a,f16.3,a,f16.3,a)' &
-                        ,'# <tr><td>&nbsp;</td><td>',yr2a &
-                        ,'</td><td>',t(i,2),'</td><td>',t25(i,2) &
-                        ,' ... ',t975(i,2),'</td></tr>'
+                    if ( lprintreturnvalue ) then
+                        print '(a,i5,a,i4,a,f16.3,a,f16.3,a,f16.3,a)' &
+                            ,'# <tr><td>return value ',10**(1+i/3) &
+                            ,' yr</td><td>',yr1a,'</td><td>' &
+                            ,t(i,1),'</td><td>',t25(i,1) &
+                            ,' ... ',t975(i,1),'</td></tr>'
+                        print '(a,i4,a,f16.3,a,f16.3,a,f16.3,a)' &
+                            ,'# <tr><td>&nbsp;</td><td>',yr2a &
+                            ,'</td><td>',t(i,2),'</td><td>',t25(i,2) &
+                            ,' ... ',t975(i,2),'</td></tr>'
+                    end if
                     if ( i == 10 .or. assume == 'both' ) then
                         print '(3a,f16.3,a,f16.3,a,f16.3,a)' &
-                            ,'# <tr><td>&nbsp;</td><td>diff ',units, &
+                            ,'# <tr><td>return values</td><td>diff ',units, &
                             '</td><td>',t(i,3),'</td><td>',t25(i,3) &
                             ,' ... ',t975(i,3),'</td></tr>'
                     end if
-                    call print3untransf(t(i,1),t25(i,1),t975(i,1),yr1a)
-                    call print3untransf(t(i,2),t25(i,2),t975(i,2),yr2a)
+                    if ( lprintreturnvalue ) then
+                        call print3untransf(t(i,1),t25(i,1),t975(i,1),yr1a)
+                        call print3untransf(t(i,2),t25(i,2),t975(i,2),yr2a)
+                    end if
                 end if
             enddo
             if ( plot ) then ! output for stationlist
@@ -152,11 +160,18 @@ subroutine printreturntime(year,xyear,tx,tx25,tx975,lweb)
                 print '(a,g16.5,a,g16.5,a,g16.5,a,g16.5,a)' &
                     ,'# <tr><td>return period ',xyear,'</td><td>' &
                     ,tx,'</td><td>',tx25,' ... ',tx975,'</td></tr>'
+                print '(a,g16.5,a,g16.5,a,g16.5,a,g16.5,a)' &
+                    ,'# <tr><td>probability ',xyear,'</td><td>' &
+                    ,1/tx,'</td><td>',1/tx25,' ... ',1/tx975,'</td></tr>'
             else
                 print '(a,g16.5,a,i5,a,g16.5,a,g16.5,a,g16.5,a)' &
                     ,'# <tr><td>return period ',xyear,'(',year &
                     ,')</td><td>' &
                     ,tx,'</td><td>',tx25,' ... ',tx975,'</td></tr>'
+                print '(a,g16.5,a,i5,a,g16.5,a,g16.5,a,g16.5,a)' &
+                    ,'# <tr><td>probability ',xyear,'(',year &
+                    ,')</td><td>' &
+                    ,1/tx,'</td><td>',1/tx25,' ... ',1/tx975,'</td></tr>'
             end if
         else
             print '(a,f16.5,a,i4,a,f16.5,a,2f18.5)','# return time ' &
@@ -176,13 +191,17 @@ subroutine printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,lweb,plot
     logical :: lweb,plot,lnone
     character idmax*(*),assume*(*)
     integer :: i
-    character atx(3)*16,atx25(3)*16,atx975(3)*16
+    character atx(3)*16,atx25(3)*16,atx975(3)*16, &
+        ainvtx(3)*16,ainvtx25(3)*16,ainvtx975(3)*16
 
     if ( xyear < 1e33 ) then
         do i=1,3
             call val_or_inf(atx(i),tx(i),lweb)
             call val_or_inf(atx25(i),tx25(i),lweb)
             call val_or_inf(atx975(i),tx975(i),lweb)
+            call val_or_inf(ainvtx(i),1/tx(i),lweb)
+            call val_or_inf(ainvtx25(i),1/tx25(i),lweb)
+            call val_or_inf(ainvtx975(i),1/tx975(i),lweb)
         end do
         if ( lweb ) then
             if ( .not. lnone ) then
@@ -190,22 +209,28 @@ subroutine printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,lweb,plot
                     ,'# <tr><td><!--atr2-->return period ',year, &
                     '</td><td>',yr1a,'</td><td>',atx(1), &
                     '</td><td>',atx25(1),' ... ',atx975(1),'</td></tr>'
-                print '(a,g16.5,a,i5,7a)' &
-                    ,'# <tr><td><!--atr1-->(value ',xyear,')</td><td>' &
-                    ,yr2a,'</td><td>',atx(2), &
-                    '</td><td>',atx25(2),' ... ',atx975(2),'</td></tr>'
+                print '(a,i5,7a)' &
+                    ,'# <tr><td>probability</td><td>',yr1a,'</td><td>',ainvtx(1), &
+                    '</td><td>',ainvtx25(1),' ... ',ainvtx975(1),'</td></tr>'
                 if ( idmax == ' ' ) then
-                    print '(8a)' &
+                    print '(a,g16.5,a,i5,7a)' &
+                        ,'# <tr><td><!--atr1-->return period (value ',xyear,')</td><td>' &
+                        ,yr2a,'</td><td>',atx(2), &
+                        '</td><td>',atx25(2),' ... ',atx975(2),'</td></tr>'
+                else
+                    print '(a,g16.5,3a,i5,7a)' &
+                        ,'# <tr><td><!--atr1-->return period (value ',xyear, &
+                        ' at ',trim(idmax),')</td><td>',yr2a,'</td><td>',atx(2), &
+                        '</td><td>',atx25(2),' ... ',atx975(2),'</td></tr>'
+                end if
+                print '(a,i5,7a)' &
+                    ,'# <tr><td>probability</td><td>' &
+                    ,yr2a,'</td><td>',ainvtx(2), &
+                    '</td><td>',ainvtx25(2),' ... ',ainvtx975(2),'</td></tr>'
+                print '(8a)' &
                         ,'# <tr><td><!--atra-->&nbsp;</td><td>ratio', &
                         '</td><td>',atx(3),'</td><td>',atx25(3), &
                         ' ... ',atx975(3),'</td></tr>'
-                else
-                    print '(10a)' &
-                        ,'# <tr><td><!--atra-->(at ',trim(idmax), &
-                        ')</td><td>ratio', &
-                        '</td><td>',atx(3),'</td><td>',atx25(3), &
-                        ' ... ',atx975(3),'</td></tr>'
-                end if
             else
                 print '(a,g16.5,7a)' &
                     ,'# <tr><td colspan=2><!--atr2-->return period ',xyear, &
@@ -324,13 +349,17 @@ subroutine val_or_inf(atx,tx,lweb)
     real :: tx
     character atx*(*)
     logical :: lweb
-    if ( abs(tx) < 1e19 ) then
+    if ( abs(tx) < 1e19 .and. abs(tx) > 1e-19 ) then
         write(atx,'(g16.5)') tx
     else
-        if ( lweb ) then
-            atx = '&infin;'
+        if ( abs(tx) >= 1e19 ) then
+            if ( lweb ) then
+                atx = '&infin;'
+            else
+                atx = 'infinity'
+            end if
         else
-            atx = 'infinity'
+            atx = '0'
         end if
         if ( tx < 0 ) then
             atx = '-'//atx
