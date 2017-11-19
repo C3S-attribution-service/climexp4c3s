@@ -4,9 +4,9 @@ program ecmwf_times
 !
     implicit none
     integer year,mo,lead
-    integer i,j,y,n,yrend,moend,dpm(12,2)
+    integer i,j,y,m,n,yrend,moend,dyend,dpm(12,2)
     integer leap,iargc
-    character string*100
+    character string*100,version*10,nformat*2
     data dpm /31,28,31,30,31,30,31,31,30,31,30,31, &
     &         31,29,31,30,31,30,31,31,30,31,30,31/
     
@@ -21,25 +21,88 @@ program ecmwf_times
     read(string,*) mo
     call getarg(3,string)
     read(string,*) lead
+    call getarg(4,version)
     
-    yrend = year
-    moend = mo + lead + 3 - 1
-    n = 0
-    do i=mo,moend
-        j = i
-        y = year
-        if ( j > 12  ) then
-            j = j - 12
-            y = y + 1
+    if ( version == ' ' ) then
+        yrend = year
+        moend = mo + lead + 3 - 1
+        n = 0
+        do i=mo,moend
+            j = i
+            y = year
+            if ( j > 12  ) then
+                j = j - 12
+                y = y + 1
+            end if
+            n = n + dpm(j,leap(y))
+        end do
+        if ( moend > 12 ) then
+            moend = moend - 12
+            yrend = yrend + 1
         end if
-        n = n + dpm(j,leap(y))
-    end do
-    if ( moend > 12 ) then
-        moend = moend - 12
-        yrend = yrend + 1
-   end if
-   
-   write(*,'(i4,3i2.2,a,i4,a,i4,3i2.2)') year,mo,1,0,',',24*(n-1),',', &
-&     yrend,moend,dpm(moend,leap(yrend)),0
+        n = n - 1
+        dyend = dpm(moend,leap(yrend))
+    else if ( version == 'seas5alt' ) then
+        yrend = year
+        moend = mo + lead
+        n = 0
+        do i=mo,moend-1
+            j = i
+            y = year
+            if ( j > 12  ) then
+                j = j - 12
+                y = y + 1
+            end if
+            n = n + dpm(j,leap(y))
+        end do
+        if ( moend > 12 ) then
+            moend = moend - 12
+            yrend = yrend + 1
+        end if
+        dyend = 1
+    else if ( version == 'seas5' ) then
+        yrend = year
+        moend = mo + lead
+        if ( lead == 1 ) then
+            n = 31 
+        else if ( lead == 2 ) then
+            n = 62
+        else if ( lead == 3 ) then
+            n = 92
+        else if ( lead == 4 ) then
+            n = 123
+        else
+            write(0,*) 'ecmwf_times: error: cannot handle lead >1 yet:',lead
+            call exit(-1)
+        end if
+        m = 0
+        do i=mo,moend-1
+            j = i
+            y = year
+            if ( j > 12  ) then
+                j = j - 12
+                y = y + 1
+            end if
+            m = m + dpm(j,leap(y))
+        end do
+        if ( moend > 12 ) then
+            moend = moend - 12
+            yrend = yrend + 1
+        end if
+        dyend = n - m + 1
+    else
+        write(0,*) 'ecmwf_time: unknown version ',trim(version)
+        call exit(-1)
+    end if
+    n = 24*n
+    if ( n < 1000 ) then
+        nformat = 'i3'
+    else if ( n < 10000 ) then
+        nformat = 'i4'
+    else
+        nformat = 'i5'
+    end if
+    write(*,'(i4,3i2.2,a,'//nformat//',a,i4,3i2.2)') year,mo,1,0,',',n,',', &
+&       yrend,moend,dyend,0
 
 end program
