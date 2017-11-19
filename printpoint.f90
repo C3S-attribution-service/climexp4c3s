@@ -162,7 +162,7 @@ subroutine printreturntime(year,xyear,tx,tx25,tx975,lweb)
                     ,tx,'</td><td>',tx25,' ... ',tx975,'</td></tr>'
                 print '(a,g16.5,a,g16.5,a,g16.5,a,g16.5,a)' &
                     ,'# <tr><td>probability ',xyear,'</td><td>' &
-                    ,1/tx,'</td><td>',1/tx25,' ... ',1/tx975,'</td></tr>'
+                    ,1/tx,'</td><td>',1/tx975,' ... ',1/tx25,'</td></tr>'
             else
                 print '(a,g16.5,a,i5,a,g16.5,a,g16.5,a,g16.5,a)' &
                     ,'# <tr><td>return period ',xyear,'(',year &
@@ -171,7 +171,7 @@ subroutine printreturntime(year,xyear,tx,tx25,tx975,lweb)
                 print '(a,g16.5,a,i5,a,g16.5,a,g16.5,a,g16.5,a)' &
                     ,'# <tr><td>probability ',xyear,'(',year &
                     ,')</td><td>' &
-                    ,1/tx,'</td><td>',1/tx25,' ... ',1/tx975,'</td></tr>'
+                    ,1/tx,'</td><td>',1/tx975,' ... ',1/tx25,'</td></tr>'
             end if
         else
             print '(a,f16.5,a,i4,a,f16.5,a,2f18.5)','# return time ' &
@@ -211,7 +211,7 @@ subroutine printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,lweb,plot
                     '</td><td>',atx25(1),' ... ',atx975(1),'</td></tr>'
                 print '(a,i5,7a)' &
                     ,'# <tr><td>probability</td><td>',yr1a,'</td><td>',ainvtx(1), &
-                    '</td><td>',ainvtx25(1),' ... ',ainvtx975(1),'</td></tr>'
+                    '</td><td>',ainvtx975(1),' ... ',ainvtx25(1),'</td></tr>'
                 if ( idmax == ' ' ) then
                     print '(a,g16.5,a,i5,7a)' &
                         ,'# <tr><td><!--atr1-->return period (value ',xyear,')</td><td>' &
@@ -226,7 +226,7 @@ subroutine printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,lweb,plot
                 print '(a,i5,7a)' &
                     ,'# <tr><td>probability</td><td>' &
                     ,yr2a,'</td><td>',ainvtx(2), &
-                    '</td><td>',ainvtx25(2),' ... ',ainvtx975(2),'</td></tr>'
+                    '</td><td>',ainvtx975(2),' ... ',ainvtx25(2),'</td></tr>'
                 print '(8a)' &
                         ,'# <tr><td><!--atra-->&nbsp;</td><td>ratio', &
                         '</td><td>',atx(3),'</td><td>',atx25(3), &
@@ -352,7 +352,9 @@ subroutine val_or_inf(atx,tx,lweb)
     if ( abs(tx) < 1e19 .and. abs(tx) > 1e-19 ) then
         write(atx,'(g16.5)') tx
     else
-        if ( abs(tx) >= 1e19 ) then
+        if ( abs(tx) >= 1e33 .or. abs(tx) < 1e-33 ) then
+            atx = 'undefined'
+        else if ( abs(tx) >= 1e19 ) then
             if ( lweb ) then
                 atx = '&infin;'
             else
