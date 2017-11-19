@@ -1060,18 +1060,20 @@
                         if ( lwrite ) print *,'zdif = ',zdifs(i)
                         call keepalive(i,nmc)
                     enddo
-                    if ( lwrite ) call getsign('result ',result,results,nmc,1,sign,.true.)
-                    if ( lweb ) then
-                        print '(a,i6,a)','Significances are computed against a ',nmc,' sample Monte Carlo<br>'
-                    else
-                        print '(a,i6,a)','# significances are computed against a ',nmc,' sample Monte Carlo'
-                    endif
-                    call getsign(runs(1,irunvar),rmin,rmins,nmc,-1,signmin, .true. )
-                    call getsign(runs(2,irunvar),rmax,rmaxs,nmc,1,signmax, .true. )
-                    call getsign(runs(3,irunvar),zdif,zdifs,nmc,1,signdif, .true. )
-                    write(14,'(3a,f6.2,a,e14.6,a)') '# ',runs(1,irunvar),' = ',rmin,' P ',1-signmin
-                    write(14,'(3a,f6.2,a,e14.6,a)') '# ',runs(2,irunvar),' = ',rmax,' P ',1-signmax
-                    write(14,'(3a,f6.2,a,e14.6,a)') '# ',runs(3,irunvar),' = ',zdif,' P ',1-signdif
+                    if ( irunvar > 0 ) then
+                        if ( lwrite ) call getsign('result ',result,results,nmc,1,sign,.true.)
+                        if ( lweb ) then
+                            print '(a,i6,a)','Significances are computed against a ',nmc,' sample Monte Carlo<br>'
+                        else
+                            print '(a,i6,a)','# significances are computed against a ',nmc,' sample Monte Carlo'
+                        endif
+                        call getsign(runs(1,irunvar),rmin,rmins,nmc,-1,signmin, .true. )
+                        call getsign(runs(2,irunvar),rmax,rmaxs,nmc,1,signmax, .true. )
+                        call getsign(runs(3,irunvar),zdif,zdifs,nmc,1,signdif, .true. )
+                        write(14,'(3a,f6.2,a,e14.6,a)') '# ',runs(1,irunvar),' = ',rmin,' P ',1-signmin
+                        write(14,'(3a,f6.2,a,e14.6,a)') '# ',runs(2,irunvar),' = ',rmax,' P ',1-signmax
+                        write(14,'(3a,f6.2,a,e14.6,a)') '# ',runs(3,irunvar),' = ',zdif,' P ',1-signdif
+                    end if
                 endif       ! running correlations
             800 continue
             enddo           ! k (index)

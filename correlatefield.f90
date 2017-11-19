@@ -1316,7 +1316,7 @@ subroutine cfield(datfile,ncid,field,lsmask,nx,xx,ny,yy,nz,zz,nt &
                 call exit(-1)
             end if
         end if
-        if ( nyrwindow.gt.0 ) then
+        if ( nyrwindow.gt.0 .and. irunvar > 0 ) then
             if ( irunvar.eq.1 ) then
                 vars(nvars+1) = 'rmin'
                 vars(nvars+2) = 'rmax'

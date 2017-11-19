@@ -507,6 +507,26 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
             if ( plotrunfile == ' ' ) goto 924
             open(14,file=trim(plotrunfile))
             lskip = 2
+        elseif ( line(1:9) == 'runstartr' ) then
+            call getarg(i+1,line)
+            read(line,*,err=923) nyrwindow ! not used
+            nyrwindow = 1
+            if ( lout ) print '(a,i4,a)','# doing a regression with running start point'
+            irunvar = -2
+            call getarg(i+2,plotrunfile)
+            if ( plotrunfile == ' ' ) goto 924
+            open(14,file=trim(plotrunfile))
+            lskip = 2
+        elseif ( line(1:8) == 'runstart' ) then
+            call getarg(i+1,line)
+            read(line,*,err=923) nyrwindow
+            nyrwindow = 1
+            if ( lout ) print '(a,i4,a)','# doing a correlation with running start point'
+            irunvar = -1
+            call getarg(i+2,plotrunfile)
+            if ( plotrunfile == ' ' ) goto 924
+            open(14,file=trim(plotrunfile))
+            lskip = 2
         elseif ( line(1:3) == 'run' ) then
             call getarg(i+1,line)
             read(line,*,err=923) nyrwindow
