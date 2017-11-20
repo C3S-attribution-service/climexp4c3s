@@ -237,7 +237,7 @@ subroutine printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,lweb,plot
                     '</td><td>',atx(1), &
                     '</td><td>',atx25(1),' ... ',atx975(1),'</td></tr>'
                 print '(7a)' &
-                    ,'# <tr><td colspan=2><!--atr2-->probability </td><td>',atx(1), &
+                    ,'# <tr><td colspan=2><!--atr2-->probability </td><td>',ainvtx(1), &
                     '</td><td>',ainvtx975(1),' ... ',ainvtx25(1),'</td></tr>'
             end if
         else
