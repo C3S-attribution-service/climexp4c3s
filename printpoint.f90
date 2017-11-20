@@ -236,6 +236,9 @@ subroutine printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,lweb,plot
                     ,'# <tr><td colspan=2><!--atr2-->return period ',xyear, &
                     '</td><td>',atx(1), &
                     '</td><td>',atx25(1),' ... ',atx975(1),'</td></tr>'
+                print '(7a)' &
+                    ,'# <tr><td colspan=2><!--atr2-->probability </td><td>',atx(1), &
+                    '</td><td>',atx975(1),' ... ',atx25(1),'</td></tr>'
             end if
         else
             if ( .not. lnone ) then
