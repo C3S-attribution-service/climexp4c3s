@@ -74,6 +74,7 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
     yr2 = yrend
     yr1a = yrbeg
     yr2a = yrend + 1
+    yr2b = -9999
     lstartstop = .FALSE. 
     minindx = -2e33
     maxindx = +2e33
@@ -316,6 +317,11 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
             read(line,*,err=908) yr2a
             yr2a = min(yr2a,yrend)
             if ( lout ) print '(a,i4)','# ending 2 at year ',yr2a
+            lskip = 1
+        elseif ( line(1:4) == 'end3' ) then
+            call getarg(i+1,line)
+            read(line,*,err=908) yr2b
+            if ( lout ) print '(a,i4)','# ending 3 at year ',yr2b
             lskip = 1
         elseif ( line(1:3) == 'beg' ) then
             call getarg(i+1,line)

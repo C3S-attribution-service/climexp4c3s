@@ -13,7 +13,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     character seriesids(0:mens)*(*),assume*(*),distribution*(*)
     integer fyr,lyr,ntot,i,j,k,ntype,nmax,npernew,j1,j2,iens,jens,ensmax,init,ndecor,n
     integer,allocatable :: yrs(:)
-    real a(3),b(3),xi(3),alpha(3),beta(3),cov1,cov2,offset,t(3,10,3),tx(3,3)
+    real a(3),b(3),xi(3),alpha(3),beta(3),cov1,cov2,cov3,offset,t(3,10,3),tx(3,3)
     real,allocatable :: xx(:,:),yrseries(:,:,:),yrcovariate(:,:,:),yy(:),crosscorr(:,:)
     logical lboot,lprint,subtract_offset
     character operation*4,file*1024,idmax*30
@@ -21,8 +21,8 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
 
     results = 3e33
     nresults = 0
-    fyr = min(yr1,yr1a,yr2a)
-    lyr = max(yr2,yr1a,yr2a)
+    fyr = min(yr1,yr1a,yr2a,yr2b)
+    lyr = max(yr2,yr1a,yr2a,yr2b)
     nmax = nperyear*(yr2-yr1+1)*(1+mens-mens1)
     !!!write(0,*) 'assume,distribution = ',assume,distribution
     allocate(xx(2,nmax))
@@ -47,18 +47,18 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         if ( nperyear == nperyear1 .and. nperyear > 1 ) then
             if ( lwrite ) print *,'attribute_dist: calling make_two_annual_values with max'
             call make_two_annual_values(series,covariate,nperyear,npermax,yrbeg,yrend,mens1,mens, &
-            &   yrseries,yrcovariate,fyr,lyr,'max')
+                yrseries,yrcovariate,fyr,lyr,'max')
             if ( xyear < 1e33 ) then
                 call get_covariate_extrayear(covariate,nperyear1,npermax,yrbeg,yrend,mens1,mens, &
-                & yrcovariate,fyr,lyr)
+                    yrcovariate,fyr,lyr)
             end if
         else
             if ( lwrite ) print *,'attribute_dist: calling make_annual_values for series with max'
             call make_annual_values(series,nperyear,npermax,yrbeg,yrend,mens1,mens, &
-            &   yrseries,fyr,lyr,yr1,yr2,'max')
+                yrseries,fyr,lyr,yr1,yr2,'max')
             if ( lwrite ) print *,'attribute_dist: calling make_annual_values for covariate with mean'
             call make_annual_values(covariate,nperyear1,npermax,yrbeg,yrend,mens1,mens, &
-            &   yrcovariate,fyr,lyr,fyr,lyr,'mean')
+                yrcovariate,fyr,lyr,fyr,lyr,'mean')
         end if
         npernew = 1
         j1 = 1
@@ -92,7 +92,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         ! change covariate to the same time resolution as series
         if ( nperyear1 < nperyear ) then
             if ( lwrite ) print *,'repeating covariate from nperyear = ',nperyear1,' to ',nperyear
-           do iens=mens1,mens
+            do iens=mens1,mens
                 call annual2shorter(covariate(1,yrbeg,iens),npermax,yrbeg,yrend,nperyear1, &
                 &   yrcovariate(1,fyr,iens),nperyear,fyr,lyr,nperyear,1,nperyear,1,lwrite)
             end do
@@ -126,8 +126,8 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     end if
     
     if ( lwrite ) print *,'attribute_dist: calling handle_then_now'
-    call handle_then_now(yrseries,yrcovariate,npernew,fyr,lyr,j1,j2,yr1a,yr2a,mens1,mens, &
-        & xyear,ensmax,cov1,cov2,lprint,lwrite)
+    call handle_then_now(yrseries,yrcovariate,npernew,fyr,lyr,j1,j2,yr1a,yr2a,yr2b,mens1,mens, &
+        & xyear,ensmax,cov1,cov2,cov3,lprint,lwrite)
     if ( cov1 > 1e33 .or. cov2 > 1e33 ) then
         if ( lwrite ) print *,'giving up, cov1,cov2 = ',cov1,cov2
         return
@@ -153,6 +153,10 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
             &   '</td><td>&nbsp;</td></tr>'
             print '(a,i4,a,g19.5,a)','# <tr><td>&nbsp;</td><td>',yr2a,'</td><td>',cov2, &
             &   '</td><td>&nbsp;</td></tr>'
+            if ( cov3 < 1e33 ) then
+                print '(a,i4,a,g19.5,a)','# <tr><td>&nbsp;</td><td>',yr2b,'</td><td>',cov3, &
+                &   '</td><td>&nbsp;</td></tr>'
+            end if
         end if
     end if
     if ( cov1 /= 0 .or. cov2 /= 0 ) then
@@ -163,7 +167,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     if ( subtract_offset ) then
         if ( lwrite ) print *,'attribute_dist: calling subtract_constant'
         call subtract_constant(yrcovariate,yrseries,npernew,fyr,lyr,mens1,mens, &
-        &   cov1,cov2,offset,lwrite)
+        &   cov1,cov2,cov3,offset,lwrite)
     else
         offset = 0
     end if
@@ -176,6 +180,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
             do jens=iens+1,mens
                 call keepalive1('Computing correlations',i,n)
                 i = i + 1
+                ! TODO: should first subtract the regression on the covariate here...
                 call getcorr(yrseries(1,fyr,iens),npernew,fyr,lyr, &
                 &            yrseries(1,fyr,jens),npernew,fyr,lyr, &
                 &            j1,j2,crosscorr(iens,jens),lwrite)
@@ -193,7 +198,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         if ( lwrite ) print *,'attribute_dist: calling fitgevcov',j1,j2
         call fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
     &       ,crosscorr,a,b,xi,alpha,beta,j1,j2,nens1,nens2 &
-    &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2,offset &
+    &       ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2,cov3,offset &
     &       ,t,tx,restrain,assume,confidenceinterval,ndecor,lboot,lprint,dump,plot,lwrite)
     else if ( distribution == 'gpd' ) then
         ntype = 3 ! log plot
@@ -203,7 +208,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         if ( lwrite ) print *,'attribute_dist: calling fitgpdcov'
         call fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
     &       ,crosscorr,a,b,xi,alpha,beta,j1,j2,nens1,nens2 &
-    &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2,offset &
+    &       ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2,cov3,offset &
     &       ,t,tx,pmindata,restrain,assume,confidenceinterval,ndecor,lboot &
     &       ,lprint,dump,plot,lwrite)
     else if  ( distribution == 'gumbel' ) then
@@ -212,7 +217,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         if ( lwrite ) print *,'attribute_dist: calling fitgumcov'
         call fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
     &       ,crosscorr,a,b,alpha,beta,j1,j2,nens1,nens2 &
-    &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2,offset &
+    &       ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2,cov3,offset &
     &       ,t,tx,assume,confidenceinterval,ndecor,lboot,lprint,dump,plot,lwrite)
     else if  ( distribution == 'gauss' ) then
         ntype = 4 ! sqrtlog plot
@@ -220,7 +225,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         if ( lwrite ) print *,'attribute_dist: calling fitgaucov'
         call fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
     &       ,crosscorr,a,b,alpha,beta,j1,j2,nens1,nens2 &
-    &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyear,idmax,cov1,cov2,offset &
+    &       ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2,cov3,offset &
     &       ,t,tx,assume,confidenceinterval,ndecor,lboot,lprint,dump,plot,lwrite)
     else
         write(0,*) 'attribute_dist: error: unknown distribution ',trim(distribution)
@@ -850,21 +855,22 @@ subroutine print_spatial_scale(scross,years)
     end if
 end subroutine print_spatial_scale
 
-subroutine handle_then_now(series,covariate,nperyear,fyr,lyr,j1,j2,yr1a,yr2a, &
-    &   mens1,mens,xyear,ensmax,cov1,cov2,lprint,lwrite)
+subroutine handle_then_now(series,covariate,nperyear,fyr,lyr,j1,j2,yr1a,yr2a,yr2b, &
+    &   mens1,mens,xyear,ensmax,cov1,cov2,cov3,lprint,lwrite)
 
     ! handle the conversion from "then" (yr1a) and "now" (yr2a) to the variables
     ! fitgevcov expects (xyear,idmax,cov1,cov2), sets series to undef at "now".
     
     implicit none
-    integer nperyear,fyr,lyr,j1,j2,yr1a,yr2a,mens1,mens,ensmax
+    integer nperyear,fyr,lyr,j1,j2,yr1a,yr2a,yr2b,mens1,mens,ensmax
     real series(nperyear,fyr:lyr,0:mens),covariate(nperyear,fyr:lyr,0:mens)
-    real xyear,cov1,cov2
+    real xyear,cov1,cov2,cov3
     logical lprint,lwrite
     real dummy
 
     call find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr1a,cov1,dummy,ensmax,1,lprint,lwrite)
     call find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr2a,cov2,xyear,ensmax,2,lprint,lwrite)
+    call find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr2b,cov3,xyear,ensmax,3,lprint,lwrite)
 
 end subroutine handle_then_now
 
@@ -877,6 +883,7 @@ subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xy
     real s
 
     cov = 3e33
+    if ( yr == -9999 ) return
     ensmax = -1
     if ( yr /= 9999 ) then
         s = -3e33
@@ -934,7 +941,7 @@ subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xy
     end if
 end subroutine find_cov
 
-subroutine subtract_constant(covariate,series,nperyear,fyr,lyr,mens1,mens,cov1,cov2,offset,lwrite)
+subroutine subtract_constant(covariate,series,nperyear,fyr,lyr,mens1,mens,cov1,cov2,cov3,offset,lwrite)
 
     ! subtract a constant from the covariate series and the reference points
     ! to keep numbers small
@@ -942,7 +949,7 @@ subroutine subtract_constant(covariate,series,nperyear,fyr,lyr,mens1,mens,cov1,c
     implicit none
     integer nperyear,fyr,lyr,mens1,mens
     real covariate(nperyear,fyr:lyr,0:mens),series(nperyear,fyr:lyr,0:mens)
-    real cov1,cov2,offset
+    real cov1,cov2,cov3,offset
     logical lwrite
     integer yr,mo,n,iens
     real s
@@ -973,6 +980,9 @@ subroutine subtract_constant(covariate,series,nperyear,fyr,lyr,mens1,mens,cov1,c
     if ( lwrite ) print *,'subtract_constant: cov1,cov2 were ',cov1,cov2
     cov1 = cov1 - s
     cov2 = cov2 - s
+    if ( cov3 < 1e33 ) then
+        cov3 = cov3 - s
+    end if
     offset = s
     if ( lwrite ) print *,'subtract_constant: cov1,cov2 are  ',cov1,cov2,offset
 
@@ -1151,9 +1161,9 @@ subroutine copyab3etc(a3,b3,xi3,alpha3,beta3,t3,tx3, &
     implicit none
     real :: a3(3),b3(3),xi3(3),alpha3(3),beta3(3),t3(3,10,3),tx3(3,3)
     real :: a,a25,a975,b,b25,b975,xi,xi25,xi975,alpha,alpha25,alpha975, &
-    &   beta,beta25,beta975,t(10,3),t25(10,3),t975(10,3),tx(3),tx25(3),tx975(3)
+    &   beta,beta25,beta975,t(10,4),t25(10,4),t975(10,4),tx(4),tx25(4),tx975(4)
     integer i,j
-    
+!
     call copy3scalar(a3,a,a25,a975)
     if ( b >= 0 ) then
         call copy3scalar(b3,b,b25,b975)

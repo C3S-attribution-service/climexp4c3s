@@ -181,21 +181,26 @@ subroutine printreturntime(year,xyear,tx,tx25,tx975,lweb)
 end subroutine printreturntime
 
 
-subroutine printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,lweb,plot,assume,lnone)
+subroutine printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,yr2b,lweb,plot,assume,lnone)
 
-!   print return time of year at cov1 and cov2
+!   print return time of year at cov1 and cov2 (and optionally cov3)
 
     implicit none
-    integer :: year,yr1a,yr2a
-    real :: xyear,tx(3),tx25(3),tx975(3)
+    integer :: year,yr1a,yr2a,yr2b
+    real :: xyear,tx(4),tx25(4),tx975(4)
     logical :: lweb,plot,lnone
     character idmax*(*),assume*(*)
-    integer :: i
-    character atx(3)*16,atx25(3)*16,atx975(3)*16, &
-        ainvtx(3)*16,ainvtx25(3)*16,ainvtx975(3)*16
+    integer :: i,nj
+    character atx(4)*16,atx25(4)*16,atx975(4)*16, &
+        ainvtx(4)*16,ainvtx25(4)*16,ainvtx975(4)*16
 
     if ( xyear < 1e33 ) then
-        do i=1,3
+        if ( yr2b > 0 ) then
+            nj = 4
+        else
+            nj = 3
+        end if
+        do i=1,nj
             call val_or_inf(atx(i),tx(i),lweb)
             call val_or_inf(atx25(i),tx25(i),lweb)
             call val_or_inf(atx975(i),tx975(i),lweb)
@@ -231,6 +236,15 @@ subroutine printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,lweb,plot
                         ,'# <tr><td><!--atra-->&nbsp;</td><td>ratio', &
                         '</td><td>',atx(3),'</td><td>',atx25(3), &
                         ' ... ',atx975(3),'</td></tr>'
+                if ( yr2b > 0 ) then
+                    print '(a,i5,a,i5,7a)' &
+                        ,'# <tr><td>return period ',year, &
+                        '</td><td>',yr2b,'</td><td>',atx(4), &
+                        '</td><td>',atx25(4),' ... ',atx975(4),'</td></tr>'
+                    print '(a,i5,7a)' &
+                        ,'# <tr><td>probability</td><td>',yr2b,'</td><td>',ainvtx(4), &
+                        '</td><td>',ainvtx975(4),' ... ',ainvtx25(4),'</td></tr>'
+                end if
             else
                 print '(a,g16.5,7a)' &
                     ,'# <tr><td colspan=2><!--atr2-->return period ',xyear, &
@@ -250,10 +264,15 @@ subroutine printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,lweb,plot
                     ,' = ',atx(2),' 95% CI ',atx25(2),atx975(2)
                 print '(a,i4,5a)','# return time ',year,' ratio = ' &
                     ,atx(3),' 95% CI ',atx25(3),atx975(3)
+                if ( yr2b > 0 ) then
+                    print '(a,i4,a,i4,5a)' &
+                        ,'# return time ',year,' at yr=',yr2b &
+                        ,' = ',atx(4),' 95% CI ',atx25(4),atx975(4)
+                end if
             else
                 print '(a,g16.5,7a)','# return time ',xyear,' = ',atx(1),' 95% CI ',atx25(1),atx975(1)                
             end if
-        endif
+        end if
         if ( plot ) then    ! output for stationlist
             write(11,'(3g20.4,i6,a)') tx(1),tx25(1),tx975(1),yr1a,' return time'
             write(11,'(3g20.4,i6,a)') tx(2),tx25(2),tx975(2),yr2a,' return time'
@@ -409,18 +428,24 @@ subroutine plot_ordered_points(xx,xs,yrs,ntot,ntype,nfit, &
     !   attention: quadratic algorithm!
     
         if ( i <= ntot ) then
-            do j=1,ntot
-                if ( xs(j) == xx(i) ) goto 790
-            enddo
-            print *,'warning: cannot find year for x = ',x
-        endif
-        j = 0
+            if ( xx(i) < 1e33 ) then
+                do j=1,ntot
+                    if ( xs(j) == xx(i) ) goto 790
+                end do
+                print *,'warning: cannot find year for x = ',x
+            end if
+        end if
+        j = 0 ! yrs(0) = 0 is orinted
 790     continue
         if ( j > 0 ) xs(j) = 3e33
 
-        if ( i <= ntot .and. j > 0 ) then
+        if ( i <= ntot ) then
             f = real(i)/real(ntot+1)
-            x = xx(i)
+            if ( xx(i) < 1e33 ) then
+                x = xx(i)
+            else
+                x = -999.9
+            end if
         else
             f = 1 - 1/real(ntot+1)*0.9**(i-ntot)
             if ( abs(f-1) < 1e-6 ) goto 800
@@ -712,12 +737,12 @@ subroutine plot_tx_cdfs(txtx,nmc,nens,ntype,j1,j2)
 !   make a file to plot CDFs
 
     integer :: nmc,nens,ntype,j1,j2
-    real :: txtx(nmc,3)
+    real :: txtx(nmc,4)
     integer :: iens,j
-    real :: logtxtx(3)
+    real :: logtxtx(4)
     integer :: iargc
     write(10,'(a)') '# fraction, return values in the past '// &
-    'climate, current climate and difference (sorted), '
+        'climate, current climate and difference (sorted), '
     if ( ntype == 2 ) then
         write(10,'(a)') '# repeated as gumbel transforms'
     else if ( ntype == 3 ) then
@@ -729,7 +754,8 @@ subroutine plot_tx_cdfs(txtx,nmc,nens,ntype,j1,j2)
         call exit(-1)
     end if
     do iens=1,nens
-        do j=1,2
+        do j=1,4
+            if ( j == 3 ) cycle
             if ( ntype == 2 ) then
                 if ( txtx(iens,j) < 1e20 .and. txtx(iens,j) > 1 ) then
                     logtxtx(j) = -log(1-1/((j2-j1+1)*txtx(iens,j)))
@@ -757,18 +783,17 @@ subroutine plot_tx_cdfs(txtx,nmc,nens,ntype,j1,j2)
         end do
     !   simple logscale for the time being
         logtxtx(3) = log(txtx(iens,3))
-        write(10,'(f6.4,6g16.5)') iens/real(nens+1), &
-            (txtx(iens,j),j=1,3),(logtxtx(j),j=1,3)
+        write(10,'(f6.4,8g16.5)') iens/real(nens+1), &
+            (txtx(iens,j),j=1,3),(logtxtx(j),j=1,3), &
+            (txtx(iens,j),j=4,4),(logtxtx(j),j=4,4)
     end do
-! DO NOT write xtics in return times for easier reading of the plot
-!!!call print_xtics(10,-ntype,ntot,j1,j2)
 end subroutine plot_tx_cdfs
 
 
-subroutine getreturnlevels(a,b,xi,alpha,beta,cov1,cov2,covreturnlevel,j1,j2,assume,t)
+subroutine getreturnlevels(a,b,xi,alpha,beta,cov1,cov2,cov3,covreturnlevel,j1,j2,assume,t)
     implicit none
     integer :: j1,j2
-    real :: a,b,xi,alpha,beta,cov1,cov2,t(10,3)
+    real :: a,b,xi,alpha,beta,cov1,cov2,cov3,t(10,4)
     character assume*(*)
     real,external :: covreturnlevel
     integer :: i
@@ -786,6 +811,12 @@ subroutine getreturnlevels(a,b,xi,alpha,beta,cov1,cov2,covreturnlevel,j1,j2,assu
         t(i,1) = covreturnlevel(a,b,xi,alpha,beta,xx,cov1)
         xx = x
         t(i,2) = covreturnlevel(a,b,xi,alpha,beta,xx,cov2)
+        if ( cov3 < 1e33 ) then
+            xx = x
+            t(i,4) = covreturnlevel(a,b,xi,alpha,beta,xx,cov3)
+        else
+            t(i,4) = 3e33
+        end if
         t(i,3) = t(i,2) - t(i,1)
         if ( assume == 'scale' ) then ! relative change in %
             t(i,3) = 100*t(i,3)/t(i,2)
@@ -794,14 +825,18 @@ subroutine getreturnlevels(a,b,xi,alpha,beta,cov1,cov2,covreturnlevel,j1,j2,assu
 end subroutine getreturnlevels
 
 
-subroutine getreturnyears(a,b,xi,alpha,beta,xyear,cov1,cov2,covreturnyear,j1,j2,tx,lchangesign,lwrite)
+subroutine getreturnyears(a,b,xi,alpha,beta,xyear,cov1,cov2,cov3,covreturnyear,j1,j2,tx, &
+        lchangesign,lwrite)
     implicit none
     integer :: j1,j2
-    real :: a,b,xi,alpha,beta,xyear,cov1,cov2,tx(3)
+    real :: a,b,xi,alpha,beta,xyear,cov1,cov2,cov3,tx(4)
     logical :: lchangesign,lwrite
     real,external :: covreturnyear
     tx(1) = covreturnyear(a,b,xi,alpha,beta,xyear,cov1,lchangesign)
     tx(2) = covreturnyear(a,b,xi,alpha,beta,xyear,cov2,lchangesign)
+    if ( cov3 < 1e33 ) then
+        tx(4) = covreturnyear(a,b,xi,alpha,beta,xyear,cov3,lchangesign)
+    end if
     if ( tx(2) > 1e19 ) then
         if ( tx(1) > 1e19 ) then
             tx(3) = 3e33
@@ -1022,19 +1057,20 @@ subroutine write_threshold(cmin,cmax,a,b,alpha,beta,offset,lchangesign)
     end subroutine write_threshold
 
 
-subroutine write_dthreshold(cov1,cov2,acov,offset,lchangesign)
+subroutine write_dthreshold(cov1,cov2,cov3,acov,offset,lchangesign)
     implicit none
-    real :: cov1,cov2,acov(3,2),offset
+    real :: cov1,cov2,cov3,acov(3,3),offset
     logical :: lchangesign
     integer :: i,j,is
     real :: a(3)
     logical :: lopen
+    
     inquire(unit=15,opened=lopen) ! no flag in getopts.inc
     if ( lopen ) then
         is = +1 ! pre-flipped
         write(15,'(a)')
         write(15,'(a)')
-        write(15,'(a)') '# covariate threshold lowerbound upperbound'
+        write(15,'(a)') '# covariate locationparameter/threshold lowerbound upperbound'
         do j=1,3
             if ( acov(j,1) < 1e33 ) then
                 a(j) = is*acov(j,1)
@@ -1051,5 +1087,15 @@ subroutine write_dthreshold(cov1,cov2,acov,offset,lchangesign)
             end if
         end do
         write(15,'(4g20.6)') cov2+offset,a
+        if ( cov3 < 1e33 ) then
+            do j=1,3
+                if ( acov(j,3) < 1e33 ) then
+                    a(j) = is*acov(j,3)
+                else
+                    a(j) = -999.9
+                end if
+            end do
+            write(15,'(4g20.6)') cov3+offset,a
+        end if
     endif
 end subroutine write_dthreshold

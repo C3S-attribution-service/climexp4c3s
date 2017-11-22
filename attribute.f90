@@ -64,11 +64,9 @@ program attribute
     if ( covariatefile == 'none' ) then
         covariate = 0
         nperyear1 = 1
-    else if ( index(covariatefile,'%%') == 0 .and. &
-    &    index(covariatefile,'++') == 0 ) then
-        !!!write(0,*) 'Reading covariate series...<p>'
+    else if ( index(covariatefile,'%%') == 0 .and. index(covariatefile,'++') == 0 ) then
         call readseries(covariatefile,covariate,npermax,yrbeg,yrend &
-        &   ,nperyear1,var1,units1,lstandardunits,lwrite)
+            ,nperyear1,var1,units1,lstandardunits,lwrite)
         do iens=mens1,mens
             if ( iens /= 0 ) then
                 covariate(:,:,iens) = covariate(:,:,0)
@@ -77,7 +75,7 @@ program attribute
     else
         !!!write(0,*) 'Reading covariate series...<p>'
         call readensseries(covariatefile,covariate,npermax,yrbeg,yrend &
-        & ,mensmax,nperyear1,mmens1,mmens,var1,units1,lstandardunits,lwrite)
+            ,mensmax,nperyear1,mmens1,mmens,var1,units1,lstandardunits,lwrite)
         if ( mmens1 /= mens1 .or. mmens /= mens ) then
             write(0,*) 'attribute: error: number of ensemble members should be the same ' &
             & ,'found covariate: ',mmens1,'-',mmens,', series ',mens1,'-',mens

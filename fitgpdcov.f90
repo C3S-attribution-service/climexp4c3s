@@ -1,7 +1,7 @@
 subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
      &       ,mens1,mens,crosscorr,a3,b3,xi3,alpha3,beta3,j1,j2,nens1,nens2 &
-     &       ,lweb,ntype,lchangesign,yr1a,yr2a,xyearin,idmax,cov1,cov2 &
-     &       ,offset,t3,tx3,threshold,inrestrain,assume &
+     &       ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyearin,idmax,cov1,cov2 &
+     &       ,cov3,offset,t3,tx3,threshold,inrestrain,assume &
      &       ,confidenceinterval,ndecor,lboot,lprint,dump,plot,lwrite)
 !
 !       fit a GPD distribution to the data, which is already assumed to be declustered
@@ -28,30 +28,30 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
 !
     integer nmc
     parameter(nmc=1000)
-    integer npernew,fyr,lyr,mens1,mens,ntot,j1,j2,nens1,nens2,ntype,yr1a,yr2a,ndecor
+    integer npernew,fyr,lyr,mens1,mens,ntot,j1,j2,nens1,nens2,ntype,yr1a,yr2a,yr2b,ndecor
     real yrseries(npernew,fyr:lyr,0:mens), &
      &       yrcovariate(npernew,fyr:lyr,0:mens),crosscorr(0:mens,0:mens), &
      &       a3(3),b3(3),xi3(3),alpha3(3),beta3(3),xyearin, &
-     &       cov1,cov2,offset,inrestrain,t3(3,10,3),tx3(3,3),threshold, &
+     &       cov1,cov2,cov3,offset,inrestrain,t3(3,10,3),tx3(3,3),threshold, &
      &       confidenceinterval
     character assume*(*),idmax*(*)
     logical lweb,lchangesign,lboot,lprint,dump,plot,lwrite
 !
-    integer i,j,jj,k,l,n,nx,iter,iter1,iens,iiens,nfit,year,tsep
+    integer i,j,jj,k,l,n,nx,iter,iter1,iens,iiens,nfit,year,tsep,nj
     integer,allocatable :: yrs(:),bootyrs(:)
-    real x,a,b,ba,xi,alpha,beta,t(10,3),t25(10,3),t975(10,3), &
-     &       tx(3),tx25(3),tx975(3),aa(nmc),bb(nmc),xixi(nmc),baba(nmc), &
-     &       alphaalpha(nmc),betabeta(nmc),tt(nmc,10,3),a25,a975, &
+    real x,a,b,ba,xi,alpha,beta,t(10,4),t25(10,4),t975(10,4), &
+     &       tx(4),tx25(4),tx975(4),aa(nmc),bb(nmc),xixi(nmc),baba(nmc), &
+     &       alphaalpha(nmc),betabeta(nmc),tt(nmc,10,4),a25,a975, &
      &       b25,b975,ba25,ba975,xi25,xi975,alpha25,alpha975,beta25,beta975, &
-     &       t5(10,3),t1(10,3),db,dxi,f,z,ll,ll1,txtx(nmc,3), &
+     &       t5(10,4),t1(10,4),db,dxi,f,z,ll,ll1,txtx(nmc,4), &
      &       ranf,mean,sd,dalpha,dbeta,mindata,minindx,pmindata,snorm,s, &
-     &       xmin,cmin,cmax,c,xxyear,frac,ttt(10,3),txtxtx(3), &
-     &       acov(3,2),aacov(nmc,2),plo,phi,xyear,scross,sdecor, &
+     &       xmin,cmin,cmax,c,xxyear,frac,ttt(10,4),txtxtx(4), &
+     &       acov(3,3),aacov(nmc,3),plo,phi,xyear,scross,sdecor, &
      &       aa25,aa975,bb25,bb975
     real adev,var,skew,curt,aaa,bbb,siga,chi2,q,p(4)
     integer,allocatable :: ii(:),yyrs(:)
     real,allocatable :: xx(:,:),yy(:),ys(:),zz(:),sig(:)
-    logical lopen,lllwrite,lnone
+    logical lllwrite,lnone,last
     character lgt*4,string*1000,arg*250,method*3
     integer iargc
 !
@@ -100,6 +100,9 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         print *,'threshold      = ',threshold,'%'
         print *,'year,xyear     = ',year,xyear
         print *,'cov1,cov2,offset ',cov1,cov2,offset
+        if ( cov3 < 1e33 ) then
+            print *,'cov3           = ',cov3
+        end if
         print *,'ntot           = ',ntot
         print *,'ndecor         = ',ndecor
         if ( .false. ) then
@@ -235,9 +238,9 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         write(0,*) 'fitgpdcov: error: unknown value for assume ',assume
     end if
     if ( assume == 'scale' ) ba = b/a
-    call getreturnlevels(a,b,xi,alpha,beta,cov1,cov2,gpdcovreturnlevel,j1,j2,assume,t)
+    call getreturnlevels(a,b,xi,alpha,beta,cov1,cov2,cov3,gpdcovreturnlevel,j1,j2,assume,t)
     if ( xyear < 1e33 ) then
-        call getreturnyears(a,b,xi,alpha,beta,xyear,cov1,cov2, &
+        call getreturnyears(a,b,xi,alpha,beta,xyear,cov1,cov2,cov3, &
  &           gpdcovreturnyear,j1,j2,tx,lchangesign,lwrite)
         ! convert to years
         do i=1,2
@@ -258,6 +261,14 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     else
         acov(1,2) = aaa
     end if
+    if ( cov3 < 1e33 ) then
+        call getabfromcov(a,b,alpha,beta,cov3,aaa,bbb)
+        if ( lchangesign) then
+            acov(1,3) = -aaa
+        else
+            acov(1,3) = aaa
+        end if
+    end if
     call write_threshold(cmin,cmax,a,b,alpha,beta,offset,lchangesign)
 !
 !   bootstrap to find error estimates
@@ -274,12 +285,19 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
             end if
         end if
         a3(1) = a
+        a3(2:3) = 3e33
         b3(1) = abs(b)
+        b3(2:3) = 3e33
         xi3(1) = xi
+        xi3(2:3) = 3e33
         alpha3(1) = alpha
+        alpha3(2:3) = 3e33
         beta3(1) = beta
-        t3(1,:,:) = t(:,:)
-        tx3(1,:) = tx(:)
+        beta3(2:3) = 3e33
+        t3(1,:,1:3) = t(:,1:3)
+        t3(2:3,:,:) = 3e33
+        tx3(1,1:3) = tx(1:3)
+        tx3(2:3,:) = 3e33            
         goto 801 ! deallocate and return
     end if
     if ( lprint .and. .not.lweb ) print '(a,i6,a)','# doing a ',nmc &
@@ -351,19 +369,24 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         aacov(iens,1) = aaa
         call getabfromcov(aa(iens),bb(iens),alphaalpha(iens),betabeta(iens),cov2,aaa,bbb)
         aacov(iens,2) = aaa
+        if ( cov3 < 1e33 ) then
+            call getabfromcov(aa(iens),bb(iens),alphaalpha(iens),betabeta(iens),cov3,aaa,bbb)
+            aacov(iens,3) = aaa
+        end if
         call getreturnlevels(aa(iens),bb(iens),xixi(iens), &
      &           alphaalpha(iens),betabeta(iens), &
-     &           cov1,cov2,gpdcovreturnlevel,j1,j2,assume,ttt)
+     &           cov1,cov2,cov3,gpdcovreturnlevel,j1,j2,assume,ttt)
         do i=1,10
-            do j=1,3
+            do j=1,4
                 tt(iens,i,j) = ttt(i,j)
             end do
         end do
         if ( xyear < 1e33 ) then
             call getreturnyears(aa(iens),bb(iens),xixi(iens), &
-     &               alphaalpha(iens),betabeta(iens),xyear,cov1,cov2, &
+     &               alphaalpha(iens),betabeta(iens),xyear,cov1,cov2,cov3, &
      &               gpdcovreturnyear,j1,j2,txtxtx,lchangesign,lwrite)
-            do j=1,2
+            do j=1,4
+                if ( j == 3 ) cycle
                 ! convert to years
                 txtx(iens,j) = txtxtx(j)/(j2-j1+1)
             end do
@@ -385,8 +408,9 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         do iiens=1,iens
             if ( a < 1e33 ) a = -a
             if ( aa(iiens) < 1e33 ) aa(iiens) = -aa(iiens)
-            if ( aacov(iiens,1) < 1e33 ) aacov(iiens,1) = -aacov(iiens,1)
-            if ( aacov(iiens,2) < 1e33 ) aacov(iiens,2) = -aacov(iiens,2)
+            do j=1,3
+                if ( aacov(iiens,j) < 1e33 ) aacov(iiens,j) = -aacov(iiens,j)
+            end do
         end do
         if ( alpha < 1e33 ) then
             alpha = -alpha
@@ -397,7 +421,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
             end if
         end if
         do j=1,10
-            do i=1,3
+            do i=1,4
                 if ( t(j,i) < 1e30 ) then
                     t(j,i) = -t(j,i)
                 end if
@@ -405,7 +429,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         end do
         do iiens=1,iens
             do j=1,10
-                do i=1,3
+                do i=1,4
                     if ( tt(iiens,j,i) < 1e33 ) then
                         tt(iiens,j,i) = -tt(iiens,j,i)
                     end if
@@ -433,12 +457,17 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
             call getcut(beta975,phi,iens,betabeta)
         end if
     end if
-    call getcut(acov(2,1),plo,iens,aacov(1,1))
-    call getcut(acov(3,1),phi,iens,aacov(1,1))
-    call getcut(acov(2,2),plo,iens,aacov(1,2))
-    call getcut(acov(3,2),phi,iens,aacov(1,2))
+    if ( cov3 < 1e33 ) then
+        nj = 4
+    else
+        nj = 3
+    end if
+    do j=1,nj-1
+        call getcut(acov(2,j),plo,iens,aacov(1,j))
+        call getcut(acov(3,j),phi,iens,aacov(1,j))
+    end do
     do i=1,10
-        do j=1,3
+        do j=1,nj
             if ( lchangesign ) then
                 lgt = '&lt;'
                 call getcut(t5(i,j),5.,iens,tt(1,i,j))
@@ -452,13 +481,15 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
             call getcut(t975(i,j),phi,iens,tt(1,i,j))
         end do
     end do
-    do j=1,3
+    do j=1,nj
         if ( xyear < 1e33 ) then
             call getcut(tx25(j),plo,iens,txtx(1,j))
             call getcut(tx975(j),phi,iens,txtx(1,j))
-            if ( lchangesign ) xyear = -xyear
         end if
     end do
+    if ( xyear < 1e33 ) then
+        if ( lchangesign ) xyear = -xyear
+    end if
 !
 !   output
 !
@@ -554,7 +585,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
             end if
         end if
     end if
-    call printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,lweb,plot,assume,lnone)
+    call printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,yr2b,lweb,plot,assume,lnone)
     call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume,lnone)
     if ( .not. lnone ) call printcovpvalue(txtx,nmc,iens,lweb)
 
@@ -562,7 +593,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         call plot_tx_cdfs(txtx,nmc,iens,ntype,j1,j2)
     end if
     if ( plot ) write(11,'(3g20.4,a)') alpha,alpha25,alpha975,' alpha'
-    call write_dthreshold(cov1,cov2,acov,offset,lchangesign)
+    call write_dthreshold(cov1,cov2,cov3,acov,offset,lchangesign)
 
     ! no cuts
     mindata = -2e33
@@ -591,8 +622,8 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         mindata = a
         !!!write(0,*) '@@@ mindata,yy(ncur) = ',mindata,yy(ncur),ys(ncur)
         call plot_ordered_points(yy,ys,yrs,ncur,ntype,nfit,                 &
-     &       frac,a,b,xi,j1,j2,minindx,mindata,pmindata,                &
-     &       year,xyear,snorm,lchangesign,lwrite,.true.)
+            frac,a,b,xi,j1,j2,minindx,mindata,pmindata,                &
+            year,xyear,snorm,lchangesign,lwrite,.true.)
     else
     ! compute distribution at past year and plot it
         call adjustyy(ncur,data,assume,a,b,alpha,beta,cov1,yy,zz,aaa,bbb,lchangesign,lwrite)
@@ -600,10 +631,9 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         print '(a,i5)','# distribution in year ',yr1a
         call plotreturnvalue(ntype,t25(1,1),t975(1,1),j2-j1+1)
         mindata = aaa
-        !!!write(0,*) '@@@ mindata,yy(ncur) = ',mindata,yy(ncur),ys(ncur)
         call plot_ordered_points(yy,ys,yyrs,ncur,ntype,nfit, &
-         &       frac,aaa,bbb,xi,j1,j2,minindx,mindata,pmindata, &
-         &       year,xyear,snorm,lchangesign,lwrite,.false.)
+            frac,aaa,bbb,xi,j1,j2,minindx,mindata,pmindata, &
+            year,xyear,snorm,lchangesign,lwrite,.false.)
 
         ! compute distribution at present year and plot it
         call adjustyy(ncur,data,assume,a,b,alpha,beta,cov2,yy,zz,aaa,bbb,lchangesign,lwrite)
@@ -611,11 +641,32 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         print '(a)'
         print '(a)'
         print '(a,i5)','# distribution in year ',yr2a
+        if ( cov3 < 1e33 ) then
+            last = .false.
+        else
+            last = .true.
+        end if
         call plotreturnvalue(ntype,t25(1,2),t975(1,2),j2-j1+1)
         mindata = aaa
         call plot_ordered_points(yy,ys,yyrs,ncur,ntype,nfit, &
-         &       frac,aaa,bbb,xi,j1,j2,minindx,mindata,pmindata, &
-         &       year,xyear,snorm,lchangesign,lwrite,.true.)
+            frac,aaa,bbb,xi,j1,j2,minindx,mindata,pmindata, &
+            year,xyear,snorm,lchangesign,lwrite,last)
+        if ( cov3 < 1e33 ) then
+            ! compute distribution at present year and plot it
+            call adjustyy(ncur,data,assume,a,b,alpha,beta,cov3,yy,zz,aaa,bbb,lchangesign,lwrite)
+            if ( cov3 > cmax + 0.1*(cmax-cmin) .or. cov3 < cmin - 0.1*(cmax-cmin) ) then
+                 yy(1:ncur) = 3e33
+            end if
+            ys(1:ncur) = yy(1:ncur)
+            print '(a)'
+            print '(a)'
+            print '(a,i5)','# distribution in year ',yr2b
+            call plotreturnvalue(ntype,t25(1,4),t975(1,4),j2-j1+1)
+            mindata = aaa
+            call plot_ordered_points(yy,ys,yyrs,ncur,ntype,nfit, &
+                frac,aaa,bbb,xi,j1,j2,minindx,mindata,pmindata, &
+                year,xyear,snorm,lchangesign,lwrite,.true.)
+        end if
     end if
 801 continue
     deallocate(ii)

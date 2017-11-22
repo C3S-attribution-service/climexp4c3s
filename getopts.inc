@@ -2,7 +2,8 @@
      &      pminindx,pmaxindx,pmindata,pmaxdata,lon1,lon2,lat1,lat2,     &
      &      lev1,lev2,altlon1,altlon2,altlat1,altlat2,altlev1,altlev2,   &
      &      confidenceinterval,restrain,minfacsum,xyear,biasadd,biasmul
-        integer lag1,lag2,m1,m2,yr1,yr2,yr1a,yr2a,lsum,lsum2,lsel,       &
+        integer lag1,lag2,m1,m2,yr1,yr2,yr1a,yr2a,yr1b,yr2b,lsum,        &
+     &      lsum2,lsel,                                                  &
      &      ndiff,ndiff2,indxuse,avex,avey,nfittime,minnum,intertype,    &
      &      mdiff,mdiff2,nens1,nens2,nyrwindow,lead1,lead2,irunvar,      &
      &      noisetype,debias,normalization,fitfunc,altavex,altavey,      &
@@ -22,7 +23,7 @@
      &      pminindx,pmaxindx,pmindata,pmaxdata,lon1,lon2,lat1,lat2,     &
      &      lev1,lev2,altlon1,altlon2,altlat1,altlat2,altlev1,altlev2,   &
      &      confidenceinterval,restrain,                                 &
-     &      lag1,lag2,m1,m2,yr1,yr2,yr1a,yr2a,lsum,lsum2,lsel,           &
+     &      lag1,lag2,m1,m2,yr1,yr2,yr1a,yr2a,yr1b,yr2b,lsum,lsum2,lsel, &
      &      ndiff,ndiff2,indxuse,avex,avey,nfittime,minnum,intertype,    &
      &      mdiff,mdiff2,nens1,nens2,nyrwindow,lead1,lead2,irunvar,      &
      &      noisetype,debias,normalization,fitfunc,altavex,altavey,      &
