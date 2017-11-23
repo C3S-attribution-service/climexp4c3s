@@ -1051,6 +1051,10 @@
                     b = abs(b)
                 end if
                 frac = 1
+                if ( lchangesign .and. nfit.eq.5 ) then ! heuristic
+                    a = -a
+                    b = -b
+                end if 
                 call plot_ordered_points(xx,xs,yrs,ntot,ntype,nfit,
      +               frac,a,b,xi,j1,j2,minindx,mindata,pmindata,
      +               yr2a,xyear,snorm,lchangesign,lwrite,.true.)
