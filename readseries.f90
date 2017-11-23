@@ -1001,7 +1001,7 @@ end subroutine copyheader_newunits
 subroutine yyyymmddhh(line,ymdh,year,month,day,hour)
     implicit none
     integer :: ymdh,year,month,day,hour
-    integer :: i
+    integer :: i,j
     character line*(*)
     logical isnumchar
     
@@ -1010,22 +1010,32 @@ subroutine yyyymmddhh(line,ymdh,year,month,day,hour)
             exit
         end if
     end do
-    if ( .not.isnumchar(line(i+4:i+4)) ) then
+    do j=i+2,len(line)
+        if ( .not.isnumchar(line(j:j)) ) then
+            exit
+        end if
+    end do
+    if ( j-i < 4 ) then  ! small number must be year
         year = ymdh
         month = 1
         day = 1
         hour = 0
-    elseif ( .not.isnumchar(line(i+6:i+6)) ) then
+    else if ( .not.isnumchar(line(i+4:i+4)) ) then  ! YYYY
+        year = ymdh
+        month = 1
+        day = 1
+        hour = 0
+    else if ( .not.isnumchar(line(i+6:i+6)) ) then ! YYYYMM
         year = ymdh/100
         month = mod(ymdh,100)
         day = 1
         hour = 0
-    elseif ( .not.isnumchar(line(i+8:i+8)) ) then
+    else if ( .not.isnumchar(line(i+8:i+8)) ) then ! YYYYMMDD
         year = ymdh/10000
         month = mod(ymdh,10000)/100
         day = mod(ymdh,100)
         hour = 0
-    elseif ( .not.isnumchar(line(i+10:i+10)) ) then
+    else if ( .not.isnumchar(line(i+10:i+10)) ) then ! YYYYMMDDHH
         year = ymdh/1000000
         month = mod(ymdh,1000000)/10000
         day = mod(ymdh,10000)/100
