@@ -205,6 +205,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
                     yyy(j) = xxx(1,j,iens)
                     zzz(j) = xxx(2,j,iens)
                 end do
+                df = ntot
                 call pearsnxx(yyy,zzz,ntot,crosscorr(iens,jens),prob,z,ax,sxx,ay,syy,sxy,df)
                 crosscorr(jens,iens) = crosscorr(iens,jens)
             end do
