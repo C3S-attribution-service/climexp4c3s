@@ -13,22 +13,30 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     character seriesids(0:mens)*(*),assume*(*),distribution*(*)
     integer fyr,lyr,ntot,i,j,k,ntype,nmax,npernew,j1,j2,iens,jens,ensmax,init,ndecor,n
     integer,allocatable :: yrs(:)
-    real a(3),b(3),xi(3),alpha(3),beta(3),cov1,cov2,cov3,offset,t(3,10,3),tx(3,3)
-    real,allocatable :: xx(:,:),yrseries(:,:,:),yrcovariate(:,:,:),yy(:),crosscorr(:,:)
+    real a(3),b(3),xi(3),alpha(3),beta(3),cov1,cov2,cov3,offset,t(3,10,3),tx(3,3), &
+        regr,intercept,sigb,siga,chi2,q,prob,z,ax,sxx,ay,syy,sxy,df
+    real,allocatable :: xx(:,:),yrseries(:,:,:),yrcovariate(:,:,:),yy(:),crosscorr(:,:), &
+        xxx(:,:,:),yyy(:),zzz(:),sig(:)
     logical lboot,lprint,subtract_offset
     character operation*4,file*1024,idmax*30
     data init /0/
 
     results = 3e33
     nresults = 0
-    fyr = min(yr1,yr1a,yr2a,yr2b)
-    lyr = max(yr2,yr1a,yr2a,yr2b)
+    fyr = min(yr1,yr1a,yr2a)
+    lyr = max(yr2,yr1a,yr2a)
+    if ( yr2b > 0 ) then
+        fyr = min(fyr,yr2b)
+        lyr = max(lyr,yr2b)
+    end if
     nmax = nperyear*(yr2-yr1+1)*(1+mens-mens1)
     !!!write(0,*) 'assume,distribution = ',assume,distribution
     allocate(xx(2,nmax))
     allocate(yrs(0:nmax))
     allocate(yy(nmax))
     allocate(crosscorr(0:mens,0:mens))
+    allocate(xxx(2,nperyear*(yr2-yr1+1),0:mens))
+    allocate(yyy(nperyear*(yr2-yr1+1)),zzz(nperyear*(yr2-yr1+1)),sig(nperyear*(yr2-yr1+1)))
     xx = 3e33
     if ( lwrite ) then
         print *,'mens1,mens = ',mens1,mens
@@ -175,15 +183,29 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         n = (mens-mens1+1)
         n = n*(n-1)/2
         i = 0
+        ! subtract the regression on the covariate first (often trend)
+        do iens = mens1,mens
+            call fill_linear_array(yrseries,yrcovariate,npernew, &
+                j1,j2,fyr,lyr,iens,iens,xxx(1,1,iens),yrs,nmax,ntot,lwrite)
+            do j=1,ntot
+                yyy(j) = xxx(1,j,iens) ! series
+                zzz(j) = xxx(2,j,iens) ! covariate
+            end do
+            call fit(zzz,yyy,ntot,sig,0,intercept,regr,sigb,siga,chi2,q)
+            do j=1,ntot
+                xxx(1,j,iens) = xxx(1,j,iens) - regr*xxx(2,j,iens)
+            end do
+        end do
         do iens = mens1,mens
             crosscorr(iens,iens) = 1
             do jens=iens+1,mens
                 call keepalive1('Computing correlations',i,n)
                 i = i + 1
-                ! TODO: should first subtract the regression on the covariate here...
-                call getcorr(yrseries(1,fyr,iens),npernew,fyr,lyr, &
-                &            yrseries(1,fyr,jens),npernew,fyr,lyr, &
-                &            j1,j2,crosscorr(iens,jens),lwrite)
+                do j=1,ntot
+                    yyy(j) = xxx(1,j,iens)
+                    zzz(j) = xxx(2,j,iens)
+                end do
+                call pearsnxx(yyy,zzz,ntot,crosscorr(iens,jens),prob,z,ax,sxx,ay,syy,sxy,df)
                 crosscorr(jens,iens) = crosscorr(iens,jens)
             end do
         end do
