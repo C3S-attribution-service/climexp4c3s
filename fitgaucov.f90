@@ -422,9 +422,10 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
             end if
         end if
     endif
-    call printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,yr2b,lweb,plot,assume,lnone)
-    call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume,lnone)
+    call printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,yr2b,lweb,plot,assume,lnone,1)
     if ( .not. lnone ) call printcovpvalue(txtx,nmc,nmc,lweb)
+    call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume,lnone)
+    call printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,yr2b,lweb,plot,assume,lnone,2)
 
     if ( dump ) then
         call plot_tx_cdfs(txtx,nmc,nmc,ntype,j1,j1)

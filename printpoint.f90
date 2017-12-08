@@ -181,12 +181,12 @@ subroutine printreturntime(year,xyear,tx,tx25,tx975,lweb)
 end subroutine printreturntime
 
 
-subroutine printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,yr2b,lweb,plot,assume,lnone)
+subroutine printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,yr2b,lweb,plot,assume,lnone,i12)
 
 !   print return time of year at cov1 and cov2 (and optionally cov3)
 
     implicit none
-    integer :: year,yr1a,yr2a,yr2b
+    integer :: year,yr1a,yr2a,yr2b,i12
     real :: xyear,tx(4),tx25(4),tx975(4)
     logical :: lweb,plot,lnone
     character idmax*(*),assume*(*)
@@ -210,40 +210,57 @@ subroutine printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,yr2b,lweb
         end do
         if ( lweb ) then
             if ( .not. lnone ) then
-                print '(a,i5,a,i5,7a)' &
-                    ,'# <tr><td><!--atr2-->return period ',year, &
-                    '</td><td>',yr1a,'</td><td>',atx(1), &
-                    '</td><td>',atx25(1),' ... ',atx975(1),'</td></tr>'
-                print '(a,i5,7a)' &
-                    ,'# <tr><td>probability</td><td>',yr1a,'</td><td>',ainvtx(1), &
-                    '</td><td>',ainvtx975(1),' ... ',ainvtx25(1),'</td></tr>'
-                if ( idmax == ' ' ) then
-                    print '(a,g16.5,a,i5,7a)' &
-                        ,'# <tr><td><!--atr1-->return period (value ',xyear,')</td><td>' &
-                        ,yr2a,'</td><td>',atx(2), &
-                        '</td><td>',atx25(2),' ... ',atx975(2),'</td></tr>'
-                else
-                    print '(a,g16.5,3a,i5,7a)' &
-                        ,'# <tr><td><!--atr1-->return period (value ',xyear, &
-                        ' at ',trim(idmax),')</td><td>',yr2a,'</td><td>',atx(2), &
-                        '</td><td>',atx25(2),' ... ',atx975(2),'</td></tr>'
-                end if
-                print '(a,i5,7a)' &
-                    ,'# <tr><td>probability</td><td>' &
-                    ,yr2a,'</td><td>',ainvtx(2), &
-                    '</td><td>',ainvtx975(2),' ... ',ainvtx25(2),'</td></tr>'
-                print '(8a)' &
-                        ,'# <tr><td><!--atra-->&nbsp;</td><td>ratio', &
-                        '</td><td>',atx(3),'</td><td>',atx25(3), &
-                        ' ... ',atx975(3),'</td></tr>'
-                if ( yr2b > 0 ) then
-                    print '(a,i5,a,i5,7a)' &
-                        ,'# <tr><td>return period ',year, &
-                        '</td><td>',yr2b,'</td><td>',atx(4), &
-                        '</td><td>',atx25(4),' ... ',atx975(4),'</td></tr>'
+                if ( i12 == 1 ) then
+                    if ( idmax == ' ' ) then
+                        print '(a,i5,a,g16.5,a,i5,7a)' &
+                            ,'# <tr><td><!--atr2-->return period event ',year, &
+                            ' (value ',xyear,')</td><td>',yr1a,'</td><td>',atx(1), &
+                            '</td><td>',atx25(1),' ... ',atx975(1),'</td></tr>'
+                    else
+                        print '(a,i5,a,g16.5,3a,i5,7a)' &
+                            ,'# <tr><td><!--atr2-->return period event ',year, &
+                            ' (value ',xyear,' at ',trim(idmax),')</td><td>',yr1a,'</td><td>',atx(1), &
+                            '</td><td>',atx25(1),' ... ',atx975(1),'</td></tr>'
+                    end if
                     print '(a,i5,7a)' &
-                        ,'# <tr><td>probability</td><td>',yr2b,'</td><td>',ainvtx(4), &
-                        '</td><td>',ainvtx975(4),' ... ',ainvtx25(4),'</td></tr>'
+                        ,'# <tr><td>probability</td><td>',yr1a,'</td><td>',ainvtx(1), &
+                        '</td><td>',ainvtx975(1),' ... ',ainvtx25(1),'</td></tr>'
+                    if ( idmax == ' ' ) then
+                        print '(a,i5,a,g16.5,a,i5,7a)' &
+                            ,'# <tr><td><!--atr1-->return period event ',year, &
+                            ' (value ',xyear,')</td><td>',yr2a,'</td><td>',atx(2), &
+                            '</td><td>',atx25(2),' ... ',atx975(2),'</td></tr>'
+                    else
+                        print '(a,i5,a,g16.5,3a,i5,7a)' &
+                            ,'# <tr><td><!--atr1-->return period ',year, &
+                            ' (value ',xyear,' at ',trim(idmax),')</td><td>',yr2a,'</td><td>',atx(2), &
+                            '</td><td>',atx25(2),' ... ',atx975(2),'</td></tr>'
+                    end if
+                    print '(a,i5,7a)' &
+                        ,'# <tr><td>probability</td><td>' &
+                        ,yr2a,'</td><td>',ainvtx(2), &
+                        '</td><td>',ainvtx975(2),' ... ',ainvtx25(2),'</td></tr>'
+                    print '(8a)' &
+                            ,'# <tr><td><!--atra-->risk ratio</td><td>&nbsp;', &
+                            '</td><td>',atx(3),'</td><td>',atx25(3), &
+                            ' ... ',atx975(3),'</td></tr>'
+                else
+                    if ( yr2b > 0 ) then
+                        if ( idmax == ' ' ) then
+                            print '(a,i5,a,g16.5,a,i5,7a)' &
+                                ,'# <tr><td>return period event ',year, &
+                                ' (value ',xyear,')</td><td>',yr2b,'</td><td>',atx(4), &
+                                '</td><td>',atx25(4),' ... ',atx975(4),'</td></tr>'
+                        else
+                            print '(a,i5,a,g16.5,3a,i5,7a)' &
+                                ,'# <tr><td>return period event ',year, &
+                                ' (value ',xyear,' at ',trim(idmax),')</td><td>',yr2b,'</td><td>',atx(4), &
+                                '</td><td>',atx25(4),' ... ',atx975(4),'</td></tr>'
+                        end if
+                        print '(a,i5,7a)' &
+                            ,'# <tr><td>probability</td><td>',yr2b,'</td><td>',ainvtx(4), &
+                            '</td><td>',ainvtx975(4),' ... ',ainvtx25(4),'</td></tr>'
+                    end if
                 end if
             else
                 print '(a,g16.5,7a)' &
@@ -296,7 +313,7 @@ subroutine printcovpvalue(txtx,nmc,nens,lweb)
     call invgetcut(p,one,nens,txtx(1,3))
     if ( p > 0.5 ) p = 1-p
     if ( lweb ) then
-        print '(2a,f7.4,2a)','<tr><td><i>p</i>-value (one-sided)', &
+        print '(2a,f7.4,2a)','<tr><td><i>p</i>-value risk ratio (one-sided)', &
             '</td><td>&#8800; 1</td><td>',p,'</td><td>&nbsp;</td>', &
             '</tr>'
     else
