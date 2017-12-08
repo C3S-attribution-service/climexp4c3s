@@ -51,7 +51,7 @@
                         if ( nperday.eq.1 ) then
                             i = i + 1
                             if ( data(i,year).lt.1e33 ) then
-                                write(unit,'(i4,2i2.2,g15.7)') 
+                                write(unit,'(i4.4,2i2.2,g15.7)') 
      +                              year,mo,dy,data(i,year)
                             end if
                         else
@@ -59,7 +59,7 @@
                                 i = i + 1
                                 hh = hr*(24/nperday)
                                 if ( data(i,year).lt.1e33 ) then
-                                    write(unit,'(i4,3i2.2,g15.7)') 
+                                    write(unit,'(i4.4,3i2.2,g15.7)') 
      +                                   year,mo,dy,hh,data(i,year)
                                 end if
                             end do
