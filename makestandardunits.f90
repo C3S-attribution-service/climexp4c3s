@@ -163,8 +163,9 @@ subroutine makestandardunits(mean,nperyear,invar,units,newunits,offset,slope,ndp
     real offset,slope,mean
     logical lwrite
     character invar*(*),units*(*),newunits*(*)
-    integer i
+    integer i,nday
     character var*60,time*10
+    logical,external :: isnumchar
 !
     !!!lwrite = .true.
     if ( lwrite ) then
@@ -331,6 +332,14 @@ subroutine makestandardunits(mean,nperyear,invar,units,newunits,offset,slope,ndp
      &           nperyear.eq.360 .or. nperyear.eq.365 .or. &
      &           nperyear.eq.366 ) then
 !           use mm/day
+            if ( isnumchar(time(1:1)) ) then ! 'mm/NNday'
+                do i=2,10
+                    if ( .not. isnumchar(time(i:i)) ) exit
+                end do
+                read(time(:i-1),*) nday
+                slope = slope/nday
+                time = time(i:)
+            end if
             if ( time(1:3).eq.'sea' .or. time(1:1).eq.'SEA' ) then
                 ndpm = -1
                 slope = slope/3
@@ -351,10 +360,10 @@ subroutine makestandardunits(mean,nperyear,invar,units,newunits,offset,slope,ndp
                 slope = slope/365.24
             else
                 write(0,*) 'makestandardunits: error: cannot '// &
-     &                   ' recognize time unit ',time,' in ',units,var
+     &                   ' recognise time unit ',time,' in ',units,var
                 write(*,*) 'makestandardunits: error: cannot '// &
-     &                   ' recognize time unit ',time,' in ',units,var
-                call abort
+     &                   ' recognise time unit ',time,' in ',units,var
+                call exit(-1)
             endif
             newunits(3:) = '/day'
             if ( lwrite ) print *,'makestandardunits: converted '// &
@@ -388,11 +397,11 @@ subroutine makestandardunits(mean,nperyear,invar,units,newunits,offset,slope,ndp
                 slope = slope/365.24
                 ndpm = 1
             else
-                write(0,*) 'makestandardunits: error: cannot '// &
-     &                   ' recognize time unit ',time,' in ',units,var
-                write(*,*) 'makestandardunits: error: cannot '// &
-     &                   ' recognize time unit ',time,' in ',units,var
-                call abort
+                write(0,*) 'makestandardunits: error: cannot recognize time unit ', &
+                    trim(time),' in ',trim(units),' ',trim(var)
+                write(*,*) 'makestandardunits: error: cannot recognize time unit ', &
+                    trim(time),' in ',trim(units),' ',trim(var)
+                call exit(-1)
             endif
             newunits = 'mm/month'
             if ( lwrite ) print *,'makestandardunits: converted '// &
@@ -417,7 +426,7 @@ subroutine makestandardunits(mean,nperyear,invar,units,newunits,offset,slope,ndp
      &                   ' recognize time unit ',time,' in ',units,var
                 write(*,*) 'makestandardunits: error: cannot '// &
      &                   ' recognize time unit ',time,' in ',units,var
-                call abort
+                call exit(-1)
             endif
             newunits = 'mm/month'
             if ( lwrite ) print *,'makestandardunits: converted '// &
@@ -479,4 +488,3 @@ subroutine estimatemean(data,nxf,nyf,nzf,npermax,yrbeg,yrend, &
     endif
     if ( lwrite ) print *,'mean = ',mean
 end subroutine
-!  #] estimatemean:
