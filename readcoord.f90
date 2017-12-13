@@ -59,7 +59,7 @@ subroutine readcodename(line,code,name,lwrite)
     print *, line
     226 continue
     i = j
-    230 continue
+230 continue
     i = i+1
     if ( line(i:i) == ' ' ) goto 230
     name = line(i:)
