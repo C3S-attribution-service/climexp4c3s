@@ -17,19 +17,49 @@ program get_index
 !       freely as long as the below copyright notoice is kept intact.
 !       (c) 1999-2012 KNMI
 
+    use lsdata
     implicit none
     include 'params.h'
     include 'netcdf.inc'
     integer,parameter :: nyrmax=19
+    integer,parameter :: mypermax=4*366,ntmax=5000000
+    real,parameter :: absent=3e33
     integer :: nx,ny,nz,nt,nperyear,firstyr,firstmo,lastyr,nvars, &
-    ivars(2,nvmax),endian,status,ncid,jvars(6,nvmax)
+        ivars(2,nvmax),endian,status,ncid,jvars(6,nvmax),nens1,nens2
+    integer :: i,j,k,k1,n,x1,x2,y1,y2,year,month,iskip,sgn,ii, &
+        npoints,ipoints,in,mopts,out,noisemodel, &
+        lsncid,ndpm,yr1,yr2,nyr,ntvarid,nxf,nyf, &
+        nzf,it,mo,yr,irec,ix,iy
+    integer :: ncidmask,nxmask,nymask,nzmask,ntmask,fyr,fmo, &
+        jvarsmask(6,1),iarray1(13),iarray2(13),iret1,iret2,iret
+    integer :: xlist(nxmax*nymax),ylist(nxmax*nymax)
+    integer,allocatable :: itimeaxis(:)
     integer,allocatable :: nn(:,:,:)
     real :: xx(nxmax),yy(nymax),zz(nzmax),undef
+    real :: minfac,ave(mypermax),avemean(mypermax),lon1,lon2,lat1,lat2, &
+        wx(nxmax),wy(nymax),f,w,sw,sw0,pi,lon1c,lon2c,lat1c, &
+        lat2c,dx,dy,dl,xxls(nxmax),yyls(nymax),zzls(1),meanish &
+        ,offset,slope,undefmask
+    real :: xxmask(nxmax),yymask(nymax),zzmask(nzmax)
+    real,allocatable :: mask(:,:)
     real,allocatable :: field(:,:,:,:),mean(:,:,:)
     logical :: lwrite
+    logical :: tdefined(ntmax)
+    logical :: xrev,yrev,xwrap,interp,missing,lstandardunits &
+        ,gridpoints,anom,outfield,lmask,lexist
     character file*255,datfile*255,title*1023,vars(nvmax)*40 &
-    ,lvars(nvmax)*100,units(nvmax)*60
+        ,lvars(nvmax)*100,units(nvmax)*60,FORM_field*100, &
+        lz(3)*20,svars(100)*100,ltime*120,history*50000, &
+        cell_methods(100)*100,longoper*100
+    character :: string*255,dipole*2,shortfilename*255,datadir*255 &
+        ,letter*1,lsmaskfile*255,lsmasktype*4,lstitle*255, &
+        fieldname*100,outfile*255
+    character :: varsmask*40,lvarsmask(1)*80,titlemask*1000, &
+        unitsmask*40
+    character :: lsvars(1)*10,lslvars(1)*40,lsunits(1)*20,newunits*20
+    character :: oper*1,masktype*4
     integer :: iargc
+    integer,external :: normx,get_endian,leap
 
     lwrite = .false.
     call getarg(iargc(),file)
@@ -56,11 +86,20 @@ program get_index
             ,nvars,vars,ivars,lvars,units)
         ncid = -1
     else
-        call parsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
-            ,nz,zz,nt,nperyear,firstyr,firstmo,undef,title,1,nvars &
-            ,vars,jvars,lvars,units)
+        nens1 = 0
+        nens2 = 0
+        call ensparsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
+            ,nz,zz,lz,nt,nperyear,firstyr,firstmo,ltime,tdefined,ntmax &
+            ,nens1,nens2,undef,title,history,1,nvars &
+            ,vars,jvars,lvars,svars,units,cell_methods)
         datfile = file
     endif
+    print '(5a)','# Operating on file ',trim(file),' ',trim(title)
+    call getenv('FORM_field',FORM_field)
+    if ( FORM_field /= ' ' ) then
+        print '(5a)','# <a href=http://climexp.knmi.nl/select.cgi?field=',trim(FORM_field), &
+            '>climexp.knmi.nl/select.cgi?field=',trim(FORM_field),'</a>'
+    end if
 !   range of years
     if ( nperyear == 366 ) then
         lastyr = firstyr + int((firstmo+nt-2)/365.24)
@@ -84,60 +123,6 @@ program get_index
         write(0,*) 'could not allocate field'
         call exit(-1)
     end if
-
-!   now superfluous...
-
-    call gindx(file,datfile,ncid,field,mean,nn,undef,endian &
-    ,nx,xx,ny,yy,nz,zz,nt,nperyear,firstyr,firstmo,lastyr,jvars &
-    ,title,vars,lvars,units,lwrite)
-end program
-
-subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
-    ,endian,nx,xx,ny,yy,nz,zz,nt,nperyear,firstyr,firstmo &
-    ,lastyr,jvars,title,vars,lvars,units,lwrite)
-
-!   in the old days this was done to use field more efficiently
-
-    use lsdata
-    implicit none
-    include 'params.h'
-    include 'netcdf.inc'
-    integer,parameter :: mypermax=4*366
-    real,parameter :: absent=3e33
-
-    integer :: ncid,endian,nx,ny,nz,nt,nperyear,firstyr,firstmo,lastyr, &
-        jvars(6,nvmax),nn(nx,ny,nperyear)
-    real :: field(nx,ny,nperyear,firstyr:lastyr),undef,xx(nx),yy(ny) &
-        ,zz(nz),mean(nx,ny,nperyear)
-    character file*(*),datfile*(*),title*(*),vars(1)*(*), &
-        lvars(1)*100,units(1)*(*)
-    logical :: lwrite
-
-    integer :: i,j,k,k1,n,x1,x2,y1,y2,year,month,iskip,sgn,ii, &
-        npoints,ipoints,in,mopts,out,noisemodel,status,nvars, &
-        ivars(2,1),lsncid,ndpm,yr1,yr2,nyr,ntvarid,nxf,nyf, &
-        nzf,it,mo,yr,irec,ix,iy
-    integer :: ncidmask,nxmask,nymask,nzmask,ntmask,fyr,fmo, &
-        jvarsmask(6,1),iarray1(13),iarray2(13),iret1,iret2,iret
-    integer,allocatable :: itimeaxis(:)
-    integer :: xlist(nxmax*nymax),ylist(nxmax*nymax)
-    real :: minfac,ave(mypermax),avemean(mypermax),lon1,lon2,lat1,lat2, &
-        wx(nxmax),wy(nymax),f,w,sw,sw0,pi,lon1c,lon2c,lat1c, &
-        lat2c,dx,dy,dl,xxls(nxmax),yyls(nymax),zzls(1),meanish &
-        ,offset,slope,undefmask
-    real :: xxmask(nxmax),yymask(nymax),zzmask(nzmax)
-    real,allocatable :: mask(:,:)
-    logical :: xrev,yrev,xwrap,interp,missing,lstandardunits &
-        ,gridpoints,anom,outfield,lmask,lexist
-    character string*255,dipole*2,shortfilename*255,datadir*255 &
-        ,letter*1,lsmaskfile*255,lsmasktype*4,lstitle*255, &
-        fieldname*100,outfile*255
-    character varsmask*40,lvarsmask(1)*80,titlemask*1000, &
-        unitsmask*40
-    character lsvars(1)*10,lslvars(1)*40,lsunits(1)*20,newunits*20
-    character oper*1,masktype*4
-    integer :: iargc
-    integer,external :: normx,get_endian,leap
 
 !   init
 
@@ -298,11 +283,11 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
             endif
             if ( string(1:3) == 'max' ) then
                 oper = 'x'
-                if ( lwrite ) print *,'# Taking max over region'
+                if ( lwrite ) print '(a)','# taking max over region'
             endif
             if ( string(1:3) == 'min' ) then
                 oper = 'n'
-                if ( lwrite ) print *,'# Taking min over region'
+                if ( lwrite ) print '(a)','# taking min over region'
             endif
         endif
     enddo
@@ -417,9 +402,10 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
             allocate(itimeaxis(nt))
             ivars(1,1) = 0
             call subtractleapyears(nt,firstyr,firstmo,nperyear,irec)
-            call writenc(outfile,ncid,ntvarid,itimeaxis,nt,nx,xx &
-                ,ny,yy,nz,zz,irec,nperyear,firstyr,firstmo,3e33 &
-                ,title,1,vars,ivars,lvars,units,0,0)
+            title = 'subset of '//trim(title)
+            call enswritenc(outfile,ncid,ntvarid,itimeaxis,nt,nx,xx &
+                ,ny,yy,nz,zz,lz,irec,nperyear,firstyr,firstmo,ltime,3e33 &
+                ,title,history,1,vars,ivars,lvars,svars,units,cell_methods,0,0)
             yr=firstyr
             mo=firstmo
             irec = 0
@@ -591,10 +577,6 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
             open(out,file=trim(string),status='unknown',err=900)
         endif
     
-        if ( title == ' ' ) title = shortfilename
-        write(out,'(6a)') '# ',trim(vars(1)),' [',trim(newunits) &
-        ,'] from ',trim(title)
-    
 !       compute indices of region to be cut out
     
         if ( lwrite ) then
@@ -606,7 +588,7 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
             x2 = x1
             y1 = ylist(ipoints)
             y2 = y1
-            write(out,1000) '# grid point lon,lat =',lon1,lat1
+            write(out,'(a,2f9.3)') '# grid point lon,lat =',lon1,lat1
         else if ( lmask ) then
             ! save time by computing the bounding box of the mask
             call getfirstnonzero(mask,nx,ny,'y',1,y1)
@@ -677,37 +659,52 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
                     lat2c = yy(y2)
                 endif
                 if ( npoints == 1 .and. .NOT. gridpoints ) then
-                    write(0,1000) 'interpolating points lon=',lon1c &
-                    ,lon2c,', lat=',lat1c,lat2c,'<br>'
+                    write(0,'(a,2f9.3,a,2f9.3,a)') 'interpolating points lon=',lon1c &
+                        ,lon2c,', lat=',lat1c,lat2c,'<br>'
                 endif
-                write(out,1000) '# interpolating points lon=',lon1c &
-                ,lon2c,', lat=',lat1c,lat2c
+                write(out,'(a,2f9.3,a,2f9.3,a)') '# interpolating points lon=',lon1c &
+                    ,lon2c,', lat=',lat1c,lat2c
                 if ( lwrite ) write(0,'(a,2i4,a,2i4)') &
-                'This corresponds to grid points x=',x1,x2 &
-                ,',y=',y1,y2
+                    'This corresponds to grid points x=',x1,x2,',y=',y1,y2
             else
-                1000 format(a,2f9.3,a,2f9.3,a)
+                if ( oper == 'v' ) then
+                    if ( lon1 == lon2 .and. lat1 == lat2 ) then
+                        if ( interp ) then
+                            longoper = 'interpolating over'
+                        else
+                            longoper = 'taking grid box'
+                        end if
+                    else
+                        longoper = 'averaging anomalies over'
+                    end if
+                else if ( oper == 'x' ) then
+                    longoper = 'taking maximum of'
+                else if ( oper == 'x' ) then
+                    longoper = 'taking minimum of'
+                else
+                    longoper = 'cutting out'
+                end if                    
                 if ( npoints == 1 ) then
-                    write(0,1000) 'cutting out region lon=',lon1c &
-                    ,lon2c,', lat=',lat1c,lat2c,'<br>'
+                    write(0,'(2a,2f9.3,a,2f9.3,a)') trim(longoper),' region lon=',lon1c &
+                        ,lon2c,', lat=',lat1c,lat2c,'<br>'
                 endif
-                write(out,1000) '# cutting out region lon=',lon1c &
-                ,lon2c,', lat=',lat1c,lat2c
+                write(out,'(3a,2f9.3,a,2f9.3,a)') '# ',trim(longoper),' region lon=',lon1c &
+                    ,lon2c,', lat=',lat1c,lat2c
                 if ( lwrite ) write(0,'(a,2i4,a,2i4)') &
-                'This corrsponds to grid points x=',x1,x2,',y=',y1 &
-                ,y2
+                    'This corrsponds to grid points x=',x1,x2,',y=',y1,y2
             endif
         endif
         call keepalive1('Computed weights',4,5)
+        write(out,'(6a)') '# ',trim(vars(1)),' [',trim(newunits) &
+            ,'] ',trim(lvars(1))
     
     !           get mean of just the requested area if only one point is
     !           requested
     
-        if ( npoints == 1 .and. (missing .or. anom) .and. oper == 'v' &
-        ) then
+        if ( npoints == 1 .and. (missing .or. anom) .and. oper == 'v' ) then
             call getwinmean(mean,nn,nx,ny,nperyear,field,nx,ny &
-            ,nperyear,firstyr,lastyr,nx,ny,firstyr,firstmo,nt &
-            ,x1,x2,y1,y2,lwrite)
+                ,nperyear,firstyr,lastyr,nx,ny,firstyr,firstmo,nt &
+                ,x1,x2,y1,y2,lwrite)
         endif
         call keepalive1('Computed area mean',5,5)
     
@@ -911,17 +908,17 @@ subroutine gindx(file,datfile,ncid,field,mean,nn,undef &
         call keepalive1('Writing grid points',ipoints,npoints)
     enddo
     goto 999
-    901 write(0,*) 'get_index: error reading lon1 from ',trim(string)
+901 write(0,*) 'get_index: error reading lon1 from ',trim(string)
     call exit(-1)
-    902 write(0,*) 'get_index: error reading lon2 from ',trim(string)
+902 write(0,*) 'get_index: error reading lon2 from ',trim(string)
     call exit(-1)
-    903 write(0,*) 'get_index: error reading lat1 from ',trim(string)
+903 write(0,*) 'get_index: error reading lat1 from ',trim(string)
     call exit(-1)
-    904 write(0,*) 'get_index: error reading lat2 from ',trim(string)
+904 write(0,*) 'get_index: error reading lat2 from ',trim(string)
     call exit(-1)
-    999 continue
+999 continue
     if ( allocated(lsmask) ) deallocate(lsmask)
-    end subroutine gindx
+    end program get_index
 
     subroutine outputave(out,year,ave,nperyear,lstandardunits,offset &
     ,slope,ndpm,yr,yr1,yr2,nyr)
