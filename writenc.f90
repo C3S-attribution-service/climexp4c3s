@@ -79,7 +79,7 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
     real :: array(1)
     integer :: dpm(12)
     logical :: lwrite,lhasz,lnetcdf4
-    character string*10000,months(0:12,2)*3,clwrite*10
+    character string*10000,months(0:12,2)*3,clwrite*10,FORM_field*100
 !   externals
     integer :: llen,iargc
 !   date
@@ -130,7 +130,13 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
     if ( status /= nf_noerr ) call handle_err(status,'put att title')
     status = nf_put_att_text(ncid,nf_global,'Conventions',6,'CF-1.0')
     if ( status /= nf_noerr ) call handle_err(status,'put att conventions')
-    string = trim(history)//'\nwritten by writenc (GJvO, KNMI) by '
+    call getenv('FORM_field',FORM_field)
+    if ( FORM_field /= ' ' ) then
+        string = 'https://climexp.knmi.nl/select.cgi?field='//trim(FORM_field)
+        status = nf_put_att_text(ncid,nf_global,'source_field',len_trim(string),string)
+        if ( status /= nf_noerr ) call handle_err(status,'put att derived_from')
+    end if
+    string = trim(history)//'\nwritten by writenc (GJvO, KNMI) on '
     l = min(llen(string) + 2,len(string)-2)
     call getenv('USER',string(l:))
     l = min(llen(string) + 2,len(string)-2)
@@ -149,10 +155,8 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
     if ( lwrite ) then
         print *,'History: ',string(1:llen(string))
     endif
-    status = nf_put_att_text(ncid,nf_global,'history',llen(string) &
-    ,string)
-    if ( status /= nf_noerr ) call handle_err(status &
-    ,'put att history')
+    status = nf_put_att_text(ncid,nf_global,'history',llen(string),string)
+    if ( status /= nf_noerr ) call handle_err(status,'put att history')
 
 !       define dimensions
 
