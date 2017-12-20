@@ -19,7 +19,7 @@ subroutine readncseries(file,data,npermx,nperyear,yr1,yr2,ncid,var,units,lwrite)
     logical :: tdefined(mtmax)
     character title*512,vars(nvmax)*20,lvars(nvmax)*80, &
         lz(3)*20,svars(100)*100,ltime*120,history*50000, &
-        cell_methods(100)*100
+        cell_methods(100)*100,metadata(2,100)*2000
 
     if ( .false. ) then
         call parsenc(file,ncid,mxmax,nx,xx,mymax,ny,yy,mzmax &
@@ -29,7 +29,7 @@ subroutine readncseries(file,data,npermx,nperyear,yr1,yr2,ncid,var,units,lwrite)
         call ensparsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
             ,nz,zz,lz,nt,nperyear,firstyr,firstmo,ltime,tdefined,mtmax &
             ,nens1,nens2,undef,title,history,nvmax,nvars,vars,ivars &
-            ,lvars,svars,units,cell_methods)
+            ,lvars,svars,units,cell_methods,metadata)
     end if
     if ( lwrite ) print *,'readncseries: nperyear = ',nperyear
     var = vars(1)

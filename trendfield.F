@@ -25,7 +25,7 @@
      +       ,vars(nvarmax)*40,outvars(nvarmax)*40,lvars(nvarmax)*255
      +       ,outlvars(nvarmax)*255,svars(nvarmax)*80,title*255,history
      +       *10000,units(nvarmax)*80,outunits(nvarmax)*80
-     +       ,cell_methods(nvarmax)*100,ltime*120
+     +       ,cell_methods(nvarmax)*100,ltime*120,metadata(2,100)*2000
         character string*15
         integer iargc
 *
@@ -48,7 +48,7 @@
         call getmetadata(infile,mens1,mens,ncid,datfile,nxmax,nx
      +       ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo
      +       ,ltime,undef,endian,title,history,nvarmax,nvars,vars,ivars
-     +       ,lvars,svars,units,cell_methods,lwrite)
+     +       ,lvars,svars,units,cell_methods,metadata,lwrite)
         lastyr = firstyr + (firstmo+nt-2)/nperyear
         if ( index(infile,'%').gt.0 .or. 
      +       index(infile,'++').gt.0 ) then
@@ -190,7 +190,7 @@
                 call enswritenc(outfile,ncid,ntvarid,itimeaxis,ntmax,nx
      +               ,xx,ny,yy,nz,zz,lz,nt,nperyear,firstyr,firstmo
      +               ,ltime,3e33,title,history,nvars,outvars,jvars
-     +               ,outlvars,svars,outunits,cell_methods,0,0)
+     +               ,outlvars,svars,outunits,cell_methods,metadata,0,0)
                 yr = firstyr
                 mo = firstmo
                 do it=1,nt

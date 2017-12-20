@@ -39,9 +39,9 @@
         real,allocatable :: fxy1(:,:,:),fxy2(:,:,:)
         character infile1*256,infile2*256,datfile1*256,datfile2*256,
      +       title1*256,vars1(1)*40,svars1(1)*20,lvars1(1)*80,
-     +       units1(1)*60,cell_methods1*100,
+     +       units1(1)*60,cell_methods1*100,metadata1(2,100)*2000,
      +       title2*256,vars2(1)*40,svars2(1)*20,lvars2(1)*80,
-     +       units2(1)*60,cell_methods2*100,
+     +       units2(1)*60,cell_methods2*100,metadata2(2,100)*2000,
      +       title*256,dir*255,outfile1*256,outfile2*256,yesno,file*256
         character lz1(3)*20,lz2(3)*20,ltime1*20,ltime2*20,history1*1024
      +       ,history2*1024,string*80
@@ -68,13 +68,15 @@
         call getmetadata(infile1,mens11,mens1,ncid1,datfile1,nxmax,nx1
      +       ,xx1,nymax,ny1,yy1,nzmax,nz1,zz1,lz1,nt1,nperyear1,firstyr1
      +       ,firstmo1,ltime1,undef1,endian1,title1,history1,1,nvars1
-     +       ,vars1,ivars1,lvars1,svars1,units1,cell_methods1,lwrite)
+     +       ,vars1,ivars1,lvars1,svars1,units1,cell_methods1,metadata1
+     +       ,lwrite)
 *
         call getarg(2,infile2)
         call getmetadata(infile2,mens12,mens2,ncid2,datfile2,nxmax,nx2
      +       ,xx2,nymax,ny2,yy2,nzmax,nz2,zz2,lz2,nt2,nperyear2,firstyr2
      +       ,firstmo2,ltime2,undef2,endian2,title2,history2,1,nvars2
-     +       ,vars2,ivars2,lvars2,svars2,units2,cell_methods2,lwrite)
+     +       ,vars2,ivars2,lvars2,svars2,units2,cell_methods2,metadata2
+     +       ,lwrite)
         call getarg(3,string)
         read(string,*,err=10) nsvd
         i1 = 4

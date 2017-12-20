@@ -7,14 +7,15 @@ program filteryearfield
     include 'netcdf.inc'
     include 'getopts.inc'
     integer,parameter :: ntmax=500*npermax, recfa4=4
-    integer :: i,j,yr,mo,nyr,nperyear,ncid,nx,ny,nz,firstyr,firstmo,nt &
-        ,nvars,ivars(2,nvmax),jvars(6,nvmax),endian,lastyr,jx,jy,jz &
+    integer :: i,j,it,yr,mo,nyr,nperyear,ncid,nx,ny,nz,firstyr,firstmo,nt &
+        ,nnt,nvars,ivars(6,nvmax),endian,lastyr,jx,jy,jz &
         ,iu,status,mens1,mens,n,ntvarid,itimeaxis(ntmax)
     real :: xx(nxmax),yy(nymax),zz(nzmax),undef
     real,allocatable :: data(:,:,:,:,:),fxy(:,:)
     character file*256,line*128,hilo*2,filtertype*12,vars(nvmax)*20 &
-        ,lvars(nvmax)*256,units(nvmax)*20,title*255,datfile*256 &
-        ,prog*100,yearmonth*5,scale*2
+        ,lvars(nvmax)*256,svars(nvmax)*256,units(nvmax)*20,title*255,datfile*256 &
+        ,prog*100,yearmonth*5,scale*2,lz(3)*10,ltime*100,history*20000 &
+        ,cell_methods(nvmax)*100,metadata(2,100)*2000
     integer :: iargc,llen,leap
 
     call getarg(0,prog)
@@ -39,18 +40,11 @@ program filteryearfield
     call getarg(3,line)
     read(line,*,err=901) nyr
     call getarg(4,file)
-    status = nf_open(file,nf_nowrite,ncid)
-    if ( status /= nf_noerr ) then
-        ncid = -1
-        call parsectl(file,datfile,nxmax,nx,xx,nymax,ny,yy &
-            ,nzmax,nz,zz,nt,nperyear,firstyr,firstmo,undef,endian &
-            ,title,1,nvars,vars,ivars,lvars,units)
-    else
-        call parsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
-            ,nz,zz,nt,nperyear,firstyr,firstmo,undef,title,1,nvars &
-            ,vars,jvars,lvars,units)
-    endif
-    call getopts(5,iargc()-1,nperyear,yrbeg,yrend, .TRUE. ,mens1,mens)
+    call getmetadata(file,mens1,mens,ncid,datfile,nxmax,nx &
+        ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo &
+        ,ltime,undef,endian,title,history,1,nvars,vars,ivars &
+        ,lvars,svars,units,cell_methods,metadata,lwrite)
+    call getopts(5,iargc()-1,nperyear,yrbeg,yrend,.true.,mens1,mens)
     if ( nperyear /= 366 ) then
         lastyr = firstyr + (nt+firstmo-2)/nperyear
     else
@@ -70,11 +64,9 @@ program filteryearfield
             write(0,*) 'filteryearfield: error: cannot handle 3D netcdf file yet'
             call abort
         endif
-        ivars(1,1) = 0
-        ivars(2,1) = 99
         call readncfile(ncid,data,nx,ny,nx,ny,nperyear,firstyr &
             ,lastyr,firstyr,firstmo,nt,undef,lwrite,firstyr,lastyr &
-            ,jvars)
+            ,ivars)
     endif
     call keepalive(1,1)
 
@@ -142,6 +134,28 @@ program filteryearfield
     end if
     write(lvars(1),'(2a,i3,7a)') trim(lvars(1)),' with a ',nyr &
         ,'-',scale,' ',trim(filtertype),' ',hilo,'-pass filter'
+    write(title,'(2a,i3,7a)') trim(title),' with a ',nyr &
+        ,'-',scale,' ',trim(filtertype),' ',hilo,'-pass filter'
+    nnt = nt
+    if ( nperyear == 366 ) then
+        nnt = 0
+        yr = firstyr
+        mo = firstmo - 1
+        do it=1,nt
+            nnt = nnt + 1
+            mo = mo + 1
+            if ( mo > nperyear ) then
+                mo = mo - nperyear
+                yr = yr + 1
+            endif
+            if ( mo == 60 ) then
+                if ( leap(yr) == 1 ) then
+                    nnt = nnt - 1
+                end if
+            endif
+        end do
+    end if
+    undef = 3e33
     undef = 3e33
     i = index(file,'.ctl')
     if ( i /= 0 ) then
@@ -174,9 +188,10 @@ program filteryearfield
     else
         ! netcdf output
         call subtractleapyears(nt,firstyr,firstmo,nperyear,n)
-        call writenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny,yy, &
-            nz,zz,n,nperyear,firstyr,firstmo,undef,title,nvars, &
-            vars,jvars,lvars,units,0,0)
+        call enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny,yy, &
+            nz,zz,lz,nnt,nperyear,firstyr,firstmo,ltime,undef,title, &
+            history,nvars,vars,ivars,lvars,svars,units,cell_methods, &
+            metadata,0,0)
         yr = firstyr
         mo = firstmo
         n = 0
@@ -185,7 +200,7 @@ program filteryearfield
                 if ( lwrite ) print *,'skipping Feb 29 in non-leap year'
             else
                 n = n + 1
-                call writencslice(ncid,ntvarid,itimeaxis,ntmax,jvars,data(1,1,1,mo,yr),nx,ny,nz,nx,ny,nz,n,1)
+                call writencslice(ncid,ntvarid,itimeaxis,ntmax,ivars,data(1,1,1,mo,yr),nx,ny,nz,nx,ny,nz,n,1)
             end if
             mo = mo + 1
             if ( mo > nperyear ) then

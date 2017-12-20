@@ -29,7 +29,7 @@ program getmomentsfield
         character infile*255,datfile*255,outfile*255,line*255,lz(3)*20 &
      &       ,vars(nvarmax)*15,lvars(nvarmax)*255,svars(nvarmax)*80 &
      &       ,title*255,history*20000,units(nvarmax)*20, &
-     &       cell_methods(nvarmax)*100,lsmasktype*4,ltime*120
+     &       cell_methods(nvarmax)*100,lsmasktype*4,ltime*120,metadata(2,100)*2000
         character yesno*1,dir*255,string*15,saveunits*20,format*10,assume*5
         integer iargc,llen,rindex
 !
@@ -55,7 +55,7 @@ program getmomentsfield
         call getmetadata(infile,mens1,mens,ncid,datfile,nxmax,nx &
      &       ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo &
      &       ,ltime,undef,endian,title,history,nvarmax,nvars,vars,jvars &
-     &       ,lvars,svars,units,cell_methods,lwrite)
+     &       ,lvars,svars,units,cell_methods,metadata,lwrite)
         lastyr = firstyr + (firstmo+nt-2)/nperyear
 !       co-ordinate with adjustunits, adjustvar
 !       this catches the time of year of min, max occurrence
@@ -751,7 +751,6 @@ program getmomentsfield
             ldir = ldir + 1
             dir(ldir:ldir) = '/'
         end if
-        call args2title(title)
         svars(2:) = ' '
         cell_methods(2:) = cell_methods(1)
         if ( imoment.eq.-1 ) then
@@ -901,6 +900,7 @@ program getmomentsfield
         end if
         if ( index(outfile,'.ctl').ne.0 ) then
             if ( lwrite ) print '(a)','# writing ctl file'
+            call args2title(title)
             call writectl(outfile,datfile,nx,xx,ny,yy,nz,zz &
      &           ,1+(m2-m1),nperyear,i,j,absent,title,nvars,vars,ivars &
      &           ,lvars,units)
@@ -917,10 +917,11 @@ program getmomentsfield
             close(2)
         else
             if ( lwrite ) print '(a)','# writing netcdf metadata'
+            title = 'statistical properties of '//title
             call enswritenc(outfile,ncid,ntvarid,itimeaxis,ntmax,nx,xx &
      &           ,ny,yy,nz,zz,lz,1+(m2-m1),nperyear,i,j,ltime,absent &
      &           ,title,history,nvars,vars,ivars,lvars,svars,units &
-     &           ,cell_methods,0,0)
+     &           ,cell_methods,metadata,0,0)
             do month=m1,m2
                 m = month-m1
                 do i=1,nvars

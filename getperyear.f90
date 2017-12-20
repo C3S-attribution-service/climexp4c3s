@@ -748,11 +748,10 @@ subroutine gettextatt(ncid,varid,name,value,lwrite)
             if ( status /= nf_noerr ) call handle_err(status,name)
             value = string
         else
-        !               I should allocate a longer string and get as much as I
-        !               can...
+!           I should allocate a longer string and get as much as I can...
             write(0,*) 'gettextattall: warning: attribute ' &
-            ,trim(name),' longer than string ',len(value),n &
-            ,', not read'
+                ,trim(name),' longer than string ',len(value),n &
+                ,', not read'
         end if
     else if ( n > 0 ) then
         status = nf_get_att_text(ncid,varid,name,value)
@@ -784,8 +783,7 @@ subroutine gettitle(ncid,title,lwrite)
     status = nf_get_att_int(ncid,nf_global,'realization',r)
     if ( lwrite ) print *,'r,status= ',r,status,nf_noerr
     if ( status == nf_noerr ) then
-        status = nf_get_att_int(ncid,nf_global, &
-        'initialization_method',i)
+        status = nf_get_att_int(ncid,nf_global,'initialization_method',i)
         if ( status /= nf_noerr ) i = 0
         status = nf_get_att_int(ncid,nf_global,'physics_version',p)
         if ( status /= nf_noerr ) p = 0
@@ -798,6 +796,76 @@ subroutine gettitle(ncid,title,lwrite)
         'r',r,'i',i,'p',p
     end if
 end subroutine gettitle
+
+subroutine getglobalatts(ncid,metadata,lwrite)
+
+!   get all global attributes except history and title, and store them as
+!   key,value pairs in metadata. Only 100 for the time being, the way CF is
+!   developing I'll soon need more.
+
+    include 'netcdf.inc'
+    integer ::ncid
+    logical :: lwrite
+    character :: metadata(2,100)*(*)
+    integer :: i,j,xtype,len,status,iarray(100)
+    integer*1 :: sarray(100)
+    character name*100,string*10000
+    
+    n = 0
+    metadata = ' '
+    do i=1,100
+        status = nf_inq_attname(ncid,nf_global,i,name)
+        if ( status /= nf_noerr .or. name == ' ' ) exit
+        if ( name == 'history' .or. name == 'History' ) cycle
+        if ( name == 'title' .or. name == 'Title' ) cycle
+        status = nf_inq_atttype(ncid,nf_global,name,xtype)
+        if ( status /= nf_noerr ) call handle_err(status,'nf_inq_atttype '//trim(name))
+        if ( xtype == nf_char ) then
+            status = nf_inq_attlen(ncid,nf_global,name,len)
+            if ( status /= nf_noerr ) call handle_err(status,name)
+            if ( len < 10000 ) then
+                status = nf_get_att_text(ncid,nf_global,name,string)
+                if ( status /= nf_noerr ) call handle_err(status,'nf_inq_attlen '//trim(name))
+            else
+                string = 'string too long, longer than 2000 chars'
+            end if
+            if ( len > 0 ) then
+                if ( string(len:len) == char(0) ) len = len - 1
+            end if
+            n = n + 1
+            metadata(1,n) = name
+            metadata(2,n) = string(1:len)
+            if ( len > 2000 ) then
+                metadata(2,i)(1998:2000) = '...'
+            end if
+        else if ( xtype == nf_int ) then
+            status = nf_inq_attlen(ncid,nf_global,name,len)
+            if ( status /= nf_noerr ) call handle_err(status,'nf_inq_attlen '//trim(name))
+            if ( len < 100 ) then
+                status = nf_get_att_int(ncid,nf_global,name,iarray)
+                if ( status /= nf_noerr ) call handle_err(status,'nf_get_att_int '//trim(name))
+            else
+                string = 'string too long, longer than 100 ints'
+            end if
+            n = n + 1
+            metadata(1,n) = name
+            write(metadata(2,n),'(100i16)') (iarray(j),j=1,len)
+        else if ( xtype == nf_short ) then
+            status = nf_inq_attlen(ncid,nf_global,name,len)
+            if ( status /= nf_noerr ) call handle_err(status,'nf_inq_attlen '//trim(name))
+            if ( len < 100 ) then
+                status = nf_get_att_int(ncid,nf_global,name,sarray)
+                if ( status /= nf_noerr ) call handle_err(status,'nf_get_att_int '//trim(name))
+            else
+                string = 'string too long, longer than 100 shorts'
+            end if
+            n = n + 1
+            metadata(1,n) = name
+            write(metadata(2,n),'(100i8)') (sarray(j),j=1,len)
+        end if
+    end do
+    
+end subroutine getglobalatts
 
 subroutine getnumbers(ncid,ndims,nvars,ngatts,unlimdimid,lwrite)
 

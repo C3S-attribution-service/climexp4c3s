@@ -25,11 +25,11 @@
         character datfile*255,lz(3)*20,ltime*120,title*255
      +       ,history*4096,vars(1)*20,lvars(1)*100
      +       ,svars(1)*100,units(1)*60
-     +       ,cell_methods(1)*100
+     +       ,cell_methods(1)*100,metadata1(2,100)*2000
         character datfile2*255,lz2(3)*20,ltime2*120,title2*255
      +       ,history2*4096,vars2(nvarmax)*60,lvars2(nvarmax)*100
      +       ,svars2(nvarmax)*100,units2(nvarmax)*60
-     +       ,cell_methods2(nvarmax)*100
+     +       ,cell_methods2(nvarmax)*100,metadata2(2,100)*2000
         character var*60,unit*80,yesno
         integer iargc,leap
 
@@ -50,7 +50,7 @@
         call getmetadata(infile,mens1,mens,ncid,datfile,nxmax,nx
      +       ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo
      +       ,ltime,undef,endian,title,history,1,nvars,vars,ivars
-     +       ,lvars,svars,units,cell_methods,lwrite)
+     +       ,lvars,svars,units,cell_methods,metadata1,lwrite)
 
         call getopts(5,iargc()-1,nperyear,yrbeg,yrend,.true.,mens1
      +       ,mens)
@@ -73,7 +73,7 @@
      +       ,nx2,xx2,nymax,ny2,yy2,nzmax,nz2,zz2,lz2,nt2,nperyear2
      +       ,firstyr2,firstmo2,ltime2,undef2,endian2,title2,history2
      +       ,nvarmax,nvars2,vars2,ivars2,lvars2,svars2,units2
-     +       ,cell_methods2,lwrite)
+     +       ,cell_methods2,metadata2,lwrite)
         call checkgridequal3d(nx,ny,nz,xx,yy,zz,nx2,ny2,nz2,xx2,yy2,zz2)
         do ivar=1,nvars2
             if ( vars2(ivar).eq.variable ) then

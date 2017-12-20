@@ -1,7 +1,7 @@
 subroutine getmetadata(infile,mens1,mens,ncid,datfile,nxmax,nx &
     ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo &
     ,ltime,undef,endian,title,history,nvarmax,nvars,vars,ivars &
-    ,lvars,svars,units,cell_methods,lwrite)
+    ,lvars,svars,units,cell_methods,metadata,lwrite)
 
 !   get metadata of the field in file infile, either grads or netcdf
 
@@ -13,7 +13,7 @@ subroutine getmetadata(infile,mens1,mens,ncid,datfile,nxmax,nx &
     character infile*(*),datfile*(*),lz(3)*(*),ltime*(*),title*(*) &
         ,history*(*),vars(nvarmax)*(*),lvars(nvarmax)*(*) &
         ,svars(nvarmax)*(*),units(nvarmax)*(*), &
-        cell_methods(nvarmax)*(*)
+        cell_methods(nvarmax)*(*),metadata(2,100)*(*)
     logical :: lwrite
     integer :: nensmax,ntmax
     parameter(nensmax=400,ntmax=2000000)
@@ -72,7 +72,7 @@ subroutine getmetadata(infile,mens1,mens,ncid,datfile,nxmax,nx &
         call ensparsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax, &
             nz,zz,lz,nt,nperyear,firstyr,firstmo,ltime,tdefined &
             ,ntmax,nens1,nens2,undef,title,history,nvarmax,nvars &
-            ,vars,ivars,lvars,svars,units,cell_methods)
+            ,vars,ivars,lvars,svars,units,cell_methods,metadata)
         do it=1,nt
             if ( .not. tdefined(it) ) then
                 write(0,*) 'getmetadat: error: cannot handle ', &

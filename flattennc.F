@@ -25,7 +25,7 @@
      +       leadunits*(nf_max_name)
         character vars(nvarmax)*40,lvars(nvarmax)*120,svars(nvarmax)*120
      +       ,units(nvarmax)*40,cell_methods*128,ltime*100,lz(3)*20
-     +       ,months(12)*3,clwrite*10,lunits*10
+     +       ,months(12)*3,clwrite*10,lunits*10,metadata(2,100)*2000
         logical lwrite,foundreftime,foundleadtime
         integer iargc,julday
         data months 
@@ -278,7 +278,7 @@
         call enswritenc(outfile,ncid2,ntvarid,itimeaxis,ndata,nx,xx,ny
      +       ,yy,nz,zz,lz,mt,mperyear,firstyr,firstmo,ltime,undef,title
      +       ,history,ntvars,vars,ivars,lvars,svars,units,cell_methods
-     +       ,nens1,nens2)
+     +       ,metadata,nens1,nens2)
 !
 !       read/write data
 !

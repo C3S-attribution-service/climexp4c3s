@@ -48,10 +48,11 @@
      +       svars1(1)*128,vars2(1)*40,lvars2(1)*128,svars2(1)*128,
      +       units1(1)*40,units2(1)*40
         character line*80,yesno*1,string*10,file*255,outfile*255,
-     +       datfile*255,title*255,vars(9)*10,lvars(9)*128,svars(9)*128,
-     +       dir*255,units(9)*40,lz1(3)*128,lz2(3)*128,ltime1*128,
+     +       datfile*255,title*255,vars(9)*10,lvars(9)*128,svars(9)*128
+     +       ,dir*255,units(9)*40,lz1(3)*128,lz2(3)*128,ltime1*128,
      +       ltime2*128,history1*20000,history2*20000,cell_methods1*100
-     +       ,cell_methods2*100
+     +       ,cell_methods2*100,metadata1(2,100)*2000,
+     +       metadata2(2,100)*2000
         integer iargc,llen
         external llen,findx
 *
@@ -74,7 +75,8 @@
         call getmetadata(infile1,mens11,mens1,ncid1,datfile1,nxmax,nx1
      +       ,xx1,nymax,ny1,yy1,nzmax,nz1,zz1,lz1,nt1,nperyear1,firstyr1
      +       ,firstmo1,ltime1,undef1,endian1,title1,history1,1,nvars1
-     +       ,vars1,ivars1,lvars1,svars1,units1,cell_methods1,lwrite)
+     +       ,vars1,ivars1,lvars1,svars1,units1,cell_methods1,metadata1
+     +       ,lwrite)
 *
         call getarg(2,infile2)
         if ( infile2.eq.infile1 ) then
@@ -99,7 +101,7 @@
      +           ,nx2,xx2,nymax,ny2,yy2,nzmax,nz2,zz2,lz2,nt2,nperyear2
      +           ,firstyr2,firstmo2,ltime2,undef2,endian2,title2
      +           ,history2,1,nvars2,vars2,ivars2,lvars2,svars2,units2
-     +           ,cell_methods2,lwrite)
+     +           ,cell_methods2,metadata2,lwrite)
 *
             nxf = max(nx1,nx2)
             nyf = max(ny1,ny2)

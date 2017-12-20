@@ -14,10 +14,11 @@ program describefield
         firstmo1
     real :: xx(nxmax),yy(nymax),zz(nzmax),undef,dx,dy,dz,yg(nymax) &
         ,wg(nymax),pi
-    character infile*255,datfile*255,outfile*255,units(nvmax)*60 &
+    character :: infile*255,datfile*255,outfile*255,units(nvmax)*60 &
         ,vars(nvmax)*40,lvars(nvmax)*200,svars(nvmax)*80,title*1024 &
         ,history*50000,months(12)*3,seasons(4)*3,lz(3)*20,ltime*100 &
-        ,cell_methods(nvmax)*128,ew(2),ns(2),string*20,format*100
+        ,cell_methods(nvmax)*128,ew(2),ns(2),string*20,format*100 &
+        ,metadata(2,100)*2000
     logical :: xwrap,xrev,yrev,lwrite,lexist,ensemble,tdefined(ntmax)
     integer :: iargc,llen,leap
     data months /'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'/
@@ -90,7 +91,7 @@ program describefield
             call ensparsenc(infile,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
                 ,nz,zz,lz,nt1,nperyear,firstyr1,firstmo1,ltime,tdefined &
                 ,ntmax,nens1,iens,undef,title,history,1,nvars,vars &
-                ,jvars,lvars,svars,units,cell_methods)
+                ,jvars,lvars,svars,units,cell_methods,metadata)
             if ( .not. ensemble .and. iens /= 0 ) then
                 ensemble = .true. 
                 write(0,'(a,i4,a,i4,a)') 'Found ensemble members ',nens1 &

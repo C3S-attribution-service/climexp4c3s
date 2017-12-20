@@ -22,7 +22,7 @@
         logical lwrite,lsame,tdefined(ntmax)
         character file*255,title*255,history*2000,vars(1)*20,
      +       lvars(1)*120,svars(1)*120,units(1)*60,lz(3)*20,ltime*100,
-     +       cell_methods(1)*128
+     +       cell_methods(1)*128,metadata(2,100)*2000,metadata2(2,100)*2000
         integer iargc
 
         lwrite = .false.
@@ -65,7 +65,7 @@
         call ensparsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax
      +       ,nz,zz,lz,nt,nperyear,firstyr,firstmo,ltime,tdefined,ntmax
      +       ,nens1,nens2,undef,title,history,1,nvars,vars,jvars,lvars
-     +       ,svars,units,cell_methods)
+     +       ,svars,units,cell_methods,metadata)
         if ( nz.gt.1 ) then
             write(0,*) 'rocmap: error: cannot handle 3D fields yet'
             call abort
@@ -93,7 +93,7 @@
         call ensparsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax
      +       ,nz,zz,lz,nt,nperyear,firstyr,firstmo,ltime,tdefined,ntmax
      +       ,nens1,nens2,undef,title,history,1,nvars,vars,jvars,lvars
-     +       ,svars,units,cell_methods)
+     +       ,svars,units,cell_methods,metadata2)
         if ( lwrite ) print *,'allocating forecast array'
         allocate(fcst(nx,ny,nt,nens1:nens2))
         status = nf_get_var_real(ncid,jvars(1,1),fcst)

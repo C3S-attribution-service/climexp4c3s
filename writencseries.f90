@@ -1,4 +1,5 @@
-subroutine writencseries(file,data,npermax,yrbeg,yrend,nperyear,title,comment,var,lvar,units)
+subroutine writencseries(file,data,npermax,yrbeg,yrend,nperyear, &
+    title,description,comment,metadata,history,var,lvar,units)
 !
 !   writes a time series to a netCDF file
 !   part of the KNMI Climate Explorer, GJvO, 2011
@@ -9,7 +10,8 @@ subroutine writencseries(file,data,npermax,yrbeg,yrend,nperyear,title,comment,va
 !   arguments
     integer npermax,yrbeg,yrend,nperyear
     real data(npermax,yrbeg:yrend)
-    character file*(*),title*(*),comment*(*),var*(*),lvar*(*),units*(*)
+    character file*(*),title*(*),description*(*),comment*(*),metadata(2,100)*(*), &
+        history*(*),var*(*),lvar*(*),units*(*)
 
 !   local variables
     integer status,ncid,ntdimid,idim,i,j,l,ii(8),dy,mo,yr,yr0,yr1
@@ -18,7 +20,7 @@ subroutine writencseries(file,data,npermax,yrbeg,yrend,nperyear,title,comment,va
     integer,allocatable :: itimeaxis(:)
     real array(1)
     real,allocatable :: linear(:)
-    logical lwrite,lcompress
+    logical lwrite,lcompress,lcomment
     character string*10000,months(0:12,2)*3,clwrite*10
 
 !   externals
@@ -39,6 +41,8 @@ subroutine writencseries(file,data,npermax,yrbeg,yrend,nperyear,title,comment,va
     if ( lwrite ) then
         print *,'writencseries called with'
         print *,'file = ',trim(file)
+        print *,'title = ',trim(title)
+        print *,'description = ',trim(description)
         print *,'npermax,nperyear,yrbeg,yrend = ',npermax,nperyear,yrbeg,yrend
         print *,'var,lvar,units = ',var,lvar,units
     end if
@@ -84,31 +88,29 @@ subroutine writencseries(file,data,npermax,yrbeg,yrend,nperyear,title,comment,va
     if ( lwrite ) print *,'writenc: created ',file(1:len_trim(file)),' with ncid = ',ncid
     status = nf_put_att_text(ncid,nf_global,'title',len_trim(title),title)
     if ( status.ne.nf_noerr ) call handle_err(status,'put att title')
-    status = nf_put_att_text(ncid,nf_global,'comment',len_trim(comment),comment)
-    if ( status.ne.nf_noerr ) call handle_err(status,'put att comment')
+    status = nf_put_att_text(ncid,nf_global,'description',len_trim(description),description)
+    if ( status.ne.nf_noerr ) call handle_err(status,'put att description')
+    lcomment = .false.
+    do i=1,100
+        if ( metadata(1,i) == ' ' ) exit
+        if ( metadata(1,i) == 'conventions' .or. metadata(1,i) == 'Conventions' ) cycle
+        if ( metadata(1,i) == 'comment' .or. metadata(1,i) == 'Comment' ) then
+            metadata(2,i) = trim(comment)//'\\n'//trim(metadata(2,i))
+            lcomment = .true.
+        end if
+        status = nf_put_att_text(ncid,nf_global,trim(metadata(1,i)),len_trim(metadata(2,i)),metadata(2,i))
+        if ( status.ne.nf_noerr ) call handle_err(status,'put att '//trim(metadata(1,i)))
+    end do
+    if ( .not.lcomment ) then
+        status = nf_put_att_text(ncid,nf_global,'comment',len_trim(comment),comment)
+        if ( status.ne.nf_noerr ) call handle_err(status,'put att comment')
+    end if
+    call extend_history(history)
+    if ( lwrite ) print *,'History: ',string(1:len_trim(string))
+    status = nf_put_att_text(ncid,nf_global,'history',len_trim(history),history)
+    if ( status.ne.nf_noerr ) call handle_err(status,'put att history')
     status = nf_put_att_text(ncid,nf_global,'Conventions',6,'CF-1.0')
     if ( status.ne.nf_noerr ) call handle_err(status,'put att conventions')
-    string = '\nwritten by writencseries (GJvO, KNMI) by '
-    l = min(len_trim(string) + 2,len(string)-2)
-    call getenv('USER',string(l:))
-    l = min(len_trim(string) + 2,len(string)-2)
-    call date_and_time(values=ii)
-    ii(3) = ii(3)
-    write(string(l:),'(i4,a,i2.2,a,i2.2)') ii(1),'-',ii(2),'-',ii(3)
-    l = min(len_trim(string) + 2,len(string)-2)
-    write(string(l:),'(i2,a,i2.2,a,i2.2)') ii(5),':',ii(6),':',ii(7)
-    do i=0,iargc()
-        l = min(len_trim(string) + 2,len(string)-2)
-        call getarg(i,string(l:))
-        if ( index(string(l:),'startstop').ne.0 ) then
-            string(l:) = ' '
-        end if
-    end do
-    if ( lwrite ) then
-        print *,'History: ',string(1:len_trim(string))
-    end if
-    status = nf_put_att_text(ncid,nf_global,'history',len_trim(string),string)
-    if ( status.ne.nf_noerr ) call handle_err(status,'put att history')
 !
 !   define dimension
 !

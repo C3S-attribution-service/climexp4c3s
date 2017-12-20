@@ -16,8 +16,9 @@
         yr,mo,nens1,nens2
     real :: xx(nxmax),yy(nymax),zz(nzmax),undef
     real,allocatable :: field(:,:,:,:,:),onefield(:,:,:,:,:)
-    character vars(nvarmax)*10,lvars(nvarmax)*80,svars(nvarmax)*80,units(nvarmax)*40
-    character :: ncfile*255,title*1023,lz(3)*20,ltime*120,history*20000,cell_methods(100)*100
+    character :: vars(nvarmax)*10,lvars(nvarmax)*80,svars(nvarmax)*80,units(nvarmax)*40
+    character :: ncfile*255,title*1023,lz(3)*20,ltime*120,history*20000, &
+        cell_methods(100)*100,metadata(2,100)*2000
     logical :: lwrite,tdefined(ntmax)
     integer :: iargc,llen
     data dpm &
@@ -42,7 +43,7 @@
         call ensparsenc(ncfile,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
             ,nz,zz,lz,nt,nperyear,yrbegin,mobegin,ltime,tdefined,ntmax &
             ,nens1,nens2,undef,title,history,nvarmax,nvars,vars,jvars,lvars &
-            ,svars,units,cell_methods)
+            ,svars,units,cell_methods,metadata)
         if ( nens1 /= nens2 ) then
             write(0,*) 'catnc: error: cannot handle ensembles yet'
             call exit(-10)
@@ -85,7 +86,7 @@
     if ( lwrite ) print *,'writing metadata'
     call enswritenc(ncfile,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny,yy &
         ,nz,zz,lz,nt,nperyear,fyrall,1,ltime,undef,title,history,nvars &
-        ,vars,ivars,lvars,svars,units,cell_methods,0,0) ! no ensembles yet
+        ,vars,ivars,lvars,svars,units,cell_methods,metadata,0,0) ! no ensembles yet
     it = 0
     if ( lwrite ) print *,'writing data'
     do yr=fyrall,lyrall

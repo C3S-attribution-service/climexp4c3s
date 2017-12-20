@@ -27,6 +27,7 @@ OBJS	      = makeabsent.o \
 		readensdat.o \
 		readncseries.o \
 		printdatfile.o \
+		printmetadata.o \
 		printrdatfile.o \
 		print3rdatfile.o \
 		normon.o \

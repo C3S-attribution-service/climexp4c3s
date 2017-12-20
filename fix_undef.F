@@ -19,7 +19,8 @@
         character infile*255,datfile*255,outfile*255,line*255,lz(3)*20
      +       ,vars(nvmax)*15,lvars(nvmax)*255,svars(nvmax)*80
      +       ,title*255,history*20000,units(nvmax)*40,
-     +       cell_methods(nvmax)*100,ltime*120,yesno*1
+     +       cell_methods(nvmax)*100,ltime*120,yesno*1,
+     +       metadata(2,100)*2000
         logical lexist
         integer iargc,leap
         external leap
@@ -35,7 +36,7 @@
         call getmetadata(infile,mens1,mens,ncid,datfile,nxmax,nx
      +       ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo
      +       ,ltime,undef,endian,title,history,nvmax,nvars,vars,ivars
-     +       ,lvars,svars,units,cell_methods,lwrite)
+     +       ,lvars,svars,units,cell_methods,metadata,lwrite)
         if ( mens1.ne.0 .or. mens.ne.0 ) then
             write(0,*) 'fix_undef: cannot handle ensembles'
             call abort
@@ -204,7 +205,7 @@
             call enswritenc(outfile,ncid,ntvarid,itimeaxis,nt,nx,xx
      +           ,ny,yy,nz,zz,lz,nt,nperyear,firstyr,firstmo,ltime,3e33
      +           ,title,history,nvars,vars,ivars,lvars,svars,units
-     +           ,cell_methods,nens1,nens2)
+     +           ,cell_methods,metadata,nens1,nens2)
             yr = firstyr
             mo = firstmo
             irec = 0

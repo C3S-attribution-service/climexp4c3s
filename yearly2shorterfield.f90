@@ -14,6 +14,7 @@ program yearly2shorterfield
     real,allocatable :: data(:,:,:,:,:,:),newdata(:,:,:,:,:,:),fxy(:,:),newfxy(:,:)
     character file*1024,datfile*1024,vars(1)*40,svars(1)*100,lvars(1)*120,units(1)*60
     character lz(3)*10,ltime*100,title*1000,history*20000,cell_methods(nvarmax)*100
+    character metadata(2,100)*2000
     character string1*50,string2*50
     integer iargc
 
@@ -29,7 +30,7 @@ program yearly2shorterfield
     call getmetadata(file,mens1,mens,ncid,datfile,nxmax,nx &
      &       ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo &
      &       ,ltime,undef,endian,title,history,nvarmax,nvars,vars,jvars &
-     &       ,lvars,svars,units,cell_methods,lwrite)
+     &       ,lvars,svars,units,cell_methods,metadata,lwrite)
     call getopts(3,iargc()-1,nperyear,yrbeg,yrend,.false.,0,nensmax)
     if ( iargc().gt.2 ) then
         if ( oper.eq.'v' ) then
@@ -98,7 +99,7 @@ program yearly2shorterfield
     call enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny              &
      &       ,yy,nz,zz,lz,nt,npernew,yrbegin,mobegin,ltime,undef,title      &
      &       ,history,nvars,vars,ivars,lvars,svars,units,cell_methods       &
-     &       ,nens1,nens2)
+     &       ,metadata,nens1,nens2)
     do iens=nens1,nens2
         do yr=fyr,lyr
             do mo=1,npernew

@@ -21,8 +21,9 @@ program difffield
     real,allocatable :: field(:,:,:,:,:,:),ave1(:,:,:,:,:),ave2(:,:,:,:,:)
     character file*256,datfile*256,string*40
     character vars(3)*20,lvars(3)*120,svars(3)*120,title*4096,           &
-     &       history*5000,lz(3)*20,units(3)*20,title1*5100,title2*500    &
-     &       ,cell_methods*100,ltime*20,lsmasktype*4,tmpunits*20,yesno*3
+             history*5000,lz(3)*20,units(3)*20,title1*5100,title2*500    &
+             ,cell_methods*100,ltime*20,lsmasktype*4,tmpunits*20,yesno*3 &
+             ,metadata(2,100)*2000
     logical lexist,lequal
     integer iargc,get_endian
     real erfcc
@@ -54,7 +55,7 @@ program difffield
         call getmetadata(file,mens1,mens,ncid,datfile,nxmax,nx           &
      &           ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr      &
      &           ,firstmo,ltime,undef,endian,title,history,1,nvars,vars  &
-     &           ,jvars,lvars,svars,units,cell_methods,lwrite)
+     &           ,jvars,lvars,svars,units,cell_methods,metadata,lwrite)
         if ( ifield == 1 ) then
             nperyear1 = nperyear
         else

@@ -8,7 +8,7 @@ subroutine writenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny,yy &
     real :: xx(nx),yy(ny),zz(nz),undef
     character file*(*),title*(*),vars(nvars)*(*),lvars(nvars)*(*), &
         units(nvars)*(*),history*100,cell_methods(nvars)*100
-    character svars(1000)*1,ltime*10,lz(3)*20
+    character svars(1000)*1,ltime*10,lz(3)*20,metadata(2,100)*2000
     if ( nvars > 1000 ) then
         write(0,*) 'writenc: can only handle up to 1000 variables'
         call exit(-1)
@@ -21,13 +21,13 @@ subroutine writenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny,yy &
     call enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
         ,yy,nz,zz,lz,nt,nperyear,yrbegin,mobegin,ltime,undef,title &
         ,history,nvars,vars,ivars,lvars,svars,units,cell_methods &
-        ,nens1,nens2)
+        ,metadata,nens1,nens2)
 end subroutine writenc
 
 subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
     ,yy,nz,zz,lz,nt,nperyear,yrbegin,mobegin,ltime,undef,title &
     ,history,nvars,vars,ivars,lvars,svars,units,cell_methods &
-    ,nens1,nens2)
+    ,metadata,nens1,nens2)
 
 !       opens a netCDF file and puts all definitions in it.  The real
 !       data is written later.  Note that this routine has been derived from
@@ -70,15 +70,15 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
     real :: xx(nx),yy(ny),zz(nz),undef
     character file*(*),title*(*),history*(*),vars(nvars)*(*), &
         lvars(nvars)*(*),svars(nvars)*(*),units(nvars)*(*), &
-        cell_methods(nvars)*(*),ltime*(*),lz(3)*(*)
+        cell_methods(nvars)*(*),ltime*(*),lz(3)*(*),metadata(2,100)*2000
 !   local variables
     integer :: status,ntdimid,nxdimid,nydimid,nzdimid,nensdimid,ndims &
         ,idims(5),nxvarid,nyvarid,nzvarid,nensvarid,ivar,i,j,l, &
-        ii(8),dy,mo,chunks(5),n,nperday
+        dy,mo,chunks(5),n,nperday
     integer, allocatable :: iens(:)
     real :: array(1)
     integer :: dpm(12)
-    logical :: lwrite,lhasz,lnetcdf4
+    logical :: lwrite,lhasz,lnetcdf4,linstitution
     character string*10000,months(0:12,2)*3,clwrite*10,FORM_field*100
 !   externals
     integer :: llen,iargc
@@ -136,26 +136,30 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
         status = nf_put_att_text(ncid,nf_global,'source_field',len_trim(string),string)
         if ( status /= nf_noerr ) call handle_err(status,'put att derived_from')
     end if
-    string = trim(history)//'\nwritten by writenc (GJvO, KNMI) on '
-    l = min(llen(string) + 2,len(string)-2)
-    call getenv('USER',string(l:))
-    l = min(llen(string) + 2,len(string)-2)
-    call date_and_time(values=ii)
-    ii(3) = ii(3)
-    write(string(l:),'(i4,a,i2.2,a,i2.2)') ii(1),'-',ii(2),'-',ii(3)
-    l = min(llen(string) + 2,len(string)-2)
-    write(string(l:),'(i2,a,i2.2,a,i2.2)') ii(5),':',ii(6),':',ii(7)
-    do i=0,iargc()
-        l = min(llen(string) + 2,len(string)-2)
-        call getarg(i,string(l:))
-        if ( index(string(l:),'startstop') /= 0 ) then
-            string(l:) = ' '
-        endif
-    enddo
+    linstitution = .false.
+    do i=1,100
+        if ( metadata(1,i) /= ' ' ) then
+            if ( metadata(1,i) == 'conventions' .or. metadata(1,i) == 'Conventions' ) cycle
+            if ( metadata(1,i) == 'institution' .or. metadata(1,i) == 'Institution' ) then
+                if ( metadata(2,i)(1:10) /= 'KNMI Clima' ) then ! avoid recursion...
+                    metadata(2,i) = 'KNMI Climate Explorer and '//metadata(2,i)
+                end if
+                linstitution = .true.
+            end if
+            status = nf_put_att_text(ncid,nf_global,trim(metadata(1,i)), &
+                len_trim(metadata(2,i)),metadata(2,i))
+            if ( status /= nf_noerr ) call handle_err(status,'put att '//trim(metadata(1,i)))
+        end if
+    end do
+    if ( .not.linstitution ) then
+        status = nf_put_att_text(ncid,nf_global,'institutions',21,'KNMI Climate Explorer')
+        if ( status /= nf_noerr ) call handle_err(status,'put att institution')
+    end if
+    call extend_history(history)
     if ( lwrite ) then
-        print *,'History: ',string(1:llen(string))
+        print *,'History: ',trim(history)
     endif
-    status = nf_put_att_text(ncid,nf_global,'history',llen(string),string)
+    status = nf_put_att_text(ncid,nf_global,'history',llen(history),history)
     if ( status /= nf_noerr ) call handle_err(status,'put att history')
 
 !       define dimensions

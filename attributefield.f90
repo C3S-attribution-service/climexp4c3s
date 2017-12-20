@@ -22,7 +22,8 @@
     character file*1024,datfile*1024,covariatefile*1024,distribution*6,assume*5,string*80
     character var*40,var1*40,units1*80,lz(3)*20,ltime*120,title*255,history*2048
     character vars(nvarmax)*20,svars(nvarmax)*20,lvars(nvarmax)*120,units(nvarmax)*40
-    character cell_methods(nvarmax)*100,orgunits*40,outfile*1024,format*20,seriesids(0:nensmax)*10
+    character cell_methods(nvarmax)*100,metadata(2,100)*2000,orgunits*40,outfile*1024, &
+        format*20,seriesids(0:nensmax)*10
     integer iargc
     data iyrs /10,20,50,100,200,500,1000,2000,5000,10000/
 !
@@ -44,7 +45,7 @@
     call getmetadata(file,mens1,mens,ncid,datfile,nxmax,nx &
      &       ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo &
      &       ,ltime,undef,endian,title,history,nvarmax,nvars,vars,jvars &
-     &       ,lvars,svars,units,cell_methods,lwrite)
+     &       ,lvars,svars,units,cell_methods,metadata,lwrite)
     orgunits = units(1)
 !
     nxf = nx

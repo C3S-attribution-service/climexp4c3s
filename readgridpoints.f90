@@ -15,13 +15,14 @@ subroutine readgridpoints(data,ids,npermax,yrbeg,yrend,nensmax, &
     real,allocatable :: field(:,:,:,:,:,:)
     logical   :: validdata
     character :: file*1024,datfile*1014,lz(3)*20,ltime*100,title*1024,history*20000, &
-        vars(1)*40,svars(1)*80,lvars(1)*80,units(1)*80,cell_methods(1)*128
+        vars(1)*40,svars(1)*80,lvars(1)*80,units(1)*80,cell_methods(1)*128, &
+        metadata(2,100)*2000
 
     call getarg(2,file)
     call getmetadata(file,mens1,mens,ncid,datfile,nxmax,nx      &
         ,xx,nymax,ny,yy,1,nz,zz,lz,nt,nperyear,firstyr,firstmo  &
         ,ltime,undef,endian,title,history,1,nvars,vars,ivars    &
-        ,lvars,svars,units,cell_methods,lwrite)
+        ,lvars,svars,units,cell_methods,metadata,lwrite)
     lastyr = firstyr + (firstmo+nt-2)/nperyear
     mens1 = max(nens1,nens1)
     mens = min(mens,nens2)

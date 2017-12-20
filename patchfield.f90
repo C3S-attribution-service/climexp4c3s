@@ -22,9 +22,10 @@ program patchfield
     real,allocatable :: mainfield(:,:,:,:,:),auxfield(:,:,:,:,:),maindata(:,:),auxdata(:,:)
     logical lreversefit
     character &
- &      mainfile*255,auxfile*255,outfile*255,datfile*255,datfile1*255,lz(3)*20,ltime*120, &
- &      title*2000,history*20000,vars(nvarmax)*40,lvars(nvarmax)*120,svars(nvarmax)*80, &
- &      units(nvarmax)*40,units1(nvarmax)*40,cell_methods(nvarmax)*40
+        mainfile*255,auxfile*255,outfile*255,datfile*255,datfile1*255,lz(3)*20,ltime*120, &
+        title*2000,history*20000,vars(nvarmax)*40,lvars(nvarmax)*120,svars(nvarmax)*80, &
+        units(nvarmax)*40,units1(nvarmax)*40,cell_methods(nvarmax)*40,metadata(2,100)*2000, &
+        metadata2(2,100)*2000
     character method*4
     integer iargc
     data dpm /31,29,31,20,31,30,31,31,30,31,30,31/
@@ -47,12 +48,12 @@ program patchfield
     call getmetadata(auxfile,mens11,mens01,ncid1,datfile1,nxmax,nx1 &
  &       ,xx1,nymax,ny1,yy1,nzmax,nz1,zz1,lz,nt1,nperyear1,firstyr1,firstmo1 &
  &       ,ltime,undef1,endian1,title,history,nvarmax,nvars,vars,ivars1 &
- &       ,lvars,svars,units1,cell_methods,lwrite)
+ &       ,lvars,svars,units1,cell_methods,metadata,lwrite)
     call getarg(1,mainfile)
     call getmetadata(mainfile,mens1,mens,ncid,datfile,nxmax,nx &
  &       ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo &
  &       ,ltime,undef,endian,title,history,nvarmax,nvars,vars,ivars &
- &       ,lvars,svars,units,cell_methods,lwrite)
+ &       ,lvars,svars,units,cell_methods,metadata2,lwrite)
     if ( iargc() >= 4 ) then
         call getarg(3,method)
         ! "noscale" was recognised by a version that I mistakenly skipped
@@ -275,7 +276,7 @@ program patchfield
         call enswritenc(outfile,ncid,ntvarid,itimeaxis,ndata,nx,xx,ny &
  &           ,yy,nz,zz,lz,nperyear*(lyr-fyr+1),nperyear &
  &           ,fyr,1,ltime,undef,title,history,nvars,vars,ivars &
- &           ,lvars,svars,units,cell_methods,0,0)
+ &           ,lvars,svars,units,cell_methods,metadata,0,0)
         i = 0
         do yr=fyr,lyr
             do j=1,nperyear

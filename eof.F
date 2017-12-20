@@ -13,8 +13,8 @@
 #include "getopts.inc"
         integer nvarmax,nyrmax,neofmax
         parameter (nvarmax=1,nyrmax=79,neofmax=500)
-	integer nxymax,lwork,liwork
-	parameter(nxymax=120*61,lwork=107208721,liwork=36603) ! ssyevd
+        integer nxymax,lwork,liwork
+        parameter(nxymax=120*61,lwork=107208721,liwork=36603) ! ssyevd
         integer i,ii,i1,i2,j,jj,j1,j2,jx,jy,k,m,n,n1,n2,nx,ny,nz,nt
      +       ,month,yr,mo,nperyear,neigen,ldir,nxf,nyf
         integer firstyr,firstmo,nvars,ivars(2,neofmax),jvars(6,neofmax)
@@ -26,7 +26,7 @@
         real xx(nxmax),yy(nymax),zz(nzmax),undef,xxls(nxmax),yyls(nymax)
         real fac,sum,wgt,wx(nxmax),wy(nymax),dum,eigen(nxymax),eps,
      +       a,b,t,s
-	real cov(nxymax,nxymax),work(lwork)
+        real cov(nxymax,nxymax),work(lwork)
         real,allocatable :: field(:,:,:,:,:)
         real,allocatable :: fxy(:,:,:),pc(:,:,:,:),eofxy(:,:,:),
      +       pattern(:,:,:,:)
@@ -35,7 +35,8 @@
      +       units(neofmax)*20,lsmasktype*4,outfile*255,infile*255,
      +       datfile*255,line*255,yesno*1,dir*255,string*20,
      +       fieldtitle*255,lvar*80,unit*20,cell_methods(nvarmax)*100,
-     +       history*2048,ltime*120,lz(3)*20,svars(neofmax)*80
+     +       history*2048,ltime*120,lz(3)*20,svars(neofmax)*80,
+     +       metadata(2,100)*2000
         logical lexist,xrev,yrev,xwrap
         integer iargc,llen,getpid,putenv,system
         real*4 etime
@@ -56,7 +57,7 @@
         call getmetadata(infile,mens1,mens,ncid,datfile,nxmax,nx
      +       ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo
      +       ,ltime,undef,endian,title,history,nvarmax,nvars,vars,jvars
-     +       ,lvars,svars,units,cell_methods,lwrite)
+     +       ,lvars,svars,units,cell_methods,metadata,lwrite)
         if ( nz.gt.1 ) then
             write(0,*) 'eof: error: 3D EOFs not yet ready'
             call abort

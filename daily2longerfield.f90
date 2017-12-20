@@ -23,7 +23,7 @@ program daily2longerfield
     character file*256,datfile*256,string*40,lgt*1,opera*3
     character vars(nvmax)*20,lvars(nvmax)*255,title*200, &
         history*20000,units(nvmax)*20,cell_methods(nvmax)*200, &
-        lz(3)*20,ltime*100,svars(nvmax)*50,punits*40
+        lz(3)*20,ltime*100,svars(nvmax)*50,punits*40,metadata(2,100)*2000
     logical :: normal,tdefined(ntmax),lexist
     logical,allocatable :: lvalid(:,:,:,:),lvalid1(:,:)
     integer :: iargc,llen
@@ -58,12 +58,13 @@ program daily2longerfield
         history = ' '
         ncid = -1
         cell_methods = ' '
+        metadata = ' '
     else
         if ( lwrite ) print *,'calling parsenc on ',trim(file)
         call ensparsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
             ,nz,zz,lz,nt,nperyear,firstyr,firstmo,ltime,tdefined &
             ,ntmax,nens1,nens2,undef,title,history,1,nvars,vars &
-            ,jvars,lvars,svars,units,cell_methods)
+            ,jvars,lvars,svars,units,cell_methods,metadata)
         ntp = 0
         do it=1,nt
             if ( tdefined(it) ) ntp = ntp + 1
@@ -165,7 +166,7 @@ program daily2longerfield
                         end do
                     end do
                 end do
-    !                   no smoothing for the time being
+!               no smoothing for the time being
                 do yr=yrbeg,yrend
                     do j=1,nperyear
                         do jy=1,ny
@@ -231,9 +232,9 @@ program daily2longerfield
     if ( minfac < 0 ) minfac = 0.5
     yr1 = max(yr1,firstyr)
     yr2 = min(yr2,lastyr)
-!       no climatology -- too expensive, only very limited usefulness.
-!       fill in missing data when requested
-!       this test should be exactly the same as in fieldday2period
+!   no climatology -- too expensive, only very limited usefulness.
+!   fill in missing data when requested
+!   this test should be exactly the same as in fieldday2period
     if ( ( opera == 'mea' .or. opera == 'sum' ) &
             .and. lgt == ' ' .and. add_option > 0 ) then
         allocate(fxy(nperyear,firstyr:lastyr))
@@ -265,7 +266,7 @@ program daily2longerfield
         deallocate(lvalid1)
     end if
 
-!       take running mean if requested
+!   take running mean if requested
 
     if ( lsum > 1 ) then
         allocate(fxy(nperyear,firstyr:lastyr))
@@ -288,34 +289,32 @@ program daily2longerfield
         deallocate(fxy)
     end if
 
-!       perform operation
+!   perform operation
 
     if ( lwrite ) print *,'allocating newfield'
     allocate(newfield(nx,ny,abs(nperyearnew),firstyr:lastyr))
     if ( lwrite ) print *,'calling fieldallday2period'
-    call fieldallday2period( &
-    oldfield,nperyear,lvalid, &
-    newfield,nperyearnew, &
-    nx,ny,firstyr,lastyr,opera,lgt,cut,minfac,add_option, &
-    itype,vars(1),units(1),lwrite)
+    call fieldallday2period(oldfield,nperyear,lvalid,newfield,nperyearnew, &
+        nx,ny,firstyr,lastyr,opera,lgt,cut,minfac,add_option, &
+        itype,vars(1),units(1),lwrite)
     deallocate(oldfield)
     nperyearnew = abs(nperyearnew)
 
-!       standard units
+!   standard units
 
     if ( lstandardunits ) then
         call makestandardfield(newfield,nx,ny,1,abs(nperyearnew), &
-        firstyr,lastyr,nx,ny,1,nperyearnew,firstyr,lastyr, &
-        vars(1),units(1),lwrite)
+            firstyr,lastyr,nx,ny,1,nperyearnew,firstyr,lastyr, &
+            vars(1),units(1),lwrite)
     endif
 
-!       adjust names
+!   adjust names
 
     call adjustnames(opera,nperyear,nperyearnew,lgt,pcut,punits &
-    ,lvars(1),cell_methods(1))
+        ,lvars(1),cell_methods(1))
     call adjustvar(opera,vars(1),lwrite)
 
-!       output field
+!   output field
 
     call getarg(iargc(),file)
     i = index(file,'.ctl')
@@ -353,9 +352,9 @@ program daily2longerfield
     !           netcdf output
         undef = 3e33
         call enswritenc(file,ncid,ntvarid,itimeaxis,ndata,nx,xx,ny &
-        ,yy,nz,zz,lz,nperyearnew*(lastyr-firstyr+1),nperyearnew &
-        ,firstyr,1,ltime,undef,title,history,nvars,vars,ivars &
-        ,lvars,svars,units,cell_methods,nens1,nens2)
+            ,yy,nz,zz,lz,nperyearnew*(lastyr-firstyr+1),nperyearnew &
+            ,firstyr,1,ltime,undef,title,history,nvars,vars,ivars &
+            ,lvars,svars,units,cell_methods,metadata,nens1,nens2)
         i = 0
         do yr=firstyr,lastyr
             do j=1,nperyearnew

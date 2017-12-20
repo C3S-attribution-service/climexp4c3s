@@ -25,6 +25,7 @@
      +       vars(nvarmax)*40,lvars(nvarmax)*80
      +       ,svars(nvarmax)*80,units(nvarmax)*40,lz(3)*20,ltime*120
      +       ,title*255,history*2048,cell_methods(nvarmax)*100
+     +       ,metadata(2,100)*2000
         character lsmasktype*4
         integer iargc
 !
@@ -40,7 +41,7 @@
         call getmetadata(file,mens1,mens,ncid,datfile,nxmax,nx
      +       ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo
      +       ,ltime,undef,endian,title,history,nvarmax,nvars,vars,jvars
-     +       ,lvars,svars,units,cell_methods,lwrite)
+     +       ,lvars,svars,units,cell_methods,metadata,lwrite)
         call getopts(iarg,iargc(),nperyear,yrbeg,yrend,.false.,mens1
      +       ,mens)
         if ( nperyear.ne.12 ) then

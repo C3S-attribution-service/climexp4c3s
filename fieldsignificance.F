@@ -23,7 +23,7 @@
         character infile*255,datfile*255,string*20,lz(3)*20,ltime*100,
      +       title*1000,history*20000,vars(nvarmax)*40,
      +       lvars(nvarmax)*200,svars(nvarmax)*200,units(nvarmax)*100,
-     +       cell_methods(nvarmax)*128,all*6
+     +       cell_methods(nvarmax)*128,all*6,metadata(2,100)*2000
         logical xrev,yrev,xwrap
         integer iargc
         real df,pcut
@@ -59,7 +59,7 @@
         call getmetadata(infile,mens1,mens,ncid,datfile,nxmax,nx
      +       ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo
      +       ,ltime,undef,endian,title,history,nvarmax,nvars,vars,ivars
-     +       ,lvars,svars,units,cell_methods,lwrite)
+     +       ,lvars,svars,units,cell_methods,metadata,lwrite)
         if ( mens1.gt.0 ) then
             write(0,*) 'fieldsignficance: cannot handle ensembles',mens1
             call abort

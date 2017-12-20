@@ -20,7 +20,7 @@
         character infile*255,outfile*255,datfile*255,lz(3)*20,ltime*100
      +       ,title*255,history*20000,vars(nvarmax)*40
      +       ,lvars(nvarmax)*140,svars(nvarmax)*100,units(nvarmax)*100
-     +       ,cell_methods(nvarmax)*100
+     +       ,cell_methods(nvarmax)*100,metadata(2,100)*2000
         character var*20,model*20,exp*20,rip*20,yrs*20,oldmodel*20
      +       ,oldexp*5
         character models(500)*20,inunts*40,p*2,oldp*2
@@ -52,7 +52,8 @@
             call getmetadata(infile,mens1,mens,ncid,datfile,nxmax,nx
      +           ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr
      +           ,firstmo,ltime,undef,endian,title,history,nvarmax,nvars
-     +           ,vars,jvars,lvars,svars,units,cell_methods,lwrite)
+     +           ,vars,jvars,lvars,svars,units,cell_methods,metadata
+     +           ,lwrite)
             if ( nt+firstmo-1.gt.nperyear ) then
                 write(0,*) 'quantiles_field: error: can only handle one'
      +               ,' year of data in each field, not ',firstmo,+nt-1

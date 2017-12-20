@@ -51,7 +51,7 @@ subroutine getlsmask(startopts,lsmasktype,nxmax,xxls,nymax,yyls,lwrite)
                 'all, land, sea, notl, nots, 5lan or 5sea '// &
                 'but I found ',lsmasktype
         end if
-        print '(4a)','# using only ',longlsmasktype,' points from land/sea mask in ',trim(file)
+        print '(4a)','# using only ',trim(longlsmasktype),' points from land/sea mask in ',trim(file)
         status = nf_open(file,nf_nowrite,ncid)
         if ( status /= nf_noerr ) then
             ncid = -1

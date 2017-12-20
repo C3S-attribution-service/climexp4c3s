@@ -15,7 +15,7 @@ program polygon2mask
     character infile*255,datfile*255,maskfile*255,lz(3)*20,ltime*120,title*1047,history*4095, &
         & string*80,lsmasktype*4
     character vars(nvarmax)*50,lvars(nvarmax)*100,svars(nvarmax)*100,units(nvarmax)*100 &
-        & ,cell_methods(nvarmax)*100
+        & ,cell_methods(nvarmax)*100,metadata(2,100)*2000
     character pole*2,clwrite*1
     logical lwrite,xrev,yrev,xwrap
     integer iargc
@@ -46,7 +46,7 @@ program polygon2mask
   call getmetadata(infile,mens1,mens,ncid,datfile,nxmax,nx &
        & ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo &
        & ,ltime,undef,endian,title,history,nvarmax,nvars,vars,jvars &
-       & ,lvars,svars,units,cell_methods,lwrite)
+       & ,lvars,svars,units,cell_methods,metadata,lwrite)
   i = nf_close(ncid)
   if ( ny.le.1 ) then
      write(0,*) 'polygon2mask: error: expecting ta least two grid points in latitude'

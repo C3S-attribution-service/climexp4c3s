@@ -50,7 +50,7 @@ program get_index
     character file*255,datfile*255,title*1023,vars(nvmax)*40 &
         ,lvars(nvmax)*100,units(nvmax)*60,FORM_field*100, &
         lz(3)*20,svars(100)*100,ltime*120,history*50000, &
-        cell_methods(100)*100,longoper*100
+        cell_methods(100)*100,longoper*100,metaoper*20,metadata(2,100)*2000
     character :: string*255,dipole*2,shortfilename*255,datadir*255 &
         ,letter*1,lsmaskfile*255,lsmasktype*4,lstitle*255, &
         fieldname*100,outfile*255
@@ -91,15 +91,9 @@ program get_index
         call ensparsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
             ,nz,zz,lz,nt,nperyear,firstyr,firstmo,ltime,tdefined,ntmax &
             ,nens1,nens2,undef,title,history,1,nvars &
-            ,vars,jvars,lvars,svars,units,cell_methods)
+            ,vars,jvars,lvars,svars,units,cell_methods,metadata)
         datfile = file
     endif
-    print '(5a)','# Operating on file ',trim(file),' ',trim(title)
-    call getenv('FORM_field',FORM_field)
-    if ( FORM_field /= ' ' ) then
-        print '(5a)','# <a href=http://climexp.knmi.nl/select.cgi?field=',trim(FORM_field), &
-            '>climexp.knmi.nl/select.cgi?field=',trim(FORM_field),'</a>'
-    end if
 !   range of years
     if ( nperyear == 366 ) then
         lastyr = firstyr + int((firstmo+nt-2)/365.24)
@@ -303,16 +297,16 @@ program get_index
     do j=len(file),1,-1
         if ( file(j:j) == '/' ) goto 101
     enddo
-    101 continue
+101 continue
     shortfilename = file(j+1:index(file,' ')-1)
     if ( ncid == -1 ) then
         call readdatfile(datfile,field,nx,ny,nx,ny,nperyear,firstyr &
-        ,lastyr,firstyr,firstmo,nt,undef,endian,lwrite,firstyr &
-        ,lastyr,1,1)
+            ,lastyr,firstyr,firstmo,nt,undef,endian,lwrite,firstyr &
+            ,lastyr,1,1)
     else
         call readncfile(ncid,field,nx,ny,nx,ny,nperyear,firstyr &
-        ,lastyr,firstyr,firstmo,nt,undef,lwrite,firstyr,lastyr &
-        ,jvars)
+            ,lastyr,firstyr,firstmo,nt,undef,lwrite,firstyr,lastyr &
+            ,jvars)
     endif
     call keepalive1('Reading file',1,5)
 
@@ -405,7 +399,8 @@ program get_index
             title = 'subset of '//trim(title)
             call enswritenc(outfile,ncid,ntvarid,itimeaxis,nt,nx,xx &
                 ,ny,yy,nz,zz,lz,irec,nperyear,firstyr,firstmo,ltime,3e33 &
-                ,title,history,1,vars,ivars,lvars,svars,units,cell_methods,0,0)
+                ,title,history,1,vars,ivars,lvars,svars,units,cell_methods &
+                ,metadata,0,0)
             yr=firstyr
             mo=firstmo
             irec = 0
@@ -432,6 +427,13 @@ program get_index
         end if
         goto 999
     end if
+
+!   series metadata output
+
+    print '(5a)','# operating on ',trim(title)
+    call getenv('FORM_field',FORM_field)
+    title = 'spatial statistic of '//title
+    call printmetadata(file,FORM_field,title,history,metadata)
 
 !   get mean of whole field if multiple points are requested
 
@@ -546,10 +548,8 @@ program get_index
         !   this should be identical to the file name opened below
         endif
         if ( npoints > 1 .or. gridpoints ) then
-            write(string,'(4a,f7.2,a,f6.2,3a)') &
-            trim(datadir),'/grid' &
-            ,trim(fieldname),'_',lon1,'_',lat1,'_',letter &
-            ,'.dat'
+            write(string,'(4a,f7.2,a,f6.2,3a)') trim(datadir),'/grid' &
+                ,trim(fieldname),'_',lon1,'_',lat1,'_',letter,'.dat'
             do i=1,len_trim(string)
                 if ( string(i:i) == ' ' ) string(i:i) = '0'
             enddo
@@ -560,16 +560,16 @@ program get_index
                 call mystat(trim(string),iarray2,iret2)
                 if ( iret1 == 0 .and. iret2 == 0 ) then
                     if ( iarray2(10) >= iarray1(10) ) then
-                    ! file already there and seems valid, next point
+                        ! file already there and seems valid, next point
                         if ( lwrite ) print *,'file ',trim(string), &
-                        'already there and seems valid', &
-                        iarray2(10) >= iarray1(10)
+                            'already there and seems valid', &
+                            iarray2(10) >= iarray1(10)
                         cycle
                     end if
                 end if
                 if ( lwrite ) print *,'file ',trim(string), &
-                ' invalid or outdated ',iret1,iarray1(10), &
-                iret2,iarray2(10),', deleting'
+                    ' invalid or outdated ',iret1,iarray1(10), &
+                    iret2,iarray2(10),', deleting'
                 open(out,file=trim(string),status='old')
                 close(out,status='delete')
             end if
@@ -671,16 +671,21 @@ program get_index
                     if ( lon1 == lon2 .and. lat1 == lat2 ) then
                         if ( interp ) then
                             longoper = 'interpolating over'
+                            metaoper = 'interp_region'
                         else
                             longoper = 'taking grid box'
+                            metaoper = 'ave_region'
                         end if
                     else
                         longoper = 'averaging anomalies over'
+                        metaoper = 'ave_region'
                     end if
                 else if ( oper == 'x' ) then
                     longoper = 'taking maximum of'
+                    metaoper = 'max_region'
                 else if ( oper == 'x' ) then
                     longoper = 'taking minimum of'
+                    metaoper = 'min_region'
                 else
                     longoper = 'cutting out'
                 end if                    
@@ -688,6 +693,8 @@ program get_index
                     write(0,'(2a,2f9.3,a,2f9.3,a)') trim(longoper),' region lon=',lon1c &
                         ,lon2c,', lat=',lat1c,lat2c,'<br>'
                 endif
+                write(out,'(3a,2f9.3,a,2f9.3,a)') '# ',trim(metaoper),' :: lon=',lon1c &
+                    ,lon2c,', lat=',lat1c,lat2c
                 write(out,'(3a,2f9.3,a,2f9.3,a)') '# ',trim(longoper),' region lon=',lon1c &
                     ,lon2c,', lat=',lat1c,lat2c
                 if ( lwrite ) write(0,'(a,2i4,a,2i4)') &

@@ -14,14 +14,14 @@ subroutine parsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
         ,lvars(nvarmax)*(*),units(nvarmax)*(*)
     integer :: nens1,nens2,i,j
     character lz(3)*20,svars(100)*100,ltime*120,history*50000, &
-        cell_methods(100)*100
+        cell_methods(100)*100,metadata(2,100)*2000
     logical :: tdefined(ntmax)
     nens1 = 0
     nens2 = 0
     call ensparsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
         ,nz,zz,lz,nt,nperyear,firstyr,firstmo,ltime,tdefined,ntmax &
         ,nens1,nens2,undef,title,history,nvarmax,ntvars,vars,ivars &
-        ,lvars,svars,units,cell_methods)
+        ,lvars,svars,units,cell_methods,metadata)
     if ( nens1 /= 0 .or. nens2 /= 0 ) then
         write(0,*) 'parsenc: error: found ensemble in file ',trim(file)
         call exit(-1)
@@ -31,7 +31,7 @@ end subroutine parsenc
 subroutine ensparsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
     ,nz,zz,lz,nt,nperyear,firstyr,firstmo,ltime,tdefined,ntmax &
     ,nens1,nens2,undef,title,history,nvarmax,ntvars,vars,ivars &
-    ,lvars,svars,units,cell_methods)
+    ,lvars,svars,units,cell_methods,metadata)
 
 !   extract field metainformation from NetCDF file
 !   BUGS: cannot handle multiple latide,longitude axes yet.
@@ -46,7 +46,7 @@ subroutine ensparsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
     real :: xx(nxmax),yy(nymax),zz(nzmax),undef
     character file*(*),title*(*),history*(*),lz(3)*(*),ltime*(*), &
         vars(nvarmax)*(*),lvars(nvarmax)*(*),svars(nvarmax)*(*), &
-        units(nvarmax)*(*),cell_methods(nvarmax)*(*)
+        units(nvarmax)*(*),cell_methods(nvarmax)*(*),metadata(2,100)*(*)
     logical :: tdefined(ntmax)
 !   local variables
     integer :: status,ndims,nvars,ngatts,unlimdimid,varid,xtype &
@@ -83,6 +83,7 @@ subroutine ensparsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
     endif
     call gettitle(ncid,title,lwrite)
     call gettextattopt(ncid,nf_global,'history',history,lwrite)
+    call getglobalatts(ncid,metadata,lwrite)
     call getnumbers(ncid,ndims,nvars,ngatts,unlimdimid,lwrite)
     call getdims(ncid,ndims,ix,nx,nxmax,iy,ny,nymax,iz,nz,nzmax,it &
         ,nt,ntmax,ie,nens1,nens2,nensmax,lwrite)
