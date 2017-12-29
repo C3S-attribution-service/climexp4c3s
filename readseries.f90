@@ -1170,3 +1170,13 @@ logical function isnumchar(char)
         isnumchar = .false.
     end if
 end function isnumchar
+
+logical function isalphachar(char)
+    character char*1
+    if ( ichar(char) >= ichar('a') .and. ichar(char) <= ichar('z') .or. &
+         ichar(char) >= ichar('A') .and. ichar(char) <= ichar('Z') ) then
+        isalphachar = .true.
+    else
+        isalphachar = .false.
+    end if
+end function isalphachar
