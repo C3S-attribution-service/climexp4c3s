@@ -18,6 +18,7 @@ subroutine writenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny,yy &
     history = ' '
     cell_methods = ' '
     lz = ' '
+    metadata = ' '
     call enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
         ,yy,nz,zz,lz,nt,nperyear,yrbegin,mobegin,ltime,undef,title &
         ,history,nvars,vars,ivars,lvars,svars,units,cell_methods &
@@ -81,7 +82,8 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
     logical :: lwrite,lhasz,lnetcdf4,linstitution
     character string*10000,months(0:12,2)*3,clwrite*10,FORM_field*100
 !   externals
-    integer :: llen,iargc
+    integer :: iargc
+    logical,external :: isnumchar,isalphachar
 !   date
     data months / &
         '???','JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG' &
@@ -125,20 +127,29 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
         lnetcdf4 = .TRUE. 
     end if
     if ( status /= nf_noerr ) call handle_err(status,file)
-    if ( lwrite ) print *,'writenc: created ',file(1:llen(file)),' with ncid = ',ncid
-    status = nf_put_att_text(ncid,nf_global,'title',llen(title),title)
+    if ( lwrite ) print *,'writenc: created ',trim(file),' with ncid = ',ncid
+    if ( lwrite ) print *,'writenc: writing title ',trim(title)
+    status = nf_put_att_text(ncid,nf_global,'title',len_trim(title),title)
     if ( status /= nf_noerr ) call handle_err(status,'put att title')
     status = nf_put_att_text(ncid,nf_global,'Conventions',6,'CF-1.0')
     if ( status /= nf_noerr ) call handle_err(status,'put att conventions')
     call getenv('FORM_field',FORM_field)
     if ( FORM_field /= ' ' ) then
         string = 'https://climexp.knmi.nl/select.cgi?field='//trim(FORM_field)
+        if ( lwrite ) print *,'writenc: writing source_field ',trim(string)
         status = nf_put_att_text(ncid,nf_global,'source_field',len_trim(string),string)
         if ( status /= nf_noerr ) call handle_err(status,'put att derived_from')
     end if
     linstitution = .false.
     do i=1,100
-        if ( metadata(1,i) /= ' ' ) then
+        if ( len_trim(metadata(1,i)) > 0 ) then
+            do j=1,len_trim(metadata(1,i))
+                if ( .not. ( isnumchar(metadata(1,i)(j:j)) .or. isalphachar(metadata(1,i)(j:j)) .or. &
+                        metadata(1,i)(j:j) == '_' .or. metadata(1,i)(j:j) == '-' ) ) then
+                    write(0,*) 'writenc: warning: found illegal character  in name ',trim(metadata(1,i)(j:j))
+                    metadata(1,i)(j:j) = '_'
+                end if
+            end do
             if ( metadata(1,i) == 'conventions' .or. metadata(1,i) == 'Conventions' ) cycle
             if ( metadata(1,i) == 'institution' .or. metadata(1,i) == 'Institution' ) then
                 if ( metadata(2,i)(1:10) /= 'KNMI Clima' ) then ! avoid recursion...
@@ -146,8 +157,9 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
                 end if
                 linstitution = .true.
             end if
+            if ( lwrite ) print *,'writenc: writing ',trim(metadata(1,i)),': ',trim(metadata(2,i))
             status = nf_put_att_text(ncid,nf_global,trim(metadata(1,i)), &
-                len_trim(metadata(2,i)),metadata(2,i))
+                len_trim(metadata(2,i)),trim(metadata(2,i)))
             if ( status /= nf_noerr ) call handle_err(status,'put att '//trim(metadata(1,i)))
         end if
     end do
@@ -156,10 +168,8 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
         if ( status /= nf_noerr ) call handle_err(status,'put att institution')
     end if
     call extend_history(history)
-    if ( lwrite ) then
-        print *,'History: ',trim(history)
-    endif
-    status = nf_put_att_text(ncid,nf_global,'history',llen(history),history)
+    if ( lwrite ) print *,'writenc: writing history: ',trim(history)
+    status = nf_put_att_text(ncid,nf_global,'history',len_trim(history),history)
     if ( status /= nf_noerr ) call handle_err(status,'put att history')
 
 !       define dimensions
@@ -210,14 +220,14 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
         call exit(-1)
     endif
     call getdymo(dy,mo,mobegin,nperyear)
-    l = llen(string) + 2
+    l = len_trim(string) + 2
     write(string(l:),'(i4,a,i2.2,a,i2.2)') yrbegin,'-',mo,'-',dy
-    status = nf_put_att_text(ncid,ntvarid,'units',llen(string),string)
+    status = nf_put_att_text(ncid,ntvarid,'units',len_trim(string),string)
     if ( status /= nf_noerr ) call handle_err(status,'put time units')
     status = nf_put_att_text(ncid,ntvarid,'standard_name',4,'time')
     if ( status /= nf_noerr ) call handle_err(status,'put time standard_name')
     if ( ltime == ' ' ) ltime = 'time'
-    status = nf_put_att_text(ncid,ntvarid,'long_name',llen(ltime),ltime)
+    status = nf_put_att_text(ncid,ntvarid,'long_name',len_trim(ltime),ltime)
     if ( status /= nf_noerr ) call handle_err(status,'put time long_name')
     status = nf_put_att_text(ncid,ntvarid,'axis',1,'T')
     if ( status /= nf_noerr ) call handle_err(status,'put time axis')
@@ -312,7 +322,7 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
             call handle_err(status,trim(string))
         endif
         if ( lwrite ) print *,ivars(2,ivar),(trim(vars(ivar)))
-        status = nf_put_att_text(ncid,ivars(2,ivar),'long_name',llen(lvars(ivar)),lvars(ivar))
+        status = nf_put_att_text(ncid,ivars(2,ivar),'long_name',len_trim(lvars(ivar)),lvars(ivar))
         if ( status /= nf_noerr ) then
             string = 'def long_name '
             string(15:) = lvars(ivar)
@@ -320,7 +330,7 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
         endif
         if ( svars(ivar) /= ' ' ) then
             status = nf_put_att_text(ncid,ivars(2,ivar) &
-                ,'standard_name',llen(svars(ivar)),svars(ivar))
+                ,'standard_name',len_trim(svars(ivar)),svars(ivar))
             if ( status /= nf_noerr ) then
                 string = 'def standard_name '
                 string(19:) = svars(ivar)
@@ -328,7 +338,7 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
             endif
         endif
         if ( units(ivar) /= ' ' ) then
-            status = nf_put_att_text(ncid,ivars(2,ivar),'units',llen(units(ivar)),units(ivar))
+            status = nf_put_att_text(ncid,ivars(2,ivar),'units',len_trim(units(ivar)),units(ivar))
             if ( status /= nf_noerr ) then
                 string = 'def units'
                 string(11:) = lvars(ivar)
@@ -337,7 +347,7 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
         endif
         if ( cell_methods(ivar) /= ' ' ) then
             status = nf_put_att_text(ncid,ivars(2,ivar),'cell_methods', &
-                llen(cell_methods(ivar)),cell_methods(ivar))
+                len_trim(cell_methods(ivar)),cell_methods(ivar))
             if ( status /= nf_noerr ) then
                 string = 'def cell_methods'
                 string(18:) = lvars(ivar)
