@@ -1,4 +1,3 @@
-!  #[ correlatefield:
 program correlatefield
 !
 !   program to correlate a field series to a point series 
@@ -16,25 +15,44 @@ program correlatefield
     include 'params.h'
     include 'netcdf.inc'
     include 'getopts.inc'
-    integer nvarmax,nyrmax,nlevmax,mensmax
-    parameter (nvarmax=1,nyrmax=50,nlevmax=1,mensmax=1)
-    integer j,n,nx,ny,nz,nt,firstyr,firstmo,nvars,iarg,             &
- &       ivars(2,nvarmax),ncid,jvars(6,nvmax),endian,status,        &
+    integer,parameter :: nvarmax=50,nyrmax=50,nlevmax=1,mensmax=1,mpermax=366
+    integer,parameter :: ntmax=1000,ndatmax=2*mpermax*(yrend-yrbeg+1)*10
+    integer,parameter :: nmc=1000
+    integer i,j,n,nx,ny,nz,nt,firstyr,firstmo,nvars,iarg,             &
+ &       ivars(2,nvarmax),ncid,jvars(6,nvarmax),endian,status,        &
  &       nperyear,lastyr,mens,mens1
-    logical lexist
+    integer jj,k,kk,nn,lag,jx,jy,jz,yr,month,j1,j2,m,mm,mo,ii &
+ &       ,l,ldir,ntvarid,itimeaxis(ntmax)    &
+ &       ,nrec,iens,jens,ndup(0:mpermax),validens(nensmax)     &
+ &       ,nens2series,iens2,imens(0:1),nold,yrstart,yrstop   &
+ &       ,fyr,yrmo(2,ndatmax),mdatmax,irec,ntp,ndiffn
     real,allocatable :: field(:,:,:,:,:,:),r(:,:,:,:),prob(:,:,:,:), &
  &       a(:,:,:,:),b(:,:,:,:),da(:,:,:,:),db(:,:,:,:),             &
  &       a1(:,:,:,:),da1(:,:,:,:),cov(:,:,:,:),relregr(:,:,:,:),    &
  &       drelregr(:,:,:,:),                                         &
  &       rmin(:,:,:,:),rmax(:,:,:,:),zdif(:,:,:,:),rprob(:,:,:,:),  &
  &       xn(:,:,:,:)
+    real,allocatable :: data(:,:,:),mcdata(:,:,:),fxy(:,:,:)
+    real,allocatable :: aaa1(:,:,:,:,:),bbb1(:,:,:,:,:),            &
+ &       aaa(:),bbb(:),field2(:,:,:,:,:,:)
     real xx(nxmax),yy(nymax),zz(nzmax),undef,xxls(nxmax),yyls(nymax)
+    real ddata(ndatmax),dindx(ndatmax),dddata(ndatmax),             &
+ &       adata,sxx,aindx,syy,sxy,df,d,zd,z,probd,absent,sig(1),chi2, &
+ &       q,sum,fac,filter(100),aa,daa,bb,dbb,dresult(-2:2),         &
+ &       results(nmc),rmins(nmc),rmaxs(nmc),zdifs(nmc),dum,zold,    &
+ &       sxxold,alpha,xrand,s
+    logical lexist,ensseries,lfirst(ndatmax),llwrite
+    logical,allocatable :: lnewyr(:,:)
     character title*512,vars(nvarmax)*60,lvars(nvarmax)*128,        &
  &        units(nvarmax)*60,lsmasktype*4
-    character infile*255,datfile*255
-    integer iargc,llen
+    character line*80,yesno*1,string*10,file*255,infile*255,        &
+ &       datfile*255,outfile*255,dir*255,ensfile*255,var*60,unit*60, &
+ &       tmpunits*60,tmpvars*60,string1*42,string2*42
+    character lz(3)*20,svars(100)*100,ltime*120,history*50000, &
+        cell_methods(100)*100,metadata(2,100)*2000
+    integer iargc,rindex
 !
-!       check arguments
+!   check arguments
 !
     n = iargc()
     if ( lwrite ) print *,'correlatefield: called with ',n          &
@@ -53,65 +71,15 @@ program correlatefield
         stop
     end if
     call getarg(1,infile)
-    mens1 = 0
-    if ( index(infile,'%').gt.0 .or. index(infile,'++').gt.0 ) then
-        ensemble = .true.
-        call filloutens(infile,0)
-        inquire(file=infile,exist=lexist)
-        if ( .not.lexist ) then
-            call getarg(1,infile)
-            mens1 = 1
-            call filloutens(infile,1)
-        end if
-    else
-        ensemble = .false.
-        mens1 = 0
-        mens = 0
-    end if
-    if ( lwrite ) print *,'correlatefield: nf_opening file '        &
- &        ,infile(1:llen(infile))
-    status = nf_open(infile,nf_nowrite,ncid)
-    if ( status.ne.nf_noerr ) then
-        if ( lwrite ) print *,'correlatefield: calling parsectl'
-        call parsectl(infile,datfile,nxmax,nx,xx,nymax,ny,yy,nzmax  &
- &            ,nz,zz,nt,nperyear,firstyr,firstmo,undef,endian,title &
- &            ,1,nvars,vars,ivars,lvars,units)
-        nz = max(1,ivars(1,1))
-        ncid = -1
-        if ( ensemble ) then
-            do mens=1,nensmax
-                call getarg(1,infile)
-                call filloutens(infile,mens)
-                inquire(file=infile,exist=lexist)
-                if ( .not.lexist ) goto 100
-            end do
-100           continue
-            mens = mens - 1
-            call getarg(1,infile)
-            write(0,*) 'located ',mens-mens1+1                      &
- &               ,' ensemble members of ',trim(infile),'<br>'
-        end if
-    else
-        if ( lwrite ) print *,'correlatefield: calling parsenc',ncid
-        call parsenc(infile,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax      &
- &            ,nz,zz,nt,nperyear,firstyr,firstmo,undef,title,1      &
- &            ,nvars,vars,jvars,lvars,units)
-        if ( ensemble ) then
-            do mens=1,nensmax
-                call getarg(1,infile)
-                call filloutens(infile,mens)
-                status = nf_open(infile,nf_nowrite,ncid)
-                if ( status.ne.nf_noerr ) goto 200
-            end do
-200           continue
-            mens = mens - 1
-            write(0,*) 'located ',mens-mens1+1                      &
- &               ,' ensemble members<br>'
-        end if
-    end if
+    call getmetadata(infile,mens1,mens,ncid,datfile,nxmax,nx &
+        ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo &
+        ,ltime,undef,endian,title,history,nvarmax,nvars,vars,ivars &
+        ,lvars,svars,units,cell_methods,metadata,lwrite)
     iarg = 2
     lastyr = firstyr + (firstmo+nt-2)/nperyear
-!       process arguments
+!
+!   process arguments
+!
     j=3
     call getlsmask(j,lsmasktype,nxmax,xxls,nymax,yyls,lwrite)
     if ( lsmasktype.ne.'all' ) then
@@ -149,82 +117,6 @@ program correlatefield
     allocate(rprob(nx,ny,nz,0:nperyear))
     allocate(xn(nx,ny,nz,0:nperyear))
 !
-!       superfluous now
-!
-    if ( lwrite ) print *,'correlatefield: calling cfield'
-    call cfield(datfile,ncid,field,lsmask,nx,xx,ny,yy,nz,zz,nt      &
- &       ,nperyear,firstyr,lastyr,firstmo,undef,endian,jvars,iarg,r &
- &       ,prob,a,b,da,db,cov,a1,da1,relregr,drelregr,rmin,rmax,zdif &
- &       ,rprob,xn,vars,lvars,units,title,lsmasktype)
-end program
-!  #] correlatefield:
-!  #[ cfield:
-subroutine cfield(datfile,ncid,field,lsmask,nx,xx,ny,yy,nz,zz,nt &
- &       ,nperyear,firstyr,lastyr,firstmo,undef,endian,jvars,iarg,r &
- &       ,prob,a,b,da,db,cov,a1,da1,relregr,drelregr,rmin,rmax,zdif &
- &       ,rprob,xn,invars,inlvars,inunits,intitle,lsmasktype)
-!
-!   old break to use the array field compactly and conserve RAM
-!
-    implicit none
-    integer recfa4
-    parameter(recfa4=4)
-    include 'params.h'
-    include 'getopts.inc'
-    include 'netcdf.inc'
-    integer nvarmax,mpermax
-    parameter (nvarmax=13,mpermax=366)
-    integer nmc
-    parameter(nmc=1000)
-!
-    integer ncid,nx,ny,nz,nt,nperyear,firstyr,lastyr,firstmo,iarg,  &
- &        jvars(6,nvmax),endian
-    real field(nx,ny,nz,nperyear,firstyr:lastyr,nens1:nens2),       &
- &       lsmask(nx,ny),xx(nx),yy(nx),zz(nz),undef,                  &
- &       r(nx,ny,nz,0:nperyear),                                    &
- &       prob(nx,ny,nz,0:nperyear),                                 &
- &       a(nx,ny,nz,0:nperyear),                                    &
- &       b(nx,ny,nz,0:nperyear),                                    &
- &       da(nx,ny,nz,0:nperyear),                                   &
- &       db(nx,ny,nz,0:nperyear),                                   &
- &       cov(nx,ny,nz,0:nperyear),                                  &
- &       a1(nx,ny,nz,0:nperyear),                                   &
- &       da1(nx,ny,nz,0:nperyear),                                  &
- &       relregr(nx,ny,nz,0:nperyear),                              &
- &       drelregr(nx,ny,nz,0:nperyear),                             &
- &       rmin(nx,ny,nz,0:nperyear),                                 &
- &       rmax(nx,ny,nz,0:nperyear),                                 &
- &       zdif(nx,ny,nz,0:nperyear),                                 &
- &       rprob(nx,ny,nz,0:nperyear),                                &
- &       xn(nx,ny,nz,0:nperyear)
-    character datfile*(*),invars(1)*(*),inlvars(1)*(*),intitle*(*), &
- &       inunits(1)*(*),lsmasktype*4
-!
-    integer ntmax,ndatmax
-    parameter(ntmax=1000,ndatmax=2*mpermax*(yrend-yrbeg+1)*10)
-    integer i,j,jj,k,kk,n,nn,lag,jx,jy,jz,yr,month,j1,j2,m,mm,mo,ii &
- &       ,l,nvars,ivars(2,nvarmax),ldir,ntvarid,itimeaxis(ntmax)    &
- &       ,nrec,iens,jens,ndup(0:mpermax),mens,validens(nensmax)     &
- &       ,nens2series,iens2,status,imens(0:1),nold,yrstart,yrstop   &
- &       ,fyr,yrmo(2,ndatmax),mdatmax,irec,ntp,ndiffn
-    real,allocatable :: data(:,:,:),mcdata(:,:,:),fxy(:,:,:)
-    real,allocatable :: aaa1(:,:,:,:,:),bbb1(:,:,:,:,:),            &
- &       aaa(:),bbb(:),field2(:,:,:,:,:,:)
-    real ddata(ndatmax),dindx(ndatmax),dddata(ndatmax),             &
- &       adata,sxx,aindx,syy,sxy,df,d,zd,z,probd,absent,sig(1),chi2, &
- &       q,sum,fac,filter(100),aa,daa,bb,dbb,dresult(-2:2),         &
- &       results(nmc),rmins(nmc),rmaxs(nmc),zdifs(nmc),dum,zold,    &
- &       sxxold,alpha,xrand,s
-    parameter (absent=3e33)
-    logical lexist,ensseries,lfirst(ndatmax),llwrite
-    logical,allocatable :: lnewyr(:,:)
-    character line*80,yesno*1,string*10,file*255,infile*255,        &
- &       outfile*255,title*250,vars(nvarmax)*60,lvars(nvarmax)*128, &
- &       dir*255,ensfile*255,units(nvarmax)*60,var*60,unit*60,      &
- &       tmpunits*60,tmpvars*60,string1*42,string2*42
-    integer iargc,llen,rindex
-    external llen,rindex
-!
     n = iargc()
     if ( lag1.lt.0 ) print *,'(point leading field)'
     if ( lag2.gt.0 ) print *,'(field leading point)'
@@ -253,8 +145,7 @@ subroutine cfield(datfile,ncid,field,lsmask,nx,xx,ny,yy,nz,zz,nt &
     call getarg(n,outfile)
     inquire(file=outfile,exist=lexist)
     if ( lexist ) then
-        print *,'output file ',outfile(1:index(outfile,' ')-1),     &
- &            ' already exists, overwrite? [y/n]'
+        print *,'output file ',trim(outfile),' already exists, overwrite? [y/n]'
         read(*,'(a)') yesno
         if (  yesno.ne.'y' .and. yesno.ne.'Y' .and.                 &
  &            yesno.ne.'j' .and. yesno.ne.'J' ) then
@@ -352,7 +243,7 @@ subroutine cfield(datfile,ncid,field,lsmask,nx,xx,ny,yy,nz,zz,nt &
                         write(0,*) 'Found ensemble 0 to ',nens2,'<br>'
                         goto 5
                     else
-                        write(0,*) 'Cannot locate file ',datfile(1:llen(dir))
+                        write(0,*) 'Cannot locate file ',trim(datfile)
                         call exit(-1)
                     end if
                 end if
@@ -369,8 +260,7 @@ subroutine cfield(datfile,ncid,field,lsmask,nx,xx,ny,yy,nz,zz,nt &
             if ( ensemble ) then
                 call filloutens(infile,iens)
             end if
-            if ( lwrite ) print *,'calling parsenc on ',            &
- &               infile(1:llen(infile))
+            if ( lwrite ) print *,'calling parsenc on ',trim(infile)
             status = nf_open(infile,nf_nowrite,ncid)
             call parsenc(infile,ncid,nxmax,nx,xx,nymax,ny,yy        &
  &               ,nzmax,nz,zz,nt,nperyear,fyr,firstmo,              &
@@ -404,7 +294,7 @@ subroutine cfield(datfile,ncid,field,lsmask,nx,xx,ny,yy,nz,zz,nt &
     call applylsmask(field,lsmask,nx,ny,nz,nperyear,firstyr,lastyr, &
  &       nens1,nens2,lsmasktype,lwrite)
 !
-!       read series
+!   read series
 !
     call getarg(iarg,file)
     if ( index(file,'%%').eq.0 .and. index(file,'++').eq.0 ) then
@@ -425,8 +315,7 @@ subroutine cfield(datfile,ncid,field,lsmask,nx,xx,ny,yy,nz,zz,nt &
         do iens=nens1,nens2series
             ensfile=file
             call filloutens(ensfile,iens)
-            if ( lwrite ) write(0,*) 'looking for file '            &
- &                ,ensfile(1:llen(ensfile))
+            if ( lwrite ) write(0,*) 'looking for file ',trim(ensfile)
             inquire(file=ensfile,exist=lexist)
             if ( .not.lexist ) goto 10
             print *,'reading file ',ensfile(1:index(ensfile,' ')-1)
@@ -434,7 +323,7 @@ subroutine cfield(datfile,ncid,field,lsmask,nx,xx,ny,yy,nz,zz,nt &
  &               ,yrend,n,var,unit,lstandardunits,lwrite)
         end do
         goto 11
-10       continue
+10      continue
         if ( iens.le.nens1 ) then
             write(0,*) 'error: cannot find time series'
             call exit(-1)
@@ -445,7 +334,7 @@ subroutine cfield(datfile,ncid,field,lsmask,nx,xx,ny,yy,nz,zz,nt &
         if ( nens2.lt.0 ) then
             write(0,*)                                              &
  &                'correlatefield: error: could not find ensemble ' &
- &                ,file(1:llen(file)),ensfile(1:llen(ensfile))
+ &                ,trim(file),trim(ensfile)
             call exit(-1)
         end if
 11       continue
@@ -490,7 +379,7 @@ subroutine cfield(datfile,ncid,field,lsmask,nx,xx,ny,yy,nz,zz,nt &
 !           detrend data
 !
         if ( ldetrend ) then
-            i = llen(file)
+            i = len_trim(file)
             if ( index(file,'time').eq.0 ) then
                 if ( lwrite ) print *,'detrending series'
                 call detrend(data(1,yrbeg,iens),mpermax,nperyear,   &
@@ -1221,16 +1110,18 @@ subroutine cfield(datfile,ncid,field,lsmask,nx,xx,ny,yy,nz,zz,nt &
     end if
     if ( .not.lsubtract ) then
         call getenv('DIR',dir)
-        ldir = llen(dir)
+        ldir = len_trim(dir)
         if ( ldir.eq.0 ) ldir=1
         if ( dir(ldir:ldir).ne.'/' ) then
             ldir = ldir + 1
             dir(ldir:ldir) = '/'
         end if
-        call args2title(title)
+        if ( title == ' ' ) call getarg(1,title)
+        title = 'Linear correlations and regressions of '//trim(title)//' and '//trim(file)
         tmpunits = units(1)
         tmpvars = vars(1)
         units = ' '
+        svars = ' '
         if ( composite ) then
             nvars = 7
             vars(1) = 'unknown3'
@@ -1366,9 +1257,10 @@ subroutine cfield(datfile,ncid,field,lsmask,nx,xx,ny,yy,nz,zz,nt &
  &               ,1+(m2-m1)+(lag2-lag1),min(12,nperyear),i,j,3e33   &
  &               ,title,nvars,vars,ivars,lvars,units)
         else
-            call writenc(outfile,ncid,ntvarid,itimeaxis,ntmax,nx,xx &
- &               ,ny,yy,nz,zz,1+(m2-m1)+(lag2-lag1),min(12,nperyear) &
- &               ,i,j,3e33,title,nvars,vars,ivars,lvars,units,0,0)
+            call enswritenc(outfile,ncid,ntvarid,itimeaxis,ntmax,nx,xx &
+                ,ny,yy,nz,zz,lz,1+(m2-m1)+(lag2-lag1),min(12,nperyear) &
+                ,i,j,ltime,3e33,title,history,nvars,vars,ivars,lvars,svars &
+                ,units,cell_methods,metadata,0,0)
         end if
 !
 !           write output field in GrADS or netCDF format
@@ -1464,7 +1356,6 @@ subroutine cfield(datfile,ncid,field,lsmask,nx,xx,ny,yy,nz,zz,nt &
             title = 'data for subtractions of cross-validated regression'
             vars(1) = 'a'
             lvars(1) = 'constant in cross-validated regression'
-            units(1) = inunits(1)
             open(1,file=trim(bbfile)//'_a.ctl')
             close(1,status='delete')
             call writectl(trim(bbfile)//'_a.ctl',                   &
@@ -1585,18 +1476,15 @@ subroutine cfield(datfile,ncid,field,lsmask,nx,xx,ny,yy,nz,zz,nt &
             end do
         end do               ! yr
         if ( index(outfile,'.ctl').ne.0 ) then
-            title = intitle(1:llen(intitle))//                  &
- &                ' with the effect of '//                      &
+            title = trim(title)//' with the effect of '//     &
  &                file(1+rindex(file,'/'):index(file,' ')-1)//  &
  &                ' linearly subtracted'
             nvars = 1
-            vars(1) = invars(1)
             ivars(1,1) = nz
             ivars(2,1) = 99
-            lvars(1) = trim(inlvars(1))//' with '//             &
+            lvars(1) = trim(lvars(1))//' with '//             &
  &               file(1+rindex(file,'/'):index(file,' ')-1)//   &
  &               ' linearly subtracted'
-            units(1) = inunits(1)
             call writectl(outfile,datfile,nx,xx,ny,yy,nz,zz     &
  &                ,nrec,nperyear,firstyr,1,3e33,title,          &
  &                nvars,vars,ivars,lvars,units)
@@ -1616,5 +1504,4 @@ subroutine cfield(datfile,ncid,field,lsmask,nx,xx,ny,yy,nz,zz,nt &
  &       'correlations file ',datfile(1:index(datfile,' ')-1)
     call exit(-1)
 999 continue
-end subroutine
-!  #] cfield:
+end program
