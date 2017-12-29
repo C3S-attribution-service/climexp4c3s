@@ -24,6 +24,12 @@ subroutine getmetadata(infile,mens1,mens,ncid,datfile,nxmax,nx &
     if ( lwrite ) then
         print *,'getmetadata: infile = ',trim(infile)
     endif
+    lz = ' '
+    ltime  = ' '
+    history = ' '
+    cell_methods = ' '
+    metadata = ' '
+    svars = ' '
     file = infile
     if ( index(file,'%') > 0 .or. index(file,'++') > 0 ) then
         ensemble = .true. 
@@ -57,16 +63,10 @@ subroutine getmetadata(infile,mens1,mens,ncid,datfile,nxmax,nx &
                 file = infile
                 call filloutens(file,mens)
                 inquire(file=file,exist=lexist)
-                if ( .not. lexist ) goto 100
+                if ( .not. lexist ) exit
             enddo
-            100 continue
             mens = mens - 1
         endif
-        lz = ' '
-        ltime  = ' '
-        history = ' '
-        svars(1:nvars) = ' '
-        cell_methods = ' '
     else
         datfile = file
         call ensparsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax, &
@@ -89,16 +89,14 @@ subroutine getmetadata(infile,mens1,mens,ncid,datfile,nxmax,nx &
                 file = infile
                 call filloutens(file,mens)
                 status = nf_open(file,nf_nowrite,i)
-                if ( status /= nf_noerr ) goto 200
+                if ( status /= nf_noerr ) exit
                 status = nf_close(i)
             enddo
-            200 continue
             mens = mens - 1
         endif
     endif
     if ( ensemble ) then
         i = 1 + index(infile,'/', .true. )
-        write(0,*) 'located ',mens-mens1+1 &
-        ,' ensemble members of ',trim(infile(i:)),'<br>'
+        write(0,*) 'located ',mens-mens1+1,' ensemble members of ',trim(infile(i:)),'<br>'
     endif
 end subroutine getmetadata
