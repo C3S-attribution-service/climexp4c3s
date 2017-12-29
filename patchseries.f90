@@ -40,7 +40,7 @@ program patchseries
  &           'with the same time resolution, not ',nperyear,nperyear2
         call abort
     end if
-    if ( iargc() == 3 ) then
+    if ( iargc() >= 3 ) then
         call getarg(3,method)
         ! "noscale" was recognised by a version that I mistakenly skipped
         if ( method == 'nosc' ) method = 'bias'
