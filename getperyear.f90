@@ -827,11 +827,11 @@ subroutine getglobalatts(ncid,metadata,lwrite)
                 status = nf_get_att_text(ncid,nf_global,name,string)
                 if ( status /= nf_noerr ) call handle_err(status,'nf_inq_attlen '//trim(name))
             else
-                string = 'string too long, longer than 2000 chars'
+                string = 'string too long, longer than 10000 chars'
             end if
-            if ( len > 0 ) then
-                if ( string(len:len) == char(0) ) len = len - 1
-            end if
+            do j=1,10000
+                if ( string(j:j) == char(0) ) string(j:j) = ' '
+            end do
             n = n + 1
             metadata(1,n) = name
             metadata(2,n) = string(1:len)
