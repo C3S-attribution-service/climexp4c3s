@@ -12,7 +12,7 @@
     implicit none
     integer :: nmax
     parameter(nmax=250000)
-    integer :: i,j,k,n,ldir,nextarg,retval,nsigns,isign,loptions
+    integer :: i,j,k,n,ntot,ldir,nextarg,retval,nsigns,isign,loptions
     real :: lon,lon1,lon2,lat,lat1,lat2,val,sign,regr,x1,s1,x2,s2,z, &
         signs(nmax),psigns(5),mean,sd,sd1,skew,xmin,xmax,chsq,prob, &
         tx,tx25,tx975,t(10),t25(10),t975(10),alpha,alpha25,alpha975 &
@@ -184,15 +184,16 @@
         call checkval(retval,command)
     endif
 
-!       search for box
+!   search for box
 
 100 continue
     read(1,'(a)',end=902,err=902) line
     i = index(line,'earching for stations') + &
-    index(line,'ocated stations') + index(line,'regions in') + &
-    index(line,'rid points in') + &
-    index(line,'Found')*index(line,' stations')
+        index(line,'ocated stations') + index(line,'regions in') + &
+        index(line,'rid points in') + &
+        index(line,'Found')*index(line,' stations')
     if ( i == 0 ) goto 100
+
     i = index(line,'ions in') + index(line,'ints in')
     if ( i /= 0 ) then
     !           found box
@@ -259,6 +260,19 @@
         lon2 = 330
     endif
     write(2,'(a,4f10.4)') '# ',lon1,lon2,lat1,lat2
+!
+!   search for number of stations
+!
+    ntot = 0
+    do
+        read(1,'(a)',end=902,err=902) line
+        if ( line(3:4) == '==' ) exit
+        i = index(line,'ound ')
+        if ( i == 0 ) cycle
+        read(line(i+5:),*,err=190,end=190) ntot
+        exit
+    end do
+190 continue
 
 !       get station data
 
@@ -389,7 +403,14 @@
             ! correlate or plot data
             n = n + 1
             write(line,'(i6)') n
-            options(loptions+2:) = 'name '//line(1:6)//'_'//trim(name)
+            if ( ntot > 0 ) then
+                line(7:8) = '_/'
+                write(line(9:),'(i6)') ntot
+                do i=9,14
+                    if ( line(i:i) == ' ' ) line(i:i) = '_'
+                end do
+            end if
+            options(loptions+2:) = 'name '//trim(line)//'_'//trim(name)
             if ( oper == 'val' .or. oper == 'frac' .or. &
                  oper == 'anom' .or. oper == 'zval' ) then
                 ! plot data at a given time

@@ -17,7 +17,7 @@
      &      lnomissing,lensanom,lnooverlap,lmae
         character oper*1,strindx(19)*20,plotfile*255,                    &
      &      indexfiles(10:19)*255,plotrunfile*255,corrmonths*8,          &
-     &      namestring*40,bbfile*255
+     &      namestring*80,bbfile*255
         common /c_getopts/ decor,minfac,kscut,                           &
      &      minindx,maxindx,mindata,maxdata,                             &
      &      pminindx,pmaxindx,pmindata,pmaxdata,lon1,lon2,lat1,lat2,     &
