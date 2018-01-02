@@ -25,7 +25,7 @@ subroutine parsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
     if ( nens1 /= 0 .or. nens2 /= 0 ) then
         write(0,*) 'parsenc: error: found ensemble in file ',trim(file)
         call exit(-1)
-    endif
+    end if
 end subroutine parsenc
 
 subroutine ensparsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
@@ -59,11 +59,12 @@ subroutine ensparsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
 
     allocate(tt(ntmax))
     foundtime = .false. 
-    lwrite = .false. 
+    lwrite = .false.
+    tdefined(1) = .true.
     call getenv('PARSENC_LWRITE',clwrite)
     if ( index(clwrite,'T') + index(clwrite,'t') > 0 ) then
         lwrite = .true. 
-    endif
+    end if
     xx(1) = 0
     yy(1) = 0
     zz(1) = 0
@@ -80,7 +81,7 @@ subroutine ensparsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
         if ( lwrite ) print *,'parsenc: opened with ncid = ',ncid
     else
         if ( lwrite ) print *,'parsenc: already open with ncid = ',ncid
-    endif
+    end if
     call gettitle(ncid,title,lwrite)
     call gettextattopt(ncid,nf_global,'history',history,lwrite)
     call getglobalatts(ncid,metadata,lwrite)
@@ -94,12 +95,11 @@ subroutine ensparsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
     ntvars = 0
     nperyear = 0
     do varid=1,nvars
-    !           get axis information (if any)
+!       get axis information (if any)
         call gettextattopt(ncid,varid,'axis',axis,lwrite)
         call tolower(axis)
-    !           get dimensions of variable
-        status = nf_inq_var(ncid,varid,name,xtype,ndimvar,dimids &
-        ,natts)
+!       get dimensions of variable
+        status = nf_inq_var(ncid,varid,name,xtype,ndimvar,dimids,natts)
         if ( status /= nf_noerr ) call handle_err(status,'nf_inq_var')
         if ( lwrite ) then
             print *,'parsenc: variable: ',varid
@@ -108,29 +108,23 @@ subroutine ensparsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
             (dimids(i),i=1,ndimvar)
             print *,'         natts:    ',natts
             print *,'         axis:     ',axis
-        endif
-        if ( index(name,'_bnd') /= 0 .or. index(name,'_bound') /= 0 &
-        ) then
-            if ( lwrite ) print *,'parsenc: disregarding boundary ' &
-            ,trim(name)
+        end if
+        if ( index(name,'_bnd') /= 0 .or. index(name,'_bound') /= 0 ) then
+            if ( lwrite ) print *,'parsenc: disregarding boundary ',trim(name)
             cycle
-        endif
-        if ( name == 'average_T1' .or. name == 'average_T2' .or. &
-        name == 'average_DT') then
-            if ( lwrite ) print *,'parsenc: disregarding extra ' &
-            ,'time axis information ',trim(name)
+        end if
+        if ( name == 'average_T1' .or. name == 'average_T2' .or. name == 'average_DT') then
+            if ( lwrite ) print *,'parsenc: disregarding extra time axis information ',trim(name)
             cycle
-        endif
+        end if
         if ( name == 'time_weights' ) then
-            if ( lwrite ) print *,'parsenc: disregarding weights ' &
-            ,trim(name)
+            if ( lwrite ) print *,'parsenc: disregarding weights ',trim(name)
             cycle
-        endif
+        end if
         if ( index(name,'_FILENAME') /= 0 ) then
-            if ( lwrite ) print *,'parsenc: disregarding boundary ' &
-            ,trim(name)
+            if ( lwrite ) print *,'parsenc: disregarding boundary ',trim(name)
             cycle
-        endif
+        end if
 !       what kind of variable do we have?
         if ( ndimvar == 1 .and. dimids(1) == ix ) then
             call getdiminfo('x',ncid,varid,xx,nx,lwrite)
@@ -153,10 +147,10 @@ subroutine ensparsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
             if ( lwrite ) print *,'parsenc: found time axis'
             status = nf_get_var_double(ncid,varid,tt)
             if ( status /= nf_noerr ) call handle_err(status &
-            ,'nf_get_var_real(tt)')
+                ,'nf_get_var_real(tt)')
             if ( lwrite ) print *,'tt(1-5) = ',(tt(i),i=1,min(nt,5))
             call getperyear(ncid,varid,tt,nt,firstmo,firstyr &
-            ,nperyear,iperyear,ltime,tdefined,ntmax,lwrite)
+                ,nperyear,iperyear,ltime,tdefined,ntmax,lwrite)
         else
             n = 0
             do i=1,ndimvar
@@ -165,15 +159,15 @@ subroutine ensparsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
                     n = n+1
                     if ( lwrite ) print * &
                     ,'parsenc: time-varying variable ',varid
-                endif
-            enddo
+                end if
+            end do
             if ( lwrite ) then
                 print *,'         checking for a lat-lon var'
                 print *,'         it,n          = ',it,n
                 print *,'         ndimvar,ix,iy = ',ndimvar,ix,iy
                 print *,'         dimids(1,2)   = ',dimids(1) &
                 ,dimids(2)
-            endif
+            end if
             if ( it <= 0 .and. n == 0 .and. ndimvar == 2 &
              .and. ix /= 0 .and. iy /= 0 .and. &
             ( dimids(1) == ix .and. dimids(2) == iy .or. &
@@ -181,14 +175,14 @@ subroutine ensparsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
                 n = n+1
                 if ( lwrite ) print * &
                 ,'parsenc: lat-lon variable ',varid
-            endif
+            end if
             if ( n == 1 ) then
                 call addonevariable(ncid,varid,name,ntvars,nvarmax &
                 ,ndimvar,dimids,ix,iy,iz,it,ie,vars,ivars,lvars &
                 ,svars,units,cell_methods,undef,lwrite)
-            endif           ! one time variable?
-        endif               ! variable-recognition case
-    enddo
+            end if           ! one time variable?
+        end if               ! variable-recognition case
+    end do
 
 !   the rest cannot handle nz=0
 
