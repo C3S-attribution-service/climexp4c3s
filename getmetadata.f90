@@ -75,9 +75,9 @@ subroutine getmetadata(infile,mens1,mens,ncid,datfile,nxmax,nx &
             ,vars,ivars,lvars,svars,units,cell_methods,metadata)
         do it=1,nt
             if ( .not. tdefined(it) ) then
-                write(0,*) 'getmetadat: error: cannot handle ', &
-                    'holes in time axis yet ',it
-                call abort
+                write(0,*) 'getmetadata: error: cannot handle ', &
+                    'holes in time axis yet ',it,nt
+                call exit(-1)
             end if
         end do
         if ( .not. ensemble ) then
