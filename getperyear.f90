@@ -191,11 +191,11 @@ subroutine getperyear(ncid,varid,tt,nt,firstmo,firstyr,nperyear &
         end if
         iperyear = 1
         nperyear = 1
-        if ( abs(dtt-1/12.) < 0.001 ) then
+        if ( abs(dtt-1/12.) < 0.005 ) then
             nperyear = 12
-        else if ( abs(dtt-1/4.) < 0.001 ) then
+        else if ( abs(dtt-1/4.) < 0.005 ) then
             nperyear = 4
-        else if ( abs(dtt-1) < 0.001 ) then
+        else if ( abs(dtt-1) < 0.005 ) then
             nperyear = 1
         else
             write(0,*) 'getperyear: error: cannot handle '// &
