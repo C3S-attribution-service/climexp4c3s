@@ -2,7 +2,7 @@ subroutine printmetadata(file,FORM_field,title,history,metadata)
 
     implicit none
     character :: file*(*),FORM_field*(*),title*(*),history*(*),metadata(2,100)*(*)
-    integer :: i
+    integer :: i,j,k
     logical :: linstitution
     
     if ( FORM_field /= ' ' ) then
@@ -21,6 +21,12 @@ subroutine printmetadata(file,FORM_field,title,history,metadata)
                     linstitution = .true.
                 end if
             end if
+            ! gnuplot and others choke on ascii zeros
+            do k=1,2
+                do j=1,1000
+                    if ( metadata(k,i)(j:j) == char(0) ) metadata(k,i)(j:j) = ' '
+                end do
+            end do
             print '(4a)','# ',trim(metadata(1,i)),' :: ',trim(metadata(2,i))
         end if
     end do
@@ -35,19 +41,27 @@ end subroutine printmetadata
 subroutine extend_history(history)
     implicit none
     character history*(*)
-    integer :: i,ii(8),l
-    character :: string*1000
+    integer :: i,j,ii(8),l
+    character :: string*1000,line*1000
     integer :: iargc
     
     string = ' '
     call getenv('USER',string)
     if ( string /= ' ' ) string = 'user '//string 
-     call date_and_time(values=ii)
+    call date_and_time(values=ii)
     write(string(len_trim(string)+2:),'(i4,a,i2.2,a,i2.2)') ii(1),'-',ii(2),'-',ii(3)
     write(string(len_trim(string)+2:),'(i2,a,i2.2,a,i2.2)') ii(5),':',ii(6),':',ii(7)
     do i=0,iargc()
         l = min(len_trim(string) + 2,len(string)-2)
-        call getarg(i,string(l:))
+        call getarg(i,line)
+        if ( line(1:1) == '/' ) then
+            ! convert from absolute path to relative one
+            j = index(line,'/climexp/')
+            if ( j /= 0 ) then
+                line = line(j+9:)
+            end if
+        end if
+        string(l:) = line
         if ( index(string(l:),'startstop') /= 0 ) then
             string(l:) = ' '
         endif
