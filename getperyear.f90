@@ -17,7 +17,7 @@ subroutine getperyear(ncid,varid,tt,nt,firstmo,firstyr,nperyear &
     logical :: all_leap,lwarn
     integer :: julday
     data dpm /31,28,31,30,31,30,31,31,30,31,30,31, &
-    &             31,29,31,30,31,30,31,31,30,31,30,31/
+              31,29,31,30,31,30,31,31,30,31,30,31/
 
 !   get long_name attribute
     call gettextattopt(ncid,varid,'long_name',ltime,lwrite)
@@ -112,15 +112,13 @@ subroutine getperyear(ncid,varid,tt,nt,firstmo,firstyr,nperyear &
                 i = i+10
                 iperyear = 366
                 nperyear = nint(366/dtt)
-            !                   needed for first month of NCAR CCSM data...
+!               needed for first month of NCAR CCSM data...
                 if ( nperyear > 12 .and. nperyear <= 17 ) &
                 nperyear = 12
             endif
-        !               calendar type
-            call gettextattopt(ncid,varid,'calendar',calendar,lwrite &
-            )
-            if ( lwrite ) print *,'iperyear,nperyear = ' &
-            ,iperyear,nperyear
+!           calendar type
+            call gettextattopt(ncid,varid,'calendar',calendar,lwrite)
+            if ( lwrite ) print *,'iperyear,nperyear = ',iperyear,nperyear
             if ( calendar == ' ' ) then
                 iperyear = 366*nint(iperyear/366.) ! gregorian
             else
@@ -149,7 +147,7 @@ subroutine getperyear(ncid,varid,tt,nt,firstmo,firstyr,nperyear &
                     call exit(-1)
                 endif
             endif
-        !               this assumes nperyear <= iperyear but include 366 vs 360
+!           this assumes nperyear <= iperyear but include 366 vs 360
             if ( nperyear > 0 .and. iperyear > 0 .and. &
             nperyear <= iperyear ) then
                 nperyear = nint(real(iperyear)/ &
@@ -169,13 +167,12 @@ subroutine getperyear(ncid,varid,tt,nt,firstmo,firstyr,nperyear &
             nperyear = nint(12/dtt)
         endif
         if ( nperyear == 0 ) then
-            write(0,*) 'getperyear: error: cannot handle frequency ' &
-            //'lower than once per year'
+            write(0,*) 'getperyear: error: cannot handle frequency lower than once per year'
             call exit(-1)
         end if
         if ( nperyear > 12 .and. nperyear <= 17 ) then
-        !               this occurs when Feb is the first month or when
-        !               there is little data in a month
+!           this occurs when Feb is the first month or when
+!           there is little data in a month
             nperyear = 12
             if ( lwrite ) print *,'adjusted nperyear to 12'
         endif
@@ -204,11 +201,11 @@ subroutine getperyear(ncid,varid,tt,nt,firstmo,firstyr,nperyear &
         endif
     endif
     if ( lwrite ) print *,'getperyear: set nperyear to ',nperyear
-    110 continue
+110 continue
     i = i+1
     if ( units(i:i) == ' ' ) goto 110
     j = i
-    111 continue
+111 continue
     j = j+1
     if ( ichar(units(j:j)) >= ichar('0') .and. &
     ichar(units(j:j)) <= ichar('9') ) goto 111
@@ -224,7 +221,7 @@ subroutine getperyear(ncid,varid,tt,nt,firstmo,firstyr,nperyear &
     if ( lwrite ) print *,'read firstmo=',firstmo
     i = j+1
     j = i
-    113 continue
+113 continue
     j = j+1
     if ( ichar(units(j:j)) >= ichar('0') .and. &
     ichar(units(j:j)) <= ichar('9') ) goto 113
@@ -275,10 +272,9 @@ subroutine getperyear(ncid,varid,tt,nt,firstmo,firstyr,nperyear &
             enddo
         endif
     endif
-!       renormalize to avoid round-off error and calendar
-!       problems (should be using udunits...)
-    if ( nint(iperyear/366.)*366 == iperyear .and. .not. all_leap ) &
-    then
+!   renormalize to avoid round-off error and calendar
+!   problems (should be using udunits...)
+    if ( nint(iperyear/366.)*366 == iperyear .and. .not. all_leap ) then
         j = julday(firstmo,firstdy,firstyr)
         tt0 = tt(1)/nint(iperyear/366.)
         j = j + int(tt0)
@@ -287,7 +283,7 @@ subroutine getperyear(ncid,varid,tt,nt,firstmo,firstyr,nperyear &
         enddo
         call caldat(j,firstmo,firstdy,firstyr)
         firstdy = (firstdy-1)*nint(iperyear/366.)
-        120 continue
+    120 continue
         if ( lwrite ) then
             print *,'transformed to'
             print *,'firstyr,firstmo,firstdy = ',firstyr,firstmo &
@@ -299,14 +295,14 @@ subroutine getperyear(ncid,varid,tt,nt,firstmo,firstyr,nperyear &
             firstdy = firstdy + dpm(firstmo,2)*nint(iperyear/366.)
             goto 120
         endif
-    !           ancient nomenclature
+!       ancient nomenclature
         if ( nperyear == 1 ) then
             firstmo = 1
         else if ( nperyear < 12 ) then
             firstmo = nint(0.5+real(firstdy)/iperyear*12)
         else if ( nperyear < 360 ) then
-        !               12: this makes both 1-1 and 16-1 go to Jan...
-        !               0.6: allows for unequal-sized months that make it go a little below the integer
+!           12: this makes both 1-1 and 16-1 go to Jan...
+!           0.6: allows for unequal-sized months that make it go a little below the integer
             if ( lwrite ) print *,'nint(0.6+',firstdy,'/', &
             iperyear,'*',nperyear,')'
             firstmo = nint(0.6+real(firstdy)/iperyear*nperyear)
@@ -318,19 +314,18 @@ subroutine getperyear(ncid,varid,tt,nt,firstmo,firstyr,nperyear &
         if ( firstmo > nperyear ) then
             firstmo = firstmo - nperyear
             firstyr = firstyr + 1
-            if ( lwrite ) print *,'finallier, firstmo,firstyr = ', &
-            firstmo,firstyr
+            if ( lwrite ) print *,'finallier, firstmo,firstyr = ',firstmo,firstyr
         end if
     else
-    ! find first time step with data
+        ! find first time step with data
         i = nint(tt(1)/iperyear*nperyear-0.25)
         if ( lwrite ) print *,'adding offset ',i,' periods of ' &
         ,nperyear
         firstyr = firstyr + i/nperyear
-    ! firstdy,firstmo form a date of the year, convert to # of periods
+        ! firstdy,firstmo form a date of the year, convert to # of periods
         firstmo = 1 + nint(-0.25 + &
         nperyear*((firstdy-1)/30. + firstmo-1)/12.)
-    ! next add the remainder of the offset to it
+        ! next add the remainder of the offset to it
         firstmo = firstmo + nint(mod(i,nperyear) + &
         tt(1)/iperyear*nperyear-0.25-i)
         if ( lwrite ) print *,'getperyear: firstyr,firstmo = ' &
@@ -343,8 +338,7 @@ subroutine getperyear(ncid,varid,tt,nt,firstmo,firstyr,nperyear &
             firstmo = firstmo - nperyear*((firstmo-1)/nperyear)
         endif
     endif
-    if ( lwrite ) print *,'getperyear: firstyr,firstmo = ',firstyr &
-    ,firstmo
+    if ( lwrite ) print *,'getperyear: firstyr,firstmo = ',firstyr,firstmo
 
     if ( nperyear <= 360 .eqv. iperyear <= 360 ) then
         dtt = iperyear/real(nperyear)
@@ -353,7 +347,7 @@ subroutine getperyear(ncid,varid,tt,nt,firstmo,firstyr,nperyear &
     end if
     if ( lwrite ) print *,'adjusted dtt to ',dtt
     it = 1
-    tdefined(it) = .true. 
+    tdefined(it) = .true.
     lwarn = .false. 
     do i=2,nt
         if ( abs(tt(i)-tt(i-1)-dtt) < 0.11*dtt ) then
@@ -396,9 +390,9 @@ subroutine getperyear(ncid,varid,tt,nt,firstmo,firstyr,nperyear &
                         ' an irregular gap was found between ', &
                         tt(i-1),tt(i)
                         print *,'            expected ',dtt, &
-                        ' found ',tt(i)-tt(i-1)
+                            ' found ',tt(i)-tt(i-1)
                         print *,'            marked ',j-1,' time ', &
-                        'steps as undefined'
+                            'steps as undefined'
                     end if
                     tdefined(it) = .true. 
                     exit
