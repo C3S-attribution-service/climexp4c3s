@@ -13,7 +13,7 @@ program patchfield
     integer mens,mens1,ncid,nx,ny,nz,nt,nperyear,firstyr,firstmo,endian, &
  &      nvars,ivars(6,nvarmax)
     integer mens01,mens11,ncid1,nx1,ny1,nz1,nt1,nperyear1,firstyr1,firstmo1,endian1, &
- &      nvars1,ivars1(6,nvarmax)
+ &      nvars1,ivars1(6,nvarmax),nnt,nnt1
     integer ix,iy,iz,i,j,dy,mo,yr,n,nperday,dpm(12),fyr,lyr,status,itimeaxis(ndata),ntvarid
     real xi(30*(yrend-yrbeg+1)),yi(30*(yrend-yrbeg+1))
     real scale(12),offset(12),a,b,siga,sigb,chi2,q,sig(1),sx(12),sy(12)
@@ -28,6 +28,7 @@ program patchfield
         metadata1(2,100)*2000
     character method*4
     integer iargc
+    integer,external :: leap
     data dpm /31,29,31,20,31,30,31,31,30,31,30,31/
 !
 !   init
@@ -76,8 +77,14 @@ program patchfield
 !
 !   allocate fields
 !
+    nnt = nt
+    nnt1 = nt1
+    if ( nperyear == 366 ) then
+        call addleap(nt,firstyr,firstmo,nperyear,nnt)
+        call addleap(nt1,firstyr1,firstmo1,nperyear,nnt1)
+    end if
     fyr = min(firstyr1,firstyr)
-    lyr = max(firstyr1 + (firstmo1+nt1-2)/nperyear1, firstyr + (firstmo+nt-2)/nperyear)
+    lyr = max(firstyr1 + (firstmo1+nnt1-2)/nperyear1, firstyr + (firstmo+nnt-2)/nperyear)
     yr1 = fyr
     yr2 = lyr
     if ( lwrite ) print *,'allocating arrays ',nx,ny,nz,nperyear,fyr,lyr
@@ -280,16 +287,24 @@ program patchfield
         do j=1,1000-i
             if ( metadata1(1,j) == ' ' ) exit
             metadata(1,j+i-1) = 'aux_'//trim(metadata1(1,j))
-            metadata(1,j+i-1) = metadata1(2,j)
+            metadata(2,j+i-1) = metadata1(2,j)
         end do
+        nnt = nperyear*(lyr-fyr+1)
+        if ( nperyear == 366 ) then
+            do i=fyr,lyr
+                if ( leap(i) == 1 ) nnt = nnt - 1
+            end do
+        end if
         call enswritenc(outfile,ncid,ntvarid,itimeaxis,ndata,nx,xx,ny &
- &           ,yy,nz,zz,lz,nperyear*(lyr-fyr+1),nperyear &
+ &           ,yy,nz,zz,lz,nnt,nperyear &
  &           ,fyr,1,ltime,undef,title,history,nvars,vars,ivars &
  &           ,lvars,svars,units,cell_methods,metadata,0,0)
         i = 0
         do yr=fyr,lyr
             do j=1,nperyear
+                if ( nperyear == 366 .and. j == 60 .and. leap(yr) == 1 ) cycle
                 i = i + 1
+                call keepalive1('writing time step ',i,nperyear*(lyr-fyr+1))
                 call writencslice(ncid,0,0,0,ivars, &
  &                   mainfield(1,1,1,j,yr),nx,ny,nz,nx,ny,nz,i,1)
             end do
