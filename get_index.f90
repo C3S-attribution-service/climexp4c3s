@@ -81,6 +81,10 @@ program get_index
     status = nf_open(trim(file),nf_nowrite,ncid)
     if ( lwrite ) print *,'           returns ',status
     if ( status /= nf_noerr ) then
+        history = ' '
+        svars =  ' '
+        cell_methods = ' '
+        metadata = ' '
         call parsectl(file,datfile,nxmax,nx,xx,nymax,ny,yy,nzmax,nz &
             ,zz,nt,nperyear,firstyr,firstmo,undef,endian,title,1 &
             ,nvars,vars,ivars,lvars,units)
