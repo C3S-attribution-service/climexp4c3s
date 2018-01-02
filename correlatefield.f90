@@ -77,6 +77,10 @@ program correlatefield
         ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo &
         ,ltime,undef,endian,title,history,nvarmax,nvars,vars,ivars &
         ,lvars,svars,units,cell_methods,metadata,lwrite)
+    do i=1,100
+        if ( metadata(1,i) == ' ' ) exit
+        metadata(1,i) = 'field_'//metadata(1,i)
+    end do
     iarg = 2
     lastyr = firstyr + (firstmo+nt-2)/nperyear
 !
@@ -279,7 +283,7 @@ program correlatefield
     end do
 5   continue
     if ( lstandardunits ) then
-!           convert to standard units
+!       convert to standard units
         do iens=nens1,nens2
             tmpunits = units(1) ! they are otherwise adjusted
             call makestandardfield(field(1,1,1,1,firstyr,iens),nx,ny &
