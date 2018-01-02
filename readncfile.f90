@@ -50,7 +50,7 @@ subroutine readncfile(ncid,field,nxf,nyf,nx,ny,nperyear &
     notfirst = .true. 
     nn = max(1,nint(nperyear/365.24))
 
-!       for completeness, these loops will almost never be executed
+!   for completeness, these loops will almost never be executed --- not true
 
     if ( lwrite .and. yrbeg < max(firstyr,yr1)) print &
     '(a,i4,a,i4)','readncfile: zeroing years ',yrbeg,'-', &
@@ -85,7 +85,7 @@ subroutine readncfile(ncid,field,nxf,nyf,nx,ny,nperyear &
         enddo
     endif
 
-!       read data
+!   read data
 
     if ( lwrite ) print *,'reading from NetCDF unit ',ncid
     k = 0
@@ -121,16 +121,14 @@ subroutine readncfile(ncid,field,nxf,nyf,nx,ny,nperyear &
             if ( yr1 > firstyr ) then
                 startmo = 1
                 start(k) = 1 + nperyear*(yr1-firstyr) - firstmo + 1
-                count(k) = min( nt - nperyear*(yr1-firstyr) + &
-                firstmo - 1,nperyear*(yr2-yr1+1))
+                count(k) = min(nt-start(k), nperyear*(yr2-yr1+1))
             else
                 startmo = firstmo
                 start(k) = 1
-                count(k) = min( nt, &
-                nperyear*(yr2-yr1+1) - firstmo + 1)
-            endif
+                count(k) = min(nt, nperyear*(yr2-yr1+1) - firstmo + 1)
+            end if
         else
-        ! leap years...
+            ! leap years...
             if ( leap(firstyr) == 2 .or. firstmo <= 60 ) then
                 call getdymo(dy,mo,firstmo,nperyear)
             else
@@ -152,8 +150,7 @@ subroutine readncfile(ncid,field,nxf,nyf,nx,ny,nperyear &
     else
         startmo = 1
         if ( lwrite ) then
-            print *,'readncfile: warning: time undefined in ncid ' &
-            ,ncid
+            print *,'readncfile: warning: time undefined in ncid ',ncid
         end if
     endif
     if ( lwrite ) then
@@ -164,21 +161,14 @@ subroutine readncfile(ncid,field,nxf,nyf,nx,ny,nperyear &
         if ( nyf == ny .and. jvars(3) == 2 .or. jvars(3) == 0 ) then
             if ( nperyear/nn /= 366 ) then
                 if ( lwrite ) then
-                    print *,'readncfile: calling ', &
-                    'nf_get_vara_real(', &
-                    ncid,jvars(1),start,count,',field(',1,1, &
-                    startmo,max(firstyr,yr1),'))'
-                !!!                        write(0,*) 'field(1) = ',
-                !!!     +                       field(1,1,startmo,max(firstyr,yr1))
-                !!!                        write(0,*) 'field(',
-                !!!     +                       ((min(yrend,yr2)-max(firstyr,yr1))*nperyear
-                !!!     +                       +nperyear-startmo+1)*ny*nx,')   = ',
-                !!!     +                       field(nx,ny,nperyear,min(yrend,yr2))
+                    print *,'readncfile: calling nf_get_vara_real(', &
+                        ncid,jvars(1),start,count,',field(',1,1, &
+                        startmo,max(firstyr,yr1),'))'
                 end if
                 status = nf_get_vara_real(ncid,jvars(1),start,count &
-                ,field(1,1,startmo,max(firstyr,yr1)))
+                    ,field(1,1,startmo,max(firstyr,yr1)))
                 if ( status /= nf_noerr ) call handle_err(status &
-                ,'readncfile: nf_get_vara_real: ')
+                    ,'readncfile: nf_get_vara_real: ')
             else            ! leap years...
                 if ( lwrite ) then
                     print *,'leap years...'
@@ -191,14 +181,12 @@ subroutine readncfile(ncid,field,nxf,nyf,nx,ny,nperyear &
                 noleap = 0
                 do l=1,ck
                     if ( i > yrend ) then
-                        write(0,*) 'readncfile: error: i>yrend: ',i &
-                        ,yrend,l,ck
+                        write(0,*) 'readncfile: error: i>yrend: ',i,yrend,l,ck
                         exit
                     end if
                     if ( j == nn*(31+28)+1 .and. leap(i) == 1 ) then
                         do jj=0,nn-1
-                            if ( lwrite ) print *, &
-                            'setting ',i,j+jj,' to undefined'
+                            if ( lwrite ) print *,'setting ',i,j+jj,' to undefined'
                             do jy=1,max(ny,1)
                                 do jx=1,max(nx,1)
                                     field(jx,jy,j+jj,i) = undef
@@ -210,9 +198,9 @@ subroutine readncfile(ncid,field,nxf,nyf,nx,ny,nperyear &
                     endif
                     call keepalive1('Reading day ',l,ck)
                     if ( .false. .and. lwrite ) print *, &
-                    'reading day ',l,'/',ck,':',start(k),i,j
+                        'reading day ',l,'/',ck,':',start(k),i,j
                     status = nf_get_vara_real(ncid,jvars(1) &
-                    ,start,count,field(1,1,j,i))
+                        ,start,count,field(1,1,j,i))
                     ilast = i
                     jlast = j
                     j = j + 1
