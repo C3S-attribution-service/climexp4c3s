@@ -22,9 +22,11 @@ subroutine printmetadata(file,FORM_field,title,history,metadata)
                 end if
             end if
             ! gnuplot and others choke on ascii zeros
+            ! we also do not want newlines...
             do k=1,2
                 do j=1,1000
                     if ( metadata(k,i)(j:j) == char(0) ) metadata(k,i)(j:j) = ' '
+                    if ( metadata(k,i)(j:j) == '\n' ) metadata(k,i)(j:j) = ' '
                 end do
             end do
             print '(4a)','# ',trim(metadata(1,i)),' :: ',trim(metadata(2,i))
