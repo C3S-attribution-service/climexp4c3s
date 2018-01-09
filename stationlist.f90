@@ -274,7 +274,7 @@
     end do
 190 continue
 
-!       get station data
+!   get station data
 
     first = .true. 
     if ( oper(1:2) == 'hi' .or. oper(1:2) == 'at' ) then
@@ -286,6 +286,7 @@
     endif
     n = 0
 200 continue
+    call keepalive1('Station ',n,ntot)
     call readcountry(1,country)
     if ( lwrite ) print *,'stationlist: attempting to read station ',n+1
     call readcoord(1,lon,lat,elev)
