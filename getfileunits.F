@@ -80,8 +80,9 @@
                 xwrap = .false.
                 call rsunit(iu)
                 open(iu,file=file,status='old',err=900)
-                do i=1,20
+                do i=1,1000
                     read(iu,'(a)',end=100) line
+                    if ( line(1:1) /= '#' .and. line(2:2) /= '#' ) exit
                     i1 = index(line,'[')
                     i2 = index(line,']')
                     if ( i1.gt.0 .and. i2.gt.i1+1 ) then
