@@ -687,11 +687,12 @@ program get_index
                 else if ( oper == 'x' ) then
                     longoper = 'taking maximum of'
                     metaoper = 'max_region'
-                else if ( oper == 'x' ) then
+                else if ( oper == 'n' ) then
                     longoper = 'taking minimum of'
                     metaoper = 'min_region'
                 else
                     longoper = 'cutting out'
+                    metaoper = 'region'
                 end if                    
                 if ( npoints == 1 ) then
                     write(0,'(2a,2f9.3,a,2f9.3,a)') trim(longoper),' region lon=',lon1c &
