@@ -109,7 +109,7 @@ program patchfield
     do iz=1,nz
         do iy=1,ny
             do ix=1,nx
-                call keepalive1('point ',ix+(iy-1)*nx+(iz-1)*nx*ny,nx*ny*nz)
+                call keepalive1('Processing point ',ix+(iy-1)*nx+(iz-1)*nx*ny,nx*ny*nz)
                 do yr=fyr,lyr
                     do mo=1,nperyear
                         maindata(mo,yr) = mainfield(ix,iy,iz,mo,yr)
@@ -304,7 +304,7 @@ program patchfield
             do j=1,nperyear
                 if ( nperyear == 366 .and. j == 60 .and. leap(yr) == 1 ) cycle
                 i = i + 1
-                call keepalive1('writing time step ',i,nperyear*(lyr-fyr+1))
+                call keepalive1('Writing time step ',i,nperyear*(lyr-fyr+1))
                 call writencslice(ncid,0,0,0,ivars, &
  &                   mainfield(1,1,1,j,yr),nx,ny,nz,nx,ny,nz,i,1)
             end do
