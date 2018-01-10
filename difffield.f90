@@ -19,11 +19,11 @@ program difffield
     real xxls(nxmax),yyls(nymax),zzls(nzmax)
     real xx1(nxmax),yy1(nymax),zz1(nzmax),xx2(nxmax),yy2(nymax),zz2(nzmax)
     real,allocatable :: field(:,:,:,:,:,:),ave1(:,:,:,:,:),ave2(:,:,:,:,:)
-    character file*256,datfile*256,string*40
+    character file*1023,file1*1023,outfile*1023,datfile*1023,string*40
     character vars(3)*20,lvars(3)*120,svars(3)*120,title*4096,           &
-             history*5000,lz(3)*20,units(3)*20,title1*5100,title2*500    &
-             ,cell_methods*100,ltime*20,lsmasktype*4,tmpunits*20,yesno*3 &
-             ,metadata(2,100)*2000
+             history*5000,lz(3)*20,units(3)*20,title1*5100,title2*500,   &
+             cell_methods(3)*100,ltime*20,lsmasktype*4,tmpunits*20,      &
+             yesno*3,metadata(2,100)*2000,metadata1(2,100)*2000
     logical lexist,lequal
     integer iargc,get_endian
     real erfcc
@@ -38,8 +38,8 @@ program difffield
 
     if ( iargc().lt.3 ) then
         print *,'usage: difffield field1 field2 [lsmask landseamask all|land|sea] '//     &
-     &           '[mon n] [ave|sum n] [begin yr1] [end yr2] [begin2 yr1a] [end2 yr2a] '// &
-     &           '[normsd] outfield.nc'
+                 '[mon n] [ave|sum n] [begin yr1] [end yr2] [begin2 yr1a] [end2 yr2a] '// &
+                 '[normsd] outfield.nc'
         call exit(-1)
     end if
 !
@@ -53,11 +53,26 @@ program difffield
     do ifield=1,2
         call getarg(ifield,file)
         call getmetadata(file,mens1,mens,ncid,datfile,nxmax,nx           &
-     &           ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr      &
-     &           ,firstmo,ltime,undef,endian,title,history,1,nvars,vars  &
-     &           ,jvars,lvars,svars,units,cell_methods,metadata,lwrite)
+                 ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr      &
+                 ,firstmo,ltime,undef,endian,title,history,1,nvars,vars  &
+                 ,jvars,lvars,svars,units,cell_methods,metadata,lwrite)
+        do i=1,100
+            if ( metadata(1,i) == ' ' ) exit
+        end do
+        metadata(1,i) = 'variable'
+        metadata(2,i) = vars(1)
+        i = i+1
+        metadata(1,i) = 'variable_long_name'
+        metadata(2,i) = lvars(1)
+        if ( svars(1) /= ' ' ) then
+            i = i+1
+            metadata(1,i) = 'variable_standard_name'
+            metadata(2,i) = svars(1)
+        end if
         if ( ifield == 1 ) then
             nperyear1 = nperyear
+            metadata1 = metadata
+            file1 = file
         else
             if ( nperyear /= nperyear1 ) then
                 write(0,*) 'difffield: error: nperyear unequal ',nperyear1,nperyear
@@ -91,9 +106,9 @@ program difffield
         lyr = yr2
         allocate(field(nx,ny,nz,nperyear,fyr:lyr,nens1:nens2))
         call readfield(ncid,file,datfile,field,nx,ny                       &
-     &           ,nz,nperyear,fyr,lyr,nens1,nens2,nx,ny,nz,nperyear,yr1    &
-     &           ,yr2,firstyr,firstmo,nt,undef,endian,vars,units           &
-     &           ,lstandardunits,lwrite)
+                 ,nz,nperyear,fyr,lyr,nens1,nens2,nx,ny,nz,nperyear,yr1    &
+                 ,yr2,firstyr,firstmo,nt,undef,endian,vars,units           &
+                 ,lstandardunits,lwrite)
 !
 !       apply land/sea mask, before the axes are transformed
 !
@@ -103,7 +118,7 @@ program difffield
             if ( lwrite ) print *,'field ',ifield,' grids equal? ',lequal
             if ( lequal ) then
                 call applylsmask(field,lsmask,nx,ny,1,nperyear             &
-     &                   ,yr1,yr2,nens1,nens2,lsmasktype,lwrite)
+                         ,yr1,yr2,nens1,nens2,lsmasktype,lwrite)
             endif
         endif
 !
@@ -126,15 +141,15 @@ program difffield
             nt = (yr2-yr1+1)*nperyear
             write(title1,'(2a,i4,a,i4)') trim(title),' ',yr1,':',yr2
             call getenswinmean(ave1,nn,nx,ny,nz,nperyear,field,nx,ny        &
-     &               ,nz,nperyear,fyr,lyr,nens1,nens2,nx,ny,nz,yr1,1,nt     &
-     &               ,1,nx,1,ny,lwrite)
+                     ,nz,nperyear,fyr,lyr,nens1,nens2,nx,ny,nz,yr1,1,nt     &
+                     ,1,nx,1,ny,lwrite)
 !               convert variance to error estimate
             do month=1,nperyear
                 do jz=1,nz
                     do jy=1,ny
                         do jx=1,nx
                             if ( ave1(jx,jy,jz,month,2).lt.3e33 .and.   &
-     &                           nn(jx,jy,jz,month).gt.1 ) then
+                                 nn(jx,jy,jz,month).gt.1 ) then
                                 ave1(jx,jy,jz,month,2) = ave1(jx,jy,jz,month,2)/nn(jx,jy,jz,month)
                             else
                                 ave1(jx,jy,jz,month,2) = 3e33
@@ -144,8 +159,8 @@ program difffield
                 end do
             end do
             if ( lwrite ) print *,'ave1(',nx/2,ny/2,(nz+1)/2,1,        &
-     &               ') = ',ave1(nx/1,ny/2,(nz+1)/2,1,1),              &
-     &               ave1(nx/1,ny/2,(nz+1)/2,1,2)
+                     ') = ',ave1(nx/1,ny/2,(nz+1)/2,1,1),              &
+                     ave1(nx/1,ny/2,(nz+1)/2,1,2)
         else if ( ifield.eq.2 ) then
             nxf = max(nx1,nx)
             nyf = max(ny1,ny)
@@ -171,8 +186,8 @@ program difffield
             zz2(1:nz) = zz(1:nz)
             nt = (yr2-yr1+1)*nperyear
             call getenswinmean(ave2,nn,nxf,nyf,nzf,nperyear,field,nx       &
-     &               ,ny,nz,nperyear,fyr,lyr,nens1,nens2,nx,ny,nz,yr1,1    &
-     &               ,nt,1,nx,1,ny,lwrite)
+                     ,ny,nz,nperyear,fyr,lyr,nens1,nens2,nx,ny,nz,yr1,1    &
+                     ,nt,1,nx,1,ny,lwrite)
 !           convert variance to error estimate
             do month=1,nperyear
                 do jz=1,nz
@@ -188,18 +203,18 @@ program difffield
                 end do
             end do
             if ( lwrite ) print *,'ave2(',nx/2,ny/2,(nz+1)/2,1,    &
-     &               ') = ',ave2(nx/1,ny/2,(nz+1)/2,1,1),          &
-     &               ave2(nx/1,ny/2,(nz+1)/2,1,2)
+                     ') = ',ave2(nx/1,ny/2,(nz+1)/2,1,1),          &
+                     ave2(nx/1,ny/2,(nz+1)/2,1,2)
         else
             write(0,*) '???'
             call abort
         end if
         deallocate(field)
 !
-!           average seasons
+!       average seasons
 !
         if ( ifield.eq.1 .and. lsum.gt.1 .or.     &
-     &       ifield.eq.2 .and. lsum2.gt.1 ) then
+             ifield.eq.2 .and. lsum2.gt.1 ) then
             do jz=1,nz
                 do jy=1,ny
                     do jx=1,nx
@@ -252,22 +267,22 @@ program difffield
         end if
     end do
 !
-!       interpolate to a common grid
+!   interpolate to a common grid
 !
     call xyinterpu(ave1,xx1,nx1,yy1,ny1,ave2,xx2,nx2,yy2,ny2,             &
-     &       xx,nx,yy,ny,1,2,1,2,nxf,nyf,nzf,nz,nperyear,intertype,lwrite)
+             xx,nx,yy,ny,1,2,1,2,nxf,nyf,nzf,nz,nperyear,intertype,lwrite)
     if ( lwrite ) then
         print *,'ave1(',nx/2,ny/2,(nz+1)/2,1,') = ',ave1(nx/1,ny/2,(nz+1)/2,1,1),  &
-     &               ave2(nx/1,ny/2,(nz+1)/2,1,2)
+                     ave2(nx/1,ny/2,(nz+1)/2,1,2)
         print *,'ave2(',nx/2,ny/2,(nz+1)/2,1,') = ',ave2(nx/1,ny/2,(nz+1)/2,1,1),  &
-     &               ave2(nx/1,ny/2,(nz+1)/2,1,2)
+                     ave2(nx/1,ny/2,(nz+1)/2,1,2)
     end if
 !
-!       output field
+!   output field
 !
-    call getarg(iargc(),file)
-    datfile = file
-    i = index(file,'.ctl')
+    call getarg(iargc(),outfile)
+    datfile = outfile
+    i = index(outfile,'.ctl')
     if ( i.ne.0 ) then
         datfile(i:) = '.dat'
     endif
@@ -281,6 +296,17 @@ program difffield
     if ( lwrite ) then
         print *,'title  = ',trim(title)
     endif
+    if ( file1 /= file ) then
+        do i=1,100
+            if ( metadata1(1,i) == ' ' ) exit
+            metadata1(1,i) = 'field1_'//metadata1(1,i)
+        end do
+        do j=1,100
+            if ( metadata(1,j) == ' ' ) exit
+            metadata1(1,j+i-1) = 'field2_'//metadata(1,j)
+            metadata1(2,j+i-1) = metadata(2,j)
+        end do
+    end if
     undef = 3e33
     nvars = 3
     if ( lnormsd ) then
@@ -296,23 +322,26 @@ program difffield
     vars(2) = 'error'
     lvars(2) = 'error on '//trim(lvars(1))
     units(2) = units(1)
+    cell_methods(2) = cell_methods(1)
     ivars(1:2,2) = ivars(1:2,1)
     vars(3) = 'prob'
     lvars(3) = 'p-value under a two-sided normal test'
     units(3) = '1'
+    cell_methods(3) = cell_methods(1)
     ivars(1:2,3) = ivars(1:2,1)
-
+    svars = ' '
     if ( index(file,'.ctl').ne.0 ) then
         ncid = 0
-        call writectl(file,datfile,nx,xx,ny,yy,nz,zz,                 &
+        call writectl(outfile,datfile,nx,xx,ny,yy,nz,zz,              &
      &           m2-m1+1,nperyear,1,m1,undef,title,nvars,vars,ivars   &
      &           ,lvars,units)
         open(1,file=trim(datfile),access='direct',form='unformatted'  &
      &           ,recl=recfa4*nx*ny*nz,status='new')
     else
-        call writenc(file,ncid,ntvarid,itimeaxis,npermax,nx,xx        &
-     &           ,ny,yy,nz,zz,m2-m1+1,nperyear,1,m1,undef,title,nvars &
-     &           ,vars,ivars,lvars,units,0,0)
+        call enswritenc(outfile,ncid,ntvarid,itimeaxis,npermax,nx,xx  &
+                ,ny,yy,nz,zz,lz,m2-m1+1,nperyear,1,m1,ltime,undef     &
+                ,title,history,nvars,vars,ivars,lvars,svars,units     &
+                ,cell_methods,metadata1,0,0)
     end if
     i=0
     if ( nx.gt.nxf .or. ny.gt.nyf ) then
