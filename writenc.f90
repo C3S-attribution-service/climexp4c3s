@@ -164,7 +164,7 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
         end if
     end do
     if ( .not.linstitution ) then
-        status = nf_put_att_text(ncid,nf_global,'institutions',21,'KNMI Climate Explorer')
+        status = nf_put_att_text(ncid,nf_global,'institution',21,'KNMI Climate Explorer')
         if ( status /= nf_noerr ) call handle_err(status,'put att institution')
     end if
     call extend_history(history)
