@@ -1,16 +1,17 @@
-subroutine printmetadata(file,FORM_field,title,history,metadata)
+subroutine printmetadata(lun,file,FORM_field,title,history,metadata)
 
     implicit none
+    integer :: lun
     character :: file*(*),FORM_field*(*),title*(*),history*(*),metadata(2,100)*(*)
     integer :: i,j,k
     logical :: linstitution
     
     if ( FORM_field /= ' ' ) then
-        print '(5a)','# <a href=http://climexp.knmi.nl/select.cgi?field=',trim(FORM_field), &
+        write(lun,'(5a)') '# <a href=http://climexp.knmi.nl/select.cgi?field=',trim(FORM_field), &
             '>climexp.knmi.nl/select.cgi?field=',trim(FORM_field),'</a>'
     end if
-    if ( file /= ' ' ) print '(2a)','# file :: ',trim(file)
-    if ( title /= ' ' ) print '(2a)','# title :: ',trim(title)
+    if ( file /= ' ' ) write(lun,'(2a)') '# file :: ',trim(file)
+    if ( title /= ' ' ) write(lun,'(2a)') '# title :: ',trim(title)
     linstitution = .false.
     do i=1,100
         if ( metadata(1,i) /= ' ' ) then
@@ -18,8 +19,8 @@ subroutine printmetadata(file,FORM_field,title,history,metadata)
             if ( metadata(1,i) == 'institution' .or. metadata(1,i) == 'Institution' ) then
                 if ( metadata(2,i)(1:10) /= 'KNMI Clima' ) then ! avoid recursion...
                     metadata(2,i) = 'KNMI Climate Explorer and '//metadata(2,i)
-                    linstitution = .true.
                 end if
+                linstitution = .true.
             end if
             ! gnuplot and others choke on ascii zeros
             ! we also do not want newlines...
@@ -29,14 +30,14 @@ subroutine printmetadata(file,FORM_field,title,history,metadata)
                     if ( metadata(k,i)(j:j) == '\n' ) metadata(k,i)(j:j) = ' '
                 end do
             end do
-            print '(4a)','# ',trim(metadata(1,i)),' :: ',trim(metadata(2,i))
+            write(lun,'(4a)') '# ',trim(metadata(1,i)),' :: ',trim(metadata(2,i))
         end if
     end do
     if ( .not.linstitution ) then
-        print '(a)','# institution :: KNMI Climate Explorer'
+        write(lun,'(a)') '# institution :: KNMI Climate Explorer'
     end if
     call extend_history(history)
-    print '(2a)','# history :: ',trim(history)
+    write(lun,'(2a)') '# history :: ',trim(history)
     
 end subroutine printmetadata
 
