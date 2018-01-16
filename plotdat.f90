@@ -9,8 +9,9 @@ program plotdat
     integer :: i,j,k,l,n,year,loop,type,nperyear,iens,iarg,mens,mens1,ayr1,ayr2
     real :: data(npermax,yrbeg:yrend,0:nensmax),mean(npermax),s,nextx,lasty
     logical :: lanomal,lskip,lexist,lopened
-    character line*255,ensfile*255,var*40,units*40,lvar*100,title*1000,name*512
-    integer :: iargc,llen
+    character :: line*1023,ensfile*255,var*40,units*40,name*1023,title*100
+    character :: lvar*120,svar*120,history*50000,metadata(2,100)*1000
+    integer :: iargc
     lwrite = .false. 
     lskip = .false. 
     call getenv('LWRITE_PLOTDAT',line)
@@ -51,27 +52,13 @@ program plotdat
         end if
     endif
       
-    title = '#'
-    do i=0,iargc()
-        call getarg(i,line)
-        title(len_trim(title)+2:) = line
-    end do
-    print '(a)',trim(title)
     call getarg(iargc(),line)
     call keepalive1('Reading data',0,0)
     lstandardunits = .false. ! because we cannot call getopts before we know mens1,mens...
-    call readensseries(line,data,npermax,yrbeg,yrend,nensmax &
-        ,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
+    call readensseriesmeta(line,data,npermax,yrbeg,yrend,nensmax &
+        ,nperyear,mens1,mens,var,units,lvar,svar,history,metadata,lstandardunits,lwrite)
     call keepalive1('Reading data',0,0)
     call getopts(iarg,iargc()-1,nperyear,yrbeg,yrend,.true.,mens1,mens)
-    if ( lnormsd ) then
-        if ( m1 == 0 ) then
-            print '(2a)','# taking relative anomalies wrt standard seasons'
-        else
-            print '(a,i3,a,i3)','# taking relative anomalies wrt ', &
-                lsum,'-month season starting in month ',m1
-        end if
-    end if
     if ( index(line,'++') > 0 .or. index(line,'%%') > 0 ) then
         name = line
         call filloutens(line,0)
@@ -81,24 +68,29 @@ program plotdat
             call filloutens(line,1)
         end if
     end if
-    open(1,file=trim(line),status='old')
-1   continue
-    read(1,'(a)') line
-    if ( line(1:1) /= '#' ) goto 2
-    if ( index(line,'[') /= 0 .and. index(line,']') /= 0 ) then
-        lvar = line(index(line,']')+2:)
-    ! units line I think, replace if
-        if ( lnormsd ) then
-            var = trim(var)//'rel'
-            units = '1'
-            lvar = 'relative '//trim(lvar)
+    title = ' '
+    if ( svar /= ' ' ) then
+        do n=1,100
+            if ( metadata(1,n) == ' ' ) exit
+        end do
+        if ( n <= 100 ) then
+            metadata(1,n) = 'standard_name'
+            metadata(2,n) = svar
         end if
-        print '(6a)','# ',trim(var),' [',trim(units),'] ',trim(lvar)
-    else
-        print '(a)',trim(line)
     end if
-    goto 1
-2   continue
+    call copyheadermeta(line,6,title,history,metadata)
+    if ( lnormsd ) then
+        if ( m1 == 0 ) then
+            print '(2a)','# taking relative anomalies wrt standard seasons'
+        else
+            print '(a,i3,a,i3)','# taking relative anomalies wrt ', &
+                lsum,'-month season starting in month ',m1
+        end if
+        var = trim(var)//'rel'
+        units = '1'
+        lvar = 'relative '//trim(lvar)
+    end if
+    print '(6a)','# ',trim(var),' [',trim(units),'] ',trim(lvar)
     if ( lstandardunits ) then
         do iens=mens1,mens
             call makestandardseries(data(1,yrbeg,iens), &
@@ -139,12 +131,11 @@ program plotdat
                 k = j
                 n = nperyear
                 if ( nperyear == 366 .and. (mod(i,4) /= 0 .or. ( &
-                mod(i,100) == 0 .and. mod(i,400) /= 0)) ) then
+                     mod(i,100) == 0 .and. mod(i,400) /= 0)) ) then
                     n = 365
                     if ( j > 60 ) k = j-1
                     if ( j == 60 .and. data(j,i,iens) < 1e33 ) then
-                        print '(a,i4,f14.6)' &
-                        ,'# skipping valid data on 29feb',i,data(j,i,iens)
+                        print '(a,i4,f14.6)','# skipping valid data on 29feb',i,data(j,i,iens)
                     endif
                 endif
                 if ( abs(data(j,i,iens)) < 1e33 ) then
@@ -154,8 +145,7 @@ program plotdat
                     lskip = .true. 
                 elseif ( lskip .and. .not. ( nperyear == 366 .and. j == 60) ) then
 !                   to counter peculiarity in gnuplot steps plotting
-                    print '(f10.4,g14.6,a)',nextx,lasty, &
-                    '# repeat last y to get nice gnuplot plot'
+                    print '(f10.4,g14.6,a)',nextx,lasty,'# repeat last y to get nice gnuplot plot'
                     print '(a)'
                     lskip = .false. 
                 endif

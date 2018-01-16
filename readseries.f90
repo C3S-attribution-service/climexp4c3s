@@ -278,10 +278,15 @@ subroutine readseriesheader(var,units,lvar,svar,history,metadata,line,unit,lwrit
             call checkstring(var)
             k = index(line,']') + 2
             do
+                if ( k > len_trim(line) ) exit
                 if ( line(k:k) /= ' ' ) exit
                 k = k + 1
             end do
-            lvar = line(k:)
+            if ( k < len_trim(line) ) then
+                lvar = line(k:)
+            else
+                lvar = ' '
+            end if
             call checkstring(lvar)
         end if
         if ( lwrite ) then
