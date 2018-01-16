@@ -12,7 +12,7 @@ subroutine readsetseries(data,ids,npermax,yrbeg,yrend,nensmax, &
     real      :: data(npermax,yrbeg:yrend,0:nensmax)
     logical   :: lwrite,lstandardunits
     character :: ids(0:nensmax)*(*),var*(*),units*(*)
-    integer   :: i,m,iret,filetime,stringtime
+    integer   :: i,m,iret,filetime,stringtime,ntot
     real      :: lon,lat,elev
     logical   :: lexist,pexist
     character :: prog*100,extraargs*100,extraargs_*100,file*255, &
@@ -32,8 +32,8 @@ subroutine readsetseries(data,ids,npermax,yrbeg,yrend,nensmax, &
 !   one prog has underscores in its name, which conflicts with the convention to put the extra
 !   arguments there
     if ( prog(1:4) == 'grid' ) then
-    ! the name already contains underscores, so the trick to append the
-    ! extraargs separeted by dashes does not work.
+        ! the name already contains underscores, so the trick to append the
+        ! extraargs separeted by dashes does not work.
         i = 0
     else
         i = index(prog,'_')
@@ -65,6 +65,7 @@ subroutine readsetseries(data,ids,npermax,yrbeg,yrend,nensmax, &
 102 continue
     mens = 0
     mens1 = 0
+    call readntot(1,ntot)
 1   continue
     call readcoord(1,lon,lat,elev)
     if ( lon > 1e33 ) goto 2
@@ -78,19 +79,19 @@ subroutine readsetseries(data,ids,npermax,yrbeg,yrend,nensmax, &
 !   the getdutch* , gdcn*, eca* and GHCN get* programs
 !   check themselves whether the file needs to be regenerated
     if ( pexist .and. &
-    prog(1:8) == 'getdutch' .or. &
-    prog(1:4) == 'gdcn' .or. &
-    prog(1:3) == 'eca' .or. prog(1:4) == 'beca' .or. &
-    prog(1:7) == 'getprcp' .or. prog(1:7) == 'gettemp' .or. &
-    prog(1:6) == 'getmin' .or. prog(1:6) == 'getmax' .or. &
-    prog(1:6) == 'getslp' ) then
-    ! generate it
+        prog(1:8) == 'getdutch' .or. &
+        prog(1:4) == 'gdcn' .or. &
+        prog(1:3) == 'eca' .or. prog(1:4) == 'beca' .or. &
+        prog(1:7) == 'getprcp' .or. prog(1:7) == 'gettemp' .or. &
+        prog(1:6) == 'getmin' .or. prog(1:6) == 'getmax' .or. &
+        prog(1:6) == 'getslp' ) then
+        ! generate it
         write(command,'(10a)') './bin/',trim(prog), &
             ' ',trim(number),' ',trim(file)
         if ( lwrite ) print *,trim(command),'<br>'
         call mysystem(trim(command),iret)
     else if ( .not. lexist .and. pexist ) then
-    ! generate it
+        ! generate it
         write(command,'(10a)') './bin/',trim(prog), &
             ' ',trim(number),' ',trim(file),' > ',trim(file)
         if ( lwrite ) print *,trim(command),'<br>'
@@ -122,7 +123,7 @@ subroutine readsetseries(data,ids,npermax,yrbeg,yrend,nensmax, &
         write(0,'(a)') 'skipping file ',trim(file)
         goto 1
     end if
-    call keepalive1('Reading series',mens,-1)
+    call keepalive1('Reading series',mens,ntot)
     call readseries(file,data(1,yrbeg,mens),npermax,yrbeg,yrend &
     ,m,var,units,lstandardunits, .FALSE. )
     ids(mens) = number
@@ -144,6 +145,5 @@ subroutine readsetseries(data,ids,npermax,yrbeg,yrend,nensmax, &
     goto 1
 2   continue
     mens = mens - 1
-            
-end subroutine
+end subroutine readsetseries
 
