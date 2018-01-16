@@ -1,25 +1,39 @@
 subroutine readncseries(file,data,npermx,nperyear,yr1,yr2,ncid,var,units,lwrite)
+    implicit none
+    integer :: npermx,nperyear,yr1,yr2,ncid
+    real :: data(npermx,yr1:yr2)
+    character :: file*(*),var*(*),units*(*)
+    character ::  lvar*120,svar*120,history*50000,metadata(2,100)*1000
+    logical :: lwrite
+
+    call readncseriesmeta(file,data,npermx,nperyear,yr1,yr2,ncid,var,lvar,svar, &
+        history,metadata,units,lwrite)
+
+end subroutine readncseries
+
+subroutine readncseriesmeta(file,data,npermx,nperyear,yr1,yr2,ncid,var,units,lvar,svar, &
+    history,metadata,lwrite)
 
 !   read the data in a 1D netCDF file into data.
 
     implicit none
     integer :: npermx,nperyear,yr1,yr2,ncid
     real :: data(npermx,yr1:yr2)
-    character file*(*),var*(*),units*(*)
+    character :: file*(*),var*(*),units*(*)
+    character :: lvar*(*),svar*(*),history*(*),metadata(2,100)*(*)
+    logical :: lwrite
 
     include 'param.inc'
     integer,parameter :: mtmax=24*366*200
-    integer :: mxmax,mymax,mzmax,nvmax
-    parameter(mxmax=1,mymax=1,mzmax=1,nvmax=1)
-    integer :: i,j,nx,ny,nz,nt,firstyr,firstmo,nvars,ivars(6,nvmax),lastyr
-    logical :: lwrite
-    integer nens1,nens2
+    integer,parameter :: mxmax=1,mymax=1,mzmax=1,nvmax=1
+    integer :: i,j,n,nx,ny,nz,nt,firstyr,firstmo,nvars,ivars(6,nvmax),lastyr
+    integer :: nens1,nens2
     real :: xx(mxmax),yy(mymax),zz(mzmax),undef
     real,allocatable :: ddata(:,:,:,:)
     logical :: tdefined(mtmax)
-    character title*512,vars(nvmax)*20,lvars(nvmax)*80, &
-        lz(3)*20,svars(100)*100,ltime*120,history*50000, &
-        cell_methods(100)*100,metadata(2,100)*2000
+    character :: title*512,vars(nvmax)*20,lvars(nvmax)*80, &
+        lz(3)*20,svars(100)*100,ltime*120, &
+        cell_methods(100)*100
 
     if ( .false. ) then
         call parsenc(file,ncid,mxmax,nx,xx,mymax,ny,yy,mzmax &
@@ -33,22 +47,33 @@ subroutine readncseries(file,data,npermx,nperyear,yr1,yr2,ncid,var,units,lwrite)
     end if
     if ( lwrite ) print *,'readncseries: nperyear = ',nperyear
     var = vars(1)
+    lvar = lvars(1)
+    svar = svars(1)
+    if ( title /= ' ' ) then
+        do n=1,100
+            if ( metadata(1,n) == ' ' ) exit
+        end do
+        if ( n <= 100 ) then
+            metadata(1,n) = 'title'
+            metadata(2,n) = title
+        end if
+    end if
     if ( nvars /= 1 ) then
         write(0,*) 'readncseries: error: not just one time-dependent variable, found ',nvars
         call exit(-1)
-    endif
+    end if
     if ( nx > 1 .and. ivars(2,1) /= 0 ) then
         write(0,*) 'readncseries: error: found x-dependent variable, found ',nx
         call exit(-1)
-    endif
+    end if
     if ( ny > 1 .and. ivars(3,1) /= 0 ) then
         write(0,*) 'readncseries: error: found y-dependent variable, found ',ny
         call exit(-1)
-    endif
+    end if
     if ( nz > 1 .and. ivars(4,1) /= 0 ) then
         write(0,*) 'readncseries: error: found z-dependent variable, found ',nz
         call exit(-1)
-    endif
+    end if
     lastyr = firstyr + (nt+firstmo-2)/nperyear
     allocate(ddata(1,1,nperyear,firstyr:lastyr))
     call readncfile(ncid,ddata,1,1,nx,ny,nperyear,firstyr,lastyr, &
@@ -60,7 +85,7 @@ subroutine readncseries(file,data,npermx,nperyear,yr1,yr2,ncid,var,units,lwrite)
     do i=max(yr1,yrbeg,firstyr),min(yr2,yrend,lastyr)
         do j=1,nperyear
             data(j,i) = ddata(1,1,j,i)
-        enddo
-    enddo
+        end do
+    end do
     deallocate(ddata)
-end subroutine readncseries
+end subroutine readncseriesmeta

@@ -112,3 +112,28 @@ subroutine readcountry(unit,country)
     country = 'unknown'
     return
 end subroutine readcountry
+
+subroutine readntot(unit,ntot)
+
+!   search file on unit for a line with the total number of stations
+
+    implicit none
+    integer :: unit,ntot
+    integer :: i
+    character :: line*100
+!
+    ntot = 0
+    do
+        read(1,'(a)',end=902,err=902) line
+        if ( line(3:4) == '==' ) exit
+        i = index(line,'ound ')
+        if ( i == 0 ) cycle
+        read(line(i+5:),*,err=190,end=190) ntot
+        exit
+    end do
+190 continue
+    return
+902 continue
+    write(0,*) 'readntot: error reading file, last line was ',trim(line)
+    call exit(-1)
+end subroutine readntot
