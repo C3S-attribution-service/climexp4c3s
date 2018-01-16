@@ -27,7 +27,7 @@
         ,histoptions*80,email*80,attribute_args*1024,country*40 &
         ,pid*20
     logical :: lwrite,interp
-    integer :: iargc,llen,getpid
+    integer :: iargc,getpid
     real :: erfc
     data psigns /0.1,0.05,0.01,0.005,0.001/
 
@@ -36,7 +36,7 @@
     if ( iargc() < 4 ) then
         print *,'usage: stationlist listfile outfile prog operation ...'
         stop
-    endif
+    end if
     call getenv('EMAIL',email)
     call getarg(4,line)
     if ( line(1:6) == 'ifield' ) then
@@ -55,39 +55,39 @@
         oper = line
         field = ' '
         nextarg = 5
-    endif
+    end if
     if ( lwrite ) print *,'stationlist: oper = ',oper
     call getarg(3,prog)
     if ( (prog(1:3) /= 'get' .and. prog(1:3) /= 'eca' .and. &
-    prog(1:4) /= 'beca' .and. prog(1:4) /= 'gdcn' .and. &
-    prog(1:4) /= 'grid' ) .or. &
-    index(prog,'/') /= 0 .or. &
-    index(prog,';') /= 0 .or. index(prog,'`') /= 0 .or. &
-    index(prog,'&') /= 0 .or. index(prog,'|') /= 0 ) then
+          prog(1:4) /= 'beca' .and. prog(1:4) /= 'gdcn' .and. &
+          prog(1:4) /= 'grid' ) .or. &
+        index(prog,'/') /= 0 .or. &
+        index(prog,';') /= 0 .or. index(prog,'`') /= 0 .or. &
+        index(prog,'&') /= 0 .or. index(prog,'|') /= 0 ) then
         print *,'stationlist: invalid argument ',prog
-        call abort
-    endif
+        call exit(-1)
+    end if
     if ( lwrite ) print *,'stationlist: prog = ',trim(prog)
     i = index(prog,'_')
     if ( i /= 0 ) then
-    !           the output has to be filtered
+!       the output has to be filtered
         filterext = prog(i:)
         prog(i:) = ' '
         filterargs = filterext
-        do i=1,llen(filterargs)
+        do i=1,len_trim(filterargs)
             if ( filterargs(i:i) == '_' ) filterargs(i:i) = ' '
-        enddo
+        end do
     else
         filterext = ' '
-    endif
+    end if
     call getarg(2,file)
     open(2,file=trim(file),status='unknown',err=900)
     call getarg(1,file)
     open(1,file=trim(file),status='old',err=1)
     goto 2
 1   continue
-!       try again ith backslashes removed; Mac OS and linux differ in how
-!       they propagate arguments to cgi scripts. Some backslashes may have crept in...
+!   try again ith backslashes removed; Mac OS and linux differ in how
+!   they propagate arguments to cgi scripts. Some backslashes may have crept in...
     do i=1,len(file)
         if ( file(i:i) == '\\' ) then
             file(I:) = file(i+1:)
@@ -99,15 +99,14 @@
     options = ' '
     do i=nextarg,iargc()
         call getarg(i,options(j:))
-        if ( options(j:j+3) == 'runc' .or. options(j:j+3) == 'runr' &
-        ) then
+        if ( options(j:j+3) == 'runc' .or. options(j:j+3) == 'runr' ) then
             call getarg(i+2,runfile)
-        endif
+        end if
         if ( options(j:j+4) == 'debug' ) then
             lwrite = .true. 
-        endif
-        j = min(len(options)-10,llen(options)+2)
-    enddo
+        end if
+        j = min(len(options)-10,len_trim(options)+2)
+    end do
     if ( oper(1:2) == 'hi' ) then
         if ( oper(3:4) == 'gr' .or. oper(3:4) == 'gR' ) then
             histoptions = '20 hist sqrtlog '
@@ -117,44 +116,43 @@
             histoptions = '20 hist gumbel '
         else
             histoptions = '20 hist hist '
-        endif
+        end if
         if ( oper(1:3) == 'hig' ) then
-            histoptions(llen(histoptions)+2:) = 'fit gauss'
+            histoptions(len_trim(histoptions)+2:) = 'fit gauss'
         elseif ( oper(1:3) == 'hip' ) then
-            histoptions(llen(histoptions)+2:) = 'fit gpd'
+            histoptions(len_trim(histoptions)+2:) = 'fit gpd'
         elseif ( oper(1:3) == 'hiv' ) then
-            histoptions(llen(histoptions)+2:) = 'fit gev'
-        endif
-        if ( lwrite ) print *,'histoptions are ', &
-        histoptions(1:llen(histoptions))
+            histoptions(len_trim(histoptions)+2:) = 'fit gev'
+        end if
+        if ( lwrite ) print *,'histoptions are ',histoptions(1:len_trim(histoptions))
     else if ( oper(1:2) == 'at' ) then
         call getenv('attribute_args',attribute_args)
-    endif
+    end if
     write(pid,'(i20.20)') getpid()
     tmpfile = '/tmp/corr'//pid
-    options(llen(options)+2:) = 'plot '//tmpfile
-    loptions = llen(options)
+    options(len_trim(options)+2:) = 'plot '//tmpfile
+    loptions = len_trim(options)
     call getenv('DIR',dir)
     if ( dir == ' ' ) dir = '.'
-    ldir = llen(dir)
+    ldir = len_trim(dir)
     if ( lwrite ) print *,'DIR = ',dir(1:max(1,ldir))
     if ( ldir == 0 ) then
         call getenv('HOME',dir)
-        ldir = llen(dir)
-        dir = dir(1:llen(dir))//'/climexp/'
-        ldir = llen(dir)
+        ldir = len_trim(dir)
+        dir = dir(1:len_trim(dir))//'/climexp/'
+        ldir = len_trim(dir)
         if ( lwrite ) print *,'DIR = ',dir(1:max(1,ldir))
     elseif ( dir(ldir:ldir) /= '/' ) then
         ldir = ldir + 1
         dir(ldir:ldir) = '/'
         if ( lwrite ) print *,'DIR = ',dir(1:max(1,ldir))
-    endif
+    end if
 
-!       write own PID in kill metafile
+!   write own PID in kill metafile
 
     call killfile(command,line,datfile,0)
 
-!       for field-station correlations generate a list of coordinates
+!   for field-station correlations generate a list of coordinates
 
     if ( field /= ' ' ) then
         write(coordlist,'(a,i20.20)') '/tmp/coord',getpid()
@@ -169,20 +167,19 @@
         close(3)
         rewind(1)
     
-    !           and generate the required time series files
+!       and generate the required time series files
     
-        command = 'bin/get_index '//trim(field)//' file ' &
-        //coordlist
+        command = 'bin/get_index '//trim(field)//' file '//coordlist
         if ( interp ) then
-            command(llen(command)+1:) = ' interpolate'
-        endif
+            command(len_trim(command)+1:) = ' interpolate'
+        end if
         if ( .false. ) then
-            command(llen(command)+1:) = ' debug'
-        endif
+            command(len_trim(command)+1:) = ' debug'
+        end if
         if ( lwrite ) print *,'executing ',trim(command)
         call mysystem(command,retval)
         call checkval(retval,command)
-    endif
+    end if
 
 !   search for box
 
@@ -196,7 +193,7 @@
 
     i = index(line,'ions in') + index(line,'ints in')
     if ( i /= 0 ) then
-    !           found box
+!       found box
         i = i + 7
         j = i + index(line(i:),'N') - 2
         read(line(i:j),*) lat1
@@ -212,7 +209,7 @@
     else
         i = index(line,'stations near')
         if ( i /= 0 ) then
-        !               found circle
+!           found circle
             call readcoord(1,lon1,lat1,elev)
             if ( lon1 > 1e33 ) goto 180
             lon2 = lon1
@@ -221,69 +218,60 @@
             call readcoord(1,lon,lat,elev)
             if ( lon > 1e33 ) goto 180
             if ( abs(lon1-lon) < abs(lon1-lon-360) .and. &
-            abs(lon1-lon) < abs(lon1-lon+360) ) then
+                 abs(lon1-lon) < abs(lon1-lon+360) ) then
                 lon1 = min(lon1,lon)
             elseif ( abs(lon1-lon-360) < abs(lon1-lon+360) ) then
                 lon1 = min(lon1,lon+360)
             else
                 lon1 = min(lon1,lon-360)
-            endif
+            end if
             if ( abs(lon2-lon) < abs(lon2-lon-360) .and. &
-            abs(lon2-lon) < abs(lon2-lon+360) ) then
+                 abs(lon2-lon) < abs(lon2-lon+360) ) then
                 lon2 = max(lon2,lon)
             elseif ( abs(lon2-lon-360) < abs(lon2-lon+360) ) then
                 lon1 = max(lon2,lon+360)
             else
                 lon2 = max(lon2,lon-360)
-            endif
+            end if
             lat1 = min(lat1,lat)
             lat2 = max(lat2,lat)
             goto 110
         180 continue
                             
-        !               extra 10% on all sides
+!           extra 10% on all sides
             lon1 = lon1 - (lon2-lon1)/10
             lon2 = lon2 + (lon2-lon1)/11
             lat1 = max(-90.,lat1 - (lat2-lat1)/10)
             lat2 = min(+90.,lat2 + (lat2-lat1)/11)
             rewind(1)
         else
-        !               no co-ordinates - take the whole world
+!           no co-ordinates - take the whole world
             lon1 = -30
             lon2 = 330
             lat1 = -90
             lat2 =  90
         end if
-    endif
+    end if
     if ( lon2-lon1 == 360 ) then
         lon1 = -30
         lon2 = 330
-    endif
+    end if
     write(2,'(a,4f10.4)') '# ',lon1,lon2,lat1,lat2
 !
 !   search for number of stations
 !
-    ntot = 0
-    do
-        read(1,'(a)',end=902,err=902) line
-        if ( line(3:4) == '==' ) exit
-        i = index(line,'ound ')
-        if ( i == 0 ) cycle
-        read(line(i+5:),*,err=190,end=190) ntot
-        exit
-    end do
-190 continue
-
+    call readntot(1,ntot)
+!
 !   get station data
-
+!
     first = .true. 
     if ( oper(1:2) == 'hi' .or. oper(1:2) == 'at' ) then
         call mysystem('echo "<table class=realtable width=451 '// &
-        'border=0 cellpadding= cellspacing=0>"',retval)
-    endif
+            'border=0 cellpadding= cellspacing=0>"',retval)
+    end if
     if ( oper == 'aver' ) then
         aveline = trim(dir)//'bin/averageseries'
-    endif
+    end if
     n = 0
 200 continue
     call keepalive1('Station ',n,ntot)
@@ -318,13 +306,12 @@
         if ( email == 'someone@somewhere' .and. n >= 100 ) then
             print *,'anonymous users can only use 100 stations'
             goto 800
-        endif
-    !           retrieve data
-        write(datfile,'(4a)') trim(dir)//'data/', &
-        trim(prog),code(1:llen(code)),'.dat'
-        do i=1,llen(datfile)
+        end if
+!       retrieve data
+        write(datfile,'(4a)') trim(dir)//'data/',trim(prog),trim(code),'.dat'
+        do i=1,len_trim(datfile)
             if ( datfile(i:i) == ' ' ) datfile(i:i) = '_'
-        enddo
+        end do
         ! check whether the file exists and has length >0
         open(3,file=datfile,err=300)
         read(3,'(a)',err=300,end=300) line
@@ -333,19 +320,17 @@
     300 continue
         close(3)
         if ( prog(1:4) == 'grid' ) then
-            write(*,*) 'stationlist: error: the grid point ' &
-            ,trim(datfile) &
-            ,' should have been generated already'
-            write(0,*) 'stationlist: error: the grid point ' &
-            ,trim(datfile) &
-            ,' should have been generated already'
-            call abort
-        endif
+            write(*,*) 'stationlist: error: the grid point ',trim(datfile) &
+                ,' should have been generated already'
+            write(0,*) 'stationlist: error: the grid point ',trim(datfile) &
+                ,' should have been generated already'
+            call exit(-1)
+        end if
         if ( prog(1:8) == 'getdutch' .or. prog(1:4) == 'gdcn' .or. &
-        prog(1:3) == 'eca' .or. prog(1:4) == 'beca' .or. &
-        prog(1:7) == 'getprcp' .or. prog(1:7) == 'gettemp' .or. &
-        prog(1:6) == 'getmin' .or. prog(1:6) == 'getmax' .or. &
-        prog(1:6) == 'getslp' .or. prog(1:9) == 'getfrench' ) then
+             prog(1:3) == 'eca' .or. prog(1:4) == 'beca' .or. &
+             prog(1:7) == 'getprcp' .or. prog(1:7) == 'gettemp' .or. &
+             prog(1:6) == 'getmin' .or. prog(1:6) == 'getmax' .or. &
+             prog(1:6) == 'getslp' .or. prog(1:9) == 'getfrench' ) then
             write(command,'(6a)') trim(dir)//'bin/',trim(prog), &
                 ' ',trim(code),' ',trim(datfile)//'.'//pid
         else
@@ -369,7 +354,7 @@
             if ( lwrite ) print *,trim(command)
             call mysystem(command,retval)
             call checkval(retval,command)            
-        endif
+        end if
     310 continue
         if ( filterext /= ' ' ) then
             ! filter datfile to longer-period file
@@ -383,7 +368,7 @@
         400 continue
             close(3)
             command = trim(dir)//'bin/daily2longer '// &
-                rawfile(1:llen(rawfile))//filterargs(1:llen(filterargs))//' > ' &
+                trim(rawfile)//trim(filterargs)//' > ' &
                 //trim(datfile)//'.'//pid
             if ( lwrite ) print *, trim(command)
             call mysystem(command,retval)
@@ -392,13 +377,13 @@
             call mysystem(command,retval)
             call checkval(retval,command)            
         410 continue
-        endif
+        end if
         if ( oper == 'aver' ) then
-            i = llen(aveline)
+            i = len_trim(aveline)
             if ( i > len(aveline)-30 ) then
                 print *,'stationlist: error: too many stations for average'
-                call abort
-            endif
+                call exit(-1)
+            end if
             aveline(i+2:) = datfile
         else
             ! correlate or plot data
@@ -419,123 +404,114 @@
                 if ( lwrite ) then
                     print *,'stationlist: plot data'
                     print *,'             command = ',trim(command),'<p>'
-                endif
+                end if
             elseif ( field /= ' ' ) then
-                do i=llen(field),1,-1
+                do i=len_trim(field),1,-1
                     if ( field(i:i) == '/' ) goto 420
-                enddo
+                end do
             420 continue
                 write(fieldfile,'(3a,f7.2,a,f6.2,3a)') &
-                    'data/grid',field(i+1:llen(field)),'_',lon,'_', &
+                    'data/grid',field(i+1:len_trim(field)),'_',lon,'_', &
                     lat,'_',letter,'.dat'
-                do i=1,llen(fieldfile)
+                do i=1,len_trim(fieldfile)
                     if ( fieldfile(i:i) == ' ' ) fieldfile(i:i)='0'
-                enddo
+                end do
                 write(command,'(6a)') trim(dir)//'bin/correlate ', &
                     trim(datfile),' file ',trim(fieldfile),' ',trim(options)
                 if ( lwrite ) then
                     print *,'stationlist: correlate with field'
-                    print *,'             command = ' &
-                    ,trim(command)
-                endif
+                    print *,'             command = ',trim(command)
+                end if
             elseif ( oper(1:2) == 'au' ) then
                 write(command,'(6a)') trim(dir)//'bin/correlate ', &
                     trim(datfile),' file ',trim(datfile),' ',trim(options)
                 if ( lwrite ) then
                     print *,'stationlist: autocorrelation'
                     print *,'             command = ',trim(command)
-                endif
+                end if
             elseif ( oper(1:2) == 'hi' ) then
                 write(command,'(6a)') trim(dir)//'bin/histogram ', &
-                    trim(datfile),' ',histoptions(1:llen(histoptions)),' ', &
+                    trim(datfile),' ',trim(histoptions),' ', &
                     trim(options)
                 if ( lwrite ) then
                     print *,'stationlist: histogram'
                     print *,'             command = ',trim(command)
-                endif
+                end if
             elseif ( oper(1:2) == 'at' ) then
                 write(command,'(6a)') trim(dir)//'bin/attribute ', &
                     trim(datfile),' ',trim(attribute_args),' ', trim(options)
                 if ( lwrite ) then
                     print *,'stationlist: attribute'
-                    print *,'             command = ' &
-                    ,trim(command)
-                endif
+                    print *,'             command = ',trim(command)
+                end if
             else
                 write(command,'(4a)') trim(dir)//'bin/correlate ', &
                     trim(datfile),' ',trim(options)
                 if ( lwrite ) then
                     print *,'stationlist: correlate (I think)'
-                    print *,'             command = ' &
-                    ,trim(command)
-                endif
-            endif
-            command(llen(command)+2:)= '|tr -c -d "\\n\\r[:print:]"'
+                    print *,'             command = ',trim(command)
+                end if
+            end if
+            command(len_trim(command)+2:)= '|tr -c -d "\\n\\r[:print:]"'
             if ( oper(1:2) == 'hi' .or. oper(1:2) == 'at' ) then
                 if ( .not. first ) then
                     if ( oper == 'higa' ) then
-                        command(llen(command)+2:) = &
-                        '|egrep  ''(&chi;|th colspan)'''
+                        command(len_trim(command)+2:) = '|egrep  ''(&chi;|th colspan)'''
                     elseif ( oper(1:3) == 'hig' .or. &
-                        oper(1:3) == 'hip' .or. &
-                        oper(1:3) == 'hiv' ) then
-                        command(llen(command)+2:) = &
+                             oper(1:3) == 'hip' .or. &
+                             oper(1:3) == 'hiv' ) then
+                        command(len_trim(command)+2:) = &
                         '|egrep  ''(return perio|th colspan)'''
                     elseif ( oper == 'hisd' ) then
-                        command(llen(command)+2:) = '|egrep  '// &
-                        '''(^# <tr><td>s.d..n-1|th colspan)'''
+                        command(len_trim(command)+2:) = '|egrep  '// &
+                            '''(^# <tr><td>s.d..n-1|th colspan)'''
                     elseif ( oper(1:2) == 'at' ) then ! print the var name in a HTML comment
-                        command(llen(command)+2:) = &
-                        '|egrep ''('//oper//'|th colspan)'''
+                        command(len_trim(command)+2:) = &
+                            '|egrep ''('//oper//'|th colspan)'''
                     else
-                        command(llen(command)+2:) = &
-                        '|egrep  ''(^# <tr><td>'//oper(3:4) &
-                        //'|th colspan)'''
-                    endif
+                        command(len_trim(command)+2:) = &
+                            '|egrep  ''(^# <tr><td>'//oper(3:4) &
+                            //'|th colspan)'''
+                    end if
                 else
-                    command(llen(command)+2:) = &
-                    '|egrep  ''(^# <)'''
-                endif
-                command(llen(command)+2:) = '| sed -e "s/# //"'
+                    command(len_trim(command)+2:) = '|egrep  ''(^# <)'''
+                end if
+                command(len_trim(command)+2:) = '| sed -e "s/# //"'
             else
                 if ( .not. first ) then
-                    command(llen(command)+2:) = &
-                    '|sed -e ''s/# \\([bz]dif\\)/\\1/'''// &
-                    '|egrep -v ''(#|===|sign.  no|% pnts|'// &
-                    'Month.*:|All year|Requiring)'''
-                endif
-            endif
+                    command(len_trim(command)+2:) = &
+                        '|sed -e ''s/# \\([bz]dif\\)/\\1/'''// &
+                        '|egrep -v ''(#|===|sign.  no|% pnts|'// &
+                        'Month.*:|All year|Requiring)'''
+                end if
+            end if
             if ( lwrite ) print *,trim(command),'<p>'
             first = .false. 
             call mysystem(command,retval)
             ! do not call checkval(retval,command)
             ! as the return value is the one of grep...
             ! retrieve results
-            if ( oper == 'zdif' .or. oper == 'bdif' .or. &
-            oper == 'runc' ) then
-                if ( lwrite ) print *,'opening file ', &
-                runfile(1:llen(runfile))
+            if ( oper == 'zdif' .or. oper == 'bdif' .or. oper == 'runc' ) then
+                if ( lwrite ) print *,'opening file ',trim(runfile)
                 open(3,file=runfile,status='old')
             500 continue
                 read(3,'(a)',end=510) line
                 goto 520
             510 continue
-                call mysystem( &
-                'echo "error computing running correlations"',retval)
+                call mysystem('echo "error computing running correlations"',retval)
                 goto 200
             520 continue
                 if ( line(1:6) /= '# zdif' .and. &
-                line(1:6) /= '# bdif' ) goto 500
+                    line(1:6) /= '# bdif' ) goto 500
                 if ( index(line,'****') /= 0 ) then
                     call mysystem('echo "not enough data"',retval)
                     goto 200
-                endif
+                end if
                 read(line,'(9x,f6.2,3x,e14.6)',err=904) val,sign
                 if ( lwrite ) print *,'read val,sign = ',val,sign
                 close(3,status='delete')
             elseif ( oper(1:2) == 'hi' ) then
-                if ( lwrite ) print *,'sttaionlist: opening file ' &
-                ,tmpfile(1:llen(tmpfile))
+                if ( lwrite ) print *,'sttaionlist: opening file ',trim(tmpfile)
                 open(3,file=tmpfile,status='old',err=200)
                 read(3,*,end=200,err=200) mean
                 read(3,*,end=200,err=200) sd
@@ -551,9 +527,9 @@
                     oper(1:3) == 'hiv' ) then
                     do i=1,10
                         read(3,*,end=200,err=200)t(i),t25(i),t975(i)
-                    enddo
+                    end do
                     read(3,*,end=200,err=200) tx,tx25,tx975
-                endif
+                end if
                 if ( lwrite ) then
                     print *,'mean = ',mean
                     print *,'sd   = ',sd
@@ -565,12 +541,12 @@
                     print *,'prob = ',prob
                     do i=1,10
                         print *,'t(',i,') = ',t(i),t25(i),t975(i)
-                    enddo
+                    end do
                     print *,'tx   = ',tx,tx25,tx975
                     close(3)
                 else
                     close(3,status='delete')
-                endif
+                end if
                 if ( oper == 'hime' ) then
                     val = mean
                 elseif ( oper == 'hisd' ) then
@@ -599,21 +575,18 @@
                 else
                     write(*,*) 'error: unknown operation ',oper
                     write(0,*) 'error: unknown operation ',oper
-                    call abort
-                endif
+                    call exit(-1)
+                end if
             elseif ( oper(1:2) == 'at' ) then
-                if ( lwrite ) print *,'sttaionlist: opening file ' &
-                ,trim(tmpfile)
+                if ( lwrite ) print *,'stationlist: opening file ',trim(tmpfile)
                 open(3,file=trim(tmpfile),status='old',err=200)
                 do i=1,10
                     do j=1,2
-                        read(3,*,end=200,err=200)tt(i,j),tt25(i,j), &
-                        tt975(i,j)
-                    enddo
+                        read(3,*,end=200,err=200)tt(i,j),tt25(i,j),tt975(i,j)
+                    end do
                 end do
                 do j=1,3
-                    read(3,*,end=200,err=200) ttx(j),ttx25(j), &
-                    ttx975(j)
+                    read(3,*,end=200,err=200) ttx(j),ttx25(j),ttx975(j)
                 end do
                 read(3,*,end=200,err=200) alpha,alpha25,alpha975
                 if ( lwrite ) then
@@ -631,7 +604,7 @@
                     close(3)
                 else
                     close(3,status='delete')
-                endif
+                end if
                 if ( oper == 'atal' ) then
                     val = alpha
                 elseif ( oper == 'atr2' ) then
@@ -642,14 +615,14 @@
                     sign = 1/ttx(2)
                 elseif ( oper == 'atra' ) then
                     val = log10(ttx(3))
-                ! assuming the PDF of log(ratio) is gaussian the 95% CI corresponds to ±2\sigma
+                    ! assuming the PDF of log(ratio) is gaussian the 95% CI corresponds to ±2\sigma
                     sd = (log(ttx975(3)) - log(ttx25(3)))/4
                     z = abs(log(ttx(3))/sd)
-                ! convert to p-value, assuming a 2-sided test, even though we
-                ! often know from theory which way it should go.
+                    ! convert to p-value, assuming a 2-sided test, even though we
+                    ! often know from theory which way it should go.
                     sign = erfc(z/sqrt(2.))
                 elseif ( ichar(oper(3:3)) >= ichar('0') .and. &
-                    ichar(oper(3:3)) <= ichar('9') ) then
+                         ichar(oper(3:3)) <= ichar('9') ) then
                     read(oper(3:3),'(i1)') i
                     read(oper(4:4),'(i1)') j
                     j = 3-j ! stupid clash of conventions
@@ -657,29 +630,27 @@
                 else
                     write(*,*) 'error: unknown operation ',oper
                     write(0,*) 'error: unknown operation ',oper
-                    call abort
-                endif
+                    call exit(-1)
+                end if
             else            ! correlation or getval
                 open(3,file=tmpfile,status='old',err=200)
-                read(3,*,end=700,err=700) i,j,val,sign,k,x1,s1,x2,s2 &
-                ,regr
+                read(3,*,end=700,err=700) i,j,val,sign,k,x1,s1,x2,s2,regr
                 close(3,status='delete')
-            endif
+            end if
             if ( sign >= 0 ) then
                 if ( nsigns < nmax ) then
                     nsigns = nsigns + 1
                     signs(nsigns) = sign
                 else
                     print *,'last stations not in histogram'
-                endif
-            endif
+                end if
+            end if
             if ( val > 1e33 ) goto 200
-            if ( oper == 'sign' .or. oper == 'ausi' .or. &
-            oper == 'runc' ) then
+            if ( oper == 'sign' .or. oper == 'ausi' .or. oper == 'runc' ) then
                 if ( sign == 0 ) sign=1e-35
                 val = -log10(sign)
             elseif ( oper == 'slop' .or. oper == 'ausl' .or. &
-                oper == 'regr' .or. oper == 'aure' ) then
+                     oper == 'regr' .or. oper == 'aure' ) then
                 val = regr
             elseif ( oper == 'nslo' .or. oper == 'nreg' ) then
                 if ( x1 == 0 ) then
@@ -687,20 +658,20 @@
                         val = 0
                     else
                         val = 3e33
-                    endif
+                    end if
                 else
                     val = regr/x1
-                endif
+                end if
             elseif ( oper == 'frac' ) then
                 if ( x1 == 0 ) then
                     if ( val == 0 ) then
                         val = 0
                     else
                         val = 3e33
-                    endif
+                    end if
                 else
                     val = val/x1-1
-                endif
+                end if
                 sign = 0
             elseif ( oper == 'anom' ) then
                 val = val-x1
@@ -708,19 +679,22 @@
             elseif ( oper == 'zval' ) then
                 val = (val-x1)/s1
                 sign = 0
-            endif
-        endif
+            end if
+        end if
     else
         print *,'stationlist: unknown operation code ',oper
-        call abort
-    endif
-    1000 format(a,2f10.4,' ',g10.4,f8.4,1x,4a)
+        call exit(-1)
+    end if
+1000 format(a,2f10.4,' ',g10.4,f8.4,1x,4a)
     if ( oper /= 'aver' ) then
-        write(2,1000) code(1:llen(code)),lon,lat,val,sign, &
-        trim(name),' (',trim(country),')'
-    endif
+        if ( sign >= 0 .and. sign < 1  ) then
+            write(2,1000) trim(code),lon,lat,val,sign,trim(name),' (',trim(country),')'
+        else
+            write(0,*) 'warning: skipping point with sign = ',sign,' ',trim(name)
+        end if
+    end if
 
-!       next
+!   next
 
     goto 200
 700 continue
@@ -728,46 +702,45 @@
     goto 200
 800 continue
 
-!       finish up
+!   finish up
 
     if ( coordlist /= ' ' ) then
         open(3,file=coordlist,err=810)
         close(3,status='delete')
     810 continue
-    endif
+    end if
     if ( oper == 'aver' ) then
         call mysystem(aveline,retval)
         call checkval(retval,command)
-    endif
+    end if
     if ( oper(1:2) == 'hi' .or. oper(1:2) == 'at' ) then
         call mysystem('echo "</table>"',retval)
     end if
 
-!       how many points are 'significant'?
+!   how many points are 'significant'?
 
-    if ( nsigns > 0 .and. (oper == 'higa' .or. oper(1:3) /= 'hig') &
-    ) then
+    if ( nsigns > 0 .and. (oper == 'higa' .or. oper(1:3) /= 'hig') ) then
         call flush(6)
         call nrsort(nsigns,signs)
         do isign=1,5
             do i=1,nsigns
                 if ( signs(i) > psigns(isign) ) goto 820
-            enddo
-            820 print '(a,i5,a,i5,a,f7.2,a,f6.2,a)','There are ',i-1,'/' &
-            ,nsigns,' (',100*(i-1)/real(n) &
-            ,'%) stations with P < ',100*psigns(isign),'%<br>'
-        enddo
-    endif
+            end do
+        820 print '(a,i5,a,i5,a,f7.2,a,f6.2,a)','There are ',i-1,'/' &
+                ,nsigns,' (',100*(i-1)/real(n) &
+                ,'%) stations with P < ',100*psigns(isign),'%<br>'
+        end do
+    end if
     goto 999
 900 print *,'stationlist: error: cannot open outfile ',trim(file)
-    call abort
+    call exit(-1)
 901 print *,'stationlist: error: cannot open file ',trim(file)
-    call abort
+    call exit(-1)
 902 print *,'stationlist: error: cannot locate ''stations in'' in ',trim(file)
-    call abort
+    call exit(-1)
 903 print *,'stationlist: error: error reading in ',trim(file)
-    call abort
+    call exit(-1)
 904 write(0,'(a)') 'stationlist: error reading zdif,sign from '
     write(0,'(a)') trim(line)
 999 continue
-    END PROGRAM
+end program stationlist
