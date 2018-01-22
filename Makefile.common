@@ -428,11 +428,11 @@ get_depth:	get_depth.o  $(LIBRARY)
 findmax:	findmax.o  $(LIBRARY)
 		$(LD) $(FFLAGS) $(LDBIGFLAG) -o $@ findmax.o $(LIBS)
 
-eof.o:		../eof.F
-		$(FC) $(FFLAGS) $(EOFFLAGS) -c ../eof.F
+eof.o:		../eof.f90
+		$(FC) $(EOFFLAGS) -c ../eof.f90
 
 eof:		eof.o  $(LIBRARY)
-		$(LD) $(EOFFLAGS) $(LDBIGFLAG) -o $@ eof.o $(LIBS)
+		$(EOFLD) $(LDBIGFLAG) -o $@ eof.o $(LIBS)
 
 svd:		svd.o  $(LIBRARY)
 		$(LD) $(EOFFLAGS) $(LDBIGFLAG) -o $@ svd.o $(LIBS)
