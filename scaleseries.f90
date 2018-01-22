@@ -6,7 +6,8 @@ program scaletimeseries
     include 'param.inc'
     integer :: i,j,nperyear,ndpm,nfactor,noffset
     real :: data(npermax,yrbeg:yrend),factor(12),offset(12)
-    character string*1024,var*40,units*20
+    character :: string*1024,var*40,units*40,lvar*120,svar*120,metadata(2,100)*2000, &
+        history*50000,title*500
     logical :: lwrite
     integer :: iargc
 
@@ -37,13 +38,15 @@ program scaletimeseries
         ndpm = 0
     endif
     call getarg(2,string)
-    call readseries(string,data,npermax,yrbeg,yrend,nperyear,var,units, .false. ,lwrite)
+    call readseriesmeta(string,data,npermax,yrbeg,yrend,nperyear,var,units,lvar,svar,history,metadata, &
+        .false.,lwrite)
     if ( ndpm /= 0 .and. nperyear /= 12 ) then
         write(0,*) 'scaleseries: error: can only scale by dpm if nperyear = 12, not ',nperyear
         write(*,*) 'scaleseries: error: can only scale by dpm if nperyear = 12, not ',nperyear
         call exit(-1)
     endif
-    call copyheader(string,6)
+    title = ' '
+    call copyheadermeta(string,6,title,history,metadata)
     write(6,'(a,12g16.6)') '# scaled with a factor ',(factor(i),i=1,nfactor)
     if ( ndpm == 1 ) then
         write(6,'(a)')'# and multiplied by the number of days in a month'

@@ -210,7 +210,7 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
         string = 'years since '
     elseif ( nperyear <= 12 ) then
         string = 'months since '
-    elseif ( nperyear > 12 .AND. nperyear <= 366 ) then
+    elseif ( nperyear > 12 .and. nperyear <= 366 ) then
         string = 'days since '
     elseif ( nperyear > 366 ) then
         string = 'hours since '
@@ -231,7 +231,7 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
     if ( status /= nf_noerr ) call handle_err(status,'put time long_name')
     status = nf_put_att_text(ncid,ntvarid,'axis',1,'T')
     if ( status /= nf_noerr ) call handle_err(status,'put time axis')
-    if ( nperyear == 1 .OR. nperyear == 12 .OR. nperyear == 366 ) then
+    if ( nperyear == 1 .or. nperyear == 12 .or. nperyear == 366 ) then
         status = nf_put_att_text(ncid,ntvarid,'calendar',9,'gregorian')
     elseif ( nperyear == 360 ) then
         status = nf_put_att_text(ncid,ntvarid,'calendar',7,'360_day')
@@ -293,7 +293,7 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
 
     if ( lwrite ) print *,'define variables'
     do ivar=1,nvars
-        if ( lhasz .AND. ivars(1,ivar) > 0 ) then
+        if ( lhasz .and. ivars(1,ivar) > 0 ) then
             ndims = 4
             idims(1) = nxdimid
             idims(2) = nydimid
@@ -402,8 +402,8 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
     else
         n = nperyear
     end if
-    if ( n == 1 .OR. n == 12 .OR. n == 366 .OR. n == 365 .OR. n == 360 ) then
-        if ( nperday == 1 .OR. nperday == 24 ) then
+    if ( n == 1 .or. n == 12 .or. n == 366 .or. n == 365 .or. n == 360 ) then
+        if ( nperday == 1 .or. nperday == 24 ) then
             do i=1,j
                 itimeaxis(i) = i-1
             enddo
@@ -497,8 +497,8 @@ subroutine writencslice(ncid,ntvarid,itimeaxis,ntmax,ivars,data &
         print *,'n[xyz]f =  ',nxf,nyf,nzf
         print *,'it,iens =  ',it,iens
     endif
-    if ( nx == nxf .AND. ny == nyf .AND. nz == nzf .AND. it == 1 &
-        .AND. iens == 1 .AND. ntvarid == 0 ) then
+    if ( nx == nxf .and. ny == nyf .and. nz == nzf .and. it == 1 &
+        .and. iens == 1 .and. ntvarid == 0 ) then
         if ( lwrite ) then
             print *,'calling nf_put_var_real with ',ncid,ivars(2)
             if ( .FALSE. ) then
@@ -553,7 +553,7 @@ subroutine writencslice(ncid,ntvarid,itimeaxis,ntmax,ivars,data &
 
 !   and update the time axis
 
-    if ( ntvarid /= 0 .AND. ntmax > 0 ) then
+    if ( ntvarid /= 0 .and. ntmax > 0 ) then
         indx(1) = it
         status = nf_put_var1_int(ncid,ntvarid,indx,itimeaxis(it))
         if ( status /= nf_noerr ) call handle_err(status,'update T')
@@ -580,7 +580,7 @@ subroutine subtractleapyears(nt,firstyr,firstmo,nperyear,nnew)
     mo=firstmo
     nnew = 0
     do it=1,nt
-        if ( nperyear == 366 .AND. mo == 60 .AND. leap(yr) == 1 ) then
+        if ( nperyear == 366 .and. mo == 60 .and. leap(yr) == 1 ) then
             mo = mo + 1
             cycle
         end if

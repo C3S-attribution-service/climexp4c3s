@@ -6,16 +6,16 @@ program climatology
 
     implicit none
     include 'param.inc'
-    integer :: ncut
-    parameter(ncut=5)
+    integer,parameter :: ncut=5
     integer :: i,j,k,l,yr,mo,dy,nperyear,yr1,yr2,smooth,times, &
         nn(npermax),dpm(12),mens1,mens,nens1,nens2,iens,lsum, &
         firstyr,lastyr
     real :: data(npermax,yrbeg:yrend,0:nensmax),mean(npermax,0:ncut), &
         x(yrend-yrbeg+1),pcut(ncut)
     logical :: lexist,lstandardunits,lwrite
-    character file*256,ensfile*255,string*10,oper*1,var*40,units*20
-    integer :: iargc,llen
+    character :: file*256,ensfile*255,string*10,oper*1,var*40,units*20
+    character :: lvar*120,svar*120,history*50000,metadata(2,100)*1000
+    integer :: iargc
     data pcut /.025,.17,.5,.83,.975/
     data dpm /31,29,31,30,31,30,31,31,30,31,30,31/
 
@@ -65,7 +65,7 @@ program climatology
             open(12,file=trim(file),status='new')
             if ( lwrite ) print '(2a)','# writing start and stop years on file ',trim(file)
         else
-            print '(2a)','# climatology: disregarding unknown option ',string(1:llen(string))
+            print '(2a)','# climatology: disregarding unknown option ',trim(string)
         endif
     enddo
 
@@ -73,21 +73,20 @@ program climatology
 
     call getarg(1,file)
     lstandardunits = .FALSE. 
-    call readensseries(file,data,npermax,yrbeg,yrend,nensmax &
-    ,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
+    call readensseriesmeta(file,data,npermax,yrbeg,yrend,nensmax &
+        ,nperyear,mens1,mens,var,units,lvar,svar,history,metadata,lstandardunits,lwrite)
     nens1 = mens1
     nens2 = mens
 
-!       average
+!   average
 
     if ( lsum /= 1 ) then
         do iens=nens1,nens2
-            call sumit(data(1,yrbeg,iens),npermax,nperyear,yrbeg &
-            ,yrend,lsum,'v')
+            call sumit(data(1,yrbeg,iens),npermax,nperyear,yrbeg,yrend,lsum,'v')
         enddo
     endif
 
-!       compute mean
+!   compute mean
 
     do j=1,nperyear
         mean(j,0) = 0
@@ -113,7 +112,7 @@ program climatology
         endif
     enddo
 
-!       compute percentiles
+!   compute percentiles
 
     do j=1,nperyear
         call keepalive1('Computing percentiles',j,nperyear)
@@ -129,18 +128,19 @@ program climatology
         enddo
     enddo
 
-!       smooth
+!   smooth
 
     if ( smooth > 1 ) then
         write(0,'(a)') '# smoothing not yet ready'
         call abort
     endif
 
-!       print results - twice for two year
+!   print results - twice for two year
 
     call savestartstop(firstyr,lastyr)
 
-    print '(2a)','# Climatology of ',file(1:llen(file))
+    print '(2a)','# Climatology of ',trim(file)
+    call copyheadermeta(file,6,' ',history,metadata)
     print '(a)','#2000 + date        mean'// &
         '                2.5%'// &
         '                 17%'// &

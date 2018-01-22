@@ -199,9 +199,7 @@ program get_index
                 read(string,*) minfac
                 iskip = 1
                 if ( missing ) then
-                    print '(a,f6.2)', &
-                    '# using minimal fraction of valid points' &
-                    ,minfac
+                    print '(a,f6.2)','# minimal_valid_fraction :: ',minfac
                 endif
             endif
             if ( string(1:6) == 'interp' ) then
@@ -437,7 +435,7 @@ program get_index
     print '(5a)','# operating on ',trim(title)
     call getenv('FORM_field',FORM_field)
     title = 'spatial statistic of '//title
-    call printmetadata(file,FORM_field,title,history,metadata)
+    call printmetadata(6,file,FORM_field,title,history,metadata)
 
 !   get mean of whole field if multiple points are requested
 

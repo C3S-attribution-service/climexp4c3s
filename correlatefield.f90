@@ -26,7 +26,7 @@ program correlatefield
          ,l,ldir,ntvarid,itimeaxis(ntmax)    &
          ,nrec,iens,jens,ndup(0:mpermax),validens(nensmax)     &
          ,nens2series,iens2,imens(0:1),nold,yrstart,yrstop   &
-         ,fyr,yrmo(2,ndatmax),mdatmax,irec,ntp,ndiffn
+         ,fyr,yrmo(2,ndatmax),mdatmax,irec,ntp,ndiffn,nmetadata
     real,allocatable :: field(:,:,:,:,:,:),r(:,:,:,:),prob(:,:,:,:), &
          a(:,:,:,:),b(:,:,:,:),da(:,:,:,:),db(:,:,:,:),             &
          a1(:,:,:,:),da1(:,:,:,:),cov(:,:,:,:),relregr(:,:,:,:),    &
@@ -49,9 +49,10 @@ program correlatefield
     character invars(nvarmax)*60,inlvars(nvarmax)*128,intitle*255,inunits(nvarmax)*60
     character line*80,yesno*1,string*10,file*255,infile*255,        &
          datfile*255,outfile*255,dir*255,ensfile*255,var*60,unit*60, &
-         tmpunits*60,tmpvars*60,string1*42,string2*42
-    character lz(3)*20,svars(100)*100,ltime*120,history*50000, &
-        cell_methods(100)*100,metadata(2,100)*2000
+         lvar*120,svar*120,tmpunits*60,tmpvars*60,string1*42,string2*42
+    character lz(3)*20,svars(100)*100,ltime*120,history*50000,serieshistory*50000, &
+        cell_methods(100)*100,metadata(2,100)*2000,seriesmetadata(2,100)*2000, &
+        seriestitle*100
     integer iargc,rindex
 !
 !       check arguments
@@ -77,14 +78,11 @@ program correlatefield
         ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo &
         ,ltime,undef,endian,title,history,nvarmax,nvars,vars,ivars &
         ,lvars,svars,units,cell_methods,metadata,lwrite)
-    do i=1,100
-        if ( metadata(1,i) == ' ' ) exit
-        metadata(1,i) = 'field_'//metadata(1,i)
-    end do
     iarg = 2
     lastyr = firstyr + (firstmo+nt-2)/nperyear
+    call add_varnames_metadata(vars(1),lvars(1),svars(1),metadata,'field_variable')
 !
-!       process arguments
+!   process arguments
 !
     j=3
     call getlsmask(j,lsmasktype,nxmax,xxls,nymax,yyls,lwrite)
@@ -300,20 +298,20 @@ program correlatefield
         end if
     end if
 !
-!       apply land/sea mask
+!   apply land/sea mask
 !
     call applylsmask(field,lsmask,nx,ny,nz,nperyear,firstyr,lastyr, &
          nens1,nens2,lsmasktype,lwrite)
 !
-!       read series
+!   read series
 !
     call getarg(iarg,file)
     if ( index(file,'%%').eq.0 .and. index(file,'++').eq.0 ) then
         ensseries = .FALSE.
         nens2series = nens1
         print *,'reading file ',file(1:index(file,' ')-1)
-        call readseries(file,data(1,yrbeg,nens1),mpermax,yrbeg,yrend &
-             ,n,var,unit,lstandardunits,lwrite)
+        call readseriesmeta(file,data(1,yrbeg,nens1),mpermax,yrbeg,yrend &
+             ,n,var,unit,lvar,svar,serieshistory,seriesmetadata,lstandardunits,lwrite)
     else
         ensseries = .TRUE.
         if ( ensemble ) then
@@ -330,8 +328,14 @@ program correlatefield
             inquire(file=ensfile,exist=lexist)
             if ( .not.lexist ) goto 10
             print *,'reading file ',ensfile(1:index(ensfile,' ')-1)
-            call readseries(ensfile,data(1,yrbeg,iens),mpermax,yrbeg &
-                 ,yrend,n,var,unit,lstandardunits,lwrite)
+            if ( iens == nens1 ) then
+                call readseriesmeta(ensfile,data(1,yrbeg,iens),mpermax,yrbeg &
+                    ,yrend,n,var,unit,lvar,svar,serieshistory,seriesmetadata, &
+                    lstandardunits,lwrite)
+            else
+                call readseries(ensfile,data(1,yrbeg,iens),mpermax,yrbeg &
+                    ,yrend,n,var,unit,lstandardunits,lwrite)
+            end if
         end do
         goto 11
 10      continue
@@ -350,6 +354,7 @@ program correlatefield
         end if
 11      continue
     end if
+    call add_varnames_metadata(var,lvar,svar,seriesmetadata,'variable')
 
     if ( n.ne.nperyear ) then
         write(0,*) 'correlatefield: error: cannot interpolate '//   &
@@ -360,7 +365,7 @@ program correlatefield
     end if
     do iens=nens1,nens2series
 !
-!           take monthly anomalies
+!       take monthly anomalies
 !
         if ( mdiff.gt.0 ) then
             if ( lwrite ) print *,'taking monthly anomalies'
@@ -1131,6 +1136,8 @@ program correlatefield
         end if
         if ( title == ' ' ) call getarg(1,title)
         title = 'Linear correlations and regressions of '//trim(title)//' and '//trim(file)
+        seriestitle = ' '
+        call merge_metadata(metadata,nmetadata,seriesmetadata,seriestitle,serieshistory,'series_')
         tmpunits = units(1)
         tmpvars = vars(1)
         units = ' '

@@ -12,7 +12,7 @@ program difffield
      &       ,jz,nx1,ny1,nz1,nx2,ny2,nz2,nxf,nyf,nzf,j1,j2,startopts,fyr,lyr
     integer nx,ny,nz,nt,firstyr,firstmo,lastyr,nvars,  &
      &       ivars(2,3),jvars(6,3),ncid,endian,status,pow, &
-     &       ntvarid,itimeaxis(npermax)
+     &       ntvarid,itimeaxis(npermax),nmetadata1
     integer,allocatable :: nn(:,:,:,:)
     real pcut,s,ss(npermax,2),d,e,z,p
     real xx(nxmax),yy(nymax),zz(nzmax),undef
@@ -21,9 +21,10 @@ program difffield
     real,allocatable :: field(:,:,:,:,:,:),ave1(:,:,:,:,:),ave2(:,:,:,:,:)
     character file*1023,file1*1023,outfile*1023,datfile*1023,string*40
     character vars(3)*20,lvars(3)*120,svars(3)*120,title*4096,           &
-             history*5000,lz(3)*20,units(3)*20,title1*5100,title2*500,   &
+             history*50000,lz(3)*20,units(3)*20,title1*5100,title2*500,   &
              cell_methods(3)*100,ltime*20,lsmasktype*4,tmpunits*20,      &
-             yesno*3,metadata(2,100)*2000,metadata1(2,100)*2000
+             yesno*3,metadata(2,100)*2000,metadata1(2,100)*2000,         &
+             history1*50000
     logical lexist,lequal
     integer iargc,get_endian
     real erfcc
@@ -56,24 +57,15 @@ program difffield
                  ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr      &
                  ,firstmo,ltime,undef,endian,title,history,1,nvars,vars  &
                  ,jvars,lvars,svars,units,cell_methods,metadata,lwrite)
-        do i=1,100
-            if ( metadata(1,i) == ' ' ) exit
-        end do
-        metadata(1,i) = 'variable'
-        metadata(2,i) = vars(1)
-        i = i+1
-        metadata(1,i) = 'variable_long_name'
-        metadata(2,i) = lvars(1)
-        if ( svars(1) /= ' ' ) then
-            i = i+1
-            metadata(1,i) = 'variable_standard_name'
-            metadata(2,i) = svars(1)
-        end if
+        
         if ( ifield == 1 ) then
+            call add_varnames_metadata(vars(1),lvars(1),svars(1),metadata,'variable1')
             nperyear1 = nperyear
             metadata1 = metadata
             file1 = file
+            history1 = history
         else
+            call add_varnames_metadata(vars(1),lvars(1),svars(1),metadata,'variable2')
             if ( nperyear /= nperyear1 ) then
                 write(0,*) 'difffield: error: nperyear unequal ',nperyear1,nperyear
                 call exit(-1)
@@ -296,17 +288,8 @@ program difffield
     if ( lwrite ) then
         print *,'title  = ',trim(title)
     endif
-    if ( file1 /= file ) then
-        do i=1,100
-            if ( metadata1(1,i) == ' ' ) exit
-            metadata1(1,i) = 'field1_'//metadata1(1,i)
-        end do
-        do j=1,100
-            if ( metadata(1,j) == ' ' ) exit
-            metadata1(1,j+i-1) = 'field2_'//metadata(1,j)
-            metadata1(2,j+i-1) = metadata(2,j)
-        end do
-    end if
+    if ( history == history1 ) history = ' '
+    call merge_metadata(metadata1,nmetadata1,metadata,title2,history,'field2_')
     undef = 3e33
     nvars = 3
     if ( lnormsd ) then
