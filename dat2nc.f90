@@ -39,6 +39,7 @@ program dat2nc
     comment = ' '
     lvar = ' '
     metadata = ' '
+    history = ' '
     n = 0
     do i=1,100
         read(1,'(a)') description

@@ -515,9 +515,7 @@ subroutine addonevariable(ncid,varid,name,ntvars,nvarmax,ndimvar &
     ,lwrite)
     if ( svars(ntvars) == ' ' ) then
         if ( lwrite ) print *,'addonevariable: warning: variable ' &
-        ,trim(name),' does not have standard_name'
-        svars(ntvars) = name
-        call checkstring(svars(ntvars))
+            ,trim(name),' does not have standard_name'
     endif
 !   get units
     call  gettextattopt(ncid,varid,'units',units(ntvars),lwrite)

@@ -1,18 +1,22 @@
 subroutine getfileunits(file,nx,ny,nz,nt,nperyear,nvarmax,nvars &
-    ,var,units,newunits,xwrap,lwrite)
+    ,var,units,newunits,lvar,svar,xwrap,lwrite)
     implicit none
     include 'netcdf.inc'
     include 'param.inc'
     integer,parameter :: mpermax=24*366
     integer :: nx,ny,nz,nt,nperyear,nvarmax,nvars
-    character file*(*),var(nvarmax)*(*),units(nvarmax)*(*),newunits(nvarmax)*(*)
+    character :: file*(*),var(nvarmax)*(*),units(nvarmax)*(*),newunits(nvarmax)*(*), &
+        lvar(nvarmax)*(*),svar(nvarmax)*(*)
     logical :: xwrap,lwrite
     integer :: status,ncid,iu,i,i1,i2
-    integer :: firstyr,firstmo,lastyr,lastmo,endian,ivars(2,100),jvars(6,100),ndpm
-    character datfile*255,title*255,lvars(100)*80
+    integer :: firstyr,firstmo,lastyr,lastmo,endian,ivars(2,100),jvars(6,100),ndpm, &
+        nens1,nens2
+    character :: datfile*255,title*255,history*50000,metadata(2,100)*2000
+    character :: lz(3)*20,ltime*120,cell_methods(100)*100
     real :: xx(nxmax),yy(nymax),zz(nzmax),undef
     real :: data(mpermax,yrbeg:yrend),mean,slope,offset
     real,allocatable :: field(:,:,:,:,:)
+    logical :: tdefined(ntmax)
     logical :: xrev,yrev,lexist,lcheck
     character line*255
 
@@ -22,6 +26,8 @@ subroutine getfileunits(file,nx,ny,nz,nt,nperyear,nvarmax,nvars &
         print *,' nvarmax = ',nvarmax
     endif
     units = ' '
+    lvar = ' '
+    svar = ' '
     if ( index(file,'++') /= 0 .or. index(file,'%') /= 0 ) then
         if ( lwrite ) print *,'getfileunits: ensemble'
         datfile = file
@@ -39,7 +45,7 @@ subroutine getfileunits(file,nx,ny,nz,nt,nperyear,nvarmax,nvars &
             if ( lwrite ) print *,'getfileunits: GrADS ctl file'
             call parsectl(file,datfile,nxmax,nx,xx,nymax,ny,yy,nzmax &
                 ,nz,zz,nt,nperyear,firstyr,firstmo,undef,endian &
-                ,title,nvarmax,nvars,var,ivars,lvars,units)
+                ,title,nvarmax,nvars,var,ivars,lvar,units)
             if ( lwrite ) then
                 do i=1,nvars
                     print *,i,trim(var(i)),trim(units(i))
@@ -89,13 +95,13 @@ subroutine getfileunits(file,nx,ny,nz,nt,nperyear,nvarmax,nvars &
                     endif
                 endif
             enddo
-            100 continue
+        100 continue
             close(iu)
             if ( lwrite ) print *,'calling readseries with '// &
                 'mpermax,yrbeg,yrend,lwrite = ',mpermax,yrbeg,yrend &
                 ,lwrite
-            call readseries(file,data,mpermax,yrbeg,yrend, &
-                nperyear,var,newunits(1), .true. ,lwrite)
+            call readseriesmeta(file,data,mpermax,yrbeg,yrend, &
+                nperyear,var,newunits(1),lvar,svar,history,metadata,.true.,lwrite)
             do firstyr=yrbeg,yrend
                 do firstmo=1,nperyear
                     if ( data(firstmo,firstyr) < 1e33 ) goto 110
@@ -114,9 +120,12 @@ subroutine getfileunits(file,nx,ny,nz,nt,nperyear,nvarmax,nvars &
         endif
     else
         if ( lwrite ) print *,'getfileunits: netcdf file'
-        call parsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
-            ,nz,zz,nt,nperyear,firstyr,firstmo,undef,title,nvarmax &
-            ,nvars,var,jvars,lvars,units)
+        nens1 = 0
+        nens2 = 1
+        call ensparsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
+            ,nz,zz,lz,nt,nperyear,firstyr,firstmo,ltime,tdefined,ntmax &
+            ,nens1,nens2,undef,title,history,nvarmax,nvars,var,jvars,lvar,svar,units &
+            ,cell_methods,metadata)
 !       I am not sure I want to read in part of the file
         if ( units(1) == 'K' ) then
             mean = 273.13

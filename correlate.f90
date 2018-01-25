@@ -43,8 +43,8 @@
         laddfile(indxmx),lbb1allocated
     logical,allocatable :: lfirst(:)
     parameter (absent=3e33)
-    character line*256,string*10,dir*256,ensfile*256,var*40,units*60 &
-        ,ivar*40,iunits*20,newunits*60,dum1*40,dum2*40,varorg*40 &
+    character :: line*256,string*10,dir*256,ensfile*256,var*40,units*60 &
+        ,ivar*80,lvar*120,svar*120,iunits*20,newunits*60,dum1*40,dum2*40,varorg*40 &
         ,unitsorg*60
     character(4) :: runs(3,2)
     integer :: iargc,llen
@@ -80,7 +80,8 @@
 !   do not make them much bigger then needed...
 
     call getarg(1,line)
-    call getfileunits(line,nx,ny,nz,nt,nperyear,nvarmax,nvars,var,units,newunits,xwrap,lwrite)
+    call getfileunits(line,nx,ny,nz,nt,nperyear,nvarmax,nvars,var,units,newunits, &
+        lvar,svar,xwrap,lwrite)
     if ( nperyear <= 0 ) then
         write(0,*) 'correlate: error: the file ',trim(line),' is not readable'
         call exit(-1)

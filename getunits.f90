@@ -10,7 +10,7 @@ program getunits
     integer nx,ny,nz,nt,nperyear,nvars,i,j,nens,off,nargs,iarg,nt1
     logical xwrap,lwrite,lexist
     character file*255,var(nvarmax)*40,units(nvarmax)*60, &
- &       newunits(nvarmax)*60,string*80,ensfile*255
+ &       newunits(nvarmax)*60,lvar(nvarmax)*120,svar(nvarmax)*120,string*80,ensfile*255
     if ( iargc().lt.1 ) then
         print *,'usage: getunits file [file2 ..] [debug]'
         stop
@@ -50,7 +50,7 @@ program getunits
     do iarg=1,nargs
         call getarg(iarg,file)
         call getfileunits(file,nx,ny,nz,nt1,nperyear,nvarmax,nvars,var &
-        &  ,units,newunits,xwrap,lwrite)
+        &  ,units,newunits,lvar,svar,xwrap,lwrite)
         nt = nt + nt1
     end do
     call printassignment('NX',nx)
@@ -62,6 +62,8 @@ program getunits
     print '(3a)','VAR="',trim(var(1)),'"'
     print '(3a)','UNITS="',trim(units(1)),'"'
     print '(3a)','NEWUNITS="',trim(newunits(1)),'"'
+    if ( lvar(1) /= ' '  ) print '(3a)','LVAR="',trim(lvar(1)),'"'
+    if ( svar(1) /= ' '  ) print '(3a)','SVAR="',trim(svar(1)),'"'
 end program
 
 subroutine printassignment(name,value)
