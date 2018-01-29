@@ -119,17 +119,23 @@ subroutine readntot(unit,ntot)
 
     implicit none
     integer :: unit,ntot
-    integer :: i
+    integer :: i,j
     character :: line*100
 !
     ntot = 0
-    do
+    do j=1,50
         read(1,'(a)',end=902,err=902) line
         if ( line(3:4) == '==' ) exit
         i = index(line,'ound ')
-        if ( i == 0 ) cycle
-        read(line(i+5:),*,err=190,end=190) ntot
-        exit
+        if ( i > 0 ) then
+            read(line(i+5:),*,err=190,end=190) ntot
+            exit
+        end if
+        i = index(line,'ocated ')
+        if ( i > 0 ) then
+            read(line(i+7:),*,err=190,end=190) ntot
+            exit
+        end if
     end do
 190 continue
     return
