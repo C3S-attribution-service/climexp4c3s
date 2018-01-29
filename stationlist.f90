@@ -186,8 +186,8 @@
 100 continue
     read(1,'(a)',end=902,err=902) line
     i = index(line,'earching for stations') + &
-        index(line,'ocated stations') + index(line,'regions in') + &
-        index(line,'rid points in') + &
+        index(line,'ocated stations') + index(line,'stations in') + &
+        index(line,'regions in') + index(line,'rid points in') + &
         index(line,'Found')*index(line,' stations')
     if ( i == 0 ) goto 100
 
@@ -260,6 +260,7 @@
 !
 !   search for number of stations
 !
+    rewind(1)
     call readntot(1,ntot)
 !
 !   get station data
@@ -396,6 +397,9 @@
                     if ( line(i:i) == ' ' ) line(i:i) = '_'
                 end do
             end if
+            do i=1,len_trim(name)
+                if ( name(i:i) == ' ' ) name(i:i) = '_'
+            end do
             options(loptions+2:) = 'name '//trim(line)//'_'//trim(name)
             if ( oper == 'val' .or. oper == 'frac' .or. &
                  oper == 'anom' .or. oper == 'zval' ) then
@@ -672,6 +676,8 @@
                 else
                     val = val/x1-1
                 end if
+                sign = 0
+            elseif ( oper == 'val' ) then
                 sign = 0
             elseif ( oper == 'anom' ) then
                 val = val-x1
