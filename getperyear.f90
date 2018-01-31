@@ -721,17 +721,20 @@ subroutine gettextatt(ncid,varid,name,value,lwrite)
     implicit none
     include 'netcdf.inc'
     integer :: ncid,varid
-    character*(*) name,value
-    character string*4095
+    character :: name*(*),value*(*)
+    character :: string*4095
     logical :: req,lwrite
     integer :: i,n,status
 
     value = ' '
     status = nf_inq_attlen(ncid,varid,name,n)
-    if ( lwrite ) print *,'length of text string is ',n
+    if ( lwrite ) then
+        print *,'gettextattall: varid = ',varid,req
+        print *,'gettextattall: name  = ',trim(name),req
+        print *,'length of text string is ',n
+    end if
     if ( status /= nf_noerr ) then
-        if ( lwrite ) print *,'gettextattall: warning: cannot find ' &
-        ,trim(name)
+        if ( lwrite ) print *,'gettextattall: warning: cannot find ',trim(name)
     elseif ( n >= len(value) ) then
         if ( n < len(string)-1 ) then
             status = nf_get_att_text(ncid,varid,name,string)
