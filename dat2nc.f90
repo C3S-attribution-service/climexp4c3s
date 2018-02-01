@@ -8,7 +8,7 @@ program dat2nc
     integer             :: yr,mo,nperyear,i,j,n,mens,mens1
     real*4              :: x,y,x0,y0
     real*4,allocatable  :: data(:,:,:)
-    character           :: file*256,ncfile*256,since*32,var*40,lvar*80,description*128
+    character           :: file*256,ncfile*256,since*32,var*40,lvar*80,description*2000
     character           :: type*1,comment*10000,line*80,units*20,metadata(2,100)*2000
     character           :: history*20000,title*200
     logical             :: lwrite,lstandardunits,lexist
