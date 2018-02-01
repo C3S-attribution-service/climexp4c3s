@@ -288,8 +288,10 @@
     sign = -1
     if ( oper == 'plot' ) then
         val = 0.2
+        sign = 0
     elseif ( oper == 'list' ) then
         val = elev
+        sign = 0
     elseif ( oper == 'corr' .or. oper == 'sign' .or. oper == 'slop' &
          .or. oper == 'nslo' .or. oper == 'regr' .or. &
         oper == 'nreg' .or. oper == 'aver' .or. &
