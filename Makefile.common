@@ -432,7 +432,7 @@ eof.o:		../eof.f90
 		$(FC) $(EOFFLAGS) -c ../eof.f90
 
 eof:		eof.o  $(LIBRARY)
-		$(EOFLD) $(LDBIGFLAG) -o $@ eof.o $(LIBS)
+		$(EOFLD) $(EOFFLAGS) -o $@ eof.o $(LIBS)
 
 svd:		svd.o  $(LIBRARY)
 		$(LD) $(EOFFLAGS) $(LDBIGFLAG) -o $@ svd.o $(LIBS)
