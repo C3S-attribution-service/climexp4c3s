@@ -198,8 +198,9 @@ subroutine readseriesheader(var,units,lvar,svar,history,metadata,line,unit,lwrit
     character :: lvar*(*),svar*(*),history*(*),metadata(2,100)*(*)
     integer :: i,j,k,iline,n
     logical :: onlynumbers
-    units = ' '
     var = ' '
+    units = ' '
+    lvar = ' '
     svar = ' '
     history = ' '
     metadata = ' '

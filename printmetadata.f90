@@ -128,18 +128,19 @@ subroutine merge_metadata(metadata1,nmetadata1,metadata2,title2,history2,prefix)
     do k=1,j-1
         if ( metadata2(1,k) /= ' ' ) then
             nmetadata1 = nmetadata1 + 1
+            if ( nmetadata1 > 100 ) exit
             metadata1(1,nmetadata1) = trim(prefix)//metadata2(1,k)
             metadata1(2,nmetadata1) = metadata2(2,k)
         end if
     end do
 !   also store the history of field2
-    if ( history2 /= ' ' ) then
+    if ( history2 /= ' ' .and. nmetadata1 < 100 ) then
         nmetadata1 = nmetadata1 + 1
         metadata1(1,nmetadata1) = trim(prefix)//'history'
         metadata1(2,nmetadata1) = history2
     end if
 !   also store the title of field2
-    if ( title2 /= ' ' ) then
+    if ( title2 /= ' ' .and. nmetadata1 < 100 ) then
         nmetadata1 = nmetadata1 + 1
         metadata1(1,nmetadata1) = trim(prefix)//'title'
         metadata1(2,nmetadata1) = title2

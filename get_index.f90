@@ -165,6 +165,11 @@ program get_index
         call checkgridequal(nx,ny,xx,yy,nxmask,nymask,xxmask,yymask)
         call readonencfield(ncidmask,jvarsmask,mask,nxmask,nymask,lwrite)
         call checklsmask(mask,nx,ny,lwrite)
+        do i=1,100
+            if ( metadata(1,i) == ' ' ) exit
+        end do
+        metadata(1,i) = 'mask'
+        metadata(2,i) = string
         mopts = 4
     else
         npoints = 1
@@ -315,10 +320,10 @@ program get_index
 !   manage units - I convert them at the end to save time
 
     if ( lstandardunits ) then
-        call estimatemean(field,nx,ny,1,nperyear,firstyr,lastyr, &
-        nx,ny,1,nperyear,firstyr,lastyr,meanish,lwrite)
+        call estimatemean(field,nx,ny,1,nperyear,firstyr,lastyr &
+            ,nx,ny,1,nperyear,firstyr,lastyr,meanish,lwrite)
         call makestandardunits(meanish,nperyear,vars(1),units(1) &
-        ,newunits,offset,slope,ndpm,lwrite)
+            ,newunits,offset,slope,ndpm,lwrite)
     else
         newunits = units(1)
     endif

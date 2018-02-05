@@ -90,7 +90,9 @@ program plotdat
         units = '1'
         lvar = 'relative '//trim(lvar)
     end if
-    print '(6a)','# ',trim(var),' [',trim(units),'] ',trim(lvar)
+    if ( var /= ' ' ) then
+        print '(6a)','# ',trim(var),' [',trim(units),'] ',trim(lvar)
+    end if
     if ( lstandardunits ) then
         do iens=mens1,mens
             call makestandardseries(data(1,yrbeg,iens), &

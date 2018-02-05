@@ -31,8 +31,12 @@ program normdiff
     if ( file2 == 'null' .or. file2 == 'nothing' ) then
         data2 = 0
         i = nperyear
-        units2 = ' '
         var2 = 'null'
+        units2 = ' '
+        lvar2 = ' '
+        svar2 = ' '
+        history2 = ' '
+        metadata2 = ' '
     else
         call readseriesmeta(file2,data2,npermax,yrbeg,yrend,i,var2 &
  &           ,units2,lvar2,svar2,history2,metadata2,.false.,lwrite)
@@ -107,9 +111,11 @@ program normdiff
         end if
     end if
     call merge_metadata(metadata1,nmetadata1,metadata2,' ',history2,'series2_')
-    nmetadata1 = nmetadata1 + 1
-    metadata1(1,nmetadata1) = 'file2'
-    metadata1(2,nmetadata1) = file2    
+    if ( file2 /= 'null' .and. file2 /= 'nothing' ) then
+        nmetadata1 = nmetadata1 + 1
+        metadata1(1,nmetadata1) = 'file2'
+        metadata1(2,nmetadata1) = file2    
+    end if
     call printmetadata(6,file1,' ',title,history1,metadata1)
     call printdatfile(6,data1,npermax,nperyear,yrbeg,yrend)
 end program
