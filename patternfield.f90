@@ -13,7 +13,7 @@ program patternfield
         ,firstmo1,nx2,ny2,nz2,nt2,nper2,firstyr2,firstmo2,nvars &
         ,ivars1(6,nvarmax),ivars2(6,nvarmax),ivar &
         ,month,endian1,endian2,status,nperyear,nxf,nyf,mens1,mens &
-        ,nmetadata1
+        ,nmetadata1,yrpat1,yrpat2
     integer :: yr1,yr2,nx,ny,nz,yr,mo,iskip
     real ::  xx1(nxmax),yy1(nymax),zz1(nzmax),xx2(nxmax),yy2(nymax),zz2(nzmax),u1,u2
     real :: xx(nxmax),yy(nymax),zz(nymax),minfac
@@ -112,8 +112,19 @@ program patternfield
 
     nxf = max(nx1,nx2)
     nyf = max(ny1,ny2)
+    if ( firstyr2 == 0 .or. firstyr2 == 1 ) then
+        yrpat1 = 0
+        yrpat2 = 1
+    else if ( firstyr2 == 2000 .or. firstyr2 == 2001 ) then
+        yrpat1 = 2000
+        yrpat2 = 2001
+    else
+        write(0,*) 'patternfield: warning: unknown convention ',firstyr2
+        yrpat1 = firstyr2 - 1
+        yrpat2 = yrpat1 + 1
+    end if
     allocate(field1(nxf,nyf,nper1,firstyr1:yrend))
-    allocate(field2(nxf,nyf,nper2,2000:2001))
+    allocate(field2(nxf,nyf,nper2,yrpat1:yrpat2))
 
     minfac = 0.5
     do i=5,iargc()-1
@@ -170,19 +181,21 @@ program patternfield
     call keepalive(1,3)
     write(0,*) 'Reading pattern...<p>'
     if ( ncid2 == -1 ) then
-        call readdatfile(datfile2,field2,nxf,nyf,nx2,ny2,nper2,2000 &
-            ,2001,firstyr2,firstmo2,nt2,u2,endian2,lwrite,2000,2001,ivar,nvars)
+        call readdatfile(datfile2,field2,nxf,nyf,nx2,ny2,nper2,yrpat1 &
+            ,yrpat2,firstyr2,firstmo2,nt2,u2,endian2,lwrite,yrpat1,yrpat2,ivar,nvars)
     else
-       call readncfile(ncid2,field2,nxf,nyf,nx2,ny2,nper2,2000,2001 &
-            ,firstyr2,firstmo2,nt2,u2,lwrite,2000,2001,ivars2)
+       call readncfile(ncid2,field2,nxf,nyf,nx2,ny2,nper2,yrpat1,yrpat2 &
+            ,firstyr2,firstmo2,nt2,u2,lwrite,yrpat1,yrpat2,ivars2)
     endif
     call keepalive(2,3)
     
     if ( nper1 > nper2 ) then
 !       extend EOF field to the time scale of field if necessary
-        allocate(field2a(nxf,nyf,nperyear,2000:2001))
+        allocate(field2a(nxf,nyf,nperyear,yrpat1:yrpat2))
         allocate(fxy(nper2,0:1))
         allocate(fxynew(nperyear,0:1))
+        write(0,*) 'patternfield: error: different time scales not yet ready'
+        call exit(-1)
     end if
 
 !   interpolate fields to common grid
@@ -190,7 +203,7 @@ program patternfield
     call interpu( &
         field1,xx1,yy1,nx1,ny1, &
         field2,xx2,yy2,nx2,ny2, &
-        xx,nx,yy,ny,firstyr1,yr2,2000,2001,nxf,nyf,nperyear,0,lwrite)
+        xx,nx,yy,ny,firstyr1,yr2,yrpat1,yrpat2,nxf,nyf,nperyear,0,lwrite)
     call keepalive(3,3)
     allocate(var(nperyear,yr1:yr2))
     call project(var,nperyear,yr1,yr2,0,0,xx,nx,yy,ny, &
