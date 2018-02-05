@@ -26,7 +26,7 @@ subroutine readensseriesmeta(file,data,npermax,yrbeg,yrend,nensmax &
     character ::  lvar*(*),svar*(*),history*(*),metadata(2,100)*(*)
     integer :: iens
     logical :: lexist,lfirst
-    character :: ensfile*255,line*10
+    character :: ensfile*1023,line*10
 
     if ( lwrite ) then
         print *,'readensseries: file = ',trim(file)
@@ -36,7 +36,7 @@ subroutine readensseriesmeta(file,data,npermax,yrbeg,yrend,nensmax &
 
 !   ensembles are denoted by a '%' or '++' in the file name
 
-    if ( index(file,'%') == 0 .AND. index(file,'++') == 0 ) then
+    if ( index(file,'%') == 0 .and. index(file,'++') == 0 ) then
         mens = 0
         mens1 = 0
         if ( lwrite ) print *,'not an ensemble, calling readseries'
@@ -49,12 +49,12 @@ subroutine readensseriesmeta(file,data,npermax,yrbeg,yrend,nensmax &
         do iens=0,nensmax
             ensfile = file
             call filloutens(ensfile,iens)
-            !!!if ( lwrite) print *,'looking for file ',trim(ensfile)
             inquire(file=ensfile,exist=lexist)
-            if ( .NOT. lexist ) then
+            if ( .not. lexist ) then
                 if ( mens == -1 ) then
                     mens1 = iens + 1
                 end if
+                if ( iens > 1 ) exit
             else
                 mens = iens
             end if
@@ -67,21 +67,22 @@ subroutine readensseriesmeta(file,data,npermax,yrbeg,yrend,nensmax &
         do iens=mens1,mens
             ensfile = file
             call filloutens(ensfile,iens)
-            inquire(file=ensfile,exist=lexist)
+            inquire(file=trim(ensfile),exist=lexist)
             if ( .not. lexist ) then
+                if ( lwrite ) print *,'skipping file ',trim(ensfile)
                 data(:,:,iens) = 3e33
             else
-                if ( lwrite) print *,'reading file ',trim(ensfile)
                 call keepalive1('Reading ensemble member',iens,mens)
                 if ( lfirst ) then
                     lfirst = .false.
+                    if ( lwrite ) print *,'reading file ',trim(ensfile),' with metadata'
                     call readseriesmeta(ensfile,data(1,yrbeg,iens),npermax &
-                        ,yrbeg,yrend,nperyear,var,units,lstandardunits &
-                        ,lwrite)
+                        ,yrbeg,yrend,nperyear,var,units,lvar,svar,history,metadata &
+                        ,lstandardunits,lwrite)
                 else
+                    if ( lwrite ) print *,'reading file ',trim(ensfile)
                     call readseries(ensfile,data(1,yrbeg,iens),npermax &
-                        ,yrbeg,yrend,nperyear,var,units,lvar,svar,history &
-                        ,metadata,lstandardunits,lwrite)
+                        ,yrbeg,yrend,nperyear,var,units,lstandardunits,lwrite)
                 end if
             end if
         end do
