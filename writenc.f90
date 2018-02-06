@@ -71,7 +71,7 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
     real :: xx(nx),yy(ny),zz(nz),undef
     character file*(*),title*(*),history*(*),vars(nvars)*(*), &
         lvars(nvars)*(*),svars(nvars)*(*),units(nvars)*(*), &
-        cell_methods(nvars)*(*),ltime*(*),lz(3)*(*),metadata(2,100)*2000
+        cell_methods(nvars)*(*),ltime*(*),lz(3)*(*),metadata(2,100)*(*)
 !   local variables
     integer :: status,ntdimid,nxdimid,nydimid,nzdimid,nensdimid,ndims &
         ,idims(5),nxvarid,nyvarid,nzvarid,nensvarid,ivar,i,j,l, &
@@ -99,6 +99,7 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
     if ( index(clwrite,'T') + index(clwrite,'t') > 0 ) then
         lwrite = .TRUE. 
     endif
+    
     if ( lwrite ) then
         print *,'writenc called with'
         print *,'file = ',trim(file)
@@ -146,8 +147,13 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
             do j=1,len_trim(metadata(1,i))
                 if ( .not. ( isnumchar(metadata(1,i)(j:j)) .or. isalphachar(metadata(1,i)(j:j)) .or. &
                         metadata(1,i)(j:j) == '_' .or. metadata(1,i)(j:j) == '-' ) ) then
-                    write(0,*) 'writenc: warning: found illegal character  in name ',trim(metadata(1,i)(j:j))
-                    metadata(1,i)(j:j) = '_'
+                    write(0,*) 'writenc: warning: found illegal character  in metadata(1, ',i,'), char ', &
+                        j,': ',metadata(1,i)(j:j)
+                    if ( metadata(1,i)(j:j) == char(0) ) then
+                        metadata(1,i)(j:j) = ' '
+                    else
+                        metadata(1,i)(j:j) = '_'
+                    end if
                 end if
             end do
             if ( metadata(1,i) == 'conventions' .or. metadata(1,i) == 'Conventions' ) cycle
@@ -539,6 +545,7 @@ subroutine writencslice(ncid,ntvarid,itimeaxis,ntmax,ivars,data &
         icount(k) = 1
         istart(k) = iens
         istride(k) = 1
+        imap(k) = imap(k-1)
         if ( lwrite ) then
             print *,'writing to netCDF'
             print *,'count = ',icount(1:k)
