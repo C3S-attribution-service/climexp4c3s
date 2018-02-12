@@ -175,3 +175,46 @@ subroutine add_varnames_metadata(var,lvar,svar,metadata,variable)
         metadata(2,i) = svar
     end if
 end subroutine add_varnames_metadata
+
+subroutine trim_geospatial_metadata(metadata,lon1,lon2,lat1,lat2)
+
+!   adjust the geospatial* metadata to reflect the new box
+
+    implicit none
+    real :: lon1,lon2,lat1,lat2
+    character :: metadata(2,100)*(*)
+    integer :: i
+
+    do i=1,100
+        if ( metadata(1,i) == ' ' ) exit
+        if ( metadata(1,i) == 'geospatial_lat_min' ) write(metadata(2,i),'(f7.1)') lat1
+        if ( metadata(1,i) == 'geospatial_lat_max' ) write(metadata(2,i),'(f7.1)') lat2
+        if ( metadata(1,i) == 'geospatial_lon_min' ) write(metadata(2,i),'(f7.1)') lon1
+        if ( metadata(1,i) == 'geospatial_lon_max' ) write(metadata(2,i),'(f7.1)') lon2
+    enddo
+end subroutine trim_geospatial_metadata
+
+subroutine delete_geospatial_metadata(metadata)
+
+!   delete the geospatial* metadata to reflect that a time series has been made from a field.
+
+    implicit none
+    character :: metadata(2,100)*(*)
+    integer :: i,j
+
+    do i=1,100
+        if ( metadata(1,i) == ' ' ) exit
+        if ( metadata(1,i)(1:11) == 'geospatial_' ) then
+            do j=i+1,100
+                metadata(1,j-1) = metadata(1,j)
+                metadata(2,j-1) = metadata(2,j)
+                if ( metadata(1,j) == ' ' ) exit
+            end do
+            if ( j > 100 ) then
+                metadata(1,j-1) = ' '
+                metadata(2,j-1) = ' '
+            end if
+        end if
+    end do
+                
+end subroutine delete_geospatial_metadata

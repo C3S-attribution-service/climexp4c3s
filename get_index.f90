@@ -404,6 +404,7 @@ program get_index
             ivars(1,1) = 0
             call subtractleapyears(nt,firstyr,firstmo,nperyear,irec)
             title = 'subset of '//trim(title)
+            call trim_geospatial_metadata(metadata,lon1,lon2,lat1,lat2)
             call enswritenc(outfile,ncid,ntvarid,itimeaxis,nt,nx,xx &
                 ,ny,yy,nz,zz,lz,irec,nperyear,firstyr,firstmo,ltime,3e33 &
                 ,title,history,1,vars,ivars,lvars,svars,units,cell_methods &
@@ -440,6 +441,7 @@ program get_index
     print '(5a)','# operating on ',trim(title)
     call getenv('FORM_field',FORM_field)
     title = 'spatial statistic of '//title
+    call delete_geospatial_metadata(metadata)
     call printmetadata(6,file,FORM_field,title,history,metadata)
 
 !   get mean of whole field if multiple points are requested
