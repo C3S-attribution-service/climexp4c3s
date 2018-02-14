@@ -59,12 +59,12 @@ subroutine printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume,lnone
     character assume*(*)
     integer :: i
     logical lprintreturnvalue
-    character units*1
+    character units*30
 
     lprintreturnvalue = .false.
     if ( ntype == 2 .or. ntype == 3 .or. ntype == 4 ) then ! extreme value  plot
         if ( assume == 'scale ' ) then
-            units = '%'
+            write(units,'(a,i4)') ' % relative to ',yr1a
         else
             units = ' '
         end if
@@ -92,7 +92,7 @@ subroutine printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume,lnone
                     end if
                     if ( i == 10 .or. assume == 'both' ) then
                         print '(3a,f16.3,a,f16.3,a,f16.3,a)' &
-                            ,'# <tr><td>return values</td><td>diff ',units, &
+                            ,'# <tr><td>return values</td><td>diff',trim(units), &
                             '</td><td>',t(i,3),'</td><td>',t25(i,3) &
                             ,' ... ',t975(i,3),'</td></tr>'
                     end if
@@ -134,7 +134,7 @@ subroutine printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume,lnone
                         ,t(i,2),' 95% CI ',t25(i,2),t975(i,2)
                     print '(a,i5,3a,f16.3,a,2f16.3)' &
                         ,'# value for return period ',10**i &
-                        ,' year, difference',units,': ' &
+                        ,' year, difference',trim(units),': ' &
                         ,t(i,3),' 95% CI ',t25(i,3),t975(i,3)
                     call print3untransf(t(i,1),t25(i,1),t975(i,1),yr1a)
                     call print3untransf(t(i,2),t25(i,2),t975(i,2),yr2a)
