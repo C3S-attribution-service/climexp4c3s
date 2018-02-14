@@ -841,8 +841,8 @@ subroutine getreturnlevels(a,b,xi,alpha,beta,cov1,cov2,cov3,covreturnlevel,j1,j2
             t(i,4) = 3e33
         end if
         t(i,3) = t(i,2) - t(i,1)
-        if ( assume == 'scale' ) then ! relative change in %
-            t(i,3) = 100*t(i,3)/t(i,2)
+        if ( assume == 'scale' ) then ! relative change in % relative to *past*
+            t(i,3) = 100*t(i,3)/t(i,1)
         end if
     enddo
 end subroutine getreturnlevels
