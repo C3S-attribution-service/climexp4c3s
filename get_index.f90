@@ -589,8 +589,8 @@ program get_index
 !       compute indices of region to be cut out
     
         if ( lwrite ) then
-            write(0,'(a,i4,1000f7.1)') 'get_index: found X axis ',nx,(xx(i),i=1,nx)
-            write(0,'(a,i4,1000f7.1)') 'get_index: found Y axis ',ny,(yy(i),i=1,ny)
+            write(0,'(a,i4,10000f7.1)') 'get_index: found X axis ',nx,(xx(i),i=1,nx)
+            write(0,'(a,i4,10000f7.1)') 'get_index: found Y axis ',ny,(yy(i),i=1,ny)
         endif
         if ( gridpoints ) then
             x1 = xlist(ipoints)
@@ -616,7 +616,7 @@ program get_index
                     write(0,*) 'get_index: error: cannot interpolate area yet'
                     call exit(-1)
                 else
-                !                       find other points around the requested point
+!                   find other points around the requested point
                     dx = lon1 - xx(normx(x1,nx))
                     if ( lwrite ) write(0,*) 'x1,x2,dx = ',x1,x2,dx
                     if ( abs(dx) > 180 ) dx = dx - 360*nint(dx/360)
@@ -641,8 +641,8 @@ program get_index
                     wx(ii) = wx(ii)*dx/dl
                     lon2c = xx(ii)
                     if ( lwrite ) write(0,*) 'w1,w2 = ', &
-                    wx(normx(x1,nx)),normx(x1,nx), &
-                    wx(normx(x2,nx)),normx(x2,nx)
+                        wx(normx(x1,nx)),normx(x1,nx), &
+                        wx(normx(x2,nx)),normx(x2,nx)
                 
                     dy = lat1 - yy(y1)
                     if ( lwrite ) write(0,*) 'y1,y2,dy = ',y1,y2,dy
@@ -652,16 +652,13 @@ program get_index
                         y1 = y2 - 1
                         dy = lat1 - yy(y1)
                     endif
-                    if ( lwrite ) write(0,*) 'y1,y2,dy = ',y1,y2,dy &
-                    ,yy(y1),yy(y2)
+                    if ( lwrite ) write(0,*) 'y1,y2,dy = ',y1,y2,dy,yy(y1),yy(y2)
                     dl = yy(y2) - yy(y1)
                     if ( .NOT. yrev .and. (dy < 0 .or. dy > dl) .or. &
-                    yrev .and. (dy > 0 .or. dy < dl) ) then
-                        write(0,*) 'get_index: error: dy,dl = ',dy &
-                        ,dl,yrev
+                               yrev .and. (dy > 0 .or. dy < dl) ) then
+                        write(0,*) 'get_index: error: dy,dl = ',dy ,dl,yrev
                     endif
-                    if ( lwrite ) write(0,*) 'w1,w2 = ',1 - dy/dl,dy &
-                    /dl
+                    if ( lwrite ) write(0,*) 'w1,w2 = ',1 - dy/dl,dy/dl
                     wy(y1) = wy(y1)*(1 - dy/dl)
                     lat1c = yy(y1)
                     wy(y2) = wy(y2)*dy/dl
@@ -712,11 +709,9 @@ program get_index
             endif
         endif
         call keepalive1('Computed weights',4,5)
-        write(out,'(6a)') '# ',trim(vars(1)),' [',trim(newunits) &
-            ,'] ',trim(lvars(1))
-    
-    !           get mean of just the requested area if only one point is
-    !           requested
+        write(out,'(6a)') '# ',trim(vars(1)),' [',trim(newunits),'] ',trim(lvars(1))
+
+!       get mean of just the requested area if only one point is requested
     
         if ( npoints == 1 .and. (missing .or. anom) .and. oper == 'v' ) then
             call getwinmean(mean,nn,nx,ny,nperyear,field,nx,ny &
@@ -725,7 +720,7 @@ program get_index
         endif
         call keepalive1('Computed area mean',5,5)
     
-    !           cut out region
+!       cut out region
     
         if ( (missing .or. anom) .and. oper == 'v' ) then
             month = -nperyear ! the first round (month<1) compute avemean
