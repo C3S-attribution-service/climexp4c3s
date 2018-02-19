@@ -6,7 +6,16 @@ C  (C) Copr. 1986-92 Numerical Recipes Software +.-).
 CU    USES gammq
       INTEGER i
       REAL sigdat,ss,st,st2,sx,sxoss,sy,syoss,t,wt,gammq
-*       special case causes crashes later on...
+*       special cases cause crashes later on...
+        if ( ndata == 0 ) then
+            a = 3e33
+            b = 3e33
+            siga = 3e33
+            sigb = 3e33
+            chi2 = 0
+            q = 3e33
+            return
+        end if
         if ( ndata.eq.1 ) then
             a = y(1)
             b = 0
@@ -14,6 +23,7 @@ CU    USES gammq
             sigb = 3e33
             chi2 = 0
             q = 3e33
+            return
         endif
       sx=0.
       sy=0.
