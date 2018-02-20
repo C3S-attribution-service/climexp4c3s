@@ -598,7 +598,6 @@ subroutine enscutoutwindow(x1,x2,y1,y2,xx,nx,xwrap,xrev,avex,yy &
     call getweights('y',yy,wy,ny,.false.,lwrite)
 
 !   real work
-    write(0,*) '@@@ x1,y1 = ',x1,y1
     if ( y1 > 1 .or. x1 > 1 .or. avex > 1 .or. avey > 1 ) then
         if ( avex > 1 .or. avey > 1 ) then
             if ( lwrite ) print *,'Averaging fields'
