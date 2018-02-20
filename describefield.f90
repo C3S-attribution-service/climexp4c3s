@@ -192,23 +192,23 @@ program describefield
 !       recognise Gaussian grid...
         call legzo(ny,yg,wg)
         pi = 4*atan(1.)
-        do i=1,n
+        do i=1,ny
             yg(i) = -90 + 180*acos(yg(i))/pi
         end do
-        do i=1,n/2
-        !!!write(0,*) i,yy(i),yg(i),yy(i)-yg(i)
-        if ( abs(abs(yy(i))-abs(yg(i))) > max(0.01,1e-3*abs(yy(i))) )goto 205
+        do i=1,ny/2
+            !!!write(0,*) 'i,yy(i),yg(i) = ',i,yy(i),yg(i),yy(i)-yg(i)
+            if ( abs(abs(yy(i))-abs(yg(i))) > max(0.01,1e-3*abs(yy(i))) ) goto 205
         end do
         write(0,'(a,i5,a)') 'Y axis: Gaussian grid with  ',ny,' steps, '
         write(0,'(a,f8.2,3a,f8.2,2a)') 'first point at ',abs(yy(1)), &
             '&deg; ',ns(1),', last point at ',abs(yy(ny)),'&deg; ',ns(2)
         goto 210
     205 continue
-        do i=1,n/2
-            write(0,*) i,yy(i),yg(i),yy(i)-yg(i)
-            if ( abs(abs(yy(i))-abs(yg(i))) > max(0.1,1e-2*abs(yy(i))) )goto 206
+        do i=1,ny/2
+            !!!write(0,*) i,yy(i),yg(i) = ',i,yy(i),yg(i),yy(i)-yg(i)
+            if ( abs(abs(yy(i))-abs(yg(i))) > max(0.1,1e-2*abs(yy(i))) ) goto 206
         end do
-        write(0,'(a,i5,a)') 'Y axis: almost Gaussian grid with  ',ny,' steps, '
+        write(0,'(a,i5,a)') 'Y axis: Gaussian grid with  ',ny,' steps, '
         write(0,'(a,f8.2,3a,f8.2,2a)') 'first point at ',abs(yy(1)), &
             '&deg; ',ns(1),', last point at ',abs(yy(ny)),'&deg; ',ns(2)
         goto 210
