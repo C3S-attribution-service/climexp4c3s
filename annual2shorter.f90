@@ -62,7 +62,7 @@ subroutine annual2shorter(data,npermax,yrbeg,yrend,nperyear, &
                 if ( nfac /= 1 ) nfac = dpm(mo,leap(yr))
                 do dy=1,dpm(mo,2)
                     k = k + 1
-                    if ( k == 60 .AND. leap(yr) == 1 ) then
+                    if ( k == 60 .and. leap(yr) == 1 ) then
                         newdata(k,yr) = 3e33
                     else if ( data(mo,yr) < 1e33 ) then
                         newdata(k,yr) = data(mo,yr)/nfac
