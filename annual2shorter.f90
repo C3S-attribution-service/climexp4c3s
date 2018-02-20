@@ -9,7 +9,7 @@ subroutine annual2shorter(data,npermax,yrbeg,yrend,nperyear, &
         npermaxnew,yrbegnew,yrendnew,npernew,m1,n,nfac
     real :: data(npermax,yrbeg:yrend),newdata(npermaxnew,yrbegnew:yrendnew)
     logical :: lwrite
-    integer :: yr,mo,dy,i,k,yr1,yr2,dpm(12,2)
+    integer :: yr,mo,dy,i,k,yr1,yr2,dpm(12,2),offset,mm,yy
     integer,external :: leap
     data dpm /31,28,31,30,31,30,31,31,30,31,30,31, &
     &         31,29,31,30,31,30,31,31,30,31,30,31/
@@ -26,21 +26,36 @@ subroutine annual2shorter(data,npermax,yrbeg,yrend,nperyear, &
                 if ( i >= yrbegnew .AND. i <= yrendnew ) then
                     if ( data(1,yr) < 1e33 ) then
                         newdata(mo,i) = data(1,yr)/nfac
-                    endif
-                endif
-            enddo
-        enddo
-    elseif ( mod(npernew,nperyear) == 0 ) then
+                    end if
+                end if
+            end do
+        end do
+    else if ( mod(npernew,nperyear) == 0 ) then
         if ( nfac /= 1 ) nfac = npernew/nperyear
+        if ( nperyear == 4 ) then
+            if ( npernew == 12 ) then
+                offset = -1
+            else
+                write(0,*) 'annual2shorter: error: cannot handle nperyear,npernew = ', &
+                    nperyear,npernew,' yet'
+                call exit(-1)
+            end if
+        else
+            offset = 0
+        end if
         do yr=yr1,yr2
             do mo=1,npernew
-                k = 1 + (mo-1)*nperyear/npernew
-                if ( data(k,yr) < 1e33 ) then
-                    newdata(mo,yr) = data(k,yr)/nfac
-                endif
-            enddo
-        enddo
-    elseif ( npernew == 366 .and. nperyear == 12 ) then
+                mm = mo + offset
+                call normon(mm,yr,yy,npernew)
+                if ( yy >= yrbegnew .and. yy <= yrendnew ) then
+                    k = 1 + (mo-1)*nperyear/npernew
+                    if ( data(k,yr) < 1e33 ) then
+                        newdata(mm,yy) = data(k,yr)/nfac
+                    end if
+                end if
+            end do
+        end do
+    else if ( npernew == 366 .and. nperyear == 12 ) then
         do yr=yr1,yr2
             k = 0
             do mo=1,12
@@ -49,12 +64,12 @@ subroutine annual2shorter(data,npermax,yrbeg,yrend,nperyear, &
                     k = k + 1
                     if ( k == 60 .AND. leap(yr) == 1 ) then
                         newdata(k,yr) = 3e33
-                    elseif ( data(mo,yr) < 1e33 ) then
+                    else if ( data(mo,yr) < 1e33 ) then
                         newdata(k,yr) = data(mo,yr)/nfac
-                    endif
-                enddo
-            enddo
-        enddo
+                    end if
+                end do
+            end do
+        end do
     else
         write(0,*) 'annual2longer: error: cannet handle ', &
             'conversion from ',nperyear,' to ',npernew , &
@@ -63,5 +78,5 @@ subroutine annual2shorter(data,npermax,yrbeg,yrend,nperyear, &
             'conversion from ',nperyear,' to ',npernew , &
             ' points per year yet'
         call exit(-1)
-    endif
+    end if
 end subroutine annual2shorter
