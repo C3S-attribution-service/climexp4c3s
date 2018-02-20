@@ -28,11 +28,11 @@ program yearly2shorterfield
     read(string1,*,err=901) npernew
 
     call getmetadata(file,mens1,mens,ncid,datfile,nxmax,nx &
-     &       ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo &
-     &       ,ltime,undef,endian,title,history,nvarmax,nvars,vars,jvars &
-     &       ,lvars,svars,units,cell_methods,metadata,lwrite)
+             ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo &
+             ,ltime,undef,endian,title,history,nvarmax,nvars,vars,jvars &
+             ,lvars,svars,units,cell_methods,metadata,lwrite)
     call getopts(3,iargc()-1,nperyear,yrbeg,yrend,.false.,0,nensmax)
-    if ( iargc().gt.2 ) then
+    if ( iargc().gt.3 ) then
         if ( oper.eq.'v' ) then
             nfac = 1
         else if ( oper.eq.'+' ) then
@@ -59,9 +59,9 @@ program yearly2shorterfield
     allocate(newdata(nxf,nyf,nzf,npernew,fyr:lyr,0:mens))
     call keepalive1('Reading data',1,1)
     call readfield(ncid,file,datfile,data,nxf,nyf,nzf &
-     &       ,nperyear,fyr,lyr,nens1,nens2,nx,ny,nz,nperyear,yr1,yr2 &
-     &       ,firstyr,firstmo,nt,undef,endian,vars,units,lstandardunits &
-     &       ,lwrite)
+             ,nperyear,fyr,lyr,nens1,nens2,nx,ny,nz,nperyear,yr1,yr2 &
+             ,firstyr,firstmo,nt,undef,endian,vars,units,lstandardunits &
+             ,lwrite)
     
     allocate(fxy(nperyear,fyr:lyr))
     allocate(newfxy(npernew,fyr:lyr))
@@ -79,9 +79,9 @@ program yearly2shorterfield
                         end do
                     end do
                     call annual2shorter(fxy,nperyear,fyr,lyr,nperyear, &
-                    &       newfxy,npernew,fyr,lyr,npernew,m1,lsum,nfac,lwrite)
-                    do mo=1,npernew
-                        do yr=fyr,lyr
+                            newfxy,npernew,fyr,lyr,npernew,m1,lsum,nfac,lwrite)
+                    do yr=fyr,lyr
+                        do mo=1,npernew
                             newdata(ix,iy,iz,mo,yr,iens) = newfxy(mo,yr)
                         end do
                     end do
@@ -95,16 +95,18 @@ program yearly2shorterfield
     undef = 3e33
     nt = npernew*(lyr-fyr+1)
     ntmax = nt
+    ivars(1,1) = 1
+    ivars(2,1) = 0
     allocate(itimeaxis(ntmax))
     call enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny              &
-     &       ,yy,nz,zz,lz,nt,npernew,yrbegin,mobegin,ltime,undef,title      &
-     &       ,history,nvars,vars,ivars,lvars,svars,units,cell_methods       &
-     &       ,metadata,nens1,nens2)
+             ,yy,nz,zz,lz,nt,npernew,yrbegin,mobegin,ltime,undef,title      &
+             ,history,nvars,vars,ivars,lvars,svars,units,cell_methods       &
+             ,metadata,nens1,nens2)
     do iens=nens1,nens2
         do yr=fyr,lyr
             do mo=1,npernew
                 call writencslice(ncid,ntvarid,itimeaxis,nt,ivars,          &
-                &   newdata(1,1,1,mo,yr,iens),nx,ny,nz,nx,ny,nz,mo+npernew*(yr-fyr),1+iens)
+                    newdata(1,1,1,mo,yr,iens),nx,ny,nz,nx,ny,nz,mo+npernew*(yr-fyr),1+iens)
             end do
         end do
     end do
