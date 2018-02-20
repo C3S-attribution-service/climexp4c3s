@@ -4,21 +4,23 @@ program yearly2shorter
 !
     implicit none
     include 'param.inc'
-    integer yr,mo,dy,nperyear,npernew,m1,n,k,i,nfac
-    real data(npermax,yrbeg:yrend),newdata(npermax,yrbeg:yrend)
-    character file*256,var*40,units*20
-    logical lwrite,lstandardunits
-    integer iargc,llen
+    integer :: yr,mo,dy,nperyear,npernew,m1,n,k,i,nfac
+    real :: data(npermax,yrbeg:yrend),newdata(npermax,yrbeg:yrend)
+    character :: file*1023,var*80,units*120,lvar*120,svar*120,history*10000,metadata(2,100)*2000
+    logical :: lwrite,lstandardunits
+    integer :: iargc
 
     lwrite = .false.
     lstandardunits = .false.
     if ( iargc().lt.2 ) then
         print *,'usage: yearly2shorter infile.dat nperyearnew [mon n ave|sum m]'
         stop
-    endif
+    end if
     call getarg(1,file)
-    call readseries(file,data,npermax,yrbeg,yrend,nperyear,var,units,lstandardunits,lwrite)
+    call readseriesmeta(file,data,npermax,yrbeg,yrend,nperyear,var,units,lvar,svar, &
+        history,metadata,lstandardunits,lwrite)
     call copyheader(file,6)
+    call printmetadata(6,file,' ',' ',history,metadata)
     call getarg(2,file)
     read(file,*,err=901) npernew
     if ( iargc().gt.2 ) then
@@ -31,16 +33,20 @@ program yearly2shorter
         call getarg(5,file)
         if ( file(1:3).eq.'ave' ) then
             nfac = 1
-        elseif ( file(1:3).eq.'sum' ) then
+        else if ( file(1:3).eq.'sum' ) then
             nfac = n
         else
             goto 904
-        endif
+        end if
     else
-        m1 = 1
+        if ( nperyear /= 4 ) then
+            m1 = 1
+        else
+            m1 = 0
+        end if
         n = npernew
         nfac = 1
-    endif
+    end if
     call annual2shorter(data,npermax,yrbeg,yrend,nperyear, &
  &       newdata,npermax,yrbeg,yrend,npernew,m1,n,nfac,lwrite)
     call printdatfile(6,newdata,npermax,npernew,yrbeg,yrend)
