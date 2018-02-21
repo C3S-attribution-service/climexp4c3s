@@ -92,6 +92,7 @@ program averagefieldspace
     end if
     undef = 3e33
     write(title(llen(title)+2:),'(a,i2,a,i2,a)') ' averaged over ',avex,'x',avey,' grid boxes'
+    call coarsen_geospatial_metadata(metadata,avex,avey)
     call getarg(4,file)
     i = index(file,'.ctl')
     if ( i /= 0 ) then

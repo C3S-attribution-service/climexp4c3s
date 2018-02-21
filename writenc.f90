@@ -163,9 +163,18 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
                 end if
                 linstitution = .true.
             end if
-            if ( lwrite ) print *,'writenc: writing ',trim(metadata(1,i)),': ',trim(metadata(2,i))
-            status = nf_put_att_text(ncid,nf_global,trim(metadata(1,i)), &
-                len_trim(metadata(2,i)),trim(metadata(2,i)))
+            ! a few should be written as floats...
+            if ( metadata(1,i) == 'geospatial_lon_min' .or. metadata(1,i) == 'geospatial_lon_max' .or. &
+                 metadata(1,i) == 'geospatial_lat_min' .or. metadata(1,i) == 'geospatial_lat_max' .or. &
+                 metadata(1,i) == 'geospatial_lon_resolution' .or. metadata(1,i) == 'geospatial_lat_resolution' ) then
+                read(metadata(2,i),*,end=101,err=101) array(1)
+                status = nf_put_att_real(ncid,nf_global,trim(metadata(1,i)),nf_float,1,array)
+            101 continue
+            else
+                if ( lwrite ) print *,'writenc: writing ',trim(metadata(1,i)),': ',trim(metadata(2,i))
+                status = nf_put_att_text(ncid,nf_global,trim(metadata(1,i)), &
+                    len_trim(metadata(2,i)),trim(metadata(2,i)))
+            end if
             if ( status /= nf_noerr ) call handle_err(status,'put att '//trim(metadata(1,i)))
         end if
     end do

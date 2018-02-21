@@ -218,3 +218,31 @@ subroutine delete_geospatial_metadata(metadata)
     end do
                 
 end subroutine delete_geospatial_metadata
+
+subroutine coarsen_geospatial_metadata(metadata,avex,avey)
+
+!   adjust the resoloution in the geospatial* metadata to reflect that the field has been coarsened
+
+    implicit none
+    character :: metadata(2,100)*(*)
+    integer :: avex,avey
+    integer :: i
+    real :: res
+
+    do i=1,100
+        if ( metadata(1,i) == ' ' ) exit
+        if ( metadata(1,i) == 'geospatial_lon_resolution' ) then
+            read(metadata(2,i),*,err=101,end=101) res
+            res = avex*res
+            write(metadata(2,i),'(f7.1)') res
+        101 continue
+        end if
+        if ( metadata(1,i) == 'geospatial_lat_resolution' ) then
+            read(metadata(2,i),*,err=201,end=201) res
+            res = avey*res
+            write(metadata(2,i),'(f7.1)') res
+        201 continue
+        end if
+    enddo
+                
+end subroutine coarsen_geospatial_metadata

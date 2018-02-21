@@ -804,6 +804,7 @@ subroutine getglobalatts(ncid,metadata,lwrite)
     character :: metadata(2,100)*(*)
     integer :: i,j,xtype,len,status,iarray(100)
     integer*1 :: sarray(100)
+    real :: farray(100)
     character name*100,string*10000
     
     n = 0
@@ -857,6 +858,18 @@ subroutine getglobalatts(ncid,metadata,lwrite)
             n = n + 1
             metadata(1,n) = name
             write(metadata(2,n),'(100i8)') (sarray(j),j=1,len)
+        else if ( xtype == nf_real .or. xtype == nf_float ) then ! yes I know they are the same
+            status = nf_inq_attlen(ncid,nf_global,name,len)
+            if ( status /= nf_noerr ) call handle_err(status,'nf_inq_attlen '//trim(name))
+            if ( len < 100 ) then
+                status = nf_get_att_real(ncid,nf_global,name,farray)
+                if ( status /= nf_noerr ) call handle_err(status,'nf_get_att_float '//trim(name))
+            else
+                string = 'string too long, longer than 100 floats'
+            end if
+            n = n + 1
+            metadata(1,n) = name
+            write(metadata(2,n),'(100f8.1)') (farray(j),j=1,len)
         end if
     end do
     
