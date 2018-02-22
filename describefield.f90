@@ -246,26 +246,26 @@ program describefield
         if ( nperyear == 0 ) then
             write(0,'(a)') 'Time axis was not identified correctly'
         elseif ( nperyear == 4 ) then
-            write(0,'(2a,i4,2a,i4,a,i4,a)') &
+            write(0,'(2a,i4,2a,i4.4,a,i4.4,a)') &
                 'Seasonal data available from ',seasons(firstmo) &
                 ,firstyr,' to ',seasons(1+mod(firstmo+nt-2,4)) &
                 ,firstyr+(firstmo+nt-2)/4,' (',ntt,' seasons)'
         elseif ( nperyear == 12 ) then
             if ( ntt < 10000 ) then
-                format = '(2a,i4,2a,i4,a,i4,a)'
+                format = '(2a,i4,2a,i4.4,a,i4.4,a)'
             else
-                format = '(2a,i4,2a,i4,a,i5,a)'
+                format = '(2a,i4,2a,i4.4,a,i5,a)'
             end if
             write(0,format) &
                 'Monthly data available from ',months(firstmo) &
                 ,firstyr,' to ',months(1+mod(firstmo+nt-2,12)) &
                 ,firstyr +(firstmo+nt-2)/12,' (',ntt,' months)'
         elseif ( nperyear == 1 ) then
-            write(0,'(a,i4,a,i4,a,i4,a)') &
+            write(0,'(a,i4,a,i4.4,a,i4.4,a)') &
                 'Yearly data available from ',firstyr &
                 ,' to ',firstyr + nt - 1,' (',ntt,' years)'
         elseif ( nperyear < 12 ) then
-            write(0,'(i2,2a,i4,2a,i4,a,i4,a)') 12/nperyear, &
+            write(0,'(i2,2a,i4,2a,i4.4,a,i4.4,a)') 12/nperyear, &
                 '-monthly data available from ',months(firstmo*12 &
                 /nperyear),firstyr,' to ',months(1+mod((firstmo+nt &
                 -2)*12/nperyear,12)),firstyr+(firstmo+nt-2) &
@@ -282,7 +282,7 @@ program describefield
                 if ( firstmo >= 60 .and. leap(firstyr) == 1 ) ntp = ntp - 1
             endif
             call getdymo(dy2,mo2,firstmo+ntp-1,nperyear)
-            write(0,'(i2,a,i2.2,a,i4,a,i2.2,a,i4,a,i6,a)') &
+            write(0,'(i2,a,i2.2,a,i4.4,a,i2.2,a,i4.4,a,i6,a)') &
                 nint(366./nperyear),'-daily data available from ', &
                 dy1,months(mo1),firstyr,' to ',dy2,months(mo2), &
                 firstyr+(firstmo+ntp-2)/nperyear,' (',ntp,' times)'
@@ -306,7 +306,7 @@ program describefield
             endif
             if ( lwrite ) print *,'corrected nt from ',nt,' to ',ntp
             call getdymo(dy2,mo2,firstmo+ntp-1,nperyear)
-            write(0,'(i2,a,i2,a,i4,a,i2,a,i4,a,i6,a)') &
+            write(0,'(i2,a,i2.2,a,i4.4,a,i2.2,a,i4.4,a,i6,a)') &
                 nint(24*366./nperyear),'-hourly data available from &
                 ',dy1,months(mo1),firstyr,' to &
                 ',dy2,months(mo2),firstyr+(firstmo+nt-2)/nperyear,' &
