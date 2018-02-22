@@ -12,7 +12,7 @@ program plotdaily
     real,allocatable :: data(:,:),mean(:)
     logical cdf
     character file*255,var*20,units*20,string*80,enddate*20
-    integer iargc
+    integer iargc,leap
     
     if ( iargc() < 3 ) then
         write(0,*) 'usage: plotdaily infile nday enddate [cdf] [begin yr1 end yr2] [anom]'
@@ -82,7 +82,7 @@ program plotdaily
                 cummean = mean(mm)
             end if
             print '(i4,2i2.2,2g12.4)',yr,mo,dy,cumdata,cummean
-        else
+        else if ( nperyear /= 366 .or. leap(yr) == 2 .or. mm /= 60 ) then
             print '(a)'
         end if
     end do
