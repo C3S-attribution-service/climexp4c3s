@@ -21,13 +21,12 @@ program plotdaily
     
     call getarg(1,file)
     call getarg(2,string)
-    call getarg(3,enddate)
     read(string,*) nday
+    call getarg(3,enddate)
     allocate(data(npermax,yrbeg:yrend))
     lstandardunits = .true.
     lwrite = .false.
-    call readseries(file,data,npermax,yrbeg,yrend,nperyear, &
-    &   var,units,lstandardunits,lwrite)
+    call readseries(file,data,npermax,yrbeg,yrend,nperyear,var,units,lstandardunits,lwrite)
     mens1 = 0
     mens = 0
     n = 4
@@ -55,7 +54,9 @@ program plotdaily
                 if ( data(mo,yr).lt.1e33 ) goto 800
             end do
         end do
-        800 continue
+        write(0,*) 'plotdaily: error: cannot find any valid data'
+        call exit(-1)
+    800 continue
         yrlast = yr
         molast = mo
     else
@@ -73,17 +74,19 @@ program plotdaily
         mm = molast-k
         call normon(mm,yrlast,yr,nperyear)
         call getdymo(dy,mo,mm,nperyear)
-        if ( data(mm,yr).lt.1e33 .and. mean(mm).lt.1e33 ) then
-            if ( cdf ) then
-                cumdata = cumdata + data(mm,yr)+mean(mm)
-                cummean = cummean + mean(mm)
-            else
-                cumdata = data(mm,yr)+mean(mm)
-                cummean = mean(mm)
+        if ( yr >= yrbeg .and. yr <= yrend ) then
+            if ( data(mm,yr).lt.1e33 .and. mean(mm).lt.1e33 ) then
+                if ( cdf ) then
+                    cumdata = cumdata + data(mm,yr)+mean(mm)
+                    cummean = cummean + mean(mm)
+                else
+                    cumdata = data(mm,yr)+mean(mm)
+                    cummean = mean(mm)
+                end if
+                print '(i4,2i2.2,2g12.4)',yr,mo,dy,cumdata,cummean
+            else if ( nperyear /= 366 .or. leap(yr) == 2 .or. mm /= 60 ) then
+                print '(a)'
             end if
-            print '(i4,2i2.2,2g12.4)',yr,mo,dy,cumdata,cummean
-        else if ( nperyear /= 366 .or. leap(yr) == 2 .or. mm /= 60 ) then
-            print '(a)'
         end if
     end do
 end program
