@@ -835,7 +835,7 @@ F2f90:  F2f90.o
 
 WAVEFILES = 	wave.F param.inc getopts.inc recfac.h netcdf.inc \
 		makeabsent.f readdat.F readncseries.f90 getopts.f90 \
-		sumit.f90 operations.f90 diffit.f anomal.f normon.f \
+		sumit.f90 operations.f90 diffit.f anomal.f90 normon.f \
 		wavelet.f cfftpack.f chisqr.f \
 		parsectl.f writectl.F parsenc.f90 readncfile.f90 \
 		llen.f rsunit.f getnumwords.f get_endian.f tolower.f
