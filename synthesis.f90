@@ -322,7 +322,7 @@ program synthesis
     ncolor = 1
     if ( lnoave ) n = n-1
     do i=1,n
-        print '(2i5,3f12.3,i3,4a)',yr1,yr2,(data(j,i),j=1,3),colors(ncolor),' "',trim(names(i)),'"'
+        print '(2i5,3g12.3,i3,4a)',yr1,yr2,(data(j,i),j=1,3),colors(ncolor),' "',trim(names(i)),'"'
         do j=1,nblank(i)
             ncolor = ncolor + 1
         end do
