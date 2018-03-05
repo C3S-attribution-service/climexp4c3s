@@ -26,10 +26,10 @@ program eof
     real,allocatable :: field(:,:,:,:,:)
     real,allocatable :: fxy(:,:,:),pc(:,:,:,:),eofxy(:,:,:),pattern(:,:,:,:)
     real*4 :: tarray(2)
-    character title*255,vars(neofmax)*60,lvars(neofmax)*120, &
+    character title*255,vars(neofmax)*60,lvars(neofmax)*200, &
         units(neofmax)*20,lsmasktype*4,outfile*255,infile*255, &
         datfile*255,line*255,yesno*1,dir*255,string*20, &
-        fieldtitle*255,lvar*120,unit*80,cell_methods(nvarmax)*100, &
+        fieldtitle*255,lvar*200,unit*80,cell_methods(nvarmax)*100, &
         history*50000,ltime*120,lz(3)*20,svars(neofmax)*80, &
         metadata(2,100)*2000,FORM_field*250
     logical :: lexist,xrev,yrev,xwrap
@@ -424,7 +424,8 @@ program eof
         end if
         ivars(1,i) = 1
         ivars(2,i) = 99
-        write(lvars(i),'(a,i4,2a)') 'EOF #',i,' of ',trim(lvar)
+        write(lvars(i),'(a,i4,2a)') 'EOF #',i,' of'
+        lvars(i) = trim(lvars(i))//' '//trim(lvar)
         svars = ' '
         if ( normalization > 0 ) then
             units(i) = '1'
