@@ -246,26 +246,26 @@ program describefield
         if ( nperyear == 0 ) then
             write(0,'(a)') 'Time axis was not identified correctly'
         elseif ( nperyear == 4 ) then
-            write(0,'(2a,i4,2a,i4.4,a,i4.4,a)') &
+            write(0,'(2a,i4.4,2a,i4.4,a,i4,a)') &
                 'Seasonal data available from ',seasons(firstmo) &
                 ,firstyr,' to ',seasons(1+mod(firstmo+nt-2,4)) &
                 ,firstyr+(firstmo+nt-2)/4,' (',ntt,' seasons)'
         elseif ( nperyear == 12 ) then
             if ( ntt < 10000 ) then
-                format = '(2a,i4,2a,i4.4,a,i4.4,a)'
+                format = '(2a,i4.4,2a,i4.4,a,i4,a)'
             else
-                format = '(2a,i4,2a,i4.4,a,i5,a)'
+                format = '(2a,i4.4,2a,i4.4,a,i5,a)'
             end if
             write(0,format) &
                 'Monthly data available from ',months(firstmo) &
                 ,firstyr,' to ',months(1+mod(firstmo+nt-2,12)) &
                 ,firstyr +(firstmo+nt-2)/12,' (',ntt,' months)'
         elseif ( nperyear == 1 ) then
-            write(0,'(a,i4,a,i4.4,a,i4.4,a)') &
+            write(0,'(a,i4,a,i4.4,a,i4,a)') &
                 'Yearly data available from ',firstyr &
                 ,' to ',firstyr + nt - 1,' (',ntt,' years)'
         elseif ( nperyear < 12 ) then
-            write(0,'(i2,2a,i4,2a,i4.4,a,i4.4,a)') 12/nperyear, &
+            write(0,'(i2,2a,i4.4,2a,i4.4,a,i4,a)') 12/nperyear, &
                 '-monthly data available from ',months(firstmo*12 &
                 /nperyear),firstyr,' to ',months(1+mod((firstmo+nt &
                 -2)*12/nperyear,12)),firstyr+(firstmo+nt-2) &
