@@ -31,13 +31,13 @@ program diffdat
     end if
     call readseries(file,data,npermax,yrbeg,yrend,nperyear,var,units, .false. ,lwrite)
     if ( n == 2 ) then
-        call ndiffit(data,npermax,nperyear,yrbeg,yrend,1,minfac)
+        call mdiffit(data,npermax,nperyear,yrbeg,yrend,1,minfac)
         diff = data
     else
         call derivative(n,data,diff,npermax,yrbeg,yrend,nperyear,minfac,lwrite)
     end if
     if ( n == 2 ) then
-        print '(3a)','# difference with previous year of ',trim(file)
+        print '(3a)','# difference with previous data point of ',trim(file)
     else
         print '(3a,i3,a)','# centered derivative of ',trim(file) &
             ,' using linear regression over ',n,' data points'
