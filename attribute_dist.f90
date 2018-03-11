@@ -22,9 +22,8 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     data init /0/
 
     call getenv('TYPE',string)
-    call tolower(string)
     lset = .false.
-    if ( string == 'set' ) lset = .true.
+    if ( string == 'setmap' ) lset = .true.
     results = 3e33
     nresults = 0
     fyr = min(yr1,yr1a,yr2a)
