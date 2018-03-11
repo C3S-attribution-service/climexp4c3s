@@ -246,7 +246,7 @@ subroutine printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,yr2b,lweb
                             ' ... ',atx975(3),'</td></tr>'
                     if ( tx(3) < 1 ) then
                         print '(8a)' &
-                            ,'# <tr><td><!--atra-->inverse risk ratio</td><td>&nbsp;', &
+                            ,'# <tr><td>inverse risk ratio</td><td>&nbsp;', &
                             '</td><td>',ainvtx(3),'</td><td>',ainvtx975(3), &
                             ' ... ',ainvtx25(3),'</td></tr>'
                     end if
