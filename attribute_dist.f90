@@ -17,10 +17,14 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         regr,intercept,sigb,siga,chi2,q,prob,z,ax,sxx,ay,syy,sxy,df
     real,allocatable :: xx(:,:),yrseries(:,:,:),yrcovariate(:,:,:),yy(:),crosscorr(:,:), &
         xxx(:,:,:),yyy(:),zzz(:),sig(:)
-    logical lboot,lprint,subtract_offset
-    character operation*4,file*1024,idmax*30
+    logical lboot,lprint,subtract_offset,lset
+    character :: operation*4,file*1024,idmax*30,string*20
     data init /0/
 
+    call getenv('TYPE',string)
+    call tolower(string)
+    lset = .false.
+    if ( string == 'set' ) lset = .true.
     results = 3e33
     nresults = 0
     fyr = min(yr1,yr1a,yr2a)
@@ -214,7 +218,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         crosscorr(mens1,mens1) = 1
     end if
 
-    write(0,*) 'Fitting...<p>'
+    if ( .not. lset ) write(0,*) 'Fitting...<p>'
     lboot = .true.
     if ( distribution == 'gev' ) then
         ntype = 2 ! Gumbel plot
