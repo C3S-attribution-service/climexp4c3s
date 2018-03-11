@@ -65,6 +65,13 @@ subroutine printmetadata(lun,file,FORM_field,title,history,metadata)
     
 end subroutine printmetadata
 
+subroutine printvar(unit,var,units,lvar)
+    implicit none
+    integer :: unit
+    character :: var*(*),units*(*),lvar*(*)
+    write(unit,'(6a)') '# ',trim(var),' [',trim(units),'] ',trim(lvar)
+end subroutine printvar
+
 subroutine extend_history(history)
     implicit none
     character history*(*)
@@ -125,6 +132,13 @@ subroutine merge_metadata(metadata1,nmetadata1,metadata2,title2,history2,prefix)
             end if
         end do
     end do
+!   change occurrences of prefix in metadata1 to another one (hopefully just one level of conflicts...)
+    do i=1,nmetadata1
+        if ( metadata1(1,i)(1:len_trim(prefix)) == trim(prefix) ) then
+            metadata1(1,i) = 'main_'//trim(metadata1(1,i))
+        end if
+    end do
+!   merge
     do k=1,j-1
         if ( metadata2(1,k) /= ' ' ) then
             nmetadata1 = nmetadata1 + 1
