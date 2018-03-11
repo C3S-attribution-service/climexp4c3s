@@ -439,8 +439,10 @@ subroutine makestandardunits(mean,nperyear,invar,units,newunits,offset,slope,ndp
 !
 !           nothing fits...
 !
-!!!         write(0,*) 'makestandardunits: unknown unit string ',units
-!!!         write(0,*) '                   nothing done'
+        if ( lwrite ) then
+            print *,'makestandardunits: unknown unit string ',trim(units)
+            print *,'                   nothing done'
+        end if
         return
     endif
 !

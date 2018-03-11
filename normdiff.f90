@@ -44,8 +44,8 @@ program normdiff
     write(title,'(4a)') 'Difference between ',trim(file1),' and ',trim(file2)
     print '(2a)','# ',trim(title)
     if ( i /= nperyear ) then
-        write(0,*) 'normdiff: cannot interpolate in time (yet)'
-        write(*,*) 'normdiff: cannot interpolate in time (yet)'
+        write(0,*) 'normdiff: cannot interpolate in time (yet)',i,nperyear
+        write(*,*) 'normdiff: cannot interpolate in time (yet)',i,nperyear
         call exit(-1)
     endif
     call getmy(3,my1,nperyear)
