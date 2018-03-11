@@ -19,8 +19,8 @@ program yearly2shorter
     call getarg(1,file)
     call readseriesmeta(file,data,npermax,yrbeg,yrend,nperyear,var,units,lvar,svar, &
         history,metadata,lstandardunits,lwrite)
-    call copyheader(file,6)
-    call printmetadata(6,file,' ',' ',history,metadata)
+    call printvar(6,var,units,lvar)
+    call copyheadermeta(file,6,' ',history,metadata)
     call getarg(2,file)
     read(file,*,err=901) npernew
     if ( iargc().gt.2 ) then

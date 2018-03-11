@@ -46,21 +46,22 @@ program scaletimeseries
         call exit(-1)
     endif
     title = ' '
+    call printvar(6,var,units,lvar)
     call copyheadermeta(string,6,title,history,metadata)
-    write(6,'(a,12g16.6)') '# scaled with a factor ',(factor(i),i=1,nfactor)
+    write(6,'(a,12g16.6)') '# scale_factor :: ',(factor(i),i=1,nfactor)
     if ( ndpm == 1 ) then
-        write(6,'(a)')'# and multiplied by the number of days in a month'
+        write(6,'(a)')'# scale_factor_dpm :: multiplied by the number of days in a month'
     elseif ( ndpm == 2 ) then
-        write(6,'(a)') '# and multiplied by the number of days in a month squared'
+        write(6,'(a)') '# scale_factor_dpm :: multiplied by the number of days in a month squared'
     elseif ( ndpm == -1 ) then
-        write(6,'(a)')'# and divided by the number of days in a month'
+        write(6,'(a)')'# scale_factor_dpm :: divided by the number of days in a month'
     elseif ( ndpm == -2 ) then
-        write(6,'(a)') '# and divided by the number of days in a month squared'
+        write(6,'(a)') '# scale_factor_dpm :: divided by the number of days in a month squared'
     elseif ( ndpm /= 0 ) then
-        write(6,'(a,i3)') '# and multiplied by dpm**',ndpm
+        write(6,'(a,i3)') '# scale_factor_dpm :: multiplied by dpm**',ndpm
     endif
     if ( any(offset(1:noffset) /= 0) ) then
-        write(6,'(a,12g16.6)') '# added offset ',(offset(i),i=1,noffset)
+        write(6,'(a,12g16.6)') '# added_offset :: ',(offset(i),i=1,noffset)
     end if
     call scaleseries(data,npermax,nperyear,yrbeg,yrend,factor,nfactor,offset,noffset,ndpm)
     call printdatfile(6,data,npermax,nperyear,yrbeg,yrend)
