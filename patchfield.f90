@@ -8,26 +8,25 @@ program patchfield
     include 'params.h'
     include 'getopts.inc'
     include 'netcdf.inc'
-    integer nvarmax,ntmax
-    parameter (nvarmax=1,ntmax=500*12)
-    integer mens,mens1,ncid,nx,ny,nz,nt,nperyear,firstyr,firstmo,endian, &
- &      nvars,ivars(6,nvarmax)
-    integer mens01,mens11,ncid1,nx1,ny1,nz1,nt1,nperyear1,firstyr1,firstmo1,endian1, &
- &      nvars1,ivars1(6,nvarmax),nnt,nnt1
-    integer ix,iy,iz,i,j,dy,mo,yr,n,nperday,dpm(12),fyr,lyr,status,itimeaxis(ndata),ntvarid
-    real xi(30*(yrend-yrbeg+1)),yi(30*(yrend-yrbeg+1))
-    real scale(12),offset(12),a,b,siga,sigb,chi2,q,sig(1),sx(12),sy(12)
-    real xx(nxmax),yy(nymax),zz(nzmax),undef
-    real xx1(nxmax),yy1(nymax),zz1(nzmax),undef1
+    integer,parameter :: nvarmax=1,ntmax=500*12
+    integer :: mens,mens1,ncid,nx,ny,nz,nt,nperyear,firstyr,firstmo,endian, &
+        nvars,ivars(6,nvarmax)
+    integer :: mens01,mens11,ncid1,nx1,ny1,nz1,nt1,nperyear1,firstyr1,firstmo1,endian1, &
+        nvars1,ivars1(6,nvarmax),nnt,nnt1,nmetadata
+    integer :: ix,iy,iz,i,j,dy,mo,yr,n,nperday,dpm(12),fyr,lyr,status,itimeaxis(ndata),ntvarid
+    real :: xi(30*(yrend-yrbeg+1)),yi(30*(yrend-yrbeg+1))
+    real :: scale(12),offset(12),a,b,siga,sigb,chi2,q,sig(1),sx(12),sy(12)
+    real :: xx(nxmax),yy(nymax),zz(nzmax),undef
+    real :: xx1(nxmax),yy1(nymax),zz1(nzmax),undef1
     real,allocatable :: mainfield(:,:,:,:,:),auxfield(:,:,:,:,:),maindata(:,:),auxdata(:,:)
-    logical lreversefit
-    character &
+    logical :: lreversefit
+    character :: &
         mainfile*255,auxfile*255,outfile*255,datfile*255,datfile1*255,lz(3)*20,ltime*120, &
         title*2000,title1*2000,history*20000,vars(nvarmax)*40,lvars(nvarmax)*120,svars(nvarmax)*80, &
         units(nvarmax)*40,units1(nvarmax)*40,cell_methods(nvarmax)*40,metadata(2,100)*2000, &
-        metadata1(2,100)*2000
-    character method*4
-    integer iargc
+        metadata1(2,100)*2000,history1*20000
+    character :: method*4
+    integer :: iargc
     integer,external :: leap
     data dpm /31,29,31,20,31,30,31,31,30,31,30,31/
 !
@@ -53,7 +52,7 @@ program patchfield
     call getarg(1,mainfile)
     call getmetadata(mainfile,mens1,mens,ncid,datfile,nxmax,nx &
  &       ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo &
- &       ,ltime,undef,endian,title,history,nvarmax,nvars,vars,ivars &
+ &       ,ltime,undef,endian,title,history1,nvarmax,nvars,vars,ivars &
  &       ,lvars,svars,units,cell_methods,metadata,lwrite)
     if ( iargc() >= 4 ) then
         call getarg(3,method)
@@ -281,14 +280,7 @@ program patchfield
 !       netcdf output
         undef = 3e33
         title = trim(title)//' extended with '//trim(title1)
-        do i=1,1000
-            if ( metadata(1,i) == ' ' ) exit
-        end do
-        do j=1,1000-i
-            if ( metadata1(1,j) == ' ' ) exit
-            metadata(1,j+i-1) = 'aux_'//trim(metadata1(1,j))
-            metadata(2,j+i-1) = metadata1(2,j)
-        end do
+        call merge_metadata(metadata,nmetadata,metadata1,title1,history1,'aux_')
         nnt = nperyear*(lyr-fyr+1)
         if ( nperyear == 366 ) then
             do i=fyr,lyr

@@ -6,39 +6,47 @@ program patchseries
 !
     implicit none
     include 'param.inc'
-    integer i,j,dy,mo,yr,nperyear,nperyear2,n,nperday,dpm(12)
-    real maindata(npermax,yrbeg:yrend),auxdata(npermax,yrbeg:yrend), &
- &       xx(30*(yrend-yrbeg+1)),yy(30*(yrend-yrbeg+1))
-    real scale(12),offset(12),a,b,siga,sigb,chi2,q,sig(1),sx(12),sy(12)
-    character var*40,units*20,var2*40,units2*20,mainfile*255,auxfile*255
-    character method*4
-    logical lwrite,lreversefit
-    integer iargc
+    integer :: i,j,dy,mo,yr,nperyear,nperyear2,n,nperday,dpm(12),nmetadata
+    real,allocatable :: maindata(:,:),auxdata(:,:)
+    real :: xx(30*(yrend-yrbeg+1)),yy(30*(yrend-yrbeg+1))
+    real :: scale(12),offset(12),a,b,siga,sigb,chi2,q,sig(1),sx(12),sy(12)
+    character :: var*100,units*120,var2*100,units2*20,mainfile*1023,auxfile*1023
+    character :: method*4,lvar*200,svar*100,lvar2*200,svar2*100, &
+        metadata(2,100)*2000,metadata2(2,100)*2000,history*10000,history2*10000
+    logical :: lwrite,lreversefit,lstandardunits
+    integer :: iargc
     data dpm /31,29,31,20,31,30,31,31,30,31,30,31/
 
     lwrite = .false.
     lreversefit = .false.
+    lstandardunits = .true.
     sx = 0
     sy = 0
     if ( iargc() < 2 ) then
         write(0,*) 'usage: patchseries mainseries auxseries [regr|bias|none]'
         write(0,*) 'patches holes in mainseries using data from '// &
- &           'auxseries linearly regressed on mainseries | biascorrected to mainseries '// &
- &           '| without corrections (default)'
+             'auxseries linearly regressed on mainseries | biascorrected to mainseries '// &
+             '| without corrections (default)'
         stop
     endif
+    allocate(maindata(npermax,yrbeg:yrend),auxdata(npermax,yrbeg:yrend))
     call getarg(1,mainfile)
-    call readseries(mainfile,maindata,npermax,yrbeg,yrend,nperyear &
- &       ,var,units,.true.,lwrite)
+    if ( lwrite ) print *,'reading ',trim(mainfile)
+    call readseriesmeta(mainfile,maindata,npermax,yrbeg,yrend,nperyear &
+         ,var,units,lvar,svar,history,metadata,lstandardunits,lwrite)
     call getarg(2,auxfile)
-    call readseries(auxfile,auxdata,npermax,yrbeg,yrend,nperyear2  &
- &       ,var2,units2,.true.,lwrite)
+    if ( lwrite ) print *,'reading ',trim(auxfile)
+    call readseriesmeta(auxfile,auxdata,npermax,yrbeg,yrend,nperyear2  &
+         ,var2,units2,lvar2,svar2,history2,metadata2,lstandardunits,lwrite)
     if ( nperyear.ne.nperyear2 ) then
         write(0,*) 'patchseries: error: can only handle series '// &
- &           'with the same time resolution, not ',nperyear,nperyear2
+             'with the same time resolution, not ',nperyear,nperyear2
         write(*,*) 'patchseries: error: can only handle series '// &
- &           'with the same time resolution, not ',nperyear,nperyear2
-        call abort
+             'with the same time resolution, not ',nperyear,nperyear2
+        call exit(-1)
+    end if
+    if ( units /= units2 ) then
+        write(0,*) 'patchseries: warning: unequal units ',trim(units),' vs ',trim(units2)
     end if
     if ( iargc() >= 3 ) then
         call getarg(3,method)
@@ -48,7 +56,7 @@ program patchseries
         method = 'none'
     end if
 !
-!   determine regression coefficents per month or less
+!   determine regression coefficients per month or less
 !
     if ( nperyear.le.12 ) then
         sx = 0
@@ -175,23 +183,19 @@ program patchseries
         end do
     else
        write(0,*) 'merging pentad or decadal time series not ready'
-       call abort 
+       call exit(-1) 
     end if
 !
 !   output
 !
-    call copyheader_newunits(mainfile,6,units)
-    write(6,'(2a)') '# patched with data from ',trim(auxfile)
+    call printvar(6,var,units,lvar)
+    call merge_metadata(metadata,nmetadata,metadata2,' ',history2,'aux_')
+    call copyheadermeta(mainfile,6,trim(mainfile)//' extended with '//trim(auxfile),history,metadata)
     if ( method == 'bias' ) then
-        write(6,'(a,g16.6)') '# using bias correction '
-        do mo=1,min(12,nperyear)
-            write(6,'(a,4f8.3)') '# ',offset(mo)
-        end do
+        write(6,'(a,12f8.3)') '# bias_correction :: ',(offset(mo),mo=1,min(12,nperyear))
     else if ( method == 'regr' ) then
-        write(6,'(a,g16.6)') '# using scale,offset '
-        do mo=1,min(12,nperyear)
-            write(6,'(a,4f8.3)') '# ',scale(mo),offset(mo)
-        end do
+        write(6,'(a,12f8.3)') '# patch_scale :: ',(scale(mo),mo=1,min(12,nperyear))
+        write(6,'(a,12f8.3)') '# bias_correction :: ',(offset(mo),mo=1,min(12,nperyear))
     end if
     call printdatfile(6,maindata,npermax,nperyear,yrbeg,yrend)
 end program
