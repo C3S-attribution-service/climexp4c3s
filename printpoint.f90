@@ -106,12 +106,12 @@ subroutine printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume,lnone
                 do i=1,10
                     if ( lnone ) then
                         write(11,'(4g20.4,i6,a)') t(i,1),t25(i,1), &
-                            t975(i,1),10**(1+i/3),0,' return value'
+                            t975(i,1),10**(1+i/3.),0,' return value'
                     else
                         write(11,'(4g20.4,i6,a)') t(i,1),t25(i,1), &
-                            t975(i,1),10**(1+i/3),yr1a,' return value'
+                            t975(i,1),10**(1+i/3.),yr1a,' return value'
                         write(11,'(4g20.4,i6,a)') t(i,2),t25(i,2), &
-                            t975(i,2),10**(1+i/3),yr2a,' return value'
+                            t975(i,2),10**(1+i/3.),yr2a,' return value'
                     end if
                 end do
             end if
@@ -305,25 +305,28 @@ subroutine printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,yr2b,lweb
 end subroutine printcovreturntime
 
 
-subroutine printcovpvalue(txtx,nmc,nens,lweb)
+subroutine printcovpvalue(txtx,nmc,nens,lweb,plot)
 
 !   print out the p-value at which the ratio of return time is unequal to 1 (FAR unequal to 0)
 
     implicit none
     integer :: nmc,nens
     real :: txtx(nmc,3)
-    logical :: lweb
+    logical :: lweb,plot
     integer :: i
     real :: p,one
     one = 1
     call invgetcut(p,one,nens,txtx(1,3))
     if ( p > 0.5 ) p = 1-p
     if ( lweb ) then
-        print '(2a,f7.4,2a)','<tr><td><i>p</i>-value risk ratio (one-sided)', &
+        print '(2a,f7.4,2a)','# <tr><td><i>p</i>-value risk ratio (one-sided)', &
             '</td><td>&#8800; 1</td><td>',p,'</td><td>&nbsp;</td>', &
             '</tr>'
     else
         print '(a,f7.4,a)','# p-value for ratio/=1 (one-sided) ',p
+    end if
+    if ( plot ) then    ! output for stationlist
+        write(11,'(g20.4,a)') p,' p-value (one-sided)'
     end if
 end subroutine printcovpvalue
 
