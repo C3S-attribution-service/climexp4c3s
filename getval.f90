@@ -63,7 +63,7 @@ program getval
     j = index(file,'.') - 1
     if ( data(m,yr2a) < 1e30 ) then
         write(*,'(3a,g16.4,3a)') &
-            '<table class=realtable width=451><tr><td width=300>' &
+            '<table class=realtable width="100%"><tr><td width=300>' &
             ,trim(namestring),'<td>',data(m,yr2a),' ',trim(units),'</table>'
     endif
     write(unit,'(2i5,g12.4,f6.1,i2,2g12.4,3f6.1)') &

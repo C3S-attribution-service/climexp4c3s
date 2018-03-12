@@ -267,7 +267,7 @@
 !
     first = .true. 
     if ( oper(1:2) == 'hi' .or. oper(1:2) == 'at' ) then
-        call mysystem('echo "<table class=realtable width=451 '// &
+        call mysystem('echo "<table class=realtable width="100%" '// &
             'border=0 cellpadding= cellspacing=0>"',retval)
     end if
     if ( oper == 'aver' ) then
@@ -586,27 +586,27 @@
             elseif ( oper(1:2) == 'at' ) then
                 if ( lwrite ) print *,'stationlist: opening file ',trim(tmpfile)
                 open(3,file=trim(tmpfile),status='old',err=200)
-                do i=1,10
-                    do j=1,2
-                        read(3,*,end=200,err=200)tt(i,j),tt25(i,j),tt975(i,j)
-                    end do
-                end do
                 do j=1,3
                     read(3,*,end=200,err=200) ttx(j),ttx25(j),ttx975(j)
                 end do
+                read(3,*,end=200,err=200) sign
+                do i=1,10
+                    do j=1,2
+                        read(3,*,end=200,err=200) tt(i,j),tt25(i,j),tt975(i,j)
+                    end do
+                end do
                 read(3,*,end=200,err=200) alpha,alpha25,alpha975
                 if ( lwrite ) then
-                    print *,'alpha = ',alpha
+                    do j=1,3
+                        print *,'tx(',j,')   = ',ttx(j),ttx25(j),ttx975(j)
+                    end do
+                    print *,'sign = ',sign
                     do i=1,10
                         do j=1,2
-                            print *,'tt(',i,j,') = ',tt(i,j), &
-                            tt25(i,j),tt975(i,j)
+                            print *,'tt(',i,j,') = ',tt(i,j),tt25(i,j),tt975(i,j)
                         end do
                     end do
-                    do j=1,3
-                        print *,'tx(',j,')   = ',ttx(j),ttx25(j), &
-                        ttx975(j)
-                    end do
+                    print *,'alpha = ',alpha,alpha25,alpha975
                     close(3)
                 else
                     close(3,status='delete')
