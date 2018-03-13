@@ -14,7 +14,7 @@ program plotdat
     integer :: iargc
     lwrite = .false. 
     lskip = .false. 
-    call getenv('LWRITE_PLOTDAT',line)
+    call getenv('PLOTDAT_LWRITE',line)
     if ( line(1:1) == 't' .or. line(1:1) == 'T' ) then
         lwrite = .true. 
     endif
