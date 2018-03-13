@@ -35,7 +35,6 @@ program attribute
 !   initialisation
 !
     call attribute_init(seriesfile,distribution,assume,off,nperyear,yrbeg,yrend,mensmax,lwrite)
-
     allocate(series(npermax,yrbeg:yrend,0:mensmax))
     if ( seriesfile == 'file' ) then
         ! set of stations

@@ -19,7 +19,7 @@
         ,ttx(3),ttx25(3),ttx975(3),tt(10,3),tt25(10,3),tt975(10,3)
     character(20) :: code
     real :: elev
-    logical :: lexist,first
+    logical :: lexist,first,ltwosided
     character line*255,file*256,prog*120,filterargs*100, &
         filterext*100,oper*4,name*40,options*1024,datfile*256 &
         ,rawfile*256,command*1024,tmpfile*29,aveline*10000,dir*256 &
@@ -32,7 +32,11 @@
     data psigns /0.1,0.05,0.01,0.005,0.001/
 
     lwrite = .false. 
+    call getenv('STATIONLIST_LWRITE',line)
+    call tolower(line)
+    if ( line == 'true' ) lwrite = .true.
     nsigns = 0
+    ltwosided = .false.
     if ( iargc() < 4 ) then
         print *,'usage: stationlist listfile outfile prog operation ...'
         stop
@@ -620,13 +624,20 @@
                     val = ttx(2)
                     sign = 1/ttx(2)
                 elseif ( oper == 'atra' ) then
-                    val = log10(ttx(3))
-                    ! assuming the PDF of log(ratio) is gaussian the 95% CI corresponds to ±2\sigma
-                    sd = (log(ttx975(3)) - log(ttx25(3)))/4
-                    z = abs(log(ttx(3))/sd)
-                    ! convert to p-value, assuming a 2-sided test, even though we
-                    ! often know from theory which way it should go.
-                    sign = erfc(z/sqrt(2.))
+                    if ( abs(ttx(3)) < 1e19 ) then
+                        val = log10(ttx(3))
+                    else
+                        val = 3e33
+                    end if
+                    sign = 2*sign ! the output is one-sided, here we use two-sided
+                    if ( .false. ) then ! old code
+                        ! assuming the PDF of log(ratio) is gaussian the 95% CI corresponds to ±2\sigma
+                        sd = (log(ttx975(3)) - log(ttx25(3)))/4
+                        z = abs(log(ttx(3))/sd)
+                        ! convert to p-value, assuming a 2-sided test, even though we
+                        ! often know from theory which way it should go.
+                        sign = erfc(z/sqrt(2.))
+                    end if
                 elseif ( ichar(oper(3:3)) >= ichar('0') .and. &
                          ichar(oper(3:3)) <= ichar('9') ) then
                     read(oper(3:3),'(i1)') i
@@ -642,14 +653,6 @@
                 open(3,file=tmpfile,status='old',err=200)
                 read(3,*,end=700,err=700) i,j,val,sign,k,x1,s1,x2,s2,regr
                 close(3,status='delete')
-            end if
-            if ( sign >= 0 ) then
-                if ( nsigns < nmax ) then
-                    nsigns = nsigns + 1
-                    signs(nsigns) = sign
-                else
-                    print *,'last stations not in histogram'
-                end if
             end if
             if ( val > 1e33 ) goto 200
             if ( oper == 'sign' .or. oper == 'ausi' .or. oper == 'runc' ) then
@@ -688,12 +691,26 @@
                 val = (val-x1)/s1
                 sign = 0
             end if
+            if ( sign >= 0 ) then
+                if ( nsigns < nmax ) then
+                    nsigns = nsigns + 1
+                    if ( val < 0 ) then
+                        ltwosided = .true.
+                        signs(nsigns) = 1-sign
+                    else
+                        signs(nsigns) = sign
+                    end if
+                else
+                    print *,'last stations not in histogram'
+                end if
+            end if
         end if
     else
         print *,'stationlist: unknown operation code ',oper
         call exit(-1)
     end if
 1000 format(a,2f10.4,' ',g10.4,f8.4,1x,4a)
+    if ( sign == -1 ) sign = 0
     if ( oper /= 'aver' ) then
         if ( sign >= 0 .and. sign < 1  ) then
             write(2,1000) trim(code),lon,lat,val,sign,trim(name),' (',trim(country),')'
@@ -730,14 +747,37 @@
     if ( nsigns > 0 .and. (oper == 'higa' .or. oper(1:3) /= 'hig') ) then
         call flush(6)
         call nrsort(nsigns,signs)
+        if ( ltwosided ) print '(a)','<b>Positive values</b><br>'
         do isign=1,5
             do i=1,nsigns
-                if ( signs(i) > psigns(isign) ) goto 820
+                if ( signs(i) > psigns(isign) ) exit
             end do
-        820 print '(a,i5,a,i5,a,f7.2,a,f6.2,a)','There are ',i-1,'/' &
-                ,nsigns,' (',100*(i-1)/real(n) &
-                ,'%) stations with P < ',100*psigns(isign),'%<br>'
+            if ( i-1 > 0 ) then
+                print '(a,i5,a,i5,a,f7.2,a,f6.2,a)','There are ',i-1,'/' &
+                    ,nsigns,' (',100*(i-1)/real(n) &
+                    ,'%) stations with P < ',100*psigns(isign),'%<br>'
+                else
+                    print '(a,f6.2,a)','No significant trends at <i>p</i>&lt;',100*psigns(isign),'%<br>'
+                    exit
+            end if
         end do
+        if ( ltwosided ) then
+            print '(a)','<b>Negative values</b><br>'
+            do isign=1,5
+                do i=nsigns,1,-1
+                    if ( signs(i) < 1-psigns(isign) ) exit
+                end do
+                i = nsigns - i
+                if ( i-1 > 0 ) then
+                    print '(a,i5,a,i5,a,f7.2,a,f6.2,a)','There are ',i-1,'/' &
+                        ,nsigns,' (',100*(i-1)/real(n) &
+                        ,'%) stations with <i>p</i>&lt;',100*psigns(isign),'%<br>'
+                else
+                    print '(a,f6.2,a)','No significant trends at <i>p</i>&lt;',100*psigns(isign),'%<br>'
+                    exit
+                end if
+            end do
+        end if
     end if
     goto 999
 900 print *,'stationlist: error: cannot open outfile ',trim(file)

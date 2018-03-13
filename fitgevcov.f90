@@ -939,7 +939,13 @@ real function gevcovreturnyear(a,b,xi,alpha,beta,xyear,cov,lchangesign)
     if ( z < 0 ) then
         y = 1e20
     else if ( abs(xi) > 1e-3 ) then
-        y = -z**(-1/xi)
+        !!!y = -z**(-1/xi) sometimes does not fit
+        y = log(z)*(-1/xi)
+        if ( y < 20*log(10.) ) then
+            y = -exp(y)
+        else
+            y = -1e20
+        end if
     else
         if ( xi == 0 ) then
             arg = -(x-aa)/bb

@@ -26,8 +26,12 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     if ( string == 'setmap' ) lset = .true.
     results = 3e33
     nresults = 0
-    fyr = min(yr1,yr1a,yr2a)
-    lyr = max(yr2,yr1a,yr2a)
+    fyr = min(yr1,yr1a)
+    lyr = max(yr2,yr1a)
+    if ( yr2a <= yrend ) then ! it is 9999 if xyear is set
+        fyr = min(fyr,yr2a)
+        lyr = max(lyr,yr2a)
+    end if    
     if ( yr2b > 0 ) then
         fyr = min(fyr,yr2b)
         lyr = max(lyr,yr2b)
