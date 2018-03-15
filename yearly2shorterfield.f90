@@ -6,17 +6,17 @@ program yearly2shorterfield
     integer,parameter :: nvarmax=1
     include 'params.h'
     include 'getopts.inc'
-    integer yr,mo,dy,nperyear,npernew,k,i,nfac,nxf,nyf,nzf,fyr,lyr,iens,ix,iy,iz
-    integer mens1,mens,ncid,nx,ny,nz,nt,firstyr,firstmo,endian,yrbegin,mobegin
-    integer nvars,ivars(2,nvarmax),jvars(6,nvarmax),ntvarid,ntmax
+    integer :: yr,mo,dy,nperyear,npernew,k,i,nfac,nxf,nyf,nzf,fyr,lyr,iens,ix,iy,iz
+    integer :: mens1,mens,ncid,nx,ny,nz,nt,firstyr,firstmo,endian,yrbegin,mobegin
+    integer :: nvars,ivars(2,nvarmax),jvars(6,nvarmax),ntvarid,ntmax
     integer,allocatable :: itimeaxis(:)
-    real xx(nxmax),yy(nymax),zz(nzmax),undef
+    real :: xx(nxmax),yy(nymax),zz(nzmax),undef
     real,allocatable :: data(:,:,:,:,:,:),newdata(:,:,:,:,:,:),fxy(:,:),newfxy(:,:)
-    character file*1024,datfile*1024,vars(1)*40,svars(1)*100,lvars(1)*120,units(1)*60
-    character lz(3)*10,ltime*100,title*1000,history*20000,cell_methods(nvarmax)*100
-    character metadata(2,100)*2000
-    character string1*50,string2*50
-    integer iargc
+    character :: file*1024,datfile*1024,vars(1)*40,svars(1)*100,lvars(1)*120,units(1)*60
+    character :: lz(3)*10,ltime*100,title*1000,history*20000,cell_methods(nvarmax)*100
+    character :: metadata(2,100)*2000
+    character :: string1*50,string2*50
+    integer :: iargc
 
     call killfile(file,string1,string2,0) ! random strings
     if ( iargc().lt.2 ) then
@@ -31,7 +31,7 @@ program yearly2shorterfield
              ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo &
              ,ltime,undef,endian,title,history,nvarmax,nvars,vars,jvars &
              ,lvars,svars,units,cell_methods,metadata,lwrite)
-    call getopts(3,iargc()-1,nperyear,yrbeg,yrend,.false.,0,nensmax)
+    call getopts(3,iargc()-1,npernew,yrbeg,yrend,.false.,0,nensmax)
     if ( iargc().gt.3 ) then
         if ( oper.eq.'v' ) then
             nfac = 1
