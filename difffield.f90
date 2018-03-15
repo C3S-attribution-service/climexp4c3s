@@ -226,7 +226,7 @@ program difffield
                                     do j=j1,j2
                                         if ( ifield.eq.1 ) then
                                             if ( ave1(jx,jy,jz,j,pow).lt.1e30 ) then
-                                                ss(month,pow) = ss(month,pow)+ave1(jx,jy,jz ,j,pow)
+                                                ss(month,pow) = ss(month,pow)+ave1(jx,jy,jz,j,pow)
                                                 n = n + 1
                                             endif
                                         else
@@ -336,7 +336,7 @@ program difffield
         do jz=1,nz
             do jy=1,ny
                 do jx=1,nx
-                    if ( ave1(jx,jy,jz,j,1).lt.1e30 .and.ave2(jx,jy,jz,j,1).lt.1e30 ) then
+                    if ( ave1(jx,jy,jz,j,1).lt.1e30 .and. ave2(jx,jy,jz,j,1).lt.1e30 ) then
                         if ( lnormsd ) then
                             if ( abs(ave1(jx,jy,jz,j,1)).gt.1e-10 .and.         &
      &                               abs(ave2(jx,jy,jz,j,1)).gt.1e-10 .and.     &
@@ -352,7 +352,7 @@ program difffield
                         else
                             if ( abs(ave1(jx,jy,jz,j,1)).gt.mindata .and.          &
      &                               abs(ave2(jx,jy,jz,j,1)).gt.mindata ) then
-                                ave1(jx,jy,jz,j,1) =ave1(jx,jy,jz,j,1) - ave2(jx,jy,jz,j,1)
+                                ave1(jx,jy,jz,j,1) = ave1(jx,jy,jz,j,1) - ave2(jx,jy,jz,j,1)
                                 if ( ave1(jx,jy,jz,j,2).lt.0 ) then
                                     write(0,*) 'difffield: error: ave1(',jx,jy,jz,j,',2)<0 ' &
      &                                       ,ave1(jx,jy,jz,j,2)
