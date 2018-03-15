@@ -10,8 +10,7 @@
 !   should do this in python...
 !
     implicit none
-    integer :: nmax
-    parameter(nmax=250000)
+    integer,parameter :: nmax=250000
     integer :: i,j,k,n,ntot,ldir,nextarg,retval,nsigns,isign,loptions
     real :: lon,lon1,lon2,lat,lat1,lat2,val,sign,regr,x1,s1,x2,s2,z, &
         signs(nmax),psigns(5),mean,sd,sd1,skew,xmin,xmax,chsq,prob, &
@@ -32,9 +31,6 @@
     data psigns /0.1,0.05,0.01,0.005,0.001/
 
     lwrite = .false. 
-    call getenv('STATIONLIST_LWRITE',line)
-    call tolower(line)
-    if ( line == 'true' ) lwrite = .true.
     nsigns = 0
     ltwosided = .false.
     if ( iargc() < 4 ) then
@@ -624,11 +620,7 @@
                     val = ttx(2)
                     sign = 1/ttx(2)
                 elseif ( oper == 'atra' ) then
-                    if ( abs(ttx(3)) < 1e19 ) then
-                        val = log10(ttx(3))
-                    else
-                        val = 3e33
-                    end if
+                    val = log10(ttx(3))
                     sign = 2*sign ! the output is one-sided, here we use two-sided
                     if ( .false. ) then ! old code
                         ! assuming the PDF of log(ratio) is gaussian the 95% CI corresponds to ±2\sigma

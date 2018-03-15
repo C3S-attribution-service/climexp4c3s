@@ -1,8 +1,8 @@
 subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
-     &       ,mens1,mens,crosscorr,a3,b3,xi3,alpha3,beta3,j1,j2,nens1,nens2 &
-     &       ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2   &
-     &       ,cov3,offset,t3,tx3,inrestrain,assume,confidenceinterval       &
-     &       ,ndecor,lboot,lprint,dump,plot,lwrite)
+             ,mens1,mens,crosscorr,a3,b3,xi3,alpha3,beta3,j1,j2,nens1,nens2 &
+             ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2   &
+             ,cov3,offset,t3,tx3,inrestrain,assume,confidenceinterval       &
+             ,ndecor,lboot,lprint,dump,plot,lwrite)
 !
 !       fit a GEV distribution to the data, which is already assumed to be block max
 !       input:
