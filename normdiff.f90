@@ -87,27 +87,39 @@ program normdiff
     if ( my2 >= 0 ) then
         call normalize(my2,data1,nperyear)
     end if
-    if ( my1 <= 0 .and. my2 <= 0 ) then
-        if ( iadd == 0 ) then
-            write(*,'(8a)') '# diff [',trim(units1),'] difference ', &
- &               'of ',trim(var1),' and ',trim(var2)
-        else if ( iadd == 1 ) then
-            write(*,'(8a)') '# sum [',trim(units1),'] sum ', &
- &               'of ',trim(var1),' and ',trim(var2)
-        else if ( iadd == 2 ) then
-            write(*,'(7a)') '# ave [',trim(units1),'] average ', &
- &               'of ',trim(var1),' and ',trim(var2)
+    if ( file2 == 'null' .or. file2 == 'nothing' ) then
+        if ( my1 <= 0 ) then
+            write(*,'(8a)') '# ',trim(var1),'  [',trim(units1),'] ',trim(lvar1)
+        else if ( my1 == 1 ) then
+            write(*,'(8a)') '# norm_',trim(var1),'  [',trim(units1),'] normalised ', &
+                     trim(lvar1)
+        else if ( my1 == 2 ) then
+            write(*,'(8a)') '# normm_',trim(var1),'  [',trim(units1),'] monthly normalised ', &
+                     trim(lvar1)
         end if
     else
-        if ( iadd == 0 ) then
-            write(*,'(7a)') '# diff [1] normalised difference of ' &
- &               ,trim(var1),' and ',trim(var2)
-        else if ( iadd == 1 ) then
-            write(*,'(7a)') '# sum [1] normalised sum of ' &
- &               ,trim(var1),' and ',trim(var2)
+        if ( my1 <= 0 .and. my2 <= 0 ) then
+            if ( iadd == 0 ) then
+                write(*,'(8a)') '# diff [',trim(units1),'] difference ', &
+                     'of ',trim(var1),' and ',trim(var2)
+            else if ( iadd == 1 ) then
+                write(*,'(8a)') '# sum [',trim(units1),'] sum ', &
+                     'of ',trim(var1),' and ',trim(var2)
+            else if ( iadd == 2 ) then
+                write(*,'(7a)') '# ave [',trim(units1),'] average ', &
+                     'of ',trim(var1),' and ',trim(var2)
+            end if
         else
-            write(*,'(7a)') '# ave [1] normalised average of ' &
- &               ,trim(var1),' and ',trim(var2)
+            if ( iadd == 0 ) then
+                write(*,'(7a)') '# diff [1] normalised difference of ' &
+                     ,trim(var1),' and ',trim(var2)
+            else if ( iadd == 1 ) then
+                write(*,'(7a)') '# sum [1] normalised sum of ' &
+                     ,trim(var1),' and ',trim(var2)
+            else
+                write(*,'(7a)') '# ave [1] normalised average of ' &
+                     ,trim(var1),' and ',trim(var2)
+            end if
         end if
     end if
     call merge_metadata(metadata1,nmetadata1,metadata2,' ',history2,'series2_')
