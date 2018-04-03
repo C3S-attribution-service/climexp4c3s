@@ -711,6 +711,9 @@ subroutine enscutoutwindow(x1,x2,y1,y2,xx,nx,xwrap,xrev,avex,yy &
                 print '(10f8.2)',(xx(i),i=1,nx)
                 print '(10f8.2)',(wx(i),i=1,nx)
             endif
+        else
+            if ( lwrite ) print *,'just truncated the x grid'
+            nx = x2
         endif
         if ( avey > 1 ) then
             if ( lwrite ) then
