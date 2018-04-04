@@ -452,8 +452,7 @@ subroutine fieldday2period( &
     enddo                   ! yr
 end subroutine fieldday2period
 
-subroutine  adjustnames(oper,nperyear,nperyearnew,lgt,pcut &
-    ,punits,lvars,cell_methods)
+subroutine adjustnames(oper,nperyear,nperyearnew,lgt,pcut,punits,lvars,cell_methods)
 
 !   adjust names to reflect the operation just performed
 

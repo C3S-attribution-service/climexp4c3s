@@ -108,7 +108,7 @@ program daily2longerfield
     end if
     call keepalive1('Starting computation',0,0)
 
-!       read operation
+!   read operation
 
     call getarg(2,string)
     read(string,*,err=901) nperyearnew
@@ -228,6 +228,12 @@ program daily2longerfield
             i = 4
         end if
         call getopts(i,iargc()-1,nperyear,yrbeg,yrend, .true. ,0,0)
+    end if
+    if ( opera == 'fti' .or. opera == 'lti' ) then
+        if ( lgt == ' ' ) then
+            write(0,*) 'daily2longerfield: error: need a threshold for first/last time'
+            call exit(-1)
+        end if
     end if
     if ( minfac < 0 ) minfac = 0.5
     yr1 = max(yr1,firstyr)
