@@ -93,18 +93,16 @@ subroutine writencseries(file,data,npermax,yrbeg,yrend,nperyear, &
     lcomment = .false.
     do i=1,100
         if ( metadata(1,i) == ' ' ) exit
-        if ( metadata(1,i) == 'conventions' .or. metadata(1,i) == 'Conventions' ) cycle
         if ( metadata(1,i) == 'comment' .or. metadata(1,i) == 'Comment' ) then
             metadata(2,i) = trim(comment)//'\\n'//trim(metadata(2,i))
             lcomment = .true.
         end if
-        status = nf_put_att_text(ncid,nf_global,trim(metadata(1,i)),len_trim(metadata(2,i)),metadata(2,i))
-        if ( status.ne.nf_noerr ) call handle_err(status,'put att '//trim(metadata(1,i)))
     end do
-    if ( .not.lcomment ) then
-        status = nf_put_att_text(ncid,nf_global,'comment',len_trim(comment),comment)
-        if ( status.ne.nf_noerr ) call handle_err(status,'put att comment')
+    if ( i < 100 .and. .not.lcomment ) then
+        metadata(1,i) = 'comment'
+        metadata(2,i) = comment
     end if
+    call write_metadata(ncid,metadata,lwrite)
     call extend_history(history)
     if ( lwrite ) print *,'History: ',string(1:len_trim(string))
     status = nf_put_att_text(ncid,nf_global,'history',len_trim(history),history)

@@ -83,7 +83,6 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
     character string*10000,months(0:12,2)*3,clwrite*10,FORM_field*100
 !   externals
     integer :: iargc
-    logical,external :: isnumchar,isalphachar
 !   date
     data months / &
         '???','JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG' &
@@ -141,47 +140,7 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
         status = nf_put_att_text(ncid,nf_global,'source_field',len_trim(string),string)
         if ( status /= nf_noerr ) call handle_err(status,'put att derived_from')
     end if
-    linstitution = .false.
-    do i=1,100
-        if ( len_trim(metadata(1,i)) > 0 ) then
-            do j=1,len_trim(metadata(1,i))
-                if ( .not. ( isnumchar(metadata(1,i)(j:j)) .or. isalphachar(metadata(1,i)(j:j)) .or. &
-                        metadata(1,i)(j:j) == '_' .or. metadata(1,i)(j:j) == '-' ) ) then
-                    write(0,*) 'writenc: warning: found illegal character  in metadata(1, ',i,'), char ', &
-                        j,': ',metadata(1,i)(j:j)
-                    if ( metadata(1,i)(j:j) == char(0) ) then
-                        metadata(1,i)(j:j) = ' '
-                    else
-                        metadata(1,i)(j:j) = '_'
-                    end if
-                end if
-            end do
-            if ( metadata(1,i) == 'conventions' .or. metadata(1,i) == 'Conventions' ) cycle
-            if ( metadata(1,i) == 'institution' .or. metadata(1,i) == 'Institution' ) then
-                if ( metadata(2,i)(1:10) /= 'KNMI Clima' ) then ! avoid recursion...
-                    metadata(2,i) = 'KNMI Climate Explorer and '//metadata(2,i)
-                end if
-                linstitution = .true.
-            end if
-            ! a few should be written as floats...
-            if ( metadata(1,i) == 'geospatial_lon_min' .or. metadata(1,i) == 'geospatial_lon_max' .or. &
-                 metadata(1,i) == 'geospatial_lat_min' .or. metadata(1,i) == 'geospatial_lat_max' .or. &
-                 metadata(1,i) == 'geospatial_lon_resolution' .or. metadata(1,i) == 'geospatial_lat_resolution' ) then
-                read(metadata(2,i),*,end=101,err=101) array(1)
-                status = nf_put_att_real(ncid,nf_global,trim(metadata(1,i)),nf_float,1,array)
-            101 continue
-            else
-                if ( lwrite ) print *,'writenc: writing ',trim(metadata(1,i)),': ',trim(metadata(2,i))
-                status = nf_put_att_text(ncid,nf_global,trim(metadata(1,i)), &
-                    len_trim(metadata(2,i)),trim(metadata(2,i)))
-            end if
-            if ( status /= nf_noerr ) call handle_err(status,'put att '//trim(metadata(1,i)))
-        end if
-    end do
-    if ( .not.linstitution ) then
-        status = nf_put_att_text(ncid,nf_global,'institution',21,'KNMI Climate Explorer')
-        if ( status /= nf_noerr ) call handle_err(status,'put att institution')
-    end if
+    call write_metadata(ncid,metadata,lwrite)
     call extend_history(history)
     if ( lwrite ) print *,'writenc: writing history: ',trim(history)
     status = nf_put_att_text(ncid,nf_global,'history',len_trim(history),history)
@@ -609,3 +568,60 @@ subroutine subtractleapyears(nt,firstyr,firstmo,nperyear,nnew)
     end do
 
 end subroutine subtractleapyears
+
+subroutine write_metadata(ncid,metadata,lwrite)
+!
+!   write metadata to netcdf
+!
+    implicit none
+    include 'netcdf.inc'
+    integer :: ncid
+    character :: metadata(2,100)*(*)
+    logical :: lwrite
+    integer :: i,j,status
+    real :: array(1)
+    logical :: linstitution
+    logical,external :: isnumchar,isalphachar
+!
+    linstitution = .false.
+    do i=1,100
+        if ( len_trim(metadata(1,i)) > 0 ) then
+            do j=1,len_trim(metadata(1,i))
+                if ( .not. ( isnumchar(metadata(1,i)(j:j)) .or. isalphachar(metadata(1,i)(j:j)) .or. &
+                        metadata(1,i)(j:j) == '_' .or. metadata(1,i)(j:j) == '-' ) ) then
+                    write(0,*) 'writenc: warning: found illegal character  in metadata(1, ',i,'), char ', &
+                        j,': ',metadata(1,i)(j:j)
+                    if ( metadata(1,i)(j:j) == char(0) ) then
+                        metadata(1,i)(j:j) = ' '
+                    else
+                        metadata(1,i)(j:j) = '_'
+                    end if
+                end if
+            end do
+            if ( metadata(1,i) == 'conventions' .or. metadata(1,i) == 'Conventions' ) cycle
+            if ( metadata(1,i) == 'institution' .or. metadata(1,i) == 'Institution' ) then
+                if ( metadata(2,i)(1:10) /= 'KNMI Clima' ) then ! avoid recursion...
+                    metadata(2,i) = 'KNMI Climate Explorer and '//metadata(2,i)
+                end if
+                linstitution = .true.
+            end if
+            ! a few should be written as floats...
+            if ( metadata(1,i) == 'geospatial_lon_min' .or. metadata(1,i) == 'geospatial_lon_max' .or. &
+                 metadata(1,i) == 'geospatial_lat_min' .or. metadata(1,i) == 'geospatial_lat_max' .or. &
+                 metadata(1,i) == 'geospatial_lon_resolution' .or. metadata(1,i) == 'geospatial_lat_resolution' ) then
+                read(metadata(2,i),*,end=101,err=101) array(1)
+                status = nf_put_att_real(ncid,nf_global,trim(metadata(1,i)),nf_float,1,array)
+            101 continue
+            else
+                if ( lwrite ) print *,'writenc: writing ',trim(metadata(1,i)),': ',trim(metadata(2,i))
+                status = nf_put_att_text(ncid,nf_global,trim(metadata(1,i)), &
+                    len_trim(metadata(2,i)),trim(metadata(2,i)))
+            end if
+            if ( status /= nf_noerr ) call handle_err(status,'put att '//trim(metadata(1,i)))
+        end if
+    end do
+    if ( .not.linstitution ) then
+        status = nf_put_att_text(ncid,nf_global,'institution',21,'KNMI Climate Explorer')
+        if ( status /= nf_noerr ) call handle_err(status,'put att institution')
+    end if
+end subroutine
