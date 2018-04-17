@@ -1,4 +1,4 @@
-FFLAGS = -g -m64 -Dlinux -fbounds-check -fbackslash -ffpe-trap=invalid,zero,overflow
+FFLAGS = -g -m64 -J/usr/local/include/fgsl -Dlinux -fbounds-check -fbackslash -ffpe-trap=invalid,zero,overflow
 EOFFLAGS = -g -m64 -Dlinux -fbounds-check -fbackslash
 # FFLAGS = -O3 -m64 -Dlinux -fbackslash -ffpe-trap=invalid,zero,overflow
 
@@ -7,7 +7,7 @@ CFLAGS = -O -m64
 FC = gfortran
 LD = $(FC) $(FFLAGS) -Wl,-framework -Wl,Accelerate
 EOFLD = $(FC) $(EOFFLAGS) -Wl,-framework -Wl,Accelerate
-SYSLIBS=-L/sw/lib -lnetcdff -lnetcdf
+SYSLIBS=-L/sw/lib -lnetcdff -lnetcdf -L/usr/local/lib -lfgsl -lgsl
 
 RANLIB = ranlib
 
