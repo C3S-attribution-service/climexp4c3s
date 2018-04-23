@@ -29,3 +29,24 @@ real function gammp(a,x)
     end if
     gammp = fgsl_sf_gamma_inc_P(dble(a),dble(x))
 end function gammp
+
+real function gammln(x)
+!
+!     wrapper fir GSL function
+!
+    use fgsl
+    implicit none
+    real :: x
+    gammln = fgsl_sf_lngamma(dble(x))
+end function gammln
+
+real function factrl(n)
+!
+!    wrapper for FGSL function
+!
+    use fgsl
+    implicit none
+    integer :: n
+    factrl = fgsl_sf_fact(n)
+end function factrl
+

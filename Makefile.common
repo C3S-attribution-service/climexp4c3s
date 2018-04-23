@@ -9,7 +9,46 @@ VPATH         = ..
 
 MAKEFILE      = Makefile ../Makefile.common
 
-OBJS	      = makeabsent.o \
+ADAPTED = adapted_amoeba.o \
+    	adapted_fit.o \
+    	adapted_julday.o \
+    	adapted_polint.o \
+    	adapted_spear.o \
+        adapted_amotry.o \
+        adapted_ffsort.o \
+        adapted_ftest.o \
+        adapted_gasdev.o \
+        adapted_ludcmp.o \
+        adapted_savgol.o \
+        adapted_svdcmp.o \
+        adapted_betai.o \
+        adapted_gammq.o	\
+        adapted_moment.o \
+        adapted_sort.o \
+        adapted_svdfit.o \
+        adapted_chsone.o \
+        adapted_gcf.o \
+        adapted_pearsn.o \
+        adapted_sort2.o \
+        adapted_ttestx.o \
+        adapted_dfpmin.o \
+        adapted_gser.o \
+        adapted_period.o \
+        adapted_sort8.o \
+        adapted_zbrent.o
+
+WRAPPERS = betai.o \
+	    caldat.o \
+        chsone.o \
+        erfc.o \
+        ffsort.o \
+        gammpq.o \
+        julday.o \
+        moment.o \
+        sort.o
+
+
+OBJS =  makeabsent.o \
 		makefieldabsent.o \
 		operations.o \
 		readdatfile.o \
@@ -48,18 +87,7 @@ OBJS	      = makeabsent.o \
 		getenscutoff.o \
 		bootstrap.o \
 		ranf.o \
-		pearsn.o \
 		pearsncross.o \
-		spear.o \
-		betai.o \
-		dgammln.o \
-		gcf.o \
-		ttestx.o \
-		moment.o \
-		amoeba.o \
-		ffsort.o \
-		sort.o \
-		gasdev.o \
 		getopts.o \
 		getmetadata.o \
 		getreftime.o \
@@ -83,7 +111,6 @@ OBJS	      = makeabsent.o \
 		zinterpu.o \
 		getwindow.o \
 		getweights.o \
-		period.o \
 		getmean.o \
 		getwinmean.o \
 		seriesmoment.o \
@@ -93,15 +120,10 @@ OBJS	      = makeabsent.o \
 		keepalive.o \
 		filloutens.o \
 		makeensfull.o \
-		svdfit.o \
-		savgol.o \
-		dfpmin.o \
 		merfi.o \
-		zbrent.o \
 		wavelet.o \
 		cfftpack.o \
 		chisqr.o \
-		julday.o \
 		printcorrheader.o \
 		printtableheader.o \
 		printtable.o \
@@ -118,8 +140,6 @@ OBJS	      = makeabsent.o \
 		makemcseries.o \
 		maxquad.o \
 		zerolin.o \
-		chsone.o \
-		gammq.o \
 		getmoment.o \
 		getseriesmoment.o \
 		bootmoment.o \
@@ -129,7 +149,6 @@ OBJS	      = makeabsent.o \
 		hipass.o \
 		fit_noise_point.o \
 		fitnoisemodel.o \
-		amotry.o \
 		latlonint.o \
 		day2period.o \
 		units2longer.o \
@@ -140,7 +159,6 @@ OBJS	      = makeabsent.o \
 		getmae.o \
 		getautocor1.o \
 		checkgridequal.o \
-		polint.o \
 		mysystem.o \
 		mystat.o \
 		getfiletime.o \
@@ -172,20 +190,15 @@ OBJS	      = makeabsent.o \
 		getmaskbox.o \
 		readonencfield.o \
 		project3.o \
-		fit.o \
 		fitcross.o \
 		autocov.o \
 		getspectrum.o \
 		spatialaverage.o \
 		getword.o \
-		erfcc.o \
-		sgesvd.o \
 		normvector.o \
 		makeskew.o \
 		derivative.o \
 		annual2shorter.o \
-		legzo.o \
-		ftest.o \
 		getweightedquant.o \
 		wetbulb.o \
 		getmissing.o \
@@ -233,9 +246,9 @@ OBJS	      = makeabsent.o \
 		isnan.o \
 		$(EXTRAOBJS)
 
-LIBRARY       = climexp.a
+LIBRARY       = climexp.a $(NUMLIB)
 
-LIBS          = $(LIBRARY) libnr.a $(SYSLIBS)
+LIBS          = $(LIBRARY) $(SYSLIBS)
 
 PROGRAMS      = scientific2decimal \
 		lastvalid \
@@ -374,8 +387,16 @@ climexp.a:	$(OBJS) $(MAKEFILE)
 		ar cruv $@ $(OBJS)
 		$(RANLIB) climexp.a
 
+wrappers.a:	$(WRAPPERS) $(MAKEFILE)
+		ar cruv $@ $(WRAPPERS)
+		$(RANLIB) wrappers.a
+
+adapted.a:	$(ADAPTED) $(MAKEFILE)
+		ar cruv $@ $(ADAPTED)
+		$(RANLIB) adapted.a
+
 clean:		
-		rm $(OBJS) $(PROGRAMS) $(LIBRARY)
+		rm $(OBJS) $(PROGRAMS) $(LIBRARY) $(NUMLIB)
 
 testprog:	testprog.o $(LIBRARY)
 		$(LD) -g $(LDBIGFLAG) -o $@ testprog.o $(LIBS)

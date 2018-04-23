@@ -8,6 +8,7 @@ FC = gfortran
 LD = $(FC) $(FFLAGS) -Wl,-framework -Wl,Accelerate
 EOFLD = $(FC) $(EOFFLAGS) -Wl,-framework -Wl,Accelerate
 SYSLIBS=-L/sw/lib -lnetcdff -lnetcdf -L/usr/local/lib -lfgsl -lgsl
+NUMLIB = wrappers.a
 
 RANLIB = ranlib
 

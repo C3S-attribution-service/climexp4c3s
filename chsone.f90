@@ -13,7 +13,7 @@ subroutine chsone(bins,ebins,nbins,nconstraints,df,chi2,prob)
     df = nbins - nconstraints
     chi2 = 0
     do i=1,nbins
-        if ( ebins(i) > 0 )then
+        if ( ebins(i) > 0 ) then
             chi2 = chi2 + (bins(i)-ebins(i))**2/ebins(i)
         else if ( bins(i) /= 0 ) then
             write(0,*) 'chsone: error: ebins(',i,') <= 0 ',ebins(i)

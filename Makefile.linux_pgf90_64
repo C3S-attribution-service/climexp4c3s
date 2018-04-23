@@ -7,6 +7,9 @@ CFLAGS = -O2
 SYSLIBS = -L$(HOME)/lib -lnetcdff -lnetcdf -lhdf5 -llapack -lblas -lcurl
 FC = pgf90
 LD = pgf90
+EOFLD = $(LD) $(EOFFLAGS)
+NUMLIB = adapated.a libnr.a
+
 RANLIB = echo ready with
 
 ###LDBIGFLAG = -Wl,-Bstatic

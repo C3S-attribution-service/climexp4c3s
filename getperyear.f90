@@ -708,15 +708,17 @@ subroutine gettextatt(ncid,varid,name,value,lwrite)
     character*(*) name,value
     logical :: lwrite
     call gettextattall(ncid,varid,name,value, .true. ,lwrite)
-    end subroutine gettextatt
-    subroutine gettextattopt(ncid,varid,name,value,lwrite)
+end subroutine gettextatt
+
+subroutine gettextattopt(ncid,varid,name,value,lwrite)
     implicit none
     integer :: ncid,varid
     character*(*) name,value
     logical :: lwrite
     call gettextattall(ncid,varid,name,value, .false. ,lwrite)
-    end subroutine gettextattopt
-    subroutine gettextattall(ncid,varid,name,value,req,lwrite)
+end subroutine gettextattopt
+
+subroutine gettextattall(ncid,varid,name,value,req,lwrite)
 !       get a text string from an (optional) attribute
     implicit none
     include 'netcdf.inc'
@@ -802,7 +804,7 @@ subroutine getglobalatts(ncid,metadata,lwrite)
     integer ::ncid
     logical :: lwrite
     character :: metadata(2,100)*(*)
-    integer :: i,j,xtype,len,status,iarray(100)
+    integer :: i,j,xtype,ll,status,iarray(100)
     integer*1 :: sarray(100)
     real :: farray(100)
     character name*100,string*10000
@@ -817,27 +819,26 @@ subroutine getglobalatts(ncid,metadata,lwrite)
         status = nf_inq_atttype(ncid,nf_global,name,xtype)
         if ( status /= nf_noerr ) call handle_err(status,'nf_inq_atttype '//trim(name))
         if ( xtype == nf_char ) then
-            status = nf_inq_attlen(ncid,nf_global,name,len)
+            status = nf_inq_attlen(ncid,nf_global,name,ll)
             if ( status /= nf_noerr ) call handle_err(status,name)
-            if ( len < 10000 ) then
+            if ( ll < 10000 ) then
                 status = nf_get_att_text(ncid,nf_global,name,string)
                 if ( status /= nf_noerr ) call handle_err(status,'nf_inq_attlen '//trim(name))
             else
                 string = 'string too long, longer than 10000 chars'
             end if
-            do j=1,10000
-                if ( string(j:j) == char(0) ) string(j:j) = ' '
-            end do
+            call stripnonprint(string,lwrite)
             n = n + 1
             metadata(1,n) = name
-            metadata(2,n) = string(1:len)
-            if ( len > 2000 ) then
-                metadata(2,i)(1998:2000) = '...'
+            metadata(2,n) = string(1:ll)
+            j = len(metadata)
+            if ( ll > j ) then
+                metadata(2,i)(j-2:j) = '...'
             end if
         else if ( xtype == nf_int ) then
-            status = nf_inq_attlen(ncid,nf_global,name,len)
+            status = nf_inq_attlen(ncid,nf_global,name,ll)
             if ( status /= nf_noerr ) call handle_err(status,'nf_inq_attlen '//trim(name))
-            if ( len < 100 ) then
+            if ( ll < 100 ) then
                 status = nf_get_att_int(ncid,nf_global,name,iarray)
                 if ( status /= nf_noerr ) call handle_err(status,'nf_get_att_int '//trim(name))
             else
@@ -845,11 +846,11 @@ subroutine getglobalatts(ncid,metadata,lwrite)
             end if
             n = n + 1
             metadata(1,n) = name
-            write(metadata(2,n),'(100i16)') (iarray(j),j=1,len)
+            write(metadata(2,n),'(100i16)') (iarray(j),j=1,ll)
         else if ( xtype == nf_short ) then
-            status = nf_inq_attlen(ncid,nf_global,name,len)
+            status = nf_inq_attlen(ncid,nf_global,name,ll)
             if ( status /= nf_noerr ) call handle_err(status,'nf_inq_attlen '//trim(name))
-            if ( len < 100 ) then
+            if ( ll < 100 ) then
                 status = nf_get_att_int(ncid,nf_global,name,sarray)
                 if ( status /= nf_noerr ) call handle_err(status,'nf_get_att_int '//trim(name))
             else
@@ -857,11 +858,11 @@ subroutine getglobalatts(ncid,metadata,lwrite)
             end if
             n = n + 1
             metadata(1,n) = name
-            write(metadata(2,n),'(100i8)') (sarray(j),j=1,len)
+            write(metadata(2,n),'(100i8)') (sarray(j),j=1,ll)
         else if ( xtype == nf_real .or. xtype == nf_float ) then ! yes I know they are the same
-            status = nf_inq_attlen(ncid,nf_global,name,len)
+            status = nf_inq_attlen(ncid,nf_global,name,ll)
             if ( status /= nf_noerr ) call handle_err(status,'nf_inq_attlen '//trim(name))
-            if ( len < 100 ) then
+            if ( ll < 100 ) then
                 status = nf_get_att_real(ncid,nf_global,name,farray)
                 if ( status /= nf_noerr ) call handle_err(status,'nf_get_att_float '//trim(name))
             else
@@ -869,7 +870,7 @@ subroutine getglobalatts(ncid,metadata,lwrite)
             end if
             n = n + 1
             metadata(1,n) = name
-            write(metadata(2,n),'(100f8.1)') (farray(j),j=1,len)
+            write(metadata(2,n),'(100f8.1)') (farray(j),j=1,ll)
         end if
     end do
     
@@ -1087,6 +1088,12 @@ subroutine stripnonprint(string,lwrite)
     ' !@#$%^&*()_-+={}[]:;"|\<,>.?/~`'//char(39)
 !   strip non-ascii characters...
     if ( .false. .and. lwrite ) print *,'before weeding ',trim(string)
+    do i=1,len(string)
+        if ( string(i:i) == char(10) ) then ! linefeed
+            string(i+2:) = string(i+1:)
+            string(i:i+1) = '\\n' ! (two characters)
+        end if
+    end do
     do while ( verify(string,validchars) /= 0 )
         i = verify(string,validchars)
         if ( string(i:i) == char(0) ) then ! C-style string termination
