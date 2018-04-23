@@ -23,6 +23,7 @@ ADAPTED = adapted_amoeba.o \
         adapted_svdcmp.o \
         adapted_betai.o \
         adapted_gammq.o	\
+        adapted_dgammln.o \
         adapted_moment.o \
         adapted_sort.o \
         adapted_svdfit.o \
