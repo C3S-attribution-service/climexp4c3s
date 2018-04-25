@@ -126,7 +126,7 @@ subroutine zreadncfile(ncid,field,nxf,nyf,nzf,nx,ny,nz,nperyear, &
             if ( yr1 > firstyr ) then
                 startmo = 1
                 start(k) = 1 + nperyear*(yr1-firstyr) - firstmo + 1
-                count(k) = min(nt-start(k), nperyear*(yr2-yr1+1))
+                count(k) = min(nt-start(k)+1, nperyear*(yr2-yr1+1))
             else
                 startmo = firstmo
                 start(k) = 1
