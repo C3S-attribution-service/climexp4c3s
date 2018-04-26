@@ -167,7 +167,7 @@ subroutine read_polygon(datfile,npol,npolmax,polygon,lwrite)
     integer ipol
     character string*100
     logical lwrite
-    integer npol1,npol2,i
+    integer npol1,npol2,i,n
     logical leof
 !
     npol = 0
@@ -192,11 +192,17 @@ subroutine read_polygon(datfile,npol,npolmax,polygon,lwrite)
         npol = npol + 1
         ! excel often uses commas rather than decimal points
         if ( index(string,'.') == 0 ) then
+            n = 0
             do i=1,len(string)
-                if ( string(i:i) == ',' ) string(i:i) = '.'
+                if ( string(i:i) == ',' ) n = n + 1
             end do
+            if ( n == 2 ) then
+                do i=1,len(string)
+                    if ( string(i:i) == ',' ) string(i:i) = '.'
+                end do
+            end if
         end if
-        read(string,*) polygon(1,npol),polygon(2,npol)
+        read(string,*,err=901,end=901) polygon(1,npol),polygon(2,npol)
         if ( polygon(2,npol).lt.-90 .or. polygon(2,npol).gt.90 ) then
             write(0,*) 'polygon2mask: error: latitude ',npol,' is ',polygon(2,npol)
             call abort
@@ -204,7 +210,7 @@ subroutine read_polygon(datfile,npol,npolmax,polygon,lwrite)
     end do
 100 continue
     if ( polygon(1,npol1).ne.polygon(1,npol) .or. &
-        & polygon(2,npol1).ne.polygon(2,npol) ) then
+         polygon(2,npol1).ne.polygon(2,npol) ) then
         ! close loop
         npol = npol + 1
         polygon(1,npol) = polygon(1,npol1)
@@ -228,6 +234,9 @@ subroutine read_polygon(datfile,npol,npolmax,polygon,lwrite)
         goto 10
     end if
     close(1)
+    return
+901 write(0,*) 'read_polygon: error reading two reals from line ',trim(string)
+    call exit(-1)
 end subroutine read_polygon
 
 subroutine fillmask(polygon,npol,pole,xx,nx,yy,ny,mask,nxmax,nymax,lwrite)
