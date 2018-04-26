@@ -1088,7 +1088,7 @@ subroutine stripnonprint(string,lwrite)
     ' !@#$%^&*()_-+={}[]:;"|\<,>.?/~`'//char(39)
 !   strip non-ascii characters...
     if ( .false. .and. lwrite ) print *,'before weeding ',trim(string)
-    do i=1,len(string)
+    do i=1,len(string)-2
         if ( string(i:i) == char(10) ) then ! linefeed
             string(i+2:) = string(i+1:)
             string(i:i+1) = '\\n' ! (two characters)
