@@ -6,31 +6,30 @@ program fieldclim
     include 'params.h'
     include 'netcdf.inc'
     include 'getopts.inc'
-    include 'recfac.inc'
+    integer,parameter :: nvarmax=1
     integer nx,ny,nz,nt,nperyear,firstyr,firstmo,lastyr,nvars, &
  &        ivars(2,nvmax),endian,status,ncid,jvars(6,nvmax)
-    integer yr,mo,i,j,n,yrbegin,ntmax,ntvarid
+    integer yr,mo,i,j,n,yrbegin,ntmax,ntvarid,mens1,mens
     integer,allocatable :: nn(:,:,:),itimeaxis(:)
     real xx(nxmax),yy(nymax),zz(nzmax),undef,lsmask(nxmax,nymax)
     real,allocatable :: field(:,:,:,:),mean(:,:,:),mean2(:,:,:),fxy(:,:), &
  &      fy(:,:,:)
-    character file*255,datfile*255,title*255,vars(nvmax)*40 &
- &        ,lvars(nvmax)*80,units(nvmax)*20,yesno*1
+    character file*255,datfile*255,title*255,vars(nvmax)*40, &
+        lvars(nvmax)*80,units(nvmax)*20,yesno*1,cell_methods(nvarmax)*100, &
+        history*50000,ltime*120,lz(3)*20,svars(nvarmax)*80, &
+        metadata(2,100)*2000
     logical exist
     integer iargc
 !
     lwrite = .false.
     if ( iargc() < 2 ) then
-        print *,'usage: fieldclim file.[nc|ctl] '// &
- &           ' [begin yr1] [end yr2] [ave n] clim.ctl'
+        print *,'usage: fieldclim file.[nc|ctl] [begin yr1] [end yr2] [ave n] clim.ctl'
         print *,'computes climatology of field'
         stop
     endif
     call getarg(iargc(),file)
     inquire(file=file,exist=exist)
     if ( exist ) then
-!!!            print *,'output file exists, overwrite?'
-!!!            read(*,*) yesno
         yesno = 'y'
         if ( yesno == 'y' .or. yesno == 'Y' .or. &
  &           yesno == 'j' .or. yesno == 'J' ) then
@@ -42,22 +41,19 @@ program fieldclim
             close(1,status='delete')
         endif
     endif
+    nens1 = 0
+    nens2 = 0
     call getarg(1,file)
-    if ( lwrite ) print *,'fieldclim: nf_opening file ',trim(file)
-    status = nf_open(file,nf_nowrite,ncid)
-    if ( status /= nf_noerr ) then
-        call parsectl(file,datfile,nxmax,nx,xx,nymax,ny,yy,nzmax,nz &
- &            ,zz,nt,nperyear,firstyr,firstmo,undef,endian,title,1 &
- &            ,nvars,vars,ivars,lvars,units)
-        ncid = -1
-    else
-        call parsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
- &            ,nz,zz,nt,nperyear,firstyr,firstmo,undef,title,1,nvars &
- &            ,vars,jvars,lvars,units)
-        datfile = file
-    endif
+    call getmetadata(file,mens1,mens,ncid,datfile,nxmax,nx &
+        ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo &
+        ,ltime,undef,endian,title,history,nvarmax,nvars,vars,jvars &
+        ,lvars,svars,units,cell_methods,metadata,lwrite)
+    if ( nz > 1 ) then
+        write(0,*) 'fieldclim: error: cannot handle vertical axis yet ',nz
+        call exit(-1)
+    end if
     yrbegin = firstyr
-!       range of years
+!   range of years
     lastyr = firstyr + (firstmo+nt-2)/nperyear
 !
 !   other options
@@ -135,7 +131,7 @@ program fieldclim
     do mo=1,nperyear
         do j=1,ny
             do i=1,nx
-                if ( nn(i,j,mo) > 5 ) then ! arbitrary
+                if ( nn(i,j,mo) > 3 ) then ! arbitrary
                     mean(i,j,mo) = mean(i,j,mo)/nn(i,j,mo)
                 else
                     mean(i,j,mo) = 3e33
@@ -165,10 +161,19 @@ program fieldclim
     i = index(file,'.ctl')
     if ( i == 0 ) then
         ! netcdf output
-        ntmax=nperyear
+        ntmax = nperyear
         allocate(itimeaxis(ntmax))
-        call writenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny,yy  &
-            ,nz,zz,nperyear,nperyear,2000,1,3e33,title,nvars,vars,ivars,lvars,units,0,0)
+        if ( cell_methods(1) /= ' ' ) then
+            cell_methods(1) = trim(cell_methods(1))//', climatology over'
+        else
+            cell_methods(1) = 'climatology over'
+        end if
+        write(cell_methods(1),'(2a,i4.4,a,i4.4)') trim(cell_methods(1)),' ',yr1,'-',yr2
+        if ( nperyear >= 360 ) cell_methods(1) = trim(cell_methods(1))//', smoothed twice with a 5-day running mean'
+        call enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
+            ,yy,nz,zz,lz,nperyear,nperyear,2000,1,ltime,3e33,title &
+            ,history,nvars,vars,ivars,lvars,svars,units,cell_methods &
+            ,metadata,nens1,nens2)
         do mo=1,nperyear
             call writencslice(ncid,ntvarid,itimeaxis,nt,ivars,mean(1,1,mo),nx,ny,nz,nx,ny,nz,mo,1)
         enddo
@@ -180,7 +185,7 @@ program fieldclim
         call writectl(file,datfile,nx,xx,ny,yy,nz,zz, &
  &           nperyear,nperyear,2000,1,undef,title,nvars,vars,ivars &
  &            ,lvars,units)
-        open(2,file=datfile,form='unformatted',access='direct',recl=recfa4*nx*ny)
+        open(2,file=datfile,form='unformatted',access='direct',recl=4*nx*ny)
         do mo=1,nperyear
             !!!print *,'writing mo ',mo
             write(2,rec=mo) ((mean(i,j,mo),i=1,nx),j=1,ny)
