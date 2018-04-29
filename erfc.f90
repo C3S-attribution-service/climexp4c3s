@@ -5,7 +5,9 @@ real function erfcc(x)
     use fgsl
     implicit none
     real :: x
-    erfcc = fgsl_sf_erfc(dble(x))
+    real(fgsl_double) :: xx
+    xx = x
+    erfcc = fgsl_sf_erfc(xx)
 end function erfcc
 real function erfc(x)
 !
@@ -14,5 +16,7 @@ real function erfc(x)
     use fgsl
     implicit none
     real :: x
-    erfc = fgsl_sf_erfc(dble(x))
+    real(fgsl_double) :: xx
+    xx = x
+    erfc = fgsl_sf_erfc(xx)
 end function erfc

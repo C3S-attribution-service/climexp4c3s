@@ -6,12 +6,15 @@ real function gammq(a,x)
     use fgsl
     implicit none
     real :: a,x
+    real(fgsl_double) :: aa,xx
     
     if ( x < 0 .or. a <= 0 ) then
         write(0,*) 'gammq: error: bad arguments in gammq: ',x,a
         call exit(-1)
     end if
-    gammq = fgsl_sf_gamma_inc_Q(dble(a),dble(x))
+    aa = a
+    xx = x
+    gammq = fgsl_sf_gamma_inc_Q(aa,xx)
 end function gammq
 
 real function gammp(a,x)
@@ -22,11 +25,14 @@ real function gammp(a,x)
     use fgsl
     implicit none
     real :: a,x
+    real(fgsl_double) :: aa,xx
     
     if ( x < 0 .or. a <= 0 ) then
         write(0,*) 'gammp: error: bad arguments in gammp: ',x,a
         call exit(-1)
     end if
+    aa = a
+    xx = x
     gammp = fgsl_sf_gamma_inc_P(dble(a),dble(x))
 end function gammp
 
@@ -37,7 +43,9 @@ real function gammln(x)
     use fgsl
     implicit none
     real :: x
-    gammln = fgsl_sf_lngamma(dble(x))
+    real(fgsl_double) :: xx
+    xx = x
+    gammln = fgsl_sf_lngamma(xx)
 end function gammln
 
 real function factrl(n)
@@ -45,8 +53,11 @@ real function factrl(n)
 !    wrapper for FGSL function
 !
     use fgsl
+    use, intrinsic :: iso_c_binding
     implicit none
     integer :: n
-    factrl = fgsl_sf_fact(n)
+    integer(c_int) :: dim
+    dim = n
+    factrl = fgsl_sf_fact(dim)
 end function factrl
 

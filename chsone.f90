@@ -9,6 +9,7 @@ subroutine chsone(bins,ebins,nbins,nconstraints,df,chi2,prob)
     integer :: nconstraints,nbins
     real :: chi2,df,prob,bins(nbins),ebins(nbins)
     integer :: i
+    real(fgsl_double) :: arg1,arg2
 
     df = nbins - nconstraints
     chi2 = 0
@@ -20,5 +21,7 @@ subroutine chsone(bins,ebins,nbins,nconstraints,df,chi2,prob)
             call exit(-1)
         end if
     end do
-    prob = fgsl_sf_gamma_inc_Q(dble(df)/2,dble(chi2)/2)
+    arg1 = dble(df)/2
+    arg2 = dble(chi2)/2
+    prob = fgsl_sf_gamma_inc_Q(arg1,arg2)
 end subroutine chsone
