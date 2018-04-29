@@ -31,6 +31,7 @@ ADAPTED = adapted_amoeba.o \
         adapted_gcf.o \
         adapted_pearsn.o \
         adapted_sort2.o \
+        adapted_ffsort.o \
         adapted_ttestx.o \
         adapted_dfpmin.o \
         adapted_gser.o \
@@ -42,10 +43,12 @@ WRAPPERS = betai.o \
 	    caldat.o \
         chsone.o \
         erfc.o \
-        ffsort.o \
+        fit.o \
         gammpq.o \
+        gasdev.o \
         julday.o \
         moment.o \
+		pearsnxx.o \
         sort.o
 
 
@@ -88,7 +91,6 @@ OBJS =  makeabsent.o \
 		getenscutoff.o \
 		bootstrap.o \
 		ranf.o \
-		pearsncross.o \
 		getopts.o \
 		getmetadata.o \
 		getreftime.o \
@@ -245,6 +247,7 @@ OBJS =  makeabsent.o \
 		indexNAG.o \
 		climexp2extreme.o \
 		isnan.o \
+		legzo.o \
 		$(EXTRAOBJS)
 
 LIBRARY       = climexp.a $(NUMLIB)
@@ -510,11 +513,11 @@ get_index:	get_index.o $(LIBRARY)
 get_index_mask:	get_index_mask.o $(LIBRARY)
 		$(LD) $(FFLAGS) $(LDBIGFLAG) -o $@ $@.o $(LIBS)
 
-getave:		getave.o ffsort.o
-		$(LD) $(FFLAGS) -o $@ getave.o ffsort.o
+getave:		getave.o $(LIBRARY)
+		$(LD) $(FFLAGS) -o $@ getave.o $(LIBRARY)
 
-getchance:	getchance.o ffsort.o gcf.o
-		$(LD) $(FFLAGS) -o $@ getchance.o ffsort.o gcf.o $(LIBS)
+getchance:	getchance.o $(LIBRARY)
+		$(LD) $(FFLAGS) -o $@ getchance.o $(LIBS)
 
 optimal:	optimal.o ludcmp.o lubksb.o
 		$(LD) $(FFLAGS) -o $@ optimal.o ludcmp.o lubksb.o
@@ -826,7 +829,7 @@ test_endian:	test_endian.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ test_endian.o $(LIBRARY)
 
 testerfcc:	testerfcc.o $(LIBRARY)
-		$(LD) $(FFLAGS) -o $@ $@.o $(LIBRARY)
+		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
 
 testmaxquad:	testmaxquad.o maxquad.o ranf.o
 		$(LD) $(FFLAGS) -o $@ $@.o maxquad.o ranf.o
