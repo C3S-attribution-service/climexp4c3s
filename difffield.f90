@@ -32,12 +32,12 @@ program difffield
     lwrite = .false.
     do i=1,iargc()
         call getarg(i,string)
-        if ( string.eq.'debug' .or. string.eq.'lwrite' ) then
+        if ( string == 'debug' .or. string == 'lwrite' ) then
             lwrite = .true.
         end if
     end do
 
-    if ( iargc().lt.3 ) then
+    if ( iargc() < 3 ) then
         print *,'usage: difffield field1 field2 [lsmask landseamask all|land|sea] '//     &
                  '[mon n] [ave|sum n] [begin yr1] [end yr2] [begin2 yr1a] [end2 yr2a] '// &
                  '[normsd] outfield.nc'
@@ -72,8 +72,8 @@ program difffield
             end if
         end if
         call getopts(startopts,iargc()-1,nperyear,yrbeg,yrend,.false.,mens1,mens)
-        if ( m1.eq.0 ) then
-            if ( m2.eq.0 ) then
+        if ( m1 == 0 ) then
+            if ( m2 == 0 ) then
                 m1 = 1
                 m2 = nperyear
             else
@@ -81,7 +81,7 @@ program difffield
             endif
         endif
         lastyr = firstyr + (nt+firstmo-2)/nperyear
-        if ( ifield.eq.1 ) then
+        if ( ifield == 1 ) then
             yr1 = max(yr1,firstyr)
             yr2 = min(yr2,lastyr)
         else
@@ -105,7 +105,7 @@ program difffield
 !       apply land/sea mask, before the axes are transformed
 !
         if ( lwrite ) print *,'selecting ',lsmasktype,' points of land/sea mask'
-        if ( lsmasktype.ne.'all' ) then
+        if ( lsmasktype /= 'all' ) then
             call aregridsequal(nxls,nyls,xxls,yyls,nx,ny,xx,yy,lequal,lwrite)
             if ( lwrite ) print *,'field ',ifield,' grids equal? ',lequal
             if ( lequal ) then
@@ -116,7 +116,7 @@ program difffield
 !
 !       compute average
 !
-        if ( ifield.eq.1 ) then
+        if ( ifield == 1 ) then
             allocate(ave1(nx,ny,nz,nperyear,2))
             ave1 = 3e33
             allocate(nn(nx,ny,nz,nperyear))
@@ -135,13 +135,13 @@ program difffield
             call getenswinmean(ave1,nn,nx,ny,nz,nperyear,field,nx,ny        &
                      ,nz,nperyear,fyr,lyr,nens1,nens2,nx,ny,nz,yr1,1,nt     &
                      ,1,nx,1,ny,lwrite)
-!               convert variance to error estimate
+!           convert variance to error estimate
             do month=1,nperyear
                 do jz=1,nz
                     do jy=1,ny
                         do jx=1,nx
-                            if ( ave1(jx,jy,jz,month,2).lt.3e33 .and.   &
-                                 nn(jx,jy,jz,month).gt.1 ) then
+                            if ( ave1(jx,jy,jz,month,2) < 1e33 .and.   &
+                                 nn(jx,jy,jz,month) > 0 ) then
                                 ave1(jx,jy,jz,month,2) = ave1(jx,jy,jz,month,2)/nn(jx,jy,jz,month)
                             else
                                 ave1(jx,jy,jz,month,2) = 3e33
@@ -153,12 +153,12 @@ program difffield
             if ( lwrite ) print *,'ave1(',nx/2,ny/2,(nz+1)/2,1,        &
                      ') = ',ave1(nx/1,ny/2,(nz+1)/2,1,1),              &
                      ave1(nx/1,ny/2,(nz+1)/2,1,2)
-        else if ( ifield.eq.2 ) then
+        else if ( ifield == 2 ) then
             nxf = max(nx1,nx)
             nyf = max(ny1,ny)
             nzf = max(nz1,nz)
             allocate(ave2(nxf,nyf,nzf,nperyear,2))
-            if ( nxf.ne.nx1 .or. nyf.ne.ny1 .or. nzf.ne.nz1 ) then
+            if ( nxf /= nx1 .or. nyf /= ny1 .or. nzf /= nz1 ) then
 !                   make sure ave1 has the same size as ave2
                 ave2(1:nx1,1:ny1,1:nz1,:,:) = ave1(1:nx1,1:ny1,1:nz1,:,:)
                 if ( lwrite )print *,'resizing ave1 to ',nxf,nyf,nzf
@@ -185,7 +185,7 @@ program difffield
                 do jz=1,nz
                     do jy=1,ny
                         do jx=1,nx
-                            if ( ave2(jx,jy,jz,month,2).lt.3e33 .and. nn(jx,jy,jz,month).gt.1 ) then
+                            if ( ave2(jx,jy,jz,month,2) < 3e33 .and. nn(jx,jy,jz,month) > 0 ) then
                                 ave2(jx,jy,jz,month,2) = ave2(jx,jy,jz,month,2)/nn(jx,jy,jz,month)
                             else
                                 ave2(jx,jy,jz,month,2) = 3e33
@@ -205,15 +205,15 @@ program difffield
 !
 !       average seasons
 !
-        if ( ifield.eq.1 .and. lsum.gt.1 .or.     &
-             ifield.eq.2 .and. lsum2.gt.1 ) then
+        if ( ifield == 1 .and. lsum > 1 .or.     &
+             ifield == 2 .and. lsum2 > 1 ) then
             do jz=1,nz
                 do jy=1,ny
                     do jx=1,nx
                         ss = 0
                         do month=m1,m2
                             n = 0
-                            if ( ifield.eq.1 ) then
+                            if ( ifield == 1 ) then
                                 l = lsum
                             else
                                 l = lsum2
@@ -224,27 +224,27 @@ program difffield
                                     mo = 1 + mod(mo-1,12)
                                     call getj1j2(j1,j2,mo,nperyear,.false.)
                                     do j=j1,j2
-                                        if ( ifield.eq.1 ) then
-                                            if ( ave1(jx,jy,jz,j,pow).lt.1e30 ) then
+                                        if ( ifield == 1 ) then
+                                            if ( ave1(jx,jy,jz,j,pow) < 1e30 ) then
                                                 ss(month,pow) = ss(month,pow)+ave1(jx,jy,jz,j,pow)
                                                 n = n + 1
                                             endif
                                         else
-                                            if ( ave2(jx,jy,jz,j,pow).lt.1e30 ) then
+                                            if ( ave2(jx,jy,jz,j,pow) < 1e30 ) then
                                                 ss(month,pow) = ss(month,pow)+ave2(jx,jy,jz,j,pow)
                                                 n = n + 1
                                             endif
                                         endif
                                     enddo
                                 enddo
-                                if ( n.gt.0 ) then
+                                if ( n > 0 ) then
                                     ss(month,pow) = ss(month,pow)/n
                                 else
                                     ss(month,pow) = 3e33
                                 endif
                             end do
                         end do
-                        if ( ifield.eq.1 ) then
+                        if ( ifield == 1 ) then
                             do month=m1,m2
                                 ave1(jx,jy,jz,month,:) = ss(month,:)
                             end do
@@ -264,10 +264,10 @@ program difffield
     call xyinterpu(ave1,xx1,nx1,yy1,ny1,ave2,xx2,nx2,yy2,ny2,             &
              xx,nx,yy,ny,1,2,1,2,nxf,nyf,nzf,nz,nperyear,intertype,lwrite)
     if ( lwrite ) then
-        print *,'ave1(',nx/2,ny/2,(nz+1)/2,1,') = ',ave1(nx/1,ny/2,(nz+1)/2,1,1),  &
-                     ave2(nx/1,ny/2,(nz+1)/2,1,2)
-        print *,'ave2(',nx/2,ny/2,(nz+1)/2,1,') = ',ave2(nx/1,ny/2,(nz+1)/2,1,1),  &
-                     ave2(nx/1,ny/2,(nz+1)/2,1,2)
+        print *,'ave1(',nx/2,ny/2,(nz+1)/2,m1,') = ',ave1(nx/1,ny/2,(nz+1)/2,m1,1),  &
+                     ave1(nx/1,ny/2,(nz+1)/2,m1,2)
+        print *,'ave2(',nx/2,ny/2,(nz+1)/2,m1,') = ',ave2(nx/1,ny/2,(nz+1)/2,m1,1),  &
+                     ave2(nx/1,ny/2,(nz+1)/2,m1,2)
     end if
 !
 !   output field
@@ -275,7 +275,7 @@ program difffield
     call getarg(iargc(),outfile)
     datfile = outfile
     i = index(outfile,'.ctl')
-    if ( i.ne.0 ) then
+    if ( i /= 0 ) then
         datfile(i:) = '.dat'
     endif
     title2 = title
@@ -313,7 +313,7 @@ program difffield
     cell_methods(3) = cell_methods(1)
     ivars(1:2,3) = ivars(1:2,1)
     svars = ' '
-    if ( index(file,'.ctl').ne.0 ) then
+    if ( index(file,'.ctl') /= 0 ) then
         ncid = 0
         call writectl(outfile,datfile,nx,xx,ny,yy,nz,zz,              &
      &           m2-m1+1,nperyear,1,m1,undef,title,nvars,vars,ivars   &
@@ -327,7 +327,7 @@ program difffield
                 ,cell_methods,metadata1,0,0)
     end if
     i=0
-    if ( nx.gt.nxf .or. ny.gt.nyf ) then
+    if ( nx > nxf .or. ny > nyf ) then
         write(0,*) 'error: ',nxf,nyf,nx,ny
         call abort
     endif
@@ -336,11 +336,11 @@ program difffield
         do jz=1,nz
             do jy=1,ny
                 do jx=1,nx
-                    if ( ave1(jx,jy,jz,j,1).lt.1e30 .and. ave2(jx,jy,jz,j,1).lt.1e30 ) then
+                    if ( ave1(jx,jy,jz,j,1) < 1e30 .and. ave2(jx,jy,jz,j,1) < 1e30 ) then
                         if ( lnormsd ) then
-                            if ( abs(ave1(jx,jy,jz,j,1)).gt.1e-10 .and.         &
-     &                               abs(ave2(jx,jy,jz,j,1)).gt.1e-10 .and.     &
-     &                               abs(ave2(jx,jy,jz,j,1)).gt.mindata ) then
+                            if ( abs(ave1(jx,jy,jz,j,1)) > 1e-10 .and.         &
+     &                               abs(ave2(jx,jy,jz,j,1)) > 1e-10 .and.     &
+     &                               abs(ave2(jx,jy,jz,j,1)) > mindata ) then
                                 s = ave1(jx,jy,jz,j,1)/ave2(jx,jy,jz,j,1)
                                 ave1(jx,jy,jz,j,2) = s                                   &
      &                                   *sqrt(ave1(jx,jy,jz,j,2)/ave1(jx,jy,jz,j,1)**2  &
@@ -350,19 +350,19 @@ program difffield
                                 ave1(jx,jy,jz,j,:) = 3e33
                             end if
                         else
-                            if ( abs(ave1(jx,jy,jz,j,1)).gt.mindata .and.          &
-     &                               abs(ave2(jx,jy,jz,j,1)).gt.mindata ) then
+                            if ( abs(ave1(jx,jy,jz,j,1)) > mindata .and.          &
+     &                               abs(ave2(jx,jy,jz,j,1)) > mindata ) then
                                 ave1(jx,jy,jz,j,1) = ave1(jx,jy,jz,j,1) - ave2(jx,jy,jz,j,1)
-                                if ( ave1(jx,jy,jz,j,2).lt.0 ) then
+                                if ( ave1(jx,jy,jz,j,2) < 0 ) then
                                     write(0,*) 'difffield: error: ave1(',jx,jy,jz,j,',2)<0 ' &
      &                                       ,ave1(jx,jy,jz,j,2)
                                     ave1(jx,jy,jz,j,2) = 3e33
-                                else if ( ave2(jx,jy,jz,j,2).lt.0 ) then
+                                else if ( ave2(jx,jy,jz,j,2) < 0 ) then
                                     write(0,*) 'difffield: error: ave2(',jx,jy,jz,j,',2)<0 ' &
      &                                       ,ave2(jx,jy,jz,j,2)
                                     ave1(jx,jy,jz,j,2) = 3e33
-                                else if ( ave1(jx,jy,jz,j,2).gt.1e30 .or.     &
-     &                                    ave2(jx,jy,jz,j,2).gt.1e30 ) then
+                                else if ( ave1(jx,jy,jz,j,2) > 1e30 .or.     &
+     &                                    ave2(jx,jy,jz,j,2) > 1e30 ) then
                                     ave1(jx,jy,jz,j,2) = 3e33
                                 else
                                     ave1(jx,jy,jz,j,2) = sqrt(ave1(jx,jy,jz,j,2) + ave2(jx,jy,jz,j,2))
@@ -377,7 +377,11 @@ program difffield
                 end do
             end do
         end do
-        if ( ncid.eq.0 ) then
+        if ( lwrite ) then
+            print *,'diff,sd(',nx/2,ny/2,(nz+1)/2,j,') = ',ave1(nx/1,ny/2,(nz+1)/2,j,1),  &
+                         ave1(nx/1,ny/2,(nz+1)/2,j,2)
+        end if
+        if ( ncid == 0 ) then
             do pow=1,2
                 i = i + 1
                 write(1,rec=i) (((ave1(jx,jy,jz,j,pow),jx=1,nx),jy=1,ny),jz=1,nz)
@@ -393,7 +397,7 @@ program difffield
             do jy=1,ny
                 do jx=1,nx
 !                       z-value
-                    if ( ave1(jx,jy,jz,j,2).gt.0 .and. ave1(jx,jy,jz,j,2).lt.1e30 ) then
+                    if ( ave1(jx,jy,jz,j,2) > 0 .and. ave1(jx,jy,jz,j,2) < 1e30 ) then
                         d = ave1(jx,jy,jz,j,1)
                         e = ave1(jx,jy,jz,j,2)
                         ave1(jx,jy,jz,j,1) = d/e
@@ -409,7 +413,7 @@ program difffield
                 end do
             end do
         end do
-        if ( ncid.eq.0 ) then
+        if ( ncid == 0 ) then
             i = i + 1
             write(1,rec=i) (((ave1(jx,jy,jz,j,1),jx=1,nx),jy=1,ny),jz=1,nz)
         else
@@ -418,6 +422,6 @@ program difffield
      &               j-m1+1,0)
         end if
     end do
-    if ( ncid.ne.0 ) status = nf_close(ncid)
+    if ( ncid /= 0 ) status = nf_close(ncid)
 !
     end program
