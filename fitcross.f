@@ -182,8 +182,8 @@
                 end do
                 q = 1
                 sigdat = sqrt(chi2/(ndata-2))
-                siga = siga*sigdat
-                sigb = sigb*sigdat
+                if ( siga < 1e33 ) siga = siga*sigdat
+                if ( sigb < 1e33 ) sigb = sigb*sigdat
             end if
         end if
         if ( lwrite ) print *,'sx,sy,ss,st2,a,b = ',sx,sy,ss,st2,a,b
