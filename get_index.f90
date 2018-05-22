@@ -736,7 +736,7 @@ program get_index
             month = month + 1
             if ( month > nperyear ) then
                 call outputave(out,year,ave,nperyear,lstandardunits, &
-                offset,slope,ndpm,year,yr1,yr2,nyr)
+                    offset,slope,ndpm,year,yr1,yr2,nyr)
                 month = month - nperyear
                 year = year + 1
                 do i=1,nperyear
@@ -892,7 +892,7 @@ program get_index
         enddo               ! loop over all months in file
     !           print last (possibly incomplete) record
         call outputave(out,year,ave,nperyear,lstandardunits, &
-        offset,slope,ndpm,year,yr1,yr2,nyr)
+            offset,slope,ndpm,year,yr1,yr2,nyr)
         if ( nyr == 0 ) then
         !!!write(0,*) 'get_index: error: cannot find any data'
             if ( out /= 6 ) then
@@ -930,31 +930,31 @@ program get_index
     call exit(-1)
 999 continue
     if ( allocated(lsmask) ) deallocate(lsmask)
-    end program get_index
+end program get_index
 
-    subroutine outputave(out,year,ave,nperyear,lstandardunits,offset &
-    ,slope,ndpm,yr,yr1,yr2,nyr)
+subroutine outputave(out,year,ave,nperyear,lstandardunits,offset,slope,ndpm,yr,yr1,yr2,nyr)
     implicit none
     integer :: out,year,nperyear,ndpm,yr,yr1,yr2,nyr
     logical :: lstandardunits
     real :: ave(nperyear),offset,slope
-    integer :: i,dy,mo,dpm365(12),dpm(12),init
-    save init,dpm,dpm365
-    integer :: leap
+    integer :: i,dy,mo
+    integer,save :: dpm(12),init
+    integer,external :: leap
     data init /0/
-    data dpm/ 31,29,31,30,31,30,31,31,30,31,30,31/
-    data dpm365/ 31,28,31,30,31,30,31,31,30,31,30,31/
+    data dpm / 31,28,31,30,31,30,31,31,30,31,30,31/
 
     if ( lstandardunits ) then
         do mo=1,nperyear
             if ( ave(mo) < 1e33 ) then
                 if ( ndpm /= 0 ) then
-                    if ( nperyear == 366 .and. mo == 2 .and. &
-                    leap(yr) == 2 ) then
+                    if ( nperyear /= 12 ) then
+                        write(0,*) 'get_index: can only convert for monthly data'
+                        call exit(-1)
+                    end if
+                    if ( mo == 2 .and. leap(yr) == 2 ) then
                         ave(mo) = ave(mo)*29.**ndpm
                     else
-                        ave(mo) = ave(mo)*real(dpm(mo)) &
-                        **ndpm
+                        ave(mo) = ave(mo)*real(dpm(mo))**ndpm
                     endif
                 endif
                 ave(mo) = ave(mo)*slope + offset
@@ -966,15 +966,15 @@ program get_index
         if ( ave(mo) < 1e33 ) goto 201
     enddo
     return
-    201 continue
+201 continue
     yr1 = min(yr1,year)
     nyr = nyr + 1
     yr2 = max(yr2,year)
 
     call printdatfile(out,ave,nperyear,nperyear,yr,yr)
-    end subroutine outputave
+end subroutine outputave
 
-    subroutine getfirstnonzero(mask,nx,ny,axis,sign,y1)
+subroutine getfirstnonzero(mask,nx,ny,axis,sign,y1)
     implicit none
     integer :: nx,ny,sign,y1
     real :: mask(nx,ny)
