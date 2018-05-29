@@ -15,7 +15,7 @@ program attribute
     real,allocatable :: series(:,:,:),covariate(:,:,:)
     character seriesfile*1024,covariatefile*1024,distribution*6,assume*5,string*80
     character var*40,units*80,var1*40,units1*80,seriesids(0:mensmax)*30
-    logical lprint
+    logical lprint,lfirst
     integer iargc
     real scalingpower
     common /c_scalingpower/ scalingpower
@@ -100,7 +100,9 @@ program attribute
     if ( ldetrend ) then
         do iens=mens1,mens
             call detrend(series(1,yrbeg,iens),npermax,nperyear,yrbeg,yrend,yr1,yr2,m1,m2,lsel)
-            if ( covariatefile /= 'none' ) then
+            lfirst = .true.
+            if ( lfirst .and. covariatefile /= 'none' ) then
+                lfirst = .false.
                 call detrend(covariate(1,yrbeg,iens),npermax,nperyear1,yrbeg,yrend,yr1,yr2,m1,m2,lsel)
             end if
         end do
