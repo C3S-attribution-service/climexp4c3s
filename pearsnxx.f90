@@ -3,44 +3,32 @@ subroutine pearsnxx(x,y,n,r,prob,z,ax,sxx,ay,syy,sxy,df)
     integer,intent(in) :: n
     real,intent(in) :: x(n),y(n),df
     real,intent(out) :: r,prob,z,ax,sxx,ay,syy,sxy
-    call pearsnxx_gen(x,y,n,r,prob,z,ax,sxx,ay,syy,sxy,df,.true.,0)
+    call pearsnxxgen(x,y,n,r,prob,z,ax,sxx,ay,syy,sxy,df,.true.)
 end subroutine pearsnxx
 subroutine apearsnxx(x,y,n,r,prob,z,ax,sxx,ay,syy,sxy,df)
     implicit none
     integer,intent(in) :: n
     real,intent(in) :: x(n),y(n),df
     real,intent(out) :: r,prob,z,ax,sxx,ay,syy,sxy
-    call pearsnxx_gen(x,y,n,r,prob,z,ax,sxx,ay,syy,sxy,df,.false.,0)
-end subroutine apearsnxx
-subroutine pearsncross(x,y,n,r,prob,z,ax,sxx,ay,syy,sxy,df)
-    implicit none
-    integer,intent(in) :: n
-    real,intent(in) :: x(n),y(n),df,ncrossvalidate
-    real,intent(out) :: r,prob,z,ax,sxx,ay,syy,sxy
-    call pearsnxx_gen(x,y,n,r,prob,z,ax,sxx,ay,syy,sxy,df,.true.,ncrossvalidate)
+    call pearsnxxgen(x,y,n,r,prob,z,ax,sxx,ay,syy,sxy,df,.true.)
 end subroutine apearsnxx
 
-subroutine pearsnxx_gen(x,y,n,r,prob,z,ax,sxx,ay,syy,sxy,df,lsubmean,ncrossvalidate)
+subroutine pearsnxxgen(x,y,n,r,prob,z,ax,sxx,ay,syy,sxy,df,lsubmean)
 !
 !   re-implementation of the Numerical Recipes subroutine with a few extra parameters
-!   using the GSL routines. The extra flags allow for not subtracting the mean or 
-!   computing cross-validated results.
+!   using the GSL routines
 !
     use fgsl
     implicit none
-    integer,intent(in) :: n,ncrossvalidate
+    integer,intent(in) :: n
     real,intent(in) :: x(n),y(n),df
     real,intent(out) :: r,prob,z,ax,sxx,ay,syy,sxy
     logical,intent(in) :: lsubmean
     integer :: i
     integer(fgsl_size_t) :: dim
-    real,type(fgsl_double) :: dax,day,dsxx,dsxy,dsyy,dr,dz,dt,arg3
-    real,type(fgsl_double),allocatable :: xx(:),yy(:)
-    
-    if ( ncrossvalidate > 0 ) then
-        write(0,*) 'presnxx_gen: cross-validation not yet copied from pearsncross.f'
-        call exit(-1)
-    end if
+    real(fgsl_double) :: dax,day,dsxx,dsxy,dsyy,dr,dz,dt,arg1,arg2,arg3
+    real(fgsl_double),allocatable :: xx(:),yy(:)
+!
     dim = n
     allocate(xx(n),yy(n))
     xx = x
@@ -81,7 +69,6 @@ subroutine pearsnxx_gen(x,y,n,r,prob,z,ax,sxx,ay,syy,sxy,df,lsubmean,ncrossvalid
         prob = 0
         return
     end if
-    ! Fisher z
     dz = (1+dr)/(1-dr)
     z = dz
     if ( z > 0 ) then
@@ -91,7 +78,6 @@ subroutine pearsnxx_gen(x,y,n,r,prob,z,ax,sxx,ay,syy,sxy,df,lsubmean,ncrossvalid
         write(0,*) '                 r = ',r
         z = 3e33
     end if
-    ! Student t
     dt = (1-dr)*(1+dr)
     if ( df <= 0 ) then
         write(0,*) 'pearsnxx: error: df<=0: ',df
@@ -99,6 +85,8 @@ subroutine pearsnxx_gen(x,y,n,r,prob,z,ax,sxx,ay,syy,sxy,df,lsubmean,ncrossvalid
         return
     end if
     dt = dr*sqrt(df/dt)
+    arg1 = df/2
+    arg2 = 0.5d0
     arg3 = df/(df+dt**2)
-    prob = fgsl_sf_beta_inc(df/2,0.5d0,arg3) ! Wikipedia formula
-end subroutine pearsnxx
+    prob = fgsl_sf_beta_inc(arg1,arg2,arg3) ! Wikipedia
+end subroutine pearsnxxgen
