@@ -6,7 +6,8 @@ program diffdat
     include 'param.inc'
     integer :: nperyear,n
     real :: data(npermax,yrbeg:yrend),diff(npermax,yrbeg:yrend),minfac
-    character file*256,var*80,units*40,string*10
+    character :: file*256,var*80,units*40,string*10,lvar*100,svar*100,history*10000, &
+        metadata(2,100)*2000
     logical :: lwrite
 
     minfac = 0.7            ! arbitrary
@@ -29,20 +30,21 @@ program diffdat
     else
         n = 3
     end if
-    call readseries(file,data,npermax,yrbeg,yrend,nperyear,var,units, .false. ,lwrite)
-    if ( n == 2 ) then
-        call mdiffit(data,npermax,nperyear,yrbeg,yrend,1,minfac)
-        diff = data
-    else
-        call derivative(n,data,diff,npermax,yrbeg,yrend,nperyear,minfac,lwrite)
-    end if
+    call readseriesmeta(file,data,npermax,yrbeg,yrend,nperyear,var,units,lvar,svar, &
+        history,metadata,.false.,lwrite)
+    call derivative(n,data,diff,npermax,yrbeg,yrend,nperyear,minfac,lwrite)
     if ( n == 2 ) then
         print '(3a)','# difference with previous data point of ',trim(file)
     else
-        print '(3a,i3,a)','# centered derivative of ',trim(file) &
-            ,' using linear regression over ',n,' data points'
+        print '(2a)','# centered derivative of ',trim(file)
+        if ( n > 3 ) print '(a,i3,a)','using linear regression over ',n,' data points'
     end if
-    call copyheader(file,6)
+    var = 'd_'//trim(var)//'/dt'
+    lvar = 'time derivative of '//lvar
+    call nperyear2units(nperyear,string)
+    units = trim(units)//'/'//string
+    call printvar(6,var,units,lvar)
+    call copyheadermeta(file,6,' ',history,metadata)
     call printdatfile(6,diff,npermax,nperyear,yrbeg,yrend)
 end program diffdat
 
