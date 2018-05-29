@@ -30,6 +30,7 @@ ADAPTED = adapted_amoeba.o \
         adapted_chsone.o \
         adapted_gcf.o \
         adapted_pearsn.o \
+        adapted_pearsncross.o \
         adapted_sort2.o \
         adapted_ffsort.o \
         adapted_ttestx.o \
