@@ -65,16 +65,19 @@
     
     call getarg(2+off,covariatefile)
     allocate(covariate(npermax,fyr:lyr,0:nensmax))
-    if ( index(covariatefile,'%%') == 0 .and. &
-    &    index(covariatefile,'++') == 0 ) then
+    if ( covariatefile == 'none' ) then
+        covariate = 0
+        nperyear1 = 1
+    else if ( index(covariatefile,'%%') == 0 .and. &
+              index(covariatefile,'++') == 0 ) then
         call readseries(covariatefile,covariate,npermax,fyr,lyr &
-        & ,nperyear1,var1,units1,lstandardunits,lwrite)
+            ,nperyear1,var1,units1,lstandardunits,lwrite)
         do iens=mens1+1,mens
             covariate(:,:,iens) = covariate(:,:,mens1)
         end do
     else
         call readensseries(covariatefile,covariate,npermax,fyr,lyr &
-        & ,nperyear1,var1,units1,lstandardunits,lwrite)
+            ,nperyear1,var1,units1,lstandardunits,lwrite)
     end if
     
     call getopts(6+off,iargc()-1,nperyear,yrbeg,yrend,.true.,mens1,mens)
@@ -132,9 +135,13 @@
                 end do
             end if
             if ( ldetrend ) then
+                lfirst = .true.
                 do iens=mens1,mens
                     call detrend(series(1,fyr,iens),npermax,nperyear,fyr,lyr,yr1,yr2,m1,m2,lsel)
-                    if ( lfirst) call detrend(covariate(1,fyr,iens),npermax,nperyear1,fyr,lyr,yr1,yr2,m1,m2,lsel)
+                    if ( lfirst .and. covariatefile /= 'none' ) then
+                        lfirst = .false.
+                        call detrend(covariate(1,fyr,iens),npermax,nperyear1,fyr,lyr,yr1,yr2,m1,m2,lsel)
+                    end if
                 end do
             end if
             if ( anom ) then
