@@ -22,7 +22,7 @@ subroutine makestandardseries(data,npermax,yrbeg,yrend,nperyear,var,units,lwrite
     end if
     call getseriesmoment(1,data,npermax,yrbeg,yrend,nperyear,yrbeg,yrend,mean)
     call makestandardunits(mean,nperyear,var,units,newunits,offset,slope,ndpm,lwrite)
-    if ( slope==1 .and. offset==0 .and. ndpm==0 ) then
+    if ( slope == 1 .and. offset == 0 .and. ndpm == 0 ) then
         units = newunits    ! for K => Celsius, hPa => mb, ...
         return
     end if
