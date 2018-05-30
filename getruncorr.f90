@@ -1,7 +1,7 @@
 subroutine getruncorr(dindx,ddata,lfirst,dddata,ndata,j1,j2 &
     ,lag,k,month,nperyear,imens,indxmx,indx &
     ,data,npermax,yrbeg,yrend,nensmax,n0 &
-    ,filter,string,lboot,lprint,rmin,rmax,zdif)
+    ,string,lboot,lprint,rmin,rmax,zdif)
 
 !       compute running correlations
 
@@ -15,7 +15,6 @@ subroutine getruncorr(dindx,ddata,lfirst,dddata,ndata,j1,j2 &
     real :: dindx(ndata),ddata(ndata),dddata(ndata)
     logical :: lfirst(ndata)
     real :: data(npermax,yrbeg:yrend,0:nensmax),indx(npermax,yrbeg:yrend,0:nensmax,indxmx)
-    real :: filter(100)
     logical :: lboot,lprint
     real :: rmin,rmax,zdif,savedata(lperyear,lyr,0:lensmax), &
         saveindx(lperyear,lyr,0:lensmax),sig(1),a,b,siga,sigb,chi2,q
@@ -158,7 +157,7 @@ subroutine getruncorr(dindx,ddata,lfirst,dddata,ndata,j1,j2 &
         lwrite = .false. 
         call filllinarray(dindx,ddata,lfirst,dddata,ndata,n,j1,j2 &
             ,lag,k,nperyear,imens,indxmx,indx,data,npermax,yrbeg &
-            ,yrend,nensmax,filter,-999,-999,yrmo)
+            ,yrend,nensmax,-999,-999,yrmo)
         if ( ldetrend ) then
 !           restore data
             do iiens=nens1,nens2

@@ -34,7 +34,7 @@
     real :: anino(8),val12(npermax),adata,aindx,sxx,syy,yrmin(25), &
         yrmax(25),xmin,xmax,rise,fall,slength(25),ayr,r,prob, &
         absent,z,probd,sxy,df, &
-        ss(nensmax*(indxmx+1)),filter(100),minval, &
+        ss(nensmax*(indxmx+1)),minval, &
         result,dresult(-2:2),a(2),da(2,2),results(nmc),sig(1), &
         chi2,q,rmin,rmins(nmc),rmax,rmaxs(nmc),zdif,zdifs(nmc), &
         addfac(npermax,indxmx),sign,signmin,signmax,signdif, &
@@ -68,11 +68,6 @@
     if ( indxmx /= 19 ) then
         write(0,*) 'expecting indxmx=19, not ',indxmx
         call exit(-1)
-    endif
-    if ( lwrite ) print *,'putting arrays to absent'
-    if ( nfittime > 0 ) then
-    !           the last value is a heuristic based on advise in NumRec
-        call savgol(filter,100,nfittime,nfittime,1,min(nfittime,4))
     endif
 !  #] check arguments:
 !  #[ allocate big arrays:
@@ -980,8 +975,7 @@
                 if ( dump ) write(10,'(2a)') '# ',strindx(k)
                 call filllinarray(dindx,ddata,lfirst,dddata,mdata,n &
                     ,j1,j2,lag,k,nperyear,imens,indxmx,indx,data &
-                    ,nperyear,yrbg,yred,nensmx,filter,yrstart &
-                    ,yrstop,yrmo)
+                    ,nperyear,yrbg,yred,nensmx,yrstart,yrstop,yrmo)
                 if ( n < minnum ) then
                     if ( lwrite ) print *,'correlate: not enough points: ',n,minnum
                     goto 800
@@ -996,7 +990,7 @@
                     call getruncorr(dindx,ddata,lfirst,dddata,mdata &
                         ,j1,j2,lag,k,month,nperyear,imens,indxmx &
                         ,indx,data,nperyear,yrbg,yred,nensmx &
-                        ,ndup(0),filter,strindx(k),lboot,.true. &
+                        ,ndup(0),strindx(k),lboot,.true. &
                         ,rmin,rmax,zdif)
                 
 !                   Monte Carlo
@@ -1004,7 +998,7 @@
                     call filllinarray(dindx,ddata,lfirst,dddata &
                         ,mdata,n,j1,j2,lag,k,nperyear,imens,indxmx &
                         ,indx,data,nperyear,yrbg,yred,nensmx &
-                        ,filter,-999,-999,yrmo)
+                        ,-999,-999,yrmo)
                     if ( month == 0 ) then
                         df = (n-ndup(0))/(max(lsum,lsum2) + decor)/real(max(1,1-ndiff)) - 2
                     else
@@ -1037,7 +1031,7 @@
                         call filllinarray(dindx,ddata,lfirst,dddata &
                             ,mdata,n,j1,j2,lag,k,nperyear,imens &
                             ,indxmx,mcindx,mcdata,nperyear,yrbg &
-                            ,yred,nensmx,filter,-999,-999,yrmo)
+                            ,yred,nensmx,-999,-999,yrmo)
                         if ( lwrite ) then
                             lwrite = .false. 
                             call printcorr(dindx,ddata,lfirst,dddata &
@@ -1056,7 +1050,7 @@
                         call getruncorr(dindx,ddata,lfirst,dddata &
                             ,mdata,j1,j2,lag,k,month,nperyear,imens &
                             ,indxmx,mcindx,mcdata,nperyear,yrbg &
-                            ,yred,nensmx,ndup(0),filter,strindx(k), &
+                            ,yred,nensmx,ndup(0),strindx(k), &
                             .false.,lprint,rmins(i),rmaxs(i),zdifs(i))
                         if ( lwrite ) print *,'zdif = ',zdifs(i)
                         call keepalive(i,nmc)

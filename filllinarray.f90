@@ -1,6 +1,6 @@
 subroutine filllinarray(dindx,ddata,lfirst,dddata,ndata,n,j1,j2 &
     ,lag,k,nperyear,imens,indxmx,indx,data,npermax,yrbeg,yrend &
-    ,nensmax,filter,yrstart,yrstop,yrmo)
+    ,nensmax,yrstart,yrstop,yrmo)
 
 !   fill linear arrays without absent values
 
@@ -12,7 +12,6 @@ subroutine filllinarray(dindx,ddata,lfirst,dddata,ndata,n,j1,j2 &
     real :: dindx(ndata),ddata(ndata),dddata(ndata)
     logical :: lfirst(ndata)
     real :: indx(npermax,yrbeg:yrend,0:nensmax,indxmx),data(npermax,yrbeg:yrend,0:nensmax)
-    real :: filter(100)
     integer :: yr,jj,j,i,m,ii,iiens,iens,jens,if,jm,jp,im,ip
     logical :: lastvalid
 
@@ -31,12 +30,12 @@ subroutine filllinarray(dindx,ddata,lfirst,dddata,ndata,n,j1,j2 &
                 call printdatfile(6,indx(1,yrbeg,iens,k),npermax,nperyear,yrbeg,yrend)
             end do
         end if
-    endif
+    end if
     if ( nens2 > max(imens(0),imens(k)) ) then
         write(0,*) 'filllinarray: error: nens2 > mens: ',nens2,imens(0),imens(k)
         write(*,*) 'filllinarray: error: nens2 > mens: ',nens2,imens(0),imens(k)
         call exit(-1)
-    endif
+    end if
 
     n = 0
     do iiens=nens1,nens2
@@ -45,22 +44,26 @@ subroutine filllinarray(dindx,ddata,lfirst,dddata,ndata,n,j1,j2 &
             iens = iiens
         else
             iens = 0
-        endif
+        end if
         if ( imens(k) > 0 ) then
             jens = iiens
         else
             jens = 0
-        endif
+        end if
+        if ( nfittime > 0 ) then
+            call derivative(2*nfittime+1,data(1,yrbeg,iens),indx(1,yrbeg,iens,indxmx), &
+                npermax,yrbeg,yrend,nperyear,minfac,lwrite)
+        end if
         do yr=yr1-1,yr2
             if ( j1 /= j2 .and. j2-j1+1 /= nperyear ) then
                 lastvalid = .false. 
-            endif
+            end if
             do jj=j1,j2
                 if ( fix2 ) then
                     j = jj+lag
                 else
                     j = jj
-                endif
+                end if
                 call normon(j,yr,i,nperyear)
                 if ( i < yr1 .or. i > yr2 ) goto 710
                 m = j-lag
@@ -82,17 +85,17 @@ subroutine filllinarray(dindx,ddata,lfirst,dddata,ndata,n,j1,j2 &
                         then
                     if ( n == 0 .and. lwrite ) then
                         print *,'filllinarray: first valid point '
-                    endif
+                    end if
                     if ( lwrite ) then
                         print '(i3,i5,i3,g12.4,i3,i5,i3,g12.4,i3)',j,i,iens,data(j,i,iens), &
                             m,ii,jens,indx(j,i,iens,k),k
-                    endif
+                    end if
                     n = n+1
                     if ( n > ndata ) then
                         write(0,*) 'filllinarray: error: n>ndata ',ndata
                         write(*,*) 'filllinarray: error: n>ndata ',ndata
                         call exit(-1)
-                    endif
+                    end if
                     ddata(n) = data(j,i,iens)
                     dindx(n) = indx(m,ii,jens,k)
                     lfirst(n) = .not. lastvalid
@@ -102,38 +105,24 @@ subroutine filllinarray(dindx,ddata,lfirst,dddata,ndata,n,j1,j2 &
                         yrmo(2,n) = j
                         yrstart = min(yrstart,i,ii)
                         yrstop  = max(yrstop,i,ii)
-                    endif
+                    end if
                     if ( lwrite .and. lfirst(n) ) print *,'boundary at ',n,j,i,iens
                     if ( nfittime > 0 ) then
-                        dddata(n) = 0
-                        do if=1,nfittime
-                            jm = j-if
-                            call normon(jm,i,im,nperyear)
-                            jp = j+if
-                            call normon(jp,i,ip,nperyear)
-                            if (  ip > yrend .or. im < yrbeg ) &
-                            then
-                                n = n - 1
-                                goto 710
-                            endif
-                            if (  data(jp,ip,iens) > 1e33 .or. &
-                            data(jm,im,iens) > 1e33 ) then
-                                n = n - 1
-                                goto 710
-                            endif
-                            dddata(n) = dddata(n) + filter(1+if)*(data(jm,im,iens) - data(jp,ip,iens))
-                        enddo ! ip=1,nfittime
-                        indx(j,i,iens,indxmx) = dddata(n)
-                    endif   ! nfittime
+                        if ( indx(j,i,iens,indxmx) > 1e33 ) then
+                            n = n - 1
+                            goto 710
+                        end if
+                        dddata(n) = indx(j,i,iens,indxmx)
+                    end if   ! nfittime
                 else
                     goto 710
-                endif       ! valid data point
+                end if       ! valid data point
                 goto 720
             710 continue
-            !                   invalid data point
+!               invalid data point
                 lastvalid = .false. 
             720 continue
-            enddo           ! month jj
-        enddo               ! year yr
-    enddo                   ! iens
+            end do           ! month jj
+        end do               ! year yr
+    end do                   ! iens
 end subroutine filllinarray

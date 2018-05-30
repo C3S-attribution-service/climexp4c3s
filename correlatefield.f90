@@ -39,7 +39,7 @@ program correlatefield
     real xx(nxmax),yy(nymax),zz(nzmax),undef,xxls(nxmax),yyls(nymax)
     real ddata(ndatmax),dindx(ndatmax),dddata(ndatmax),             &
          adata,sxx,aindx,syy,sxy,df,d,zd,z,probd,sig(1),chi2, &
-         q,sum,fac,filter(100),aa,daa,bb,dbb,dresult(-2:2),         &
+         q,sum,fac,aa,daa,bb,dbb,dresult(-2:2),         &
          results(nmc),rmins(nmc),rmaxs(nmc),zdifs(nmc),dum,zold,    &
          sxxold,alpha,xrand,s
     logical lexist,ensseries,lfirst(ndatmax),llwrite
@@ -991,7 +991,7 @@ program correlatefield
                                      ,dddata,ndatmax,j1,j2,lag,1        &
                                      ,month,nperyear,imens,1,fxy        &
                                      ,data,mpermax,yrbeg,yrend          &
-                                     ,nensmax,ndup(0),filter            &
+                                     ,nensmax,ndup(0)                   &
                                      ,' ',.false.,.false.               &
                                      ,rmin(jx,jy,jz,m)                  &
                                      ,rmax(jx,jy,jz,m)                  &
@@ -1007,8 +1007,7 @@ program correlatefield
                                      ,lfirst,dddata,ndatmax,n,j1        &
                                      ,j2,lag,1,nperyear,imens,1         &
                                      ,fxy,data,mpermax,yrbeg            &
-                                     ,yrend,nensmax,filter,-999,-999    &
-                                     ,yrmo)
+                                     ,yrend,nensmax,-999,-999,yrmo)
                                 if ( lwrite ) print *,'correlate: a,b,sd,r,sde '    &
                                      ,a(jx,jy,jz,m),b(jx,jy,jz,m),sqrt(sxx/(n-1))   &
                                      ,r(jx,jy,jz,m),sqrt(sxx/(n-1)*(1-r(jx,jy,jz,m)**2))
@@ -1043,8 +1042,7 @@ program correlatefield
                                         call filllinarray(dindx,ddata,lfirst        &
                                              ,dddata,ndatmax,n,j1,j2,lag,1          &
                                              ,nperyear,imens,1,fxy,mcdata,mpermax   &
-                                             ,yrbeg,yrend,nensmax,filter,-999,      &
-                                             -999,yrmo)
+                                             ,yrbeg,yrend,nensmax,-999,-999,yrmo)
                                         call printcorr(dindx,ddata,lfirst           &
                                              ,dddata,yrmo,n,ndup(0)                 &
                                              ,j1,j2,month,nperyear,lag,' ',         &
@@ -1054,8 +1052,7 @@ program correlatefield
                                     call getruncorr(dindx,ddata,lfirst,dddata,ndatmax   &
                                          ,j1,j2,lag,1,month,nperyear,imens,1,fxy        &
                                          ,mcdata,mpermax,yrbeg,yrend,nensmax,ndup(0)    &
-                                         ,filter,' ',.false.,.false.,rmins(i)           &
-                                         ,rmaxs(i),zdifs(i))
+                                         ,' ',.false.,.false.,rmins(i),rmaxs(i),zdifs(i))
                                     if ( lwrite ) print *,'zdif = ',zdifs(i)
                                 end do
                                 if ( lwrite ) call getsign('result '            &
