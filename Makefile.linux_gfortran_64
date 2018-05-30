@@ -5,12 +5,18 @@ EOFFLAGS = -O -Dlinux -fbackslash
 
 CFLAGS = -O2
 
-SYSLIBS = -L$(HOME)/lib -L$(HOME)/lib/$PVM_ARCH -L/usr/lib64/atlas -lnetcdff -lnetcdf -lhdf5 -lfgsl -lgsl -llapack -lblas
 FC = gfortran
 LD = gfortran
 EOFLD = gfortran $(EOFFLAGS)
 RANLIB = echo ready with
-NUMLIB = wrappers.a
+use_gsl=false
+ifeq ($(use_gsl),true)
+    SYSLIBS = -L$(HOME)/lib -L$(HOME)/lib/$PVM_ARCH -L/usr/lib64/atlas -lnetcdff -lnetcdf -lhdf5 -lfgsl -lgsl -llapack -lblas
+    NUMLIB = wrappers.a
+else
+    SYSLIBS = -L$(HOME)/lib -L$(HOME)/lib/$PVM_ARCH -L/usr/lib64/atlas -lnetcdff -lnetcdf -lhdf5 -llapack -lblas
+    NUMLIB = adapted.a libnr.a
+endif
 
 ###LDBIGFLAG = -Wl,-Bstatic
 
