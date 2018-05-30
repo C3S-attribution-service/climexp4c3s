@@ -1,7 +1,7 @@
 subroutine derivative(ndiff,data,diff,npermax,yrbeg,yrend,nperyear,minfac,lwrite)
 
-!       take a centered derivative of the data in data and return it in diff
-!       ndff: number of points in the derivative
+!   take a centered derivative of the data in data and return it in diff
+!   ndff: number of points in the derivative
 
     implicit none
     integer :: nmax
