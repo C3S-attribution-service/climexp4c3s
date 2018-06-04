@@ -229,8 +229,7 @@ program get_index
                 iskip = 1
                 read(string,*) noisemodel
                 if (noisemodel /= 1 ) then
-                    write(0,*) 'noisemodel ',noisemodel &
-                    ,' not yet ready'
+                    write(0,*) 'noisemodel ',noisemodel,' not yet ready'
                     call exit(-1)
                 endif
             endif
@@ -744,7 +743,13 @@ program get_index
                 enddo
             endif
             if ( month > 0 ) then
-                ave(month) = 0
+                if ( oper == 'v' ) then
+                    ave(month) = 0
+                else if ( oper == 'n' ) then
+                    ave(month) = 3e33
+                else if ( oper == 'x' ) then
+                    ave(month) = -3e33
+                end if
             else
                 avemean(month+nperyear) = 0
             endif
@@ -784,7 +789,7 @@ program get_index
                     endif
                     if ( f < -999 .and. f > -1000 ) then
                         write(0,*)'get_index: warning: suspicious ', &
-                        'point field(',ii,j,month,year,') = ',f
+                            'point field(',ii,j,month,year,') = ',f
                     end if
                     if ( f < 1e33 ) then
                         if (  dipole == 'no' .or. &
@@ -813,10 +818,8 @@ program get_index
                                 ,month,year),mean(ii,j,month) &
                                 ,sgn,w
                             else
-                                write(0,*) 'adding mean(',ii,j, &
-                                month+nperyear,') = ', &
-                                mean(ii,j,month+nperyear),sgn &
-                                ,w
+                                write(0,*) 'adding mean(',ii,j,month+nperyear,') = ', &
+                                    mean(ii,j,month+nperyear),sgn,w
                             endif
                         endif
                         if ( month > 0 ) then
@@ -837,60 +840,47 @@ program get_index
                                     ave(month) = min(ave(month),field(ii,j,month,year))
                                 end if
                             else
-                                write(0,*) 'get_index: error: '// &
-                                'unrecognised oper ',oper
+                                write(0,*) 'get_index: error: unrecognised oper ',oper
                                 call exit(-1)
                             end if
                         else
-                            avemean(month+nperyear) = &
-                            avemean(month+nperyear) + &
-                            sgn*w*mean(ii,j,month+nperyear)
+                            avemean(month+nperyear) = avemean(month+nperyear) + &
+                                sgn*w*mean(ii,j,month+nperyear)
                         endif
                         sw = sw + w
                     else
-                        if ( lwrite .and. .false.) print *, &
-                        'get_index: invalid point'
+                        if ( lwrite .and. .false.) print *,'get_index: invalid point'
                     endif
                 enddo
             enddo
             if ( month > 0 ) then
                 if ( sw < minfac/100*sw0 .or. sw == 0 ) then
                     ave(month) = 3e33
-                    if ( lwrite ) write(0,*) 'sw<minfac*area 1: ',sw &
-                    ,minfac/100,sw0,month
-                elseif ( missing .and. .NOT. anom .and. oper == 'v' &
-                     .and. avemean(month) > 1e33 ) then
+                    if ( lwrite ) write(0,*) 'sw<minfac*area 1: ',sw,minfac/100,sw0,month
+                elseif ( missing .and. .NOT. anom .and. oper == 'v' .and. avemean(month) > 1e33 ) then
                     ave(month) = 3e33
-                    if ( lwrite ) write(0,*) 'mean missing: ', &
-                    avemean(month)
+                    if ( lwrite ) write(0,*) 'mean missing: ',avemean(month)
                 else if ( oper == 'v' ) then
                     ave(month) = ave(month)/sw
-                    if ( missing .and. .NOT. anom ) ave(month) = &
-                    ave(month) + avemean(month)
-                    if ( lwrite ) write(*,*) 'ave(',month,') = ' &
-                    ,ave(month)
+                    if ( missing .and. .NOT. anom ) ave(month) = ave(month) + avemean(month)
+                    if ( lwrite ) write(*,*) 'ave(',month,') = ',ave(month)
                 else if ( oper == 'n' .or. oper == 'x' ) then
-                    if ( lwrite ) write(*,*) 'ave(',month,') = ' &
-                    ,ave(month)
+                    if ( lwrite ) write(*,*) 'ave(',month,') = ',ave(month)
                 endif
             else
                 if ( sw == 0 ) then
                     avemean(month+nperyear) = 3e33
                     sw0 = 0
-                    if ( lwrite ) write(*,*) 'sw<minfac*area 2: ',sw &
-                    ,minfac/100,month+nperyear
+                    if ( lwrite ) write(*,*) 'sw<minfac*area 2: ',sw,minfac/100,month+nperyear
                 else
                     sw0 = sw
-                    avemean(month+nperyear) = &
-                    avemean(month+nperyear)/sw
-                    if ( lwrite ) write(*,*) 'avemean(',month &
-                    +nperyear,') = ',avemean(month+nperyear), &
-                    sw
+                    avemean(month+nperyear) = avemean(month+nperyear)/sw
+                    if ( lwrite ) write(*,*) 'avemean(',month+nperyear,') = ',avemean(month+nperyear),sw
                 endif
             endif
             call keepalive1('Time step',k-k1+1,nt+firstmo-k1)
         enddo               ! loop over all months in file
-    !           print last (possibly incomplete) record
+!       print last (possibly incomplete) record
         call outputave(out,year,ave,nperyear,lstandardunits, &
             offset,slope,ndpm,year,yr1,yr2,nyr)
         if ( nyr == 0 ) then
@@ -908,15 +898,15 @@ program get_index
             endif
             print '(a)','========='
         endif
-    !           finito
+!       finito
         if ( npoints > 1 ) then
             close(out)
-        ! make a netcdf copy for faster access by next program
+            ! make a netcdf copy for faster access by next program
             call mysystem('./bin/dat2nc '//trim(string)// &
-            ' i get_index '//trim(string(:index(string,'.dat') &
-            ))//'nc',iret)
+                ' i get_index '//trim(string(:index(string,'.dat') &
+                ))//'nc',iret)
         endif
-        900 continue
+    900 continue
         call keepalive1('Writing grid points',ipoints,npoints)
     enddo
     goto 999
@@ -993,10 +983,8 @@ subroutine getfirstnonzero(mask,nx,ny,axis,sign,y1)
             j2 = 1
             dj = -1
         else
-            write(0,*) 'getfirstnonzero: error: sign should be +/-1' &
-            ,', not ',sign
-            write(*,*) 'getfirstnonzero: error: sign should be +/-1' &
-            ,', not ',sign
+            write(0,*) 'getfirstnonzero: error: sign should be +/-1, not ',sign
+            write(*,*) 'getfirstnonzero: error: sign should be +/-1, not ',sign
             call exit(-1)
         end if
         do j=j1,j2,dj
@@ -1019,10 +1007,8 @@ subroutine getfirstnonzero(mask,nx,ny,axis,sign,y1)
             i2 = 1
             di = -1
         else
-            write(0,*) 'getfirstnonzero: error: sign should be +/-1' &
-            ,', not ',sign,axis
-            write(*,*) 'getfirstnonzero: error: sign should be +/-1' &
-            ,', not ',sign,axis
+            write(0,*) 'getfirstnonzero: error: sign should be +/-1, not ',sign,axis
+            write(*,*) 'getfirstnonzero: error: sign should be +/-1, not ',sign,axis
             call exit(-1)
         end if
         do i=i1,i2,di
@@ -1036,17 +1022,13 @@ subroutine getfirstnonzero(mask,nx,ny,axis,sign,y1)
         end do
         y1 = i
     else
-        write(0,*) 'getfirstnonzero: error: axis should be x or y' &
-        ,', not ',axis
-        write(*,*) 'getfirstnonzero: error: axis should x or y' &
-        ,', not ',axis
+        write(0,*) 'getfirstnonzero: error: axis should be x or y, not ',axis
+        write(*,*) 'getfirstnonzero: error: axis should be x or y, not ',axis
         call exit(-1)
     end if
-    if ( .NOT. foundit ) then
-        write(0,*) 'getfirstnonzero: error: mask is all zero ',axis &
-        ,sign
-        write(*,*) 'getfirstnonzero: error: mask is all zero ',axis &
-        ,sign
+    if ( .not. foundit ) then
+        write(0,*) 'getfirstnonzero: error: mask is all zero ',axis,sign
+        write(*,*) 'getfirstnonzero: error: mask is all zero ',axis,sign
         if ( axis == 'x' ) then
             print *,'i1,i2,di = ',i1,i2,di
         else
