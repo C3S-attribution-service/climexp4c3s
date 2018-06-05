@@ -287,8 +287,19 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
                 betabeta = -betabeta
             end if
         end if
-        t = -t
-        tt = -tt
+        do j=1,10
+            do i=1,4
+                if ( assume == 'scale' .and. i == 3 ) cycle ! a relative change does not change sign...
+                if ( t(j,i) < 1e30 ) then
+                    t(j,i) = -t(j,i)
+                end if
+                do iens = 1,nmc
+                    if ( tt(iens,j,i) < 1e33 ) then
+                        tt(iens,j,i) = -tt(iens,j,i)
+                    end if
+                end do
+            end do
+        end do        
     endif
     plo = (100-confidenceinterval)/2
     phi = (100+confidenceinterval)/2

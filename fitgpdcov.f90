@@ -422,6 +422,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         end if
         do j=1,10
             do i=1,4
+                if ( assume == 'scale' .and. i == 3 ) cycle ! a relative change does not change sign...
                 if ( t(j,i) < 1e30 ) then
                     t(j,i) = -t(j,i)
                 end if
@@ -430,6 +431,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         do iiens=1,iens
             do j=1,10
                 do i=1,4
+                    if ( assume == 'scale' .and. i == 3 ) cycle ! a relative change does not change sign...
                     if ( tt(iiens,j,i) < 1e33 ) then
                         tt(iiens,j,i) = -tt(iiens,j,i)
                     end if
