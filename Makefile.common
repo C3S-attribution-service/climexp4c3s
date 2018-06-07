@@ -104,6 +104,8 @@ OBJS =  makeabsent.o \
 		getperyear.o \
 		readncfile.o \
 		zreadncfile.o \
+		readncfileens.o \
+		applyscaleoffset.o \
 		readfield.o \
 		readncslice.o \
 		writenc.o \

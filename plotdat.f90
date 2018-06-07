@@ -60,12 +60,15 @@ program plotdat
     call keepalive1('Reading data',0,0)
     call getopts(iarg,iargc()-1,nperyear,yrbeg,yrend,.true.,mens1,mens)
     if ( index(line,'++') > 0 .or. index(line,'%%') > 0 ) then
-        name = line
-        call filloutens(line,0)
         inquire(file=trim(line),exist=lexist)
-        if ( .not. lexist ) then
-            line = name
-            call filloutens(line,1)
+        if ( .not. lexist .or. index(line,'.nc') == 0 ) then
+            name = line
+            call filloutens(line,0)
+            inquire(file=trim(line),exist=lexist)
+            if ( .not. lexist ) then
+                line = name
+                call filloutens(line,1)
+            end if
         end if
     end if
     title = ' '

@@ -7,7 +7,7 @@ program describefield
     include 'netcdf.inc'
     integer,parameter :: nxmax=3600,nymax=1800,nzmax=95, &
         yrbeg=1700,yrend=2300,nvmax=1,npermax=73, &
-        ndata=npermax*(yrend-yrbeg+1),nensmax=400,ntmax=2000000
+        ndata=npermax*(yrend-yrbeg+1),nensmax=750,ntmax=2000000
     integer :: i,n,nx,ny,nz,nt,nperyear,firstyr,firstmo,nvars,ivars(2 &
         ,nvmax),jvars(6,nvmax),ncid,endian,status,iens,nens1,nens2, &
         dy1,mo1,dy2,mo2,yr,ntp,ntt,it,iarg,nargs,nt1,firstyr1, &
@@ -58,7 +58,11 @@ program describefield
             enddo
          10 continue
         end do
-        write(0,'(a,i4,a,i4,a)') 'Found ensemble members ',nens1,' to ',nens2,' <br>'
+        if ( nens2 >= nens1 ) then
+            write(0,'(a,i4,a,i4,a)') 'Found ensemble members ',nens1,' to ',nens2,' <br>'
+        else
+            ensemble = .false.
+        end if
     endif
     nt = 0
     ntt = 0

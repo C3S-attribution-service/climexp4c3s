@@ -6,7 +6,7 @@ subroutine parsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
 
     implicit none
     integer :: ntmax,nensmax
-    parameter (ntmax=5000000,nensmax=400)
+    parameter (ntmax=5000000,nensmax=750)
     integer :: ncid,nxmax,nymax,nzmax,nx,ny,nz,nt,nperyear,firstyr &
         ,firstmo,nvarmax,ntvars,ivars(6,nvarmax)
     real :: xx(nxmax),yy(nymax),zz(nzmax),undef
@@ -39,7 +39,7 @@ subroutine ensparsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
     implicit none
     include 'netcdf.inc'
     integer :: nensmax
-    parameter (nensmax=230)
+    parameter (nensmax=750)
 !   arguments
     integer :: ncid,nxmax,nymax,nzmax,nx,ny,nz,nt,nperyear,firstyr &
         ,firstmo,ntmax,nens1,nens2,nvarmax,ntvars,ivars(6,nvarmax)

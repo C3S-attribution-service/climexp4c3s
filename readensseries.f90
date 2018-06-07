@@ -1,12 +1,12 @@
 subroutine readensseries(file,data,npermax,yrbeg,yrend,nensmax &
-    ,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
+        ,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
     implicit none
     integer :: npermax,yrbeg,yrend,nperyear,nensmax,mens1,mens
     real :: data(npermax,yrbeg:yrend,0:nensmax)
     logical :: lstandardunits,lwrite
     character :: file*(*),var*(*),units*(*)
     character ::  lvar*120,svar*120,history*50000,metadata(2,100)*1000
-    
+
     call readensseriesmeta(file,data,npermax,yrbeg,yrend,nensmax &
         ,nperyear,mens1,mens,var,units,lvar,svar,history,metadata,lstandardunits,lwrite)
 
@@ -19,24 +19,37 @@ subroutine readensseriesmeta(file,data,npermax,yrbeg,yrend,nensmax &
 !   also returns the number of ensemble members in mens, 0=not an ensemble
 
     implicit none
+    include 'netcdf.inc'
     integer :: npermax,yrbeg,yrend,nperyear,nensmax,mens1,mens
     real :: data(npermax,yrbeg:yrend,0:nensmax)
     logical :: lstandardunits,lwrite
     character :: file*(*),var*(*),units*(*)
     character ::  lvar*(*),svar*(*),history*(*),metadata(2,100)*(*)
-    integer :: iens
+    integer :: iens,status,ncid
     logical :: lexist,lfirst
-    character :: ensfile*1023,line*10
+    character :: ensfile*1023,line*10,saveunits*100
 
     if ( lwrite ) then
         print *,'readensseries: file = ',trim(file)
-        print *,'               npermax,yrbeg,yrend = ',npermax &
-        ,yrbeg,yrend
+        print *,'               npermax,yrbeg,yrend = ',npermax,yrbeg,yrend
     endif
 
-!   ensembles are denoted by a '%' or '++' in the file name
+!   ensembles are denoted by a '%' or '++' in the file name for separate file, @@ if the
+!   ensemble dimension is in the netcdf file (no other formats are supported)
 
-    if ( index(file,'%') == 0 .and. index(file,'++') == 0 ) then
+    if ( index(file,'@@') /= 0 ) then
+        ! it is a netcdf file with an ensemble dimension
+        call readncseriesensmeta(file,data,npermax,nperyear,yrbeg,yrend,nensmax,mens1,mens &
+            ,ncid,var,units,lvar,svar,history,metadata,lwrite)
+        if ( lstandardunits ) then
+            saveunits = units
+            do iens=mens1,mens
+                units = saveunits
+                call makestandardseries(data(1,yrbeg,iens),npermax,yrbeg,yrend, &
+                    nperyear,var,units,lwrite)
+            end do
+        end if
+    else if ( index(file,'%') == 0 .and. index(file,'++') == 0 ) then
         mens = 0
         mens1 = 0
         if ( lwrite ) print *,'not an ensemble, calling readseries'
@@ -49,7 +62,7 @@ subroutine readensseriesmeta(file,data,npermax,yrbeg,yrend,nensmax &
         do iens=0,nensmax
             ensfile = file
             call filloutens(ensfile,iens)
-            inquire(file=ensfile,exist=lexist)
+            inquire(file=trim(ensfile),exist=lexist)
             if ( .not. lexist ) then
                 if ( mens == -1 ) then
                     mens1 = iens + 1
@@ -62,7 +75,7 @@ subroutine readensseriesmeta(file,data,npermax,yrbeg,yrend,nensmax &
         if ( mens < 0 ) then
             write(0,*) 'readensseries: error: could not find ensemble ' &
                 ,trim(file),trim(ensfile)
-            call abort
+            call exit(-1)
         end if
         do iens=mens1,mens
             ensfile = file
