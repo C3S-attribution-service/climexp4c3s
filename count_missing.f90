@@ -7,7 +7,8 @@ program count_missing
     include 'getopts.inc'
     integer   :: yr,mo,nperyear,nmissing(yrbeg:yrend),nn(yrbeg:yrend)
     integer   :: n0,n0missing,j1,j2,y1,y2,nlength(10),length,nperday,mens1,mens,mon
-    real      :: data(npermax,yrbeg:yrend,0:nensmax),frac(yrbeg:yrend)
+    real      :: frac(yrbeg:yrend)
+    real,allocatable :: data(:,:,:)
     logical   :: nomissing
     character :: file*1023,var*80,units*40,line*80
     integer   :: iargc
@@ -21,8 +22,9 @@ program count_missing
     
     call getarg(1,file)
     lstandardunits = .false.
+    allocate(data(npermax,yrbeg:yrend,0:nensmax))
     call readensseries(file,data,npermax,yrbeg,yrend,nensmax,nperyear,mens1,mens, &
-    &   var,units,lstandardunits,lwrite)
+        var,units,lstandardunits,lwrite)
     
     y1 = yrbeg
     y2 = yrend
