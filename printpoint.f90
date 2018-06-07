@@ -901,7 +901,7 @@ subroutine getabfromcov(a,b,alpha,beta,cov,aa,bb)
         bb = b
     else if ( cassume == 'scale' ) then
         arg = alpha*cov/a
-        if ( arg < 70 ) then
+        if ( arg < 70 .and. a < 1e33 .and. b < 1e33 ) then
             aa = a*exp(alpha*cov/a)
             bb = b*aa/a
         else
