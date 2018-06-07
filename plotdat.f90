@@ -7,7 +7,8 @@ program plotdat
     include 'param.inc'
     include 'getopts.inc'
     integer :: i,j,k,l,n,year,loop,type,nperyear,iens,iarg,mens,mens1,ayr1,ayr2
-    real :: data(npermax,yrbeg:yrend,0:nensmax),mean(npermax),s,nextx,lasty
+    real :: mean(npermax),s,nextx,lasty
+    real,allocatable :: data(:,:,:)
     logical :: lanomal,lskip,lexist,lopened
     character :: line*1023,ensfile*255,var*40,units*40,name*1023,title*100
     character :: lvar*120,svar*120,history*50000,metadata(2,100)*1000
@@ -55,6 +56,7 @@ program plotdat
     call getarg(iargc(),line)
     call keepalive1('Reading data',0,0)
     lstandardunits = .false. ! because we cannot call getopts before we know mens1,mens...
+    allocate(data(npermax,yrbeg:yrend,0:nensmax))
     call readensseriesmeta(line,data,npermax,yrbeg,yrend,nensmax &
         ,nperyear,mens1,mens,var,units,lvar,svar,history,metadata,lstandardunits,lwrite)
     call keepalive1('Reading data',0,0)

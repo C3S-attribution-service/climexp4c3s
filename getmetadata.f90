@@ -15,8 +15,7 @@ subroutine getmetadata(infile,mens1,mens,ncid,datfile,nxmax,nx &
         ,svars(nvarmax)*(*),units(nvarmax)*(*), &
         cell_methods(nvarmax)*(*),metadata(2,100)*(*)
     logical :: lwrite
-    integer :: nensmax,ntmax
-    parameter(nensmax=400,ntmax=2000000)
+    integer,parameter :: nensmax=750,ntmax=2000000
     integer :: status,i,nens1,nens2,it
     character file*255
     logical :: ensemble,lexist,tdefined(ntmax)

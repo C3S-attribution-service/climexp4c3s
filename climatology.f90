@@ -10,8 +10,8 @@ program climatology
     integer :: i,j,k,l,yr,mo,dy,nperyear,yr1,yr2,smooth,times, &
         nn(npermax),dpm(12),mens1,mens,nens1,nens2,iens,lsum, &
         firstyr,lastyr
-    real :: data(npermax,yrbeg:yrend,0:nensmax),mean(npermax,0:ncut), &
-        x(yrend-yrbeg+1),pcut(ncut)
+    real :: mean(npermax,0:ncut),x(yrend-yrbeg+1),pcut(ncut)
+    real,allocatable :: data(:,:,:)
     logical :: lexist,lstandardunits,lwrite
     character :: file*1023,ensfile*1023,string*10,oper*1,var*40,units*80
     character :: lvar*120,svar*120,history*50000,metadata(2,100)*1000
@@ -26,6 +26,7 @@ program climatology
         stop
     endif
 
+    allocate(data(npermax,yrbeg:yrend,0:nensmax))
     yr1 = yrbeg
     yr2 = yrend
     firstyr = 9999

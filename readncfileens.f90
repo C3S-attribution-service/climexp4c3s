@@ -228,7 +228,7 @@ subroutine readncfileens(ncid,field,nxf,nyf,nzf,nx,ny,nz,nperyear, &
                 start(k_ens) = 1
                 count(k_ens) = 1
                 do iens=mens1,mens
-                    if ( lwrite ) then
+                    if ( .false. .and. lwrite ) then
                         print *,'reading ',i,j,iens
                         print *,'  start  = ',start
                         print *,'  count  = ',count
@@ -315,7 +315,7 @@ subroutine readncfileens(ncid,field,nxf,nyf,nzf,nx,ny,nz,nperyear, &
                 start(k_ens) = 1
                 count(k_ens) = 1
                 do iens=mens1,mens
-                    if ( lwrite ) then
+                    if ( .false. .and. lwrite ) then
                         print *,'reading ',i,j,iens
                         print *,'  start  = ',start
                         print *,'  count  = ',count

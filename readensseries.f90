@@ -25,7 +25,7 @@ subroutine readensseriesmeta(file,data,npermax,yrbeg,yrend,nensmax &
     logical :: lstandardunits,lwrite
     character :: file*(*),var*(*),units*(*)
     character ::  lvar*(*),svar*(*),history*(*),metadata(2,100)*(*)
-    integer :: iens,status,ncid
+    integer :: i,iens,status,ncid
     logical :: lexist,lfirst
     character :: ensfile*1023,line*10,saveunits*100
 
@@ -39,6 +39,11 @@ subroutine readensseriesmeta(file,data,npermax,yrbeg,yrend,nensmax &
 
     if ( index(file,'@@') /= 0 ) then
         ! it is a netcdf file with an ensemble dimension
+        i = index(file,'.dat')
+        if ( i > 0 ) then
+            file(i:) = '.nc'
+        end if
+        if ( lwrite ) print *,'calling readncseriesensmeta'
         call readncseriesensmeta(file,data,npermax,nperyear,yrbeg,yrend,nensmax,mens1,mens &
             ,ncid,var,units,lvar,svar,history,metadata,lwrite)
         if ( lstandardunits ) then
@@ -52,7 +57,7 @@ subroutine readensseriesmeta(file,data,npermax,yrbeg,yrend,nensmax &
     else if ( index(file,'%') == 0 .and. index(file,'++') == 0 ) then
         mens = 0
         mens1 = 0
-        if ( lwrite ) print *,'not an ensemble, calling readseries'
+        if ( lwrite ) print *,'not an ensemble, calling readseriesmeta'
         call readseriesmeta(file,data(1,yrbeg,0),npermax,yrbeg,yrend &
             ,nperyear,var,units,lvar,svar,history,metadata,lstandardunits,lwrite)
     else

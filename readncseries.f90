@@ -34,6 +34,7 @@ subroutine readncseriesmeta(file,data,npermx,nperyear,yr1,yr2,ncid,var,units,lva
     character :: title*512,vars(nvmax)*20,lvars(nvmax)*80, &
         lz(3)*20,svars(100)*100,ltime*120,cell_methods(100)*100
 
+    ncid = 0
     call ensparsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
         ,nz,zz,lz,nt,nperyear,firstyr,firstmo,ltime,tdefined,mtmax &
         ,nens1,nens2,undef,title,history,nvmax,nvars,vars,ivars &
@@ -106,6 +107,8 @@ subroutine readncseriesensmeta(file,data,npermx,nperyear,yr1,yr2,nensmx,mens1,me
     character :: title*512,vars(nvmax)*20,lvars(nvmax)*80, &
         lz(3)*20,svars(100)*100,ltime*120,cell_methods(100)*100
 
+    ncid = 0
+    if ( lwrite ) print *,'calling ensparsenc'
     call ensparsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
             ,nz,zz,lz,nt,nperyear,firstyr,firstmo,ltime,tdefined,mtmax &
             ,nens1,nens2,undef,title,history,nvmax,nvars,vars,ivars &
@@ -149,6 +152,7 @@ subroutine readncseriesensmeta(file,data,npermx,nperyear,yr1,yr2,nensmx,mens1,me
     if ( lwrite ) print *,'calling readncfileens'
     call readncfileens(ncid,ddata,1,1,1,nx,ny,nz,nperyear,firstyr,lastyr,mens, &
         firstyr,firstmo,nt,mens1,mens,undef,lwrite,max(yr1,yrbeg,firstyr),min(yr2,yrend,lastyr),ivars)
+    if ( lwrite ) print *,'copying output to 1D array'
     data = 3e33
     do iens=mens1,mens
         if ( iens > nensmax ) then
