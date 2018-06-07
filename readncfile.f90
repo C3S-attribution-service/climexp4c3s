@@ -338,7 +338,46 @@ subroutine readncfile(ncid,field,nxf,nyf,nx,ny,nperyear &
             call exit(-1)
         endif
     endif
-!       yes, Virginia, there are netcdf files in the wild that encoded undefs by NaNs...
+
+!   set the end to undefined
+
+    if ( nperyear /= 366 ) then
+        i = max(yr1,firstyr) + count(k)/nperyear
+        k = startmo + mod(count(k),nperyear)
+        if ( k > nperyear ) then
+            k = k-nperyear
+            i = i + 1
+        endif
+    else
+        k = jlast + 1
+        i = ilast
+    endif
+    if ( k <= nperyear .and. i <= yrend ) then
+        if ( lwrite ) print '(a,i3,a,i3,a,i4)' &
+            ,'readncfile: zeroing months ',k,'-',nperyear,' of year ',i
+        do j=k,nperyear
+            do jy=1,max(ny,1)
+                do jx=1,max(nx,1)
+                    field(jx,jy,j,i) = 3e33
+                enddo
+            enddo
+        enddo
+    endif
+    if ( lwrite .and. i+1 <= yr2 ) print '(a,i4,a,i4)' &
+        ,'readncfile: zeroing years ',i+1,'-',min(yr2,yrend)
+    do k=i+1,min(yr2,yrend)
+        do j=1,nperyear
+            do jy=1,max(ny,1)
+                do jx=1,max(nx,1)
+                    field(jx,jy,j,k) = 3e33
+                enddo
+            enddo
+        enddo
+    enddo
+
+!   yes, Virginia, there are netcdf files in the wild that encoded undefs by NaNs...
+!   Pity, these loops eat a lot of time.
+
     do i=max(yr1,yrbeg),min(yr2,yrend)
         call keepalive1('Checking for weird undefs ', &
         i-max(yr1,yrbeg)+1, &
@@ -346,17 +385,19 @@ subroutine readncfile(ncid,field,nxf,nyf,nx,ny,nperyear &
         do j=1,nperyear
             do jy=1,max(ny,1)
                 do jx=1,max(nx,1)
-                ! isnan does not catch some NaNs under pgf90...
+                    ! isnan does not catch some NaNs under pgf90...
                     if ( isnan(field(jx,jy,j,i)) .or. .not. &
-                    field(jx,jy,j,i) > 3e33 .and. &
-                    field(jx,jy,j,i) < -3e33 ) then
-                        field(jx,jy,j,i) = 3e33
+                        field(jx,jy,j,i) > 3e33 .and. &
+                        field(jx,jy,j,i) < -3e33 ) then
+                            field(jx,jy,j,i) = 3e33
                     end if
                 end do
             end do
         end do
     end do
-!       change other undef conventions to ours
+
+!   change other undef conventions to ours
+
     if ( undef /= 3e33 ) then
         if ( lwrite ) print *,'changing undef from ',undef, &
         ' to 3e33'
@@ -369,8 +410,7 @@ subroutine readncfile(ncid,field,nxf,nyf,nx,ny,nperyear &
                 do j=1,nperyear
                     do jy=1,max(ny,1)
                         do jx=1,max(nx,1)
-                            if ( abs(field(jx,jy,j,i)-undef) < &
-                            &                                1e-6*abs(undef) ) then
+                            if ( abs(field(jx,jy,j,i)-undef) < 1e-6*abs(undef) ) then
                                 field(jx,jy,j,i) = 3e33
                             endif
                         enddo
@@ -386,8 +426,7 @@ subroutine readncfile(ncid,field,nxf,nyf,nx,ny,nperyear &
                 do j=1,nperyear
                     do jy=1,max(ny,1)
                         do jx=1,max(nx,1)
-                            if ( abs(field(jx,jy,j,i)-undef) < &
-                            &                                1e-5 ) field(jx,jy,j,i) = 3e33
+                            if ( abs(field(jx,jy,j,i)-undef) < 1e-5 ) field(jx,jy,j,i) = 3e33
                         enddo
                     enddo
                 enddo
@@ -395,12 +434,12 @@ subroutine readncfile(ncid,field,nxf,nyf,nx,ny,nperyear &
         endif
     endif
 
-!       there may be a scale and/or offset in the file!
+!   there may be a scale and/or offset in the file!
 
     call applyscaleoffset(ncid,jvars(1),field,nxf,nyf,1,nperyear, &
     yrbeg,yrend,nx,ny,1,yr1,yr2,lwrite)
 
-!       check for values that will cause crashes later on when taking squaares
+!   check for values that will cause crashes later on when taking squaares
 
     do i=max(yr1,yrbeg),min(yr2,yrend)
         call keepalive1('Checking a few other things ', &
@@ -414,9 +453,8 @@ subroutine readncfile(ncid,field,nxf,nyf,nx,ny,nperyear &
                         itoobig = itoobig+1
                         if ( itoobig >= ntoobig ) then
                             ntoobig = 2*ntoobig
-                            write(0,*) 'readncfile: warning: set ', &
-                            field(jx,jy,j,i), &
-                            ' to undefined ',itoobig
+                            write(0,*) 'readncfile: warning: set ',field(jx,jy,j,i), &
+                                ' to undefined ',itoobig
                         end if
                         field(jx,jy,j,i) = 3e33
                     end if
@@ -425,129 +463,17 @@ subroutine readncfile(ncid,field,nxf,nyf,nx,ny,nperyear &
         end do
     end do
 
-!       for completeness, these loops will almost never be executed
-
-    if ( nperyear /= 366 ) then
-        i = max(yr1,firstyr) + count(k)/nperyear
-        k = startmo + mod(count(k),nperyear)
-        if ( k > nperyear ) then
-            k = k-nperyear
-            i = i + 1
-        endif
-    else
-        k = jlast + 1
-        i = ilast
-    endif
-    if ( k <= nperyear .and. i <= yrend ) then
-        if ( lwrite ) print '(a,i3,a,i3,a,i4)' &
-        ,'readncfile: zeroing months ',k,'-',nperyear &
-        ,' of year ',i
-        do j=k,nperyear
-            do jy=1,max(ny,1)
-                do jx=1,max(nx,1)
-                    field(jx,jy,j,i) = 3e33
-                enddo
-            enddo
-        enddo
-    endif
-    if ( lwrite .and. i+1 <= yr2 ) print '(a,i4,a,i4)' &
-    ,'readncfile: zeroing years ',i+1,'-',min(yr2,yrend)
-    do k=i+1,min(yr2,yrend)
-        do j=1,nperyear
-            do jy=1,max(ny,1)
-                do jx=1,max(nx,1)
-                    field(jx,jy,j,k) = 3e33
-                enddo
-            enddo
-        enddo
-    enddo
-
-!       finito
+!   finito
 
     i = nf_close(ncid)
     ncid = 0                ! otherwise the next parsenc goes wrong.
     if ( lwrite ) then
         print *,'readncfile: field(',1+nx/2,1+ny/2,startmo &
-        ,max(firstyr,yr1),') = ',field(1+nx/2,1+ny/2,startmo &
-        ,max(firstyr,yr1))
+            ,max(firstyr,yr1),') = ',field(1+nx/2,1+ny/2,startmo &
+            ,max(firstyr,yr1))
     endif
     return
 end subroutine readncfile
-
-subroutine applyscaleoffset(ncid,jvars1,field,nxf,nyf,nzf &
-    ,nperyear,yrbeg,yrend,nx,ny,nz,yr1,yr2,lwrite)
-
-!       there may be a scale and/or offset in the file!
-
-    implicit none
-    integer :: ncid,jvars1,nxf,nyf,nzf,nperyear,yrbeg,yrend
-    integer :: nx,ny,nz,yr1,yr2
-    real :: field(nxf,nyf,nzf,nperyear,yrbeg:yrend)
-    logical :: lwrite
-    integer :: i,j,jx,jy,jz
-    real :: scale,offset
-
-    call getrealattopt(ncid,jvars1,'scale_factor',scale,lwrite)
-    call getrealattopt(ncid,jvars1,'add_offset',offset,lwrite)
-!       returns 3e33 if not found...
-    if ( offset > 1e33 ) offset = 0
-    if ( scale < 1e33 .and. scale /= 1 ) then
-        if ( offset /= 0 ) then
-        !               going through all the data takes an awful lot of time,
-        !               so do not do it twice...
-            if ( lwrite ) print * &
-            ,'readncfile: scaling and offsetting with ',scale &
-            ,offset
-            call keepalive1('Applying scale and offset ',0,2)
-            do i=yr1,yr2
-                do j=1,nperyear
-                    do jz=1,max(nz,1)
-                        do jy=1,max(ny,1)
-                            do jx=1,max(nx,1)
-                                if ( field(jx,jy,jz,j,i) < 2e33 ) &
-                                field(jx,jy,jz,j,i) = &
-                                field(jx,jy,jz,j,i)*scale + &
-                                offset
-                            end do
-                        end do
-                    end do
-                end do
-            end do
-        else
-            if ( lwrite ) print *,'readncfile: scaling with ',scale
-            call keepalive1('Applying scale and offset ',1,2)
-            do i=yr1,yr2
-                do j=1,nperyear
-                    do jz=1,max(nz,1)
-                        do jy=1,max(ny,1)
-                            do jx=1,max(nx,1)
-                                if ( field(jx,jy,jz,j,i) < 2e33 ) &
-                                field(jx,jy,jz,j,i) = &
-                                field(jx,jy,jz,j,i)*scale
-                            end do
-                        end do
-                    end do
-                end do
-            end do
-        endif
-    else if ( offset /= 0 ) then
-        if ( lwrite ) print *,'readncfile: offsetting ',offset
-        call keepalive1('Applying scale and offset ',2,2)
-        do i=yr1,yr2
-            do j=1,nperyear
-                do jz=1,max(nz,1)
-                    do jy=1,max(ny,1)
-                        do jx=1,max(nx,1)
-                            if ( field(jx,jy,jz,j,i) < 2e33 ) &
-                            field(jx,jy,jz,j,i) = &
-                            field(jx,jy,jz,j,i) + offset
-                        end do
-                    end do
-                end do
-            end do
-        end do
-    end if
-end subroutine applyscaleoffset
 
 subroutine fixholefield(field,nx,ny,nz,nperyear,firstyr &
     ,lastyr,fyr,fmo,ntp,nt,tdefined,lwrite)
