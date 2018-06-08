@@ -153,8 +153,10 @@ subroutine readncseriesensmeta(file,data,npermx,nperyear,yr1,yr2,nensmx,mens1,me
     call readncfileens(ncid,ddata,1,1,1,nx,ny,nz,nperyear,firstyr,lastyr,mens, &
         firstyr,firstmo,nt,mens1,mens,undef,lwrite,max(yr1,yrbeg,firstyr),min(yr2,yrend,lastyr),ivars)
     if ( lwrite ) print *,'copying output to 1D array'
+    call keepalive1('Copying data ',0,mens-mens1+1)
     data = 3e33
     do iens=mens1,mens
+        call keepalive1('Copying data ',iens-mens1+1,mens-mens1+1)
         if ( iens > nensmax ) then
             write(0,*) 'readncseriesensmeta: disreagrding ensemble members ',nensmax+1,' to ',mens
             mens = nensmax
