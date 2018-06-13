@@ -6,7 +6,7 @@ program netcdf2dat
     include 'netcdf.inc'
     include 'param.inc'
     integer :: npermx
-    parameter(npermx=24*366)
+    parameter(npermx=366)
     character :: file*1023,var*80,units*80,lvar*120,svar*120,history*50000,metadata(2,100)*2000
     integer :: i,j,nperyear,status,ncid,mens1,mens,iens
     real,allocatable :: data(:,:,:)
