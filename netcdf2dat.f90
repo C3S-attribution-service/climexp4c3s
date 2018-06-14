@@ -14,7 +14,7 @@ program netcdf2dat
     integer :: iargc
 
     allocate(data(npermx,yrbeg:yrend,0:nensmax))
-    lwrite = .true. 
+    lwrite = .false. 
     lstandardunits = .false. 
     if ( iargc() < 1 ) then
         print *,'usage: netcdf2dat infile'
