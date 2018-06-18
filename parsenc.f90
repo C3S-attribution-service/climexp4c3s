@@ -84,6 +84,8 @@ subroutine ensparsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
     end if
     call gettitle(ncid,title,lwrite)
     call gettextattopt(ncid,nf_global,'history',history,lwrite)
+    if ( history == ' ' ) call gettextattopt(ncid,nf_global,'History',history,lwrite)
+    if ( history == ' ' ) call gettextattopt(ncid,nf_global,'HISTORY',history,lwrite) ! Yes, unfortunately...
     call getglobalatts(ncid,metadata,lwrite)
     call getnumbers(ncid,ndims,nvars,ngatts,unlimdimid,lwrite)
     call getdims(ncid,ndims,ix,nx,nxmax,iy,ny,nymax,iz,nz,nzmax,it &

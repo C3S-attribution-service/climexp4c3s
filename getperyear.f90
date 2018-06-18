@@ -774,9 +774,8 @@ subroutine gettitle(ncid,title,lwrite)
     integer :: status,r,i,p
     character format*40
     call gettextattopt(ncid,nf_global,'title',title,lwrite)
-    if ( title == ' ' ) then
-        call gettextattopt(ncid,nf_global,'Title',title,lwrite)
-    endif
+    if ( title == ' ' ) call gettextattopt(ncid,nf_global,'Title',title,lwrite)
+    if ( title == ' ' ) call gettextattopt(ncid,nf_global,'TITLE',title,lwrite)
     status = nf_get_att_int(ncid,nf_global,'realization',r)
     if ( lwrite ) print *,'r,status= ',r,status,nf_noerr
     if ( status == nf_noerr ) then
@@ -807,33 +806,47 @@ subroutine getglobalatts(ncid,metadata,lwrite)
     integer :: i,j,xtype,ll,status,iarray(100)
     integer*1 :: sarray(100)
     real :: farray(100)
-    character name*100,string*10000
+    logical :: lskip
+    character name*100,string*100000
     
     n = 0
     metadata = ' '
     do i=1,100
         status = nf_inq_attname(ncid,nf_global,i,name)
         if ( status /= nf_noerr .or. name == ' ' ) exit
-        if ( name == 'history' .or. name == 'History' ) cycle
-        if ( name == 'title' .or. name == 'Title' ) cycle
+        if ( name == 'history' .or. name == 'History' .or. name == 'HISTORY' ) cycle
+        if ( name == 'title' .or. name == 'Title' .or. name == 'TITLE' ) cycle
         status = nf_inq_atttype(ncid,nf_global,name,xtype)
         if ( status /= nf_noerr ) call handle_err(status,'nf_inq_atttype '//trim(name))
         if ( xtype == nf_char ) then
             status = nf_inq_attlen(ncid,nf_global,name,ll)
             if ( status /= nf_noerr ) call handle_err(status,name)
-            if ( ll < 10000 ) then
+            if ( ll < 100000 ) then
                 status = nf_get_att_text(ncid,nf_global,name,string)
                 if ( status /= nf_noerr ) call handle_err(status,'nf_inq_attlen '//trim(name))
             else
-                string = 'string too long, longer than 10000 chars'
+                string = 'string too long, longer than 100000 chars'
+                ll = len_trim(string)
             end if
             call stripnonprint(string,lwrite)
-            n = n + 1
-            metadata(1,n) = name
-            metadata(2,n) = string(1:ll)
-            j = len(metadata)
-            if ( ll > j ) then
-                metadata(2,i)(j-2:j) = '...'
+            call tolower(name)
+            lskip = .false.
+            do j=1,n
+                if ( name == metadata(1,j) ) then
+                    lskip = .true.
+                    if (string /= metadata(2,j) ) then
+                        metadata(2,j) = trim(metadata(2,j)) // ', ' // trim(string)
+                    end if
+                end if
+            end do
+            if ( .not.lskip ) then
+                n = n + 1
+                metadata(1,n) = name
+                metadata(2,n) = string(1:ll)
+                j = len(metadata)
+                if ( ll > j ) then
+                    metadata(2,i)(j-2:j) = '...'
+                end if
             end if
         else if ( xtype == nf_int ) then
             status = nf_inq_attlen(ncid,nf_global,name,ll)
