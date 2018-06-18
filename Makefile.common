@@ -303,7 +303,7 @@ PROGRAMS      = scientific2decimal \
 		describefield \
 		netcdf2dat \
 		ctl2dat \
-		grads2ascii \
+		netcdf2ascii \
 		grads2nc \
 		catnc \
 		histogram \
@@ -617,8 +617,8 @@ quantiles_field:		quantiles_field.o $(LIBRARY)
 quantiles_series:		quantiles_series.o $(LIBRARY)
 		$(LD) $(FFLAGS) $(LDFLAGS) -o $@ $@.o $(LIBS)
 
-grads2ascii:	grads2ascii.o $(LIBRARY)
-		$(LD) $(FFLAGS) -o $@ grads2ascii.o $(LIBS)
+netcdf2ascii:	netcdf2ascii.o $(LIBRARY)
+		$(LD) $(FFLAGS) -o $@ netcdf2ascii.o $(LIBS)
 
 grads2nc:	grads2nc.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ grads2nc.o $(LIBS)
