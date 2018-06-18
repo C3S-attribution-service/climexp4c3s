@@ -1322,9 +1322,9 @@ subroutine getmeanseries(series,nperyear,mens1,mens,fyr,lyr,j1,j2,lmult,mean)
                 call normon(mo,yy,yr,nperyear)
                 if ( yr >= fyr .and. yr <= lyr ) then
                     if ( lmult ) then
-                        if ( series(mo,yr,iens) < 1e33 .and. series(mo,yr,iens) > 0 ) then
+                        if ( series(mo,yr,iens) < 1e33 .and. series(mo,yr,iens) /= 0 ) then
                             n = n + 1
-                            s = s + log(series(mo,yr,iens))
+                            s = s + log(abs(series(mo,yr,iens)))
                         end if
                     else
                         if ( series(mo,yr,iens) < 1e33 ) then
