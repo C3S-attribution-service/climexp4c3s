@@ -224,6 +224,7 @@ subroutine zreadncfile(ncid,field,nxf,nyf,nzf,nx,ny,nz,nperyear, &
                 if ( j > nperyear ) then
                     j = j - nperyear
                     i = i + 1
+                    if ( i > min(yrend,yr2) ) exit
                 endif
                 start(k) = start(k) + 1
             enddo

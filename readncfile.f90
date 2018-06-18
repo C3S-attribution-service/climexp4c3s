@@ -207,6 +207,7 @@ subroutine readncfile(ncid,field,nxf,nyf,nx,ny,nperyear &
                     if ( j > nperyear ) then
                         j = j - nperyear
                         i = i + 1
+                        if ( i > min(yrend,yr2) ) exit
                     endif
                     start(k) = start(k) + 1
                 enddo
@@ -266,6 +267,7 @@ subroutine readncfile(ncid,field,nxf,nyf,nx,ny,nperyear &
                     if ( j > nperyear ) then
                         j = j - nperyear
                         i = i + 1
+                        if ( i > min(yrend,yr2) ) exit
                     endif
                     start(k) = start(k) + 1
                 enddo
