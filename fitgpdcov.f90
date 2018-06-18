@@ -403,7 +403,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
             end if
         end if
     end do
-    if ( mens > mens1 ) call print_spatial_scale(scross/nmc,ntot/real(mens-mens1+1))
+    if ( mens > mens1 ) call print_spatial_scale(scross/(nmc*ndecor),ntot/real(mens-mens1+1)/real(ndecor))
     if ( lchangesign ) then
         do iiens=1,iens
             if ( a < 1e33 ) a = -a
