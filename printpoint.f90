@@ -807,8 +807,12 @@ subroutine plot_tx_cdfs(txtx,nmc,nens,ntype,j1,j2)
                 end if
             end if
         end do
-    !   simple logscale for the time being
-        logtxtx(3) = log(txtx(iens,3))
+        !   simple logscale for the time being
+        if ( txtx(iens,3) < 1e20 .and. txtx(iens,3) > 0 ) then
+            logtxtx(3) = log(txtx(iens,3)*(j2-j1+1))
+        else
+            logtxtx(3) = 1e20
+        end if
         write(10,'(f6.4,8g16.5)') iens/real(nens+1), &
             (txtx(iens,j),j=1,3),(logtxtx(j),j=1,3), &
             (txtx(iens,j),j=4,4),(logtxtx(j),j=4,4)
