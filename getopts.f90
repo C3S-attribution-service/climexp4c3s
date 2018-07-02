@@ -270,6 +270,7 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
             call getarg(i+1,line)
             call deletebackslash(line)
             j = index(line,':')
+            call numbersonly(line)
             if ( j /= 0 ) then
                 read(line(:j-1),*,err=905) lag1
                 read(line(j+1:),*,err=905) lag2
@@ -437,10 +438,12 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
             oper = 'v'
             if ( line(4:4) == ' ' .OR. line(4:4) == '1' ) then
                 call getarg(i+1,line)
+                call numbersonly(line)
                 read(line,*,err=906) lsum
                 if ( lout ) print '(a,i4,a)','# averaging ',lsum,' months/periods'
             elseif ( line(4:4) == '2' ) then
                 call getarg(i+1,line)
+                call numbersonly(line)
                 read(line,*,err=906) lsum2
                 if ( lout ) print '(a,i4,a)','# averaging ',lsum2,' months/periods of index/field/field2'
             else
@@ -451,10 +454,12 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
             oper = 'a'
             if ( line(4:4) == ' ' .OR. line(4:4) == '1' ) then
                 call getarg(i+1,line)
+                call numbersonly(line)
                 read(line,*,err=906) lsum
                 if ( lout ) print '(a,i4,a)','# Max-ing ',lsum,' months/periods'
             elseif ( line(4:4) == '2' ) then
                 call getarg(i+1,line)
+                call numbersonly(line)
                 read(line,*,err=906) lsum2
                 if ( lout ) print '(a,i4,a)','# Max-ing ',lsum2,' months/periods of index/field/field2'
             else
@@ -467,10 +472,12 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
             oper = 'i'
             if ( line(4:4) == ' ' .OR. line(4:4) == '1' ) then
                 call getarg(i+1,line)
+                call numbersonly(line)
                 read(line,*,err=906) lsum
                 if ( lout ) print '(a,i4,a)','Min-ing ',lsum,' months/periods'
             else
                 call getarg(i+1,line)
+                call numbersonly(line)
                 read(line,*,err=906) lsum2
                 if ( lout ) print '(a,i4,a)','Min-ing ',lsum2,' months/periods  of index/field/field2'
             endif
@@ -1107,9 +1114,9 @@ subroutine month2period(m,nperyear,offset)
     if ( lwrite ) print *,'m = ',m
     m = m + nperyear*y
     if ( lwrite ) print *,'m = ',m
-    end subroutine month2period
+end subroutine month2period
 
-    subroutine deletebackslash(line)
+subroutine deletebackslash(line)
     implicit none
     character*(*) line
     integer :: j
@@ -1119,5 +1126,26 @@ subroutine month2period(m,nperyear,offset)
         line = line(:j-1) // line(j+1:)
         j = index(line,'\\')
     !!!print *,'@@@ j,line = ',j,trim(line)
+    end do
+end subroutine
+
+subroutine numbersonly(line)
+!
+!   delete everything that is not part of a number
+!
+    implicit none
+    character :: line*(*)
+    integer i,ic
+    character :: c
+
+    do i=1,len_trim(line)
+        c = line(i:i)
+        ic = ichar(c)
+        if ( ic >= ichar('0') .and. ic <= ichar('9') ) cycle
+        if ( c == '.' ) cycle
+        if ( c == '+' .or. c== '-' ) cycle
+        if ( c == 'e' .or. c == 'E' ) cycle ! accept scientific notation
+        if ( c == 'd' .or. c == 'D' ) cycle ! accept old Fortran double precision scientific notation
+        line(i:i) = ' ' ! everything else is thrown away
     end do
 end subroutine
