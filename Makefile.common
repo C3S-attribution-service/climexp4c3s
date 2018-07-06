@@ -19,7 +19,6 @@ ADAPTED = adapted_amoeba.o \
         adapted_ftest.o \
         adapted_gasdev.o \
         adapted_ludcmp.o \
-        adapted_savgol.o \
         adapted_svdcmp.o \
         adapted_betai.o \
         adapted_gammq.o	\
@@ -697,9 +696,6 @@ testparsenc:	testparsenc.o parsenc.o libnetcdf.a llen.o tolower.o
 
 maketestfile:	maketestfile.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ maketestfile.o $(LIBS)
-
-testsavgol:	testsavgol.o $(LIBRARY) $(MAKEFILE)
-		$(LD) $(FFLAGS) -o $@ $@.o $(LIBRARY)
 
 sstoi2dat:	sstoi2dat.o
 		$(LD) $(FFLAGS) -o $@ $@.o

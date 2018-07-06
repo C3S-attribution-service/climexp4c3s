@@ -40,7 +40,7 @@ program correlatefieldfield
     real :: ddata(ndata),dindx(ndata),dddata(ndata),ddindx(ndata), &
         adata,sxx,aindx,syy,sxy,df,d,zd,z,probd,chi2,q,sum, &
         fac,xx(nxmax),yy(nymax),zz(nzmax),aa(2),x(ndata), &
-        sig(ndata),u(ndata,2),v(2,2),w(2),daa(2,2),filter(100)
+        sig(ndata),u(ndata,2),v(2,2),w(2),daa(2,2)
     character :: infile1*256,infile2*256,datfile1*256,datfile2*256, &
         title1*256,title2*256,vars1(1)*40,lvars1(1)*128, &
         svars1(1)*128,vars2(1)*40,lvars2(1)*128,svars2(1)*128, &
@@ -221,13 +221,6 @@ program correlatefieldfield
         min(0.6, 1.5-log(1+real(min(nt,nperyear*(yr2-yr1+1))-1)/nperyear)/4))
     end if
     write(0,'(a,i2,a)') 'Requiring at least ',nint(100*minfac),'% valid points<p>'
-
-!   compute derivative coefficients if these are needed
-
-    if ( nfittime > 0 ) then
-!       the last value is a heuristic based on advise in NumRec
-        call savgol(filter,100,nfittime,nfittime,1,min(nfittime,4))
-    end if
 
 !   read fields
 
@@ -586,26 +579,8 @@ program correlatefieldfield
                                         yrstart = min(yrstart,i,ii)
                                         yrstop  = max(yrstop,i,ii)
                                         if ( nfittime > 0 ) then
-                                            dddata(n) = 0
-                                            do if=1,nfittime
-                                                jm = j-if
-                                                call normon(jm,i,im,nperyear)
-                                                jp = j+if
-                                                call normon(jp,i,ip,nperyear)
-                                                if (ip > lastyr .or. im < firstyr &
-                                                ) then
-                                                    n = n - 1
-                                                    goto 710
-                                                end if
-                                                if ( fxy1(jp,ip,iens) > 1e33 .or. &
-                                                    fxy1(jm,im,iens) > 1e33 ) &
-                                                then
-                                                    n = n - 1
-                                                    goto 710
-                                                end if
-                                                dddata(n) = dddata(n) +filter(1+if) &
-                                                    *(fxy1(jm,im,iens)-fxy1(jp,ip,iens))
-                                            end do ! ip=1,nfittime
+                                            write(0,*) 'correlatefieldfield: error: time derivative no longer supported'
+                                            call exit(-1)
                                         end if ! nfittime
                                         mean2(jx,jy,jz,mo) = &
                                         mean2(jx,jy,jz,mo) + &
