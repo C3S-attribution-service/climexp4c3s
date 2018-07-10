@@ -89,17 +89,15 @@ program correlatefield
     if ( lsmasktype.ne.'all' ) then
         call checkgridequal(nx,ny,xx,yy,nxls,nyls,xxls,yyls)
     end if
+    if ( index(infile,'%').gt.0 .or. index(infile,'++').gt.0 ) then
+        ensemble = .true.
+    else
+        ensemble = .false.
+    end if
     call getopts(j,n-1,nperyear,yrbeg,yrend,.true.,mens1,mens)
     if ( ensemble ) write(0,*) 'Using ensemble members ',nens1      &
           ,' to ',nens2,'<br>'
     call getarg(2,infile)
-    if ( .not.ensemble .and.                                        &
-         (index(infile,'%').gt.0 .or. index(infile,'++').gt.0) )    &
-         then
-!**            write(0,*) 'infile = ',infile
-!**            write(*,*) 'infile = ',infile
-        ensemble = .true.
-    end if
 !
 !       allocate arrays
 !
