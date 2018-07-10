@@ -1,59 +1,60 @@
 .SUFFIXES: .f90 .o
 
 .f90.o:
-	$(FC) $(FFLAGS)  -c $<
+	$(FC) $(FFLAGS)	 -c $<
 
 CPPFLAGS = -I/sw/include -I/usr/local/free/include
 
-VPATH         = ..
+VPATH		  = ..
 
-MAKEFILE      = Makefile ../Makefile.common
+MAKEFILE	  = Makefile ../Makefile.common
 
 ADAPTED = adapted_amoeba.o \
-    	adapted_fit.o \
-    	adapted_julday.o \
-    	adapted_polint.o \
-    	adapted_spear.o \
-        adapted_amotry.o \
-        adapted_ffsort.o \
-        adapted_ftest.o \
-        adapted_gasdev.o \
-        adapted_ludcmp.o \
-        adapted_svdcmp.o \
-        adapted_betai.o \
-        adapted_gammq.o	\
-        adapted_dgammln.o \
-        adapted_moment.o \
-        adapted_sort.o \
-        adapted_svdfit.o \
-        adapted_chsone.o \
-        adapted_gcf.o \
-        adapted_pearsn.o \
-        adapted_pearsncross.o \
-        adapted_sort2.o \
-        adapted_ffsort.o \
-        adapted_ttestx.o \
-        adapted_dfpmin.o \
-        adapted_gser.o \
-        adapted_period.o \
-        adapted_sort8.o \
-        adapted_zbrent.o
+		adapted_fit.o \
+		adapted_julday.o \
+		adapted_polint.o \
+		adapted_spear.o \
+		adapted_amotry.o \
+		adapted_ffsort.o \
+		adapted_ftest.o \
+		adapted_gasdev.o \
+		adapted_ludcmp.o \
+		adapted_svdcmp.o \
+		adapted_betai.o \
+		adapted_gammq.o \
+		adapted_dgammln.o \
+		adapted_moment.o \
+		adapted_sort.o \
+		adapted_svdfit.o \
+		adapted_chsone.o \
+		adapted_gcf.o \
+		adapted_pearsn.o \
+		adapted_pearsncross.o \
+		adapted_sort2.o \
+		adapted_ffsort.o \
+		adapted_ttestx.o \
+		adapted_dfpmin.o \
+		adapted_gser.o \
+		adapted_period.o \
+		adapted_sort8.o \
+		adapted_zbrent.o
 
 WRAPPERS = betai.o \
-	    caldat.o \
-        chsone.o \
-        erfc.o \
-        fit.o \
-        gammpq.o \
-        gasdev.o \
-        julday.o \
-        moment.o \
+		caldat.o \
+		chsone.o \
+		erfc.o \
+		fit.o \
+		gammpq.o \
+		gasdev.o \
+		julday.o \
+		moment.o \
 		pearsnxx.o \
-        sort.o \
-        spear.o
+		sort.o \
+		spear.o \
+		svdfit.o
 
 
-OBJS =  makeabsent.o \
+OBJS =	makeabsent.o \
 		makefieldabsent.o \
 		operations.o \
 		readdatfile.o \
@@ -254,11 +255,11 @@ OBJS =  makeabsent.o \
 		nperyear2string.o \
 		$(EXTRAOBJS)
 
-LIBRARY       = climexp.a $(NUMLIB)
+LIBRARY		  = climexp.a $(NUMLIB)
 
-LIBS          = $(LIBRARY) $(SYSLIBS)
+LIBS		  = $(LIBRARY) $(SYSLIBS)
 
-PROGRAMS      = scientific2decimal \
+PROGRAMS	  = scientific2decimal \
 		lastvalid \
 		makeundef \
 		makeweek \
@@ -384,7 +385,7 @@ PROGRAMS      = scientific2decimal \
 		cumul
 
 SHLIBS =	rkillfile.so \
-       		rkeepalive.so
+			rkeepalive.so
 
 all:		$(PROGRAMS) $(SHLIBS) sstoi2dat
 
@@ -395,7 +396,7 @@ climexp.a:	$(OBJS) $(MAKEFILE)
 		ar cruv $@ $(OBJS)
 		$(RANLIB) climexp.a
 
-wrappers.a:	$(WRAPPERS) $(MAKEFILE)
+wrappers.a: $(WRAPPERS) $(MAKEFILE)
 		ar cruv $@ $(WRAPPERS)
 		$(RANLIB) wrappers.a
 
@@ -409,22 +410,22 @@ clean:
 testprog:	testprog.o $(LIBRARY)
 		$(LD) -g $(LDBIGFLAG) -o $@ testprog.o $(LIBS)
 
-testprog.o:	../testprog.F
+testprog.o: ../testprog.F
 		$(LD) -g -c -o testprog.o ../testprog.F 
 
 correlate:	correlate.o $(LIBRARY)
 		$(LD) $(FFLAGS) $(LDBIGFLAG) -o $@ correlate.o $(LIBS)
 
-correlatefield:	correlatefield.o $(LIBRARY)
+correlatefield: correlatefield.o $(LIBRARY)
 		$(LD) $(FFLAGS) $(LDBIGFLAG) -o $@ correlatefield.o $(LIBS)
 
 correlatefieldfield:	correlatefieldfield.o $(LIBRARY)
 		$(LD) $(FFLAGS) $(LDBIGFLAG) -o $@ correlatefieldfield.o $(LIBS)
 
-fieldcorrelate:	fieldcorrelate.o $(LIBRARY)
+fieldcorrelate: fieldcorrelate.o $(LIBRARY)
 		$(LD) $(FFLAGS) $(LDBIGFLAG) -o $@ fieldcorrelate.o $(LIBS)
 
-regionverification:	regionverification.o $(LIBRARY)
+regionverification: regionverification.o $(LIBRARY)
 		$(LD) $(FFLAGS) $(LDBIGFLAG) -o $@ regionverification.o $(LIBS)
 
 extractseries:	extractseries.o $(LIBRARY)
@@ -442,13 +443,13 @@ fieldsignificance:	fieldsignificance.o $(LIBRARY)
 getmomentsfield:	getmomentsfield.o  $(LIBRARY)
 		$(LD) $(FFLAGS) $(LDBIGFLAG) -o $@ $@.o $(LIBS)
 
-subtractfield:	subtractfield.o  $(LIBRARY)
+subtractfield:	subtractfield.o	 $(LIBRARY)
 		$(LD) $(FFLAGS) $(LDBIGFLAG) -o $@ $@.o $(LIBS)
 
 verification:	verification.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ verification.o $(LIBS)
 
-get_depth:	get_depth.o  $(LIBRARY)
+get_depth:	get_depth.o	 $(LIBRARY)
 		$(LD) $(FFLAGS) $(LDBIGFLAG) -o $@ get_depth.o $(LIBS)
 		ln -s -f get_depth get_heat
 		ln -s -f get_depth get_thermocline
@@ -466,7 +467,7 @@ eof:		eof.o  $(LIBRARY)
 svd:		svd.o  $(LIBRARY)
 		$(LD) $(EOFFLAGS) $(LDBIGFLAG) -o $@ svd.o $(LIBS)
 
-describefield:	describefield.o  $(LIBRARY)
+describefield:	describefield.o	 $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ describefield.o $(LIBS)
 
 convertmetadata:	convertmetadata.o $(LIBRARY)
@@ -481,16 +482,16 @@ convert2r:	convert2r.o $(LIBRARY)
 convert2rclimdex:	convert2rclimdex.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ convert2rclimdex.o $(LIBS)
 
-flattennc:	flattennc.o  $(LIBRARY)
+flattennc:	flattennc.o	 $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ flattennc.o $(LIBS)
 
-flattennc_dec:	flattennc_dec.o  $(LIBRARY)
+flattennc_dec:	flattennc_dec.o	 $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ flattennc_dec.o $(LIBS)
 
-patternfield:	patternfield.o  $(LIBRARY)
+patternfield:	patternfield.o	$(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
 
-daily2longerfield:	daily2longerfield.o  $(LIBRARY)
+daily2longerfield:	daily2longerfield.o	 $(LIBRARY)
 		$(LD) $(FFLAGS) $(LDBIGFLAG) -o $@ $@.o $(LIBS)
 
 variate:	variations.o $(LIBRARY)
@@ -514,7 +515,7 @@ get_area:	get_area.o
 get_index:	get_index.o $(LIBRARY)
 		$(LD) $(FFLAGS) $(LDBIGFLAG) -o $@ $@.o $(LIBS)
 
-get_index_mask:	get_index_mask.o $(LIBRARY)
+get_index_mask: get_index_mask.o $(LIBRARY)
 		$(LD) $(FFLAGS) $(LDBIGFLAG) -o $@ $@.o $(LIBS)
 
 getave:		getave.o $(LIBRARY)
@@ -547,7 +548,7 @@ getnperyear:	getnperyear.o $(LIBRARY)
 climatology:	climatology.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ climatology.o $(LIBRARY) $(LIBS)
 
-selectyear:	selectyear.o $(LIBRARY)
+selectyear: selectyear.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ selectyear.o $(LIBRARY) $(LIBS)
 
 filtermonthseries:	filtermonthseries.o $(LIBRARY)
@@ -568,7 +569,7 @@ daily2longer:	daily2longer.o $(LIBRARY)
 extremeseries:	extremeseries.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBRARY) $(LIBS)
 
-yearly2shorter:	yearly2shorter.o $(LIBRARY)
+yearly2shorter: yearly2shorter.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ yearly2shorter.o $(LIBRARY) $(LIBS)
 
 yearly2shorterfield:	yearly2shorterfield.o $(LIBRARY)
@@ -577,10 +578,10 @@ yearly2shorterfield:	yearly2shorterfield.o $(LIBRARY)
 difffield:	difffield.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBRARY) $(LIBS)
 
-trendfield:	trendfield.o $(LIBRARY)
+trendfield: trendfield.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBRARY) $(LIBS)
 
-subfieldseries:	subfieldseries.o $(LIBRARY)
+subfieldseries: subfieldseries.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBRARY) $(LIBS)
 
 operate:	operate.o $(LIBRARY)
@@ -590,7 +591,7 @@ series:		series.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBRARY) $(LIBS)
 
 makesnow:	makesnow.o $(LIBRARY)
-		$(LD) $(FFLAGS)  -o $@ $@.o $(LIBRARY) $(LIBS)
+		$(LD) $(FFLAGS)	 -o $@ $@.o $(LIBRARY) $(LIBS)
 
 month2string:	month2string.o
 		$(CC) -o $@ $@.o
@@ -625,7 +626,7 @@ grads2nc:	grads2nc.o $(LIBRARY)
 catnc:	catnc.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ catnc.o $(LIBS)
 
-extendyear:	extendyear.o llen.o
+extendyear: extendyear.o llen.o
 		$(LD) $(FFLAGS) -o $@ $@.o llen.o
 
 extend_series:	extend_series.o $(LIBRARY)
@@ -637,7 +638,7 @@ histogram:	histogram.o $(LIBRARY)
 attribute:	attribute.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBRARY) $(LIBS)
 
-attributefield:	attributefield.o $(LIBRARY)
+attributefield: attributefield.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBRARY) $(LIBS)
 
 histogram_weird:	histogram.o fitgpd_weird.o $(LIBRARY)
@@ -649,13 +650,13 @@ getval:		getval.o $(LIBRARY)
 normdiff:	normdiff.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBRARY) $(LIBS)
 
-maskseries:	maskseries.o $(LIBRARY)
+maskseries: maskseries.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBRARY) $(LIBS)
 
 averageseries:	averageseries.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBRARY) $(LIBS)
 
-runningmoments:	runningmoments.o $(LIBRARY)
+runningmoments: runningmoments.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBRARY) $(LIBS)
 
 scaleseries:	scaleseries.o $(LIBRARY)
@@ -664,13 +665,13 @@ scaleseries:	scaleseries.o $(LIBRARY)
 patchseries:	patchseries.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBRARY) $(LIBS)
 
-patchfield:	patchfield.o $(LIBRARY)
+patchfield: patchfield.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBRARY) $(LIBS)
 
 diffdat:	diffdat.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBRARY) $(LIBS)
 
-netcdf2dat:	netcdf2dat.o $(LIBRARY)
+netcdf2dat: netcdf2dat.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
 
 ctl2dat:	ctl2dat.o $(LIBRARY)
@@ -742,7 +743,7 @@ seriesensanomal:	seriesensanomal.o $(LIBRARY)
 untransform:	untransform.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
 
-month2lead:	month2lead.o $(LIBRARY)
+month2lead: month2lead.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
 
 timeshift:	timeshift.o $(LIBRARY)
@@ -766,7 +767,7 @@ list2kml:	list2kml.o $(LIBRARY)
 transform:	transform.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
 
-nc2varlist:	nc2varlist.o $(LIBRARY)
+nc2varlist: nc2varlist.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
 
 polygon2mask:	polygon2mask.o $(LIBRARY)
@@ -811,7 +812,7 @@ rocmap:		rocmap.o $(LIBRARY)
 ROCscoremap:	ROCscoremap.o
 		$(CC) $(CFLAGS) -o $@ $@.o -L/sw/lib -L/usr/local/free/lib -lnetcdf
 
-rocdeb:	rocdeb.o
+rocdeb: rocdeb.o
 		$(CC) $(CFLAGS) -o $@ $@.o -L/sw/lib -L/usr/local/free/lib -lnetcdf
 
 RPS:		RPS.o
@@ -856,10 +857,10 @@ rkillfile.so:	rkillfile.f
 rkeepalive.so:	rkeepalive.f
 		R CMD SHLIB ../rkeepalive.f
 
-F2f90:  F2f90.o
+F2f90:	F2f90.o
 		$(LD) $(FFLAGS) -o $@ $@.o
 
-WAVEFILES = 	wave.F param.inc getopts.inc recfac.h netcdf.inc \
+WAVEFILES =		wave.F param.inc getopts.inc recfac.h netcdf.inc \
 		makeabsent.f readdat.F readncseries.f90 getopts.f90 \
 		sumit.f90 operations.f90 diffit.f anomal.f90 normon.f \
 		wavelet.f cfftpack.f chisqr.f \

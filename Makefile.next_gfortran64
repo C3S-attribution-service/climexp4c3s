@@ -8,11 +8,10 @@ CFLAGS = -O -m64
 FC = gfortran
 LD = $(FC) $(FFLAGS) -Wl,-framework -Wl,Accelerate
 EOFLD = $(FC) $(EOFFLAGS) -Wl,-framework -Wl,Accelerate
-use_gsl=false
+use_gsl=true
 ifeq ($(use_gsl),true)
     SYSLIBS=-L/sw/lib -lnetcdff -lnetcdf -L/usr/local/lib -lfgsl -lgsl
     NUMLIB = wrappers.a
-    FFLAGS=$(FFLAGS) -J/usr/local/include/fgsl # however, that conflicts with the one local module I use, lsdata
 else
     SYSLIBS=-L/sw/lib -lnetcdff -lnetcdf libnr.a
     NUMLIB=adapted.a
