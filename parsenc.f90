@@ -53,7 +53,7 @@ subroutine ensparsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
         ,ndimvar,dimids(nf_max_var_dims),natts,dimid,len,ix,iy,iz &
         ,it,ie,i,j,n,l,iperyear
     real*8,allocatable :: tt(:)
-    character name*(nf_max_name),dimname*(nf_max_name),clwrite*10,axis*2
+    character :: name*(nf_max_name),dimname*(nf_max_name),clwrite*10,axis*2,host*100
     logical :: lwrite,foundtime
     integer :: leap
 
@@ -202,5 +202,13 @@ subroutine ensparsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
         nt = 1
     end if
     deallocate(tt)
+!
+!   until I get a new server...
+!
+    if ( nx*ny > 2000000 ) then ! this catches the 0.1º GPM/IMERG field
+        write(0,*) 'error: the current server cannot handle this resolution, please choose a lower-resolution version'
+        call exit(-1)
+    end if
+
 end subroutine ensparsenc
 

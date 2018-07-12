@@ -98,6 +98,7 @@ program get_index
             ,vars,jvars,lvars,svars,units,cell_methods,metadata)
         datfile = file
     endif
+    ! until I get a new server...
 !   range of years
     if ( nperyear == 366 ) then
         lastyr = firstyr + int((firstmo+nt-2)/365.24)
@@ -114,11 +115,10 @@ program get_index
     allocate(nn(nx,ny,nperyear))
     allocate(mean(nx,ny,nperyear))
     if ( lwrite ) print *,'allocating field(',nx,ny,nperyear, &
-    firstyr,':',lastyr,'), size ',4*nx*ny*nperyear* &
-    (lastyr-firstyr+1)
+        firstyr,':',lastyr,'), size ',4d0*nx*ny*nperyear*(lastyr-firstyr+1)
     allocate(field(nx,ny,nperyear,firstyr:lastyr),stat=status)
     if ( status /= 0 ) then
-        write(0,*) 'could not allocate field'
+        write(0,*) 'get_index: error: could not allocate field, choose a lower-resolution version'
         call exit(-1)
     end if
 
