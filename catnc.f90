@@ -37,6 +37,7 @@
     fyrall =  9999
     lyrall = -9999
     do iarg=1,nargs-1
+        call keepalive1('Concatenating file ',iarg,nargs-1)
         call getarg(iarg,ncfile)
         if ( lwrite ) print *,'reading metadata ',trim(ncfile)
         ncid = 0
