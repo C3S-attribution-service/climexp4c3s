@@ -93,6 +93,7 @@
     do yr=fyrall,lyrall
         do mo=1,nperyear
             it = it + 1
+            call keepalive1('Writing slice ',it,(lyrall-fyrall+1)*nperyear)
             call writencslice(ncid,ntvarid,itimeaxis,ntmax, &
                 ivars(1,1),field(1,1,1,mo,yr),nx,ny,nz,nx,ny,nz,it,1)
         end do
