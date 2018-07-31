@@ -123,7 +123,7 @@ program synthesis
             if ( n > 0 ) nblank(n) = nblank(n) + 1
             cycle
         end if
-        read(line,*) yr1,yr2,x,xlo,xhi,cc
+        read(line,*,err=906) yr1,yr2,x,xlo,xhi,cc
         if ( min(yr1,yr2) < yrbeg ) goto 905
         if ( max(yr1,yr2) > yrend ) goto 905
         n = n + 1
@@ -346,6 +346,9 @@ program synthesis
     call exit(-1)
 905 continue
     write(0,*) 'synthesis: yr1,yr2 ',yr1,yr2,' out of range ',yrbeg,yrend
+    call exit(-1)
+906 continue
+    write(0,*) 'synthesis: error reading yr1,yr2,x,xlo,xhi,ci from ',trim(line)
     call exit(-1)
 999 continue
 end program synthesis    
