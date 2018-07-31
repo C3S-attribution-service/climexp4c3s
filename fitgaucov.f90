@@ -59,6 +59,12 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
         print '(a,i9,a)','# <tr><td>N:</td><td>&nbsp;</td><td>', &
      &           ntot,'</td><td>&nbsp;</td></tr>'
     end if
+    if ( ntot < 5 ) then
+        print '(a)','</table>'
+        print '(a)','There are not enough points to fit a normal distribution. Please use a (much) longer time series.'
+        print '(a)','<p>'
+        call exit(-1)
+    end if
 
     if ( lwrite ) then
         print *,'fitgaucov: input'
