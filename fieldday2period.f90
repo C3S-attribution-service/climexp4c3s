@@ -233,14 +233,14 @@ subroutine fieldday2period( &
         call exit(-1)
     endif
 
+!$cmp parallel do
     do yr=yrbeg,yrend
         call keepalive2('Year',yr-yrbeg+1,yrend-yrbeg+1, .true. )
         do jy=1,ny
             do jx=1,nx
                 call keepalive1('Grid point',jx+nx*(jy-1),nx*ny)
-                if ( (oper == 'sd' .or. oper == 'var' ) .and. &
-                itype == 0 ) then
-                !                       precompute the mean for numerical stability
+                if ( (oper == 'sd' .or. oper == 'var' ) .and. itype == 0 ) then
+!                   precompute the mean for numerical stability
                     n = 0
                     s = 0
                     do mo=j1,j2
@@ -450,6 +450,7 @@ subroutine fieldday2period( &
             enddo           ! jx
         enddo               ! jy
     enddo                   ! yr
+!$cmp ens parallel do
 end subroutine fieldday2period
 
 subroutine adjustnames(oper,nperyear,nperyearnew,lgt,pcut,punits,lvars,cell_methods)

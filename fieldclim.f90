@@ -8,12 +8,12 @@ program fieldclim
     include 'getopts.inc'
     integer,parameter :: nvarmax=1
     integer nx,ny,nz,nt,nperyear,firstyr,firstmo,lastyr,nvars, &
- &        ivars(2,nvmax),endian,status,ncid,jvars(6,nvmax)
+          ivars(2,nvmax),endian,status,ncid,jvars(6,nvmax)
     integer yr,mo,i,j,n,yrbegin,ntmax,ntvarid,mens1,mens
     integer,allocatable :: nn(:,:,:),itimeaxis(:)
     real xx(nxmax),yy(nymax),zz(nzmax),undef,lsmask(nxmax,nymax)
     real,allocatable :: field(:,:,:,:),mean(:,:,:),mean2(:,:,:),fxy(:,:), &
- &      fy(:,:,:)
+        fy(:,:,:)
     character file*255,datfile*255,title*255,vars(nvmax)*40, &
         lvars(nvmax)*80,units(nvmax)*20,yesno*1,cell_methods(nvarmax)*100, &
         history*50000,ltime*120,lz(3)*20,svars(nvarmax)*80, &
@@ -26,21 +26,21 @@ program fieldclim
         print *,'usage: fieldclim file.[nc|ctl] [begin yr1] [end yr2] [ave n] clim.ctl'
         print *,'computes climatology of field'
         stop
-    endif
+    end if
     call getarg(iargc(),file)
     inquire(file=file,exist=exist)
     if ( exist ) then
         yesno = 'y'
         if ( yesno == 'y' .or. yesno == 'Y' .or. &
- &           yesno == 'j' .or. yesno == 'J' ) then
+             yesno == 'j' .or. yesno == 'J' ) then
             open(1,file=file)
             close(1,status='delete')
             i=index(file,'.ctl')
             datfile=file(1:i)//'.grd'
             open(1,file=datfile)
             close(1,status='delete')
-        endif
-    endif
+        end if
+    end if
     nens1 = 0
     nens2 = 0
     call getarg(1,file)
@@ -78,17 +78,19 @@ program fieldclim
 !
     if ( ncid == -1 ) then
         call readdatfile(datfile,field,nx,ny,nx,ny,nperyear,firstyr &
- &           ,lastyr,yrbegin,firstmo,nt,undef,endian,lwrite,yr1,yr2 &
- &           ,1,1)
+             ,lastyr,yrbegin,firstmo,nt,undef,endian,lwrite,yr1,yr2 &
+             ,1,1)
     else
         call readncfile(ncid,field,nx,ny,nx,ny,nperyear,firstyr &
- &           ,lastyr,yrbegin,firstmo,nt,undef,lwrite,yr1,yr2,jvars)
-    endif
+             ,lastyr,yrbegin,firstmo,nt,undef,lwrite,yr1,yr2,jvars)
+    end if
+!$cmp parallel
 !
 !   take N-period averages
 !
     if ( lsum > 1 ) then
         ! faster
+!$cmp do
         do j=1,ny
             call keepalive1('Summing latitude',j,ny)
             do yr=firstyr,lastyr
@@ -109,12 +111,14 @@ program fieldclim
                 end do
             end do
         end do
+!$cmp end do
     end if
 !
 !   compute climatology
 !
     nn = 0
     mean = 0
+!$cmp do
     do yr=yr1,yr2
         call keepalive1('Processing year',yr-yr1+1,yr2-yr1+1)
         do mo=1,nperyear
@@ -123,11 +127,12 @@ program fieldclim
                     if ( field(i,j,mo,yr) < 1e33 ) then
                         nn(i,j,mo) = nn(i,j,mo) + 1
                         mean(i,j,mo) = mean(i,j,mo)+field(i,j,mo,yr)
-                    endif
-                enddo
-            enddo
-        enddo
-    enddo
+                    end if
+                end do
+            end do
+        end do
+    end do
+!$cmp end do
     do mo=1,nperyear
         do j=1,ny
             do i=1,nx
@@ -135,17 +140,18 @@ program fieldclim
                     mean(i,j,mo) = mean(i,j,mo)/nn(i,j,mo)
                 else
                     mean(i,j,mo) = 3e33
-                endif
-            enddo
-        enddo
-    enddo
+                end if
+            end do
+        end do
+    end do
 !
 !   smooth daily climatology with twice a 5-day running mean
 !
     if ( nperyear.ge.360 ) then
         call smooth(mean,mean2,nn,nx,ny,nperyear,5)
         call smooth(mean2,mean,nn,nx,ny,nperyear,5)
-    endif
+    end if
+!$cmp end parallel
 !
 !   write out
 !
@@ -176,24 +182,23 @@ program fieldclim
             ,metadata,nens1,nens2)
         do mo=1,nperyear
             call writencslice(ncid,ntvarid,itimeaxis,nt,ivars,mean(1,1,mo),nx,ny,nz,nx,ny,nz,mo,1)
-        enddo
+        end do
         status = nf_close(ncid)        
     else
         ! GrADS ctl/dat output - deprecated
         datfile = file
         datfile(i:) = '.grd'
         call writectl(file,datfile,nx,xx,ny,yy,nz,zz, &
- &           nperyear,nperyear,2000,1,undef,title,nvars,vars,ivars &
- &            ,lvars,units)
+            nperyear,nperyear,2000,1,undef,title,nvars,vars,ivars &
+            ,lvars,units)
         open(2,file=datfile,form='unformatted',access='direct',recl=4*nx*ny)
         do mo=1,nperyear
             !!!print *,'writing mo ',mo
             write(2,rec=mo) ((mean(i,j,mo),i=1,nx),j=1,ny)
-        enddo
+        end do
         close(1)
-
     end if
-end program
+end program fieldclim
 
 subroutine smooth(mean,mean2,nn,nx,ny,nperyear,nsmooth)
     implicit none
@@ -213,11 +218,11 @@ subroutine smooth(mean,mean2,nn,nx,ny,nperyear,nsmooth)
                     if ( mean(i,j,mo1) < 1e33 ) then
                         nn(i,j,mo) = nn(i,j,mo) + 1
                         mean2(i,j,mo) = mean2(i,j,mo) + mean(i,j,mo1)
-                    endif
-                enddo
-            enddo
-        enddo
-    enddo
+                    end if
+                end do
+            end do
+        end do
+    end do
     do mo=1,nperyear
         do j=1,ny
             do i=1,nx
@@ -225,8 +230,8 @@ subroutine smooth(mean,mean2,nn,nx,ny,nperyear,nsmooth)
                     mean2(i,j,mo) = mean2(i,j,mo)/nn(i,j,mo)
                 else
                     mean2(i,j,mo) = 3e33
-                endif
-            enddo
-        enddo
-    enddo
+                end if
+            end do
+        end do
+    end do
 end subroutine
