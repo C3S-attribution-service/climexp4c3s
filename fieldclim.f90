@@ -84,15 +84,17 @@ program fieldclim
         call readncfile(ncid,field,nx,ny,nx,ny,nperyear,firstyr &
              ,lastyr,yrbegin,firstmo,nt,undef,lwrite,yr1,yr2,jvars)
     end if
-!$cmp parallel
 !
 !   take N-period averages
 !
     if ( lsum > 1 ) then
         ! faster
-!$cmp do
+        n = 0
+!$omp parallel do private(i,j,yr,mo,fy)
         do j=1,ny
-            call keepalive1('Summing latitude',j,ny)
+!$omp atomic update
+            n = n + 1
+            call keepalive1('Summing latitude',n,ny)
             do yr=firstyr,lastyr
                 do mo=1,nperyear
                     do i=1,nx
@@ -111,14 +113,13 @@ program fieldclim
                 end do
             end do
         end do
-!$cmp end do
+!$omp end parallel do
     end if
 !
 !   compute climatology
 !
     nn = 0
     mean = 0
-!$cmp do
     do yr=yr1,yr2
         call keepalive1('Processing year',yr-yr1+1,yr2-yr1+1)
         do mo=1,nperyear
@@ -126,13 +127,12 @@ program fieldclim
                 do i=1,nx
                     if ( field(i,j,mo,yr) < 1e33 ) then
                         nn(i,j,mo) = nn(i,j,mo) + 1
-                        mean(i,j,mo) = mean(i,j,mo)+field(i,j,mo,yr)
+                        mean(i,j,mo) = mean(i,j,mo) + field(i,j,mo,yr)
                     end if
                 end do
             end do
         end do
     end do
-!$cmp end do
     do mo=1,nperyear
         do j=1,ny
             do i=1,nx
@@ -151,7 +151,6 @@ program fieldclim
         call smooth(mean,mean2,nn,nx,ny,nperyear,5)
         call smooth(mean2,mean,nn,nx,ny,nperyear,5)
     end if
-!$cmp end parallel
 !
 !   write out
 !
