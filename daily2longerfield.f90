@@ -1,20 +1,18 @@
 program daily2longerfield
 
-!       compute aggregate quantities from daily data
-!       input: daily field series
-!       output: yearly/monthly/10-dy/5-dy field
+!   compute aggregate quantities from daily data
+!   input: daily field series
+!   output: yearly/monthly/10-dy/5-dy field
 
     implicit none
     include 'params.h'
     include 'netcdf.inc'
     include 'getopts.inc'
-    integer :: ntmax
-    integer :: recfa4
-    parameter(ntmax=100000,recfa4=4)
+    integer,parameter :: ntmax=100000,recfa4=4
     integer :: nperyear,nperyearnew,yr,mo,dy,i,j,n,itype,jx,jy
     integer :: nx,ny,nz,nt,firstyr,firstmo,lastyr,nvars, &
         ivars(2,nvmax),jvars(6,nvmax),ncid,endian,status, &
-        ntvarid,itimeaxis(ndata),it,ntp,unit
+        ntvarid,itimeaxis(ndata),it,ntp,unit,ncount
     integer,allocatable :: nn(:,:)
     real :: pcut,s
     real,allocatable :: cut(:,:,:),normfield(:,:,:),oldseries(:,:)
@@ -41,12 +39,11 @@ program daily2longerfield
         stop
     end if
 
-!       read data
+!   read data
 
     call keepalive1('Reading field',0,0)
     call getarg(1,file)
-    if ( lwrite ) print *,'daily2longerfield: nf_opening file ' &
-    ,trim(file)
+    if ( lwrite ) print *,'daily2longerfield: nf_opening file ',trim(file)
     status = nf_open(file,nf_nowrite,ncid)
     if ( status /= nf_noerr ) then
         call parsectl(file,datfile,nxmax,nx,xx,nymax,ny,yy,nzmax,nz &
@@ -139,7 +136,7 @@ program daily2longerfield
         if ( lgt == '<' .or. lgt == '>' ) then
             call getarg(5,string)
             if ( string == 'n' ) then
-!                   take normals wrt 1971-2000
+!               take normals wrt 1971-2000
                 allocate(normfield(nx,ny,nperyear))
                 allocate(nn(nx,ny))
                 do j=1,nperyear
@@ -276,8 +273,12 @@ program daily2longerfield
 
     if ( lsum > 1 ) then
         allocate(fxy(nperyear,firstyr:lastyr))
+        ncount = 0
+!$omp parallel do private(j,i,mo,yr,fxy)
         do j=1,ny
-            call keepalive1('Summing latitude',j,ny)
+!$omp atomic update
+            ncount = ncount + 1
+            call keepalive1('Summing latitude',ncount,ny)
             do i=1,nx
                 do mo=1,nperyear
                     do yr=yr1,yr2
@@ -292,6 +293,7 @@ program daily2longerfield
                 end do
             end do
         end do
+!$omp end parallel do
         deallocate(fxy)
     end if
 
@@ -380,4 +382,4 @@ program daily2longerfield
     902 write(0,*) 'daily2longer: expecting value[%|p], not ',string
     call exit(-1)
     999 continue
-    END PROGRAM
+end program daily2longerfield

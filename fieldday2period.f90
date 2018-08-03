@@ -198,7 +198,7 @@ subroutine fieldday2period( &
         cut(nx,ny,nperyear),minfac
     character oper*3,lgt*1
     logical lvalid(nx,ny,nperyear,yrbeg:yrend),lwrite
-    integer :: yr,mo,i,j,n,jx,jy,ntot,offset,lfirst
+    integer :: yr,mo,i,j,n,jx,jy,ntot,offset,lfirst,ncount
     real :: s,s1,s2,sx,sy,mean,st
 
     if ( lwrite ) then
@@ -233,9 +233,10 @@ subroutine fieldday2period( &
         call exit(-1)
     endif
 
-!$cmp parallel do
+    ncount = 0
     do yr=yrbeg,yrend
-        call keepalive2('Year',yr-yrbeg+1,yrend-yrbeg+1, .true. )
+        ncount = ncount + 1
+        call keepalive2('Year',ncount,yrend-yrbeg+1, .true. )
         do jy=1,ny
             do jx=1,nx
                 call keepalive1('Grid point',jx+nx*(jy-1),nx*ny)
@@ -305,22 +306,22 @@ subroutine fieldday2period( &
                     call normon(j,yr,i,nperyear)
                     if ( yrbeg == 0 .and. yrend == 0 ) i = yr
                     if ( i < yrbeg .or. i > yrend ) cycle
-                !                       skip Feb 29
-                    if ( nperyear == 366 .and. j == 60 .and. &
-                    oldfield(jx,jy,j,i) > 1e33 ) then
+!                   skip Feb 29
+                    if ( nperyear == 366 .and. j == 60 .and. oldfield(jx,jy,j,i) > 1e33 ) then
                         offset = -1
                         cycle
                     end if
-!                       but generate an "invalid" for any other invalid
-!                       data [this may be relaxed later...]
+!                   but generate an "invalid" for any other invalid
+!                   data [this may be relaxed later...]
                     if ( oldfield(jx,jy,j,i) > 1e33 ) then
-                    !**                         newfield(jnew,i) = 3e33
+!                       it has been relaxed
+!**                     newfield(jnew,i) = 3e33
                         cycle
                     endif
                     if ( lfirst == 9999 ) lfirst = mo-j1
-!                       this test should be exactly the same as in daily2longerfield
+!                   this test should be exactly the same as in daily2longerfield
                     if ( ( oper == 'mea' .or. oper == 'sum' ) .and. &
-                    lgt == ' ' .and. add_option > 0 ) then
+                            lgt == ' ' .and. add_option > 0 ) then
                         if ( lvalid(jx,jy,j,i) ) ntot = ntot + 1
                     else
                         ntot = ntot + 1
@@ -349,9 +350,9 @@ subroutine fieldday2period( &
                                 + (oldfield(jx,jy,j,i)-mean)**2
                             endif
                         elseif ( oper == 'abo' ) then
-                            s = s +oldfield(jx,jy,j,i)-cut(jx,jy,j)
+                            s = s + oldfield(jx,jy,j,i)-cut(jx,jy,j)
                         elseif ( oper == 'bel' ) then
-                            s = s +cut(jx,jy,j)-oldfield(jx,jy,j,i)
+                            s = s + cut(jx,jy,j)-oldfield(jx,jy,j,i)
                         elseif ( oper == 'min' .or. oper == 'nti' ) then
                             if ( oldfield(jx,jy,j,i) < s ) then
                                 s = oldfield(jx,jy,j,i)
@@ -383,7 +384,7 @@ subroutine fieldday2period( &
                                    ntot,minfac*nperyear/nperyearnew
                 end if
                 if ( lfirst > minfac*(j2-j1+1) .or. &
-                ntot < minfac*nperyear/nperyearnew ) then
+                        ntot < minfac*nperyear/nperyearnew ) then
                     newfield(jx,jy,jnew,i) = 3e33
                 elseif ( n == 0 .and. &
                     (oper == 'mea' .or. oper == 'min' .or. &
@@ -439,18 +440,14 @@ subroutine fieldday2period( &
                     write(0,*) 'fieldday2period: error: unknown operation ',oper
                     call exit(-1)
                 endif
-                if ( lwrite .and. &
-                jx == (nx+1)/2 .and. jy == (ny+1)/2 ) then
+                if ( lwrite .and. jx == (nx+1)/2 .and. jy == (ny+1)/2 ) then
                     print *,'fieldday2period: computed newfield'
-                !**                     if ( newfield(jx,jy,i,i).lt.1e33 ) then
                     print *,i,jnew,newfield(jx,jy,jnew,i),s,st,itype
-                !**                     endif
                 endif
             100 continue
             enddo           ! jx
         enddo               ! jy
     enddo                   ! yr
-!$cmp ens parallel do
 end subroutine fieldday2period
 
 subroutine adjustnames(oper,nperyear,nperyearnew,lgt,pcut,punits,lvars,cell_methods)

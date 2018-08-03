@@ -1,5 +1,5 @@
 # FFLAGS = -Ktrap=fp -g -C
-FFLAGS = -Ktrap=fp -O3  -Mlarge_arrays
+FFLAGS = -Ktrap=fp -O3 -Mlarge_arrays
 EOFFLAGS = $(FFLAGS)
 
 CFLAGS = -O2

@@ -13,7 +13,7 @@ subroutine readncfile(ncid,field,nxf,nyf,nx,ny,nperyear &
     logical :: lwrite
     integer :: unit,jx,jy,i,j,k,l,start(4),count(4),stride(4),imap(4) &
         ,status,startmo,ck,noleap,ilast,jlast,nn,jj,itoobig, &
-        ntoobig,jul0,jul1,jul2,dy,mo,nperday
+        ntoobig,jul0,jul1,jul2,dy,mo,nperday,n
     logical :: notfirst
     integer :: leap,julday
     logical :: isnan
@@ -52,9 +52,8 @@ subroutine readncfile(ncid,field,nxf,nyf,nx,ny,nperyear &
 
 !   for completeness, these loops will almost never be executed --- not true
 
-    if ( lwrite .and. yrbeg < max(firstyr,yr1)) print &
-    '(a,i4,a,i4)','readncfile: zeroing years ',yrbeg,'-', &
-    max(firstyr,yr1)-1
+    if ( lwrite .and. yrbeg < max(firstyr,yr1)) print '(a,i4,a,i4)', &
+        'readncfile: zeroing years ',yrbeg,'-',max(firstyr,yr1)-1
     do i=max(firstyr,yrbeg),yr1-1
         do j=1,nperyear
             do jy=1,max(ny,1)
@@ -74,8 +73,7 @@ subroutine readncfile(ncid,field,nxf,nyf,nx,ny,nperyear &
         enddo
     enddo
     if ( firstyr >= yr1 ) then
-        if ( lwrite .and. firstmo > 1 ) print '(a,i3)' &
-        ,'readncfile: zeroing months 1-',firstmo-1
+        if ( lwrite .and. firstmo > 1 ) print '(a,i3)','readncfile: zeroing months 1-',firstmo-1
         do j=1,firstmo-1
             do jy=1,max(ny,1)
                 do jx=1,max(nx,1)
@@ -215,7 +213,7 @@ subroutine readncfile(ncid,field,nxf,nyf,nx,ny,nperyear &
                 nt = nt + noleap
             endif
         elseif ( jvars(3) == 2 ) then
-        !               I have to construct a mapping vector to skip a bit of field
+!           I have to construct a mapping vector to skip a bit of field
             imap(1) = 1
             imap(2) = nxf
             imap(3) = nxf*nyf ! z is either missing or 1
@@ -224,13 +222,10 @@ subroutine readncfile(ncid,field,nxf,nyf,nx,ny,nperyear &
                 print *,'            imapvec  = ',(imap(i),i=1,k)
             endif
             if ( 366*nn /= nperyear ) then
-                if ( lwrite ) print '(a)' &
-                ,'readncfile: calling nf_get_varm_real 1'
+                if ( lwrite ) print '(a)','readncfile: calling nf_get_varm_real 1'
                 status = nf_get_varm_real(ncid,jvars(1),start,count &
-                ,stride,imap,field(1,1,startmo,max(firstyr,yr1) &
-                ))
-                if ( status /= nf_noerr ) call handle_err(status, &
-                'readncfile: nf_get_varm_real 1')
+                    ,stride,imap,field(1,1,startmo,max(firstyr,yr1)))
+                if ( status /= nf_noerr ) call handle_err(status,'readncfile: nf_get_varm_real 1')
             else
                 if ( lwrite ) print *,'leap years...'
                 ck = count(k)
@@ -240,14 +235,12 @@ subroutine readncfile(ncid,field,nxf,nyf,nx,ny,nperyear &
                 noleap = 0
                 do l=1,ck
                     if ( i > yrend ) then
-                        write(0,*) 'readncfile: error: i>yrend: ',i &
-                        ,yrend,l,ck
+                        write(0,*) 'readncfile: error: i>yrend: ',i,yrend,l,ck
                         exit
                     end if
                     if ( j/nn == 31+29 .and. leap(i) == 1 ) then
                         do jj=0,nn-1
-                            if ( lwrite ) print *,'setting ',i,j+jj, &
-                            ' to undefined'
+                            if ( lwrite ) print *,'setting ',i,j+jj,' to undefined'
                             do jy=1,max(ny,1)
                                 do jx=1,max(nx,1)
                                     field(jx,jy,j+jj,i) = undef
@@ -262,7 +255,7 @@ subroutine readncfile(ncid,field,nxf,nyf,nx,ny,nperyear &
                     call keepalive1('Reading day ',l,ck)
                     if ( lwrite ) print *,'reading ',start(k),i,j
                     status = nf_get_varm_real(ncid,jvars(1),start &
-                    ,count,stride,imap,field(1,1,j,i))
+                        ,count,stride,imap,field(1,1,j,i))
                     j = j + 1
                     if ( j > nperyear ) then
                         j = j - nperyear
@@ -280,7 +273,7 @@ subroutine readncfile(ncid,field,nxf,nyf,nx,ny,nperyear &
         endif
     else
         if ( jvars(2) == 1 ) then
-        !               I have to construct a mapping vector to skip a bit of field
+!           I have to construct a mapping vector to skip a bit of field
             imap(1) = 1
             imap(2) = nxf
             imap(3) = nxf*nyf ! z is either missing or 1
@@ -292,10 +285,8 @@ subroutine readncfile(ncid,field,nxf,nyf,nx,ny,nperyear &
                 if ( lwrite ) print '(a)' &
                 ,'readncfile: calling nf_get_varm_real 2'
                 status = nf_get_varm_real(ncid,jvars(1),start,count &
-                ,stride,imap,field(1,1,startmo,max(firstyr,yr1) &
-                ))
-                if ( status /= nf_noerr ) call handle_err(status, &
-                ' readncfile: nf_get_varm_real 2')
+                    ,stride,imap,field(1,1,startmo,max(firstyr,yr1)))
+                if ( status /= nf_noerr ) call handle_err(status,' readncfile: nf_get_varm_real 2')
             else
                 print *,'leap years...'
                 ck = count(k)
@@ -322,7 +313,7 @@ subroutine readncfile(ncid,field,nxf,nyf,nx,ny,nperyear &
                     call keepalive1('Reading day ',l,ck)
                     if ( lwrite ) print *,'reading ',start(k),i,j
                     status = nf_get_varm_real(ncid,jvars(1),start &
-                    ,count,stride,imap,field(1,1,j,i))
+                        ,count,stride,imap,field(1,1,j,i))
                     j = j + 1
                     if ( j > nperyear ) then
                         j = j - nperyear
@@ -334,9 +325,7 @@ subroutine readncfile(ncid,field,nxf,nyf,nx,ny,nperyear &
                 nt = nt + noleap
             endif
         else
-            write(0,*) &
-            'readncfile: cannot handle jvars(2) != 0,1 yet: ' &
-            ,jvars(2)
+            write(0,*) 'readncfile: cannot handle jvars(2) != 0,1 yet: ',jvars(2)
             call exit(-1)
         endif
     endif
@@ -380,10 +369,12 @@ subroutine readncfile(ncid,field,nxf,nyf,nx,ny,nperyear &
 !   yes, Virginia, there are netcdf files in the wild that encoded undefs by NaNs...
 !   Pity, these loops eat a lot of time.
 
+    n = 0
+!$omp parallel do private(i,j,jy,jx)
     do i=max(yr1,yrbeg),min(yr2,yrend)
-        call keepalive1('Checking for weird undefs ', &
-        i-max(yr1,yrbeg)+1, &
-        min(yr2,yrend)-max(yr1,yrbeg)+1)
+!$omp atomic update
+        n = n + 1
+        call keepalive1('Checking for weird undefs ',n,min(yr2,yrend)-max(yr1,yrbeg)+1)
         do j=1,nperyear
             do jy=1,max(ny,1)
                 do jx=1,max(nx,1)
@@ -397,14 +388,14 @@ subroutine readncfile(ncid,field,nxf,nyf,nx,ny,nperyear &
             end do
         end do
     end do
+!$omp end parallel do
 
 !   change other undef conventions to ours
 
     if ( undef /= 3e33 ) then
-        if ( lwrite ) print *,'changing undef from ',undef, &
-        ' to 3e33'
+        if ( lwrite ) print *,'changing undef from ',undef,' to 3e33'
         if ( abs(undef) > 1000 ) then
-        ! relative diff
+            ! relative diff
             do i=max(yr1,yrbeg),min(yr2,yrend)
                 call keepalive1('Changing undefs to 3e33', &
                 i-max(yr1,yrbeg)+1, &
@@ -439,19 +430,20 @@ subroutine readncfile(ncid,field,nxf,nyf,nx,ny,nperyear &
 !   there may be a scale and/or offset in the file!
 
     call applyscaleoffset(ncid,jvars(1),field,nxf,nyf,1,nperyear, &
-    yrbeg,yrend,nx,ny,1,yr1,yr2,lwrite)
+        yrbeg,yrend,nx,ny,1,yr1,yr2,lwrite)
 
 !   check for values that will cause crashes later on when taking squaares
 
+    n = 0
+!$omp parallel do private(i,j,jy,jx)
     do i=max(yr1,yrbeg),min(yr2,yrend)
-        call keepalive1('Checking a few other things ', &
-        i-max(yr1,yrbeg)+1, &
-        min(yr2,yrend)-max(yr1,yrbeg)+1)
+!$omp atomic update
+        n = n + 1
+        call keepalive1('Checking a few other things ',n,min(yr2,yrend)-max(yr1,yrbeg)+1)
         do j=1,nperyear
             do jy=1,max(ny,1)
                 do jx=1,max(nx,1)
-                    if ( field(jx,jy,j,i) < 2e33 .and. &
-                    abs(field(jx,jy,j,i)) > 1e16 ) then
+                    if ( field(jx,jy,j,i) < 2e33 .and. abs(field(jx,jy,j,i)) > 1e16 ) then
                         itoobig = itoobig+1
                         if ( itoobig >= ntoobig ) then
                             ntoobig = 2*ntoobig

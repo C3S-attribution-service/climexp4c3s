@@ -334,7 +334,7 @@ program get_index
                     if ( field(i,j,mo,yr) < -999 .and. &
                          field(i,j,mo,yr) > -1000 ) then
                         write(0,*) 'get_index: suspicious field(', &
-                        i,j,mo,yr,') = ', field(i,j,mo,yr)
+                            i,j,mo,yr,') = ', field(i,j,mo,yr)
                     end if
                 end do
             end do
