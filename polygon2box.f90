@@ -7,7 +7,7 @@ program polygon2box
   character line*80,file*255
   real x,y,xmin,xmax,ymin,ymax,xold
 
-  call getarg(1,file)
+  call get_command_argument(1,file)
   if ( file.eq.' ' ) then
      write(0,*) 'usage: polygon2box file.txt'
      stop

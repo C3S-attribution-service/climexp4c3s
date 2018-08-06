@@ -52,11 +52,11 @@ program correlatefield
     character :: lz(3)*20,svars(100)*100,ltime*120,history*50000,serieshistory*50000, &
         cell_methods(100)*100,metadata(2,100)*2000,seriesmetadata(2,100)*2000, &
         seriestitle*100
-    integer :: iargc,rindex
+    integer :: rindex
 !
 !   check arguments
 !
-    n = iargc()
+    n = command_argument_count()
     if ( lwrite ) print *,'correlatefield: called with ',n,' arguments'
     if ( n < 3 ) then
         print *,'usage: correlatefield field.[ctl|nc] '//           &
@@ -71,7 +71,7 @@ program correlatefield
         print *,'       ensemble input is denoted by %% in the name'
         call exit(-1)
     end if
-    call getarg(1,infile)
+    call get_command_argument(1,infile)
     call getmetadata(infile,mens1,mens,ncid,datfile,nxmax,nx &
         ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo &
         ,ltime,undef,endian,title,history,nvarmax,nvars,vars,ivars &
@@ -95,7 +95,7 @@ program correlatefield
     call getopts(j,n-1,nperyear,yrbeg,yrend,.true.,mens1,mens)
     if ( ensemble ) write(0,*) 'Using ensemble members ',nens1      &
           ,' to ',nens2,'<br>'
-    call getarg(2,infile)
+    call get_command_argument(2,infile)
 !
 !   allocate arrays
 !
@@ -122,7 +122,7 @@ program correlatefield
     invars = vars
     intitle = title
     inunits = units
-    n = iargc()
+    n = command_argument_count()
     if ( lag1 < 0 ) print *,'(point leading field)'
     if ( lag2 > 0 ) print *,'(field leading point)'
     if ( dump ) write(0,*)'correlatefield: dump not supported'
@@ -145,7 +145,7 @@ program correlatefield
             call exit(-1)
         end if
     end if
-    call getarg(n,outfile)
+    call get_command_argument(n,outfile)
     inquire(file=outfile,exist=lexist)
     if ( lexist ) then
         print *,'output file ',trim(outfile),' already exists, overwrite? [y/n]'
@@ -226,7 +226,7 @@ program correlatefield
     do iens=nens1,nens2
         call keepalive1('Reading ensemble member',iens-nens1+1,nens2-nens1+1)
         if ( ncid == -1 ) then
-            call getarg(1,infile)
+            call get_command_argument(1,infile)
             if ( ensemble ) then
                 call filloutens(infile,iens)
             end if
@@ -258,7 +258,7 @@ program correlatefield
                  fyr,firstmo,nt,undef,endian,lwrite,yr1a,yr2a,      &
                  1,1)
         else
-            call getarg(1,infile)
+            call get_command_argument(1,infile)
             if ( ensemble ) then
                 call filloutens(infile,iens)
             end if
@@ -298,7 +298,7 @@ program correlatefield
 !
 !   read series
 !
-    call getarg(iarg,file)
+    call get_command_argument(iarg,file)
     if ( index(file,'%%') == 0 .and. index(file,'++') == 0 ) then
         ensseries = .FALSE.
         nens2series = nens1
@@ -1122,7 +1122,7 @@ program correlatefield
             ldir = ldir + 1
             dir(ldir:ldir) = '/'
         end if
-        if ( title == ' ' ) call getarg(1,title)
+        if ( title == ' ' ) call get_command_argument(1,title)
         title = 'Linear correlations and regressions of '//trim(title)//' and '//trim(file)
         seriestitle = ' '
         call merge_metadata(metadata,nmetadata,seriesmetadata,seriestitle,serieshistory,'series_')

@@ -12,10 +12,9 @@ program transform
     character variable*10,scenario*2,region*3,infile*255,var*40,units*80,scaling*5
     character string*100
     logical lwrite
-    integer iargc
     lwrite = .false.
 
-    if ( iargc().lt.5 ) then
+    if ( command_argument_count().lt.5 ) then
         write(0,*) 'usage: transform infile variable horizon scenario[.subscenario] region'
         write(0,*) '       gives transformed time series following the KNMI''14 scenario'
         stop
@@ -86,11 +85,11 @@ subroutine get_parameters(infile,variable,horizon,scenario,scaling,region)
     character infile*(*), variable*(*), scenario*(*), region*(*), scaling*(*)
     character string*80
 
-    call getarg(1,infile)
-    call getarg(2,variable)
-    call getarg(3,string)
+    call get_command_argument(1,infile)
+    call get_command_argument(2,variable)
+    call get_command_argument(3,string)
     read(string,*,err=901) horizon
-    call getarg(4,string)
+    call get_command_argument(4,string)
     scenario = string(1:2)
     if ( string(3:3) == '.' ) then
         scaling = string(4:)
@@ -103,7 +102,7 @@ subroutine get_parameters(infile,variable,horizon,scenario,scaling,region)
         write(0,*) 'transform: error: expecting scenario __, GL, GH, WL or WH, not ',scenario
         call abort
     end if
-    call getarg(5,region)
+    call get_command_argument(5,region)
     return
     
 901 write(0,*) 'transform: error reading horizon from ',trim(string)

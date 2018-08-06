@@ -20,25 +20,24 @@
     character :: ncfile*255,title*1023,lz(3)*20,ltime*120,history*20000, &
         cell_methods(100)*100,metadata(2,100)*2000
     logical :: lwrite,tdefined(ntmax)
-    integer :: iargc,llen
     data dpm &
     /31,28,31,30,31,30,31,31,30,31,30,31 &
     ,31,29,31,30,31,30,31,31,30,31,30,31/
 
     lwrite = .false. 
-    if ( iargc() < 2 ) then
+    if ( command_argument_count() < 2 ) then
         write(0,*) 'Usage: catnc infile1.nc infiel2.nc ... outfile.nc'
         call exit(-1)
     endif
 
 !   metadata
 
-    nargs = iargc()
+    nargs = command_argument_count()
     fyrall =  9999
     lyrall = -9999
     do iarg=1,nargs-1
         call keepalive1('Concatenating file ',iarg,nargs-1)
-        call getarg(iarg,ncfile)
+        call get_command_argument(iarg,ncfile)
         if ( lwrite ) print *,'reading metadata ',trim(ncfile)
         ncid = 0
         call ensparsenc(ncfile,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
@@ -82,7 +81,7 @@
         deallocate(onefield)
     end do        
 
-    call getarg(nargs,ncfile)
+    call get_command_argument(nargs,ncfile)
     nt = nperyear*(lyrall - fyrall + 1)
     if ( lwrite ) print *,'writing metadata'
     call enswritenc(ncfile,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny,yy &

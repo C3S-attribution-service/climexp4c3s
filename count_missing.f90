@@ -11,16 +11,15 @@ program count_missing
     real,allocatable :: data(:,:,:)
     logical   :: nomissing
     character :: file*1023,var*80,units*40,line*80
-    integer   :: iargc
     integer,external :: leap
     lwrite = .false.
     
-    if ( iargc() < 1 .or. iargc() > 7 ) then
+    if ( command_argument_count() < 1 .or. command_argument_count() > 7 ) then
         print *,'count_missing file [yr1 yr2] [mon m sel n]'
         call exit(-1)
     end if
     
-    call getarg(1,file)
+    call get_command_argument(1,file)
     lstandardunits = .false.
     allocate(data(npermax,yrbeg:yrend,0:nensmax))
     call readensseries(file,data,npermax,yrbeg,yrend,nensmax,nperyear,mens1,mens, &
@@ -30,15 +29,15 @@ program count_missing
     y2 = yrend
     mon = 1
     lsel = nperyear
-    if ( iargc() > 2 ) then
-        call getarg(2,line)
-        if ( line(1:3) == 'mon' .and. iargc() > 2 ) then
-            call getopts(2,iargc(),nperyear,yrbeg,yrend,.true.,mens1,mens)
+    if ( command_argument_count() > 2 ) then
+        call get_command_argument(2,line)
+        if ( line(1:3) == 'mon' .and. command_argument_count() > 2 ) then
+            call getopts(2,command_argument_count(),nperyear,yrbeg,yrend,.true.,mens1,mens)
         else
             read(line,*) y1
-            call getarg(3,line)
+            call get_command_argument(3,line)
             read(line,*) y2
-            call getopts(4,iargc(),nperyear,yrbeg,yrend,.true.,mens1,mens)            
+            call getopts(4,command_argument_count(),nperyear,yrbeg,yrend,.true.,mens1,mens)            
         end if
     end if
 

@@ -11,7 +11,7 @@ program extendseries
     character file*255,var*80,units*40
     logical lstandardunits,lwrite
     lwrite = .false.
-    call getarg(1,file)
+    call get_command_argument(1,file)
     lstandardunits = .false.
     call readseries(file,data,npermax,yrbeg,yrend,nperyear,var,units,lstandardunits,lwrite)
     do yr=yrend,yrbeg,-1

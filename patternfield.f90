@@ -26,7 +26,6 @@ program patternfield
     character :: cell_methods1(nvarmax)*100,history1*50000,ltime1*120,lz1(3)*20,metadata1(2,100)*2000
     character :: title2*256,vars2(nvarmax)*20,lvars2(nvarmax)*80,units2(nvarmax)*20,svars2(nvarmax)*80
     character :: cell_methods2(nvarmax)*100,history2*50000,ltime2*120,lz2(3)*20,metadata2(2,100)*2000
-    integer :: iargc
 
     lwrite = .false. 
     anom = .false. 
@@ -34,26 +33,26 @@ program patternfield
 
 !   check arguments
 
-    n = iargc()
+    n = command_argument_count()
     if ( n < 4 ) then
         print *,'usage: patternfield field.[ctl|nc] '// &
             'pattern.[ctl|nc] variable month [minfac n]'
         call exit(-1)
     endif
     call killfile(title1,datfile1,datfile2,0)
-    call getarg(iargc(),line)
+    call get_command_argument(command_argument_count(),line)
     call tolower(line)
     if ( line(1:5) == 'debug' .or. line(1:6) == 'lwrite' ) then
         lwrite = .true. 
         print *,'turned debug output on'
     end if
-    call getarg(1,infile)
+    call get_command_argument(1,infile)
     call getmetadata(infile,mens1,mens,ncid1,datfile1,nxmax,nx1 &
         ,xx1,nymax,ny1,yy1,nzmax,nz1,zz1,lz1,nt1,nper1,firstyr1,firstmo1 &
         ,ltime1,u1,endian1,title1,history1,1,nvars,vars1,ivars1 &
         ,lvars1,svars1,units1,cell_methods1,metadata1,lwrite)
 
-    call getarg(2,patfile)
+    call get_command_argument(2,patfile)
     call getmetadata(patfile,mens1,mens,ncid2,datfile2,nxmax,nx2 &
         ,xx2,nymax,ny2,yy2,nzmax,nz2,zz2,lz2,nt2,nper2,firstyr2,firstmo2 &
         ,ltime1,u2,endian2,title2,history2,nvarmax,nvars,vars2,ivars2 &
@@ -66,7 +65,7 @@ program patternfield
     end if
     nperyear = max(nper1,nper2)
 
-    call getarg(3,variable)
+    call get_command_argument(3,variable)
     do ivar=1,nvars
         if ( vars2(ivar) == variable ) then
             goto 100
@@ -86,7 +85,7 @@ program patternfield
         endif
     endif
     if ( lwrite ) print *,'located ',trim(variable),ivar
-    call getarg(4,line)
+    call get_command_argument(4,line)
     read(line,*,err=903) month
     if ( month < 0 .or. month > nperyear ) goto 903
     if ( lwrite ) print *,'picking pattern for month ',month
@@ -127,14 +126,14 @@ program patternfield
     allocate(field2(nxf,nyf,nper2,yrpat1:yrpat2))
 
     minfac = 0.5
-    do i=5,iargc()-1
+    do i=5,command_argument_count()-1
         if ( iskip > 0 ) then
             iskip = iskip - 1
             cycle
         endif
-        call getarg(i,line)
+        call get_command_argument(i,line)
         if ( line(1:6) == 'minfac' ) then
-            call getarg(6,line)
+            call get_command_argument(6,line)
             iskip = 1
             read(line,*,err=904) minfac
             if ( minfac > 1 ) minfac=minfac/100

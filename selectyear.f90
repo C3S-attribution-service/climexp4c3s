@@ -10,18 +10,17 @@ program selectyear
     character :: file*1023,line*128,var*40,units*80,lvar*120,svar*120,history*50000, &
         metadata(2,100)*2000,title*500
     logical :: lvalid,lwrite
-    integer :: iargc,llen
 
     lwrite = .false. 
-    if ( iargc() < 3 .or. iargc() > 4 ) then
+    if ( command_argument_count() < 3 .or. command_argument_count() > 4 ) then
         print *,'usage: selectyear yrbegin yrend datfile [dummy]'
         call exit(-1)
     endif
-    call getarg(1,line)
+    call get_command_argument(1,line)
     read(line,*,err=901) yr1
-    call getarg(2,line)
+    call get_command_argument(2,line)
     read(line,*,err=901) yr2
-    call getarg(3,file)
+    call get_command_argument(3,file)
     call readseriesmeta(file,data,npermax,yrbeg,yrend,nperyear,var,units &
         ,lvar,svar,history,metadata,.false.,lwrite)
     title = ' '

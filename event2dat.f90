@@ -1,24 +1,23 @@
 program event2dat
   ! generates a standard dat files with zeros everywhere excpt in a list of events, which are put to one
   implicit none
-  integer yr,mo,yrbeg,yrend,nperyear
-  real val
+  integer :: yr,mo,yrbeg,yrend,nperyear
+  real :: val
   real,allocatable :: data(:,:)
-  integer iargc
-  character file*255,string*80
+  character :: file*255,string*80
 
-  if ( iargc().ne.4 ) then
+  if ( command_argument_count().ne.4 ) then
      print *,'usage: event2dat infile yrbeg yrend nperyear'
      print *,'       sets dates in infile to 1, others to 0'
-     stop
+     call exit(-1)
   end if
   
-  call getarg(1,file)
-  call getarg(2,string)
+  call get_command_argument(1,file)
+  call get_command_argument(2,string)
   read(string,*) yrbeg
-  call getarg(3,string)
+  call get_command_argument(3,string)
   read(string,*) yrend
-  call getarg(4,string)
+  call get_command_argument(4,string)
   read(string,*) nperyear
   if ( nperyear.le.1 .or. nperyear.gt.12 ) then
      write(0,*) 'dat2event: can only handle monthly o seasonal data at the moment,'

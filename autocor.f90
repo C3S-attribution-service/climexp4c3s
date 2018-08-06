@@ -13,12 +13,11 @@ program autocor
     real :: s,adata,cc(0:lagmax),sig(0:lagmax),norlag,lagfac
     real,allocatable :: data(:,:,:)
     character :: line*128,var*40,units*120
-    integer :: iargc
 !
 !   check arguments
 !
     lwrite = .false.
-    n = iargc()
+    n = command_argument_count()
     if ( n.lt.1 ) then
         print *,'usage: autocor datafile [log] [month n] [sum n] [anom] [decor n]'
         stop
@@ -28,13 +27,13 @@ program autocor
 !
     lstandardunits = .false.
     allocate(data(npermax,yrbeg:yrend,0:nensmax))
-    call getarg(1,line)
+    call get_command_argument(1,line)
     call readensseries(line,data,npermax,yrbeg,yrend,nensmax &
         ,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
 !
 !   arguments
 !
-    call getopts(2,iargc(),nperyear,yrbeg,yrend,.true.,mens1,mens)
+    call getopts(2,command_argument_count(),nperyear,yrbeg,yrend,.true.,mens1,mens)
     yrstart = yr2
     yrstop  = yr1
     if ( mens.gt.0 ) then

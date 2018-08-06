@@ -4,21 +4,20 @@ program outliers
 !
     implicit none
     include 'param.inc'
-    integer dy,mo,yr,i,nperyear,nperyear2,n
-    real xx(npermax,yrbeg:yrend),yy(npermax,yrbeg:yrend),sd
-    logical lstandardunits,lwrite
-    character var*40,units*40,xfile*255,yfile*255,string*20
-    integer iargc
+    integer :: dy,mo,yr,i,nperyear,nperyear2,n
+    real :: xx(npermax,yrbeg:yrend),yy(npermax,yrbeg:yrend),sd
+    logical :: lstandardunits,lwrite
+    character :: var*40,units*40,xfile*255,yfile*255,string*20
     
-    if ( iargc() < 2 ) then
+    if ( command_argument_count() < 2 ) then
         write(0,*) 'usage: outliers xfile yfile [debig]'
         call exit(-1)
     end if
-    call getarg(1,xfile)
-    call getarg(2,yfile)
+    call get_command_argument(1,xfile)
+    call get_command_argument(2,yfile)
     lwrite = .false.
-    if ( iargc() == 3 ) then
-        call getarg(3,string)
+    if ( command_argument_count() == 3 ) then
+        call get_command_argument(3,string)
         if ( string(1:5) == 'debug' .or. string (1:6) == 'lwrite' ) then
             lwrite = .true.
         end if

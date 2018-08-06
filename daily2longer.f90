@@ -19,13 +19,13 @@ program daily2longer
         lvalid(mpermax,yrbeg:yrend)
     character file*1023,string*512,lgt*1,moper*3,var*20,units*20, &
         climunits*10
-    integer :: iargc,leap
-    external leap
+    integer,external :: leap
+
     lwrite = .false. 
     lstandardunits = .true. 
     lnomissing = .false. 
 
-    if ( iargc() < 3 ) then
+    if ( command_argument_count() < 3 ) then
         print *,'usage: daily2longer infile nperyearnew'// &
             ' mean|sd|sum|abo|bel|num|min|max|mintime|maxtime'// &
             '|firsttime|lasttime|con [<> val[%|p]'// &
@@ -36,7 +36,7 @@ program daily2longer
 
 !   read data
 
-    call getarg(3,string)
+    call get_command_argument(3,string)
     if ( string == 'mintime' ) string = 'nti'
     if ( string == 'maxtime' ) string = 'xti'
     if ( string == 'firsttime' ) string = 'fti'
@@ -54,7 +54,7 @@ program daily2longer
     endif
     if ( moper == 'max' .or. moper == 'min' .or. moper(2:3) == 'ti' &
         .or. moper == 'num' ) lstandardunits = .false. 
-    call getarg(1,file)
+    call get_command_argument(1,file)
     call readseries(file,olddata,mpermax,yrbeg,yrend,nperyear,var &
         ,units,lstandardunits,lwrite)
     if ( index(file,'/dd') > 0 .or. index(file,'dd') == 1 ) then
@@ -77,14 +77,14 @@ program daily2longer
 
 !   read operation
 
-    call getarg(2,string)
+    call get_command_argument(2,string)
     read(string,*,err=901) nperyearnew
     if ( abs(nperyearnew) > npermax ) then
         write(0,*) 'daily2longer: error: nperyearnew = ',nperyearnew,' not yet supported'
         write(*,*) 'daily2longer: error: nperyearnew = ',nperyearnew,' not yet supported'
         call exit(-1)
     endif
-    call getopts(4,iargc(),nperyear,yrbeg,yrend,.true.,0,0)
+    call getopts(4,command_argument_count(),nperyear,yrbeg,yrend,.true.,0,0)
     if ( minfac < 0 ) minfac = 0.5
     pcut = -999.9
     if ( minindx > -1e33 .or. pminindx >= 0 ) then

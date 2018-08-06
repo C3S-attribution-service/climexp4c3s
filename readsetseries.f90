@@ -19,7 +19,7 @@ subroutine readsetseries(data,ids,npermax,yrbeg,yrend,nensmax, &
                  line*255,number*20,string*255,command*1023
     integer,external :: getfiletime
 
-    call getarg(3,prog)
+    call get_command_argument(3,prog)
     if ( (prog(1:3) /= 'get' .and. prog(1:3) /= 'eca' .and. &
          prog(1:4) /= 'beca' .and. prog(1:4) /= 'gdcn' .and. &
          prog(1:4) /= 'grid' ) .or. &
@@ -52,7 +52,7 @@ subroutine readsetseries(data,ids,npermax,yrbeg,yrend,nensmax, &
         extraargs = ' '
         extraargs_ = ' '
     end if
-    call getarg(2,file)
+    call get_command_argument(2,file)
     open(1,file=file,status='old',err=101)
     goto 102
 101 continue

@@ -8,18 +8,17 @@ program seriesensanomal
     real,allocatable :: data(:,:,:)
     logical :: lwrite,lstandardunits,lexist
     character :: file*255,ensfile*255,var*40,units*40,line*255
-    integer :: iargc
     lwrite = .false. 
     lstandardunits = .false. 
 
-    if ( iargc() /= 3 ) then
+    if ( command_argument_count() /= 3 ) then
         print *,'usage: seriesensanomal ensmember ensfile dummy'
         call exit(-1)
     endif
 
-    call getarg(1,ensfile)
+    call get_command_argument(1,ensfile)
     read(ensfile,*) nens1
-    call getarg(2,ensfile)
+    call get_command_argument(2,ensfile)
 
     allocate(data(npermax,yrbeg:yrend,0:nensmax))
     call readensseries(ensfile,data,npermax,yrbeg,yrend,nensmax &

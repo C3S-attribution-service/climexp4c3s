@@ -9,15 +9,14 @@ program scaletimeseries
     character :: string*1024,var*40,units*40,lvar*120,svar*120,metadata(2,100)*2000, &
         history*50000,title*500
     logical :: lwrite
-    integer :: iargc
 
     lwrite = .false. 
-    if ( iargc() < 2 ) then
+    if ( command_argument_count() < 2 ) then
         print *,'usage: scaleseries factor[:offset] file [ndpm]'
         print *,'       factor and offset can be 12 values as "val1;val2;val3;...;val12"'
         call exit(-1)
     endif
-    call getarg(1,string)
+    call get_command_argument(1,string)
     i = index(string,':')
     if ( i == 0 ) then
         call read12values(string,factor,nfactor,';')
@@ -27,8 +26,8 @@ program scaletimeseries
         call read12values(string(:i-1),factor,nfactor,';')
         call read12values(string(i+1:),offset,noffset,';')
     end if
-    if ( iargc() > 2 ) then
-        call getarg(3,string)
+    if ( command_argument_count() > 2 ) then
+        call get_command_argument(3,string)
         read(string,*,err=10) ndpm
         goto 20
     10  continue
@@ -37,7 +36,7 @@ program scaletimeseries
     else
         ndpm = 0
     endif
-    call getarg(2,string)
+    call get_command_argument(2,string)
     call readseriesmeta(string,data,npermax,yrbeg,yrend,nperyear,var,units,lvar,svar,history,metadata, &
         .false.,lwrite)
     if ( ndpm /= 0 .and. nperyear /= 12 ) then

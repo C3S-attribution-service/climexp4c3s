@@ -766,7 +766,6 @@ subroutine plot_tx_cdfs(txtx,nmc,nens,ntype,j1,j2)
     real :: txtx(nmc,4)
     integer :: iens,j
     real :: logtxtx(4)
-    integer :: iargc
     write(10,'(a)') '# fraction, return values in the past '// &
         'climate, current climate and difference (sorted), '
     if ( ntype == 2 ) then
@@ -1030,7 +1029,6 @@ subroutine write_obscov(xx,yrs,ntot,xmin,cov2,xyear,year,offset,lchangesign)
     integer :: i,is
     logical :: lopen
     character string*1000,arg*250
-    integer :: iargc
     inquire(unit=15,opened=lopen)
     if ( lopen ) then
         if ( lchangesign ) then
@@ -1039,8 +1037,8 @@ subroutine write_obscov(xx,yrs,ntot,xmin,cov2,xyear,year,offset,lchangesign)
             is = +1
         end if
         string = ' '
-        do i=0,iargc()
-            call getarg(i,arg)
+        do i=0,command_argument_count()
+            call get_command_argument(i,arg)
             string = trim(string)//' '//arg(index(arg,'/',.TRUE.)+1:)
         end do
         write(15,'(a)') '# ' // trim(string)

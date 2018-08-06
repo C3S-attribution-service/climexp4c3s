@@ -13,11 +13,10 @@ program ar1
     real aa1(npermax),aa2(npermax),s1,s2
     character string*1023,varname*80,units*40
     logical lstandardunits,lwrite
-    integer iargc
     real gasdev
     lwrite = .false.
 
-    if ( iargc() > 4 .or. iargc() < 1 ) then
+    if ( command_argument_count() > 4 .or. command_argument_count() < 1 ) then
         print *,'Usage: ar1 file|nperyear a1 a2 [dummy]'
         stop
     endif
@@ -38,14 +37,14 @@ program ar1
 !
 !   process arguments
 !
-    if ( iargc() >= 3 ) then
-        call getarg(1,string)
+    if ( command_argument_count() >= 3 ) then
+        call get_command_argument(1,string)
         read(string,*,err=901) nperyear
         if ( nperyear < 1 .or. nperyear > npermax ) goto 901
-        call getarg(2,string)
+        call get_command_argument(2,string)
         read(string,*,err=902) a1
         if ( abs(a1) > 1 ) goto 902
-        call getarg(3,string)
+        call get_command_argument(3,string)
         read(string,*,err=903) a2
         if ( abs(a2) > 1 ) goto 903
         if ( abs(a1+a2) > 1 ) goto 904
@@ -56,7 +55,7 @@ program ar1
     else
         a1 = -999
         a2 = -999
-        call getarg(1,string)
+        call get_command_argument(1,string)
         lstandardunits = .true.
         call readseries(string,data,npermax,yrbeg,yrend,nperyear,varname,units,lstandardunits,lwrite)
         call detrend(data,npermax,yrbeg,yrend,yrbeg,yrend,1,nperyear,1)

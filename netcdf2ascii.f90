@@ -18,18 +18,18 @@ program netcdf2ascii
         cell_methods(100)*100,metadata(2,100)*2000
     logical :: tdefined(ntmax)
     logical :: lwrite
-    integer :: iargc,llen,get_endian
+    integer,external :: get_endian
     data dpm &
     /31,28,31,30,31,30,31,31,30,31,30,31 &
     ,31,29,31,30,31,30,31,31,30,31,30,31/
 
     lwrite = .false. 
-    if ( iargc() /= 1 ) then
+    if ( command_argument_count() /= 1 ) then
         write(0,*) 'Usage: netcdf2ascii infile'
         call exit(-1)
     end if
     localendian = get_endian()
-    call getarg(1,infile)
+    call get_command_argument(1,infile)
     status = nf_open(infile,nf_nowrite,ncid)
     if ( status /= 0 ) then
         ncid = 0

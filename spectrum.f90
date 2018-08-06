@@ -11,23 +11,22 @@ program spectrum
     real,allocatable :: epx1(:),epy1(:),epyall(:,:),prob(:),data(:,:,:)
     integer,allocatable :: imax(:)
     character line*255,var*40,units*20
-    integer :: iargc
 
 !   init
 
     lwrite = .false. 
-    if ( iargc() == 0 ) then
+    if ( command_argument_count() == 0 ) then
         print *,'usage: spectrum datafile [month n] [sum m] '// &
             '[detrend] [anom] [ensanom] [diff [n]] [begin yyyy] [end yyyy] [xave n]'
         call exit(-1)
     end if
 
     n = 0
-    call getarg(1,line)
+    call get_command_argument(1,line)
     allocate(data(npermax,yrbeg:yrend,0:nensmax))
     call readensseries(line,data,npermax,yrbeg,yrend,nensmax &
         ,nperyear,mens1,mens,var,units, .false. ,lwrite)
-    call getopts(2,iargc(),nperyear,yrbeg,yrend, .true. ,mens1,mens)
+    call getopts(2,command_argument_count(),nperyear,yrbeg,yrend, .true. ,mens1,mens)
 !   I am abusing yr1a,yr2a here...
     if ( yr1a == yr1 ) yr1a=yrbeg
     if ( yr2a == yr2 ) yr2a = yrend + 1

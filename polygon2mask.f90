@@ -18,11 +18,10 @@ program polygon2mask
         & ,cell_methods(nvarmax)*100,metadata(2,100)*2000
     character pole*2,clwrite*1
     logical lwrite,xrev,yrev,xwrap
-    integer iargc
 
     lwrite = .false.
     lsmasktype = 'all '
-    if ( iargc().lt.3 ) then
+    if ( command_argument_count().lt.3 ) then
         write(0,*) 'usage: polygon2mask grid.nc polygon.txt [sp] '// &
             & '[lsmask file.nc all|land|sea|notland|notsea|all] [debug] mask.nc'
         write(0,*) 'with grid.nc a netcdf file that defines the grid'
@@ -32,8 +31,8 @@ program polygon2mask
         write(0,*) '0 when outside (to be exact odd/even no of crossings).'
         stop
     end if
-    do i=3,iargc()-1
-     call getarg(i,string)
+    do i=3,command_argument_count()-1
+     call get_command_argument(i,string)
      call tolower(string)
      if ( string.eq.'lwrite' .or. string.eq.'debug') then
         lwrite = .true.
@@ -42,7 +41,7 @@ program polygon2mask
   !
   ! read grid xx,yy from netcdf (or grads) file
   !
-  call getarg(1,infile)
+  call get_command_argument(1,infile)
   call getmetadata(infile,mens1,mens,ncid,datfile,nxmax,nx &
        & ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo &
        & ,ltime,undef,endian,title,history,nvarmax,nvars,vars,jvars &
@@ -60,14 +59,14 @@ program polygon2mask
   !
   ! read polygon from text file
   !
-  call getarg(2,datfile)
+  call get_command_argument(2,datfile)
   call read_polygon(datfile,npol,npolmax,polygon,lwrite)
   !
-  if ( iargc().gt.3 ) then
-     call getarg(3,pole)
+  if ( command_argument_count().gt.3 ) then
+     call get_command_argument(3,pole)
      if ( pole.ne.'sp' ) pole='np'
-     do iarg=3,iargc()-1
-        call getarg(iarg,string)
+     do iarg=3,command_argument_count()-1
+        call get_command_argument(iarg,string)
         if ( string(1:6).eq.'lsmask' ) then
            j = iarg ! getlsmask overwrites its first argument :-(
            call getlsmask(j,lsmasktype,nxmax,xxls,nymax,yyls,lwrite)
@@ -76,7 +75,7 @@ program polygon2mask
      end do
   end if
   !
-  call getarg(iargc(),maskfile)
+  call get_command_argument(command_argument_count(),maskfile)
   !
   ! fill mask array
   !

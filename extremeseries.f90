@@ -14,31 +14,31 @@ program extremeseries
     real olddata(mpermax,yrbeg:yrend)
     real,allocatable :: newdata(:,:)
     character file*512,string*512,climdex*20,var*60,units*40,lvar*120,newunits*10
-    integer iargc
+
     lwrite = .false.
     lstandardunits = .true.
 !
-    if ( iargc().lt.3 ) then
+    if ( command_argument_count().lt.3 ) then
         print *,'usage: extremeseries infile nperyearnew extremeindex [gt percentile%]'
-        stop
+        call exit(-1)
     endif
 !
 !   read data
 !
-    call getarg(1,file)
+    call get_command_argument(1,file)
     call readseries(file,olddata,mpermax,yrbeg,yrend,nperyear,var,units,lstandardunits,lwrite)
 !
 !   read operation
 !
-    call getarg(2,string)
+    call get_command_argument(2,string)
     read(string,*,err=901) nperyearnew
     if ( abs(nperyearnew).gt.12 .or. nperyearnew.lt.1 ) then
         write(0,*) 'extremeseries: error: nperyearnew = ',nperyearnew,' not yet supported'
         write(*,*) 'extremeseries: error: nperyearnew = ',nperyearnew,' not yet supported'
         call abort
     endif
-    call getarg(3,climdex)
-    call getopts(4,iargc(),nperyear,yrbeg,yrend,.true.,0,0)
+    call get_command_argument(3,climdex)
+    call getopts(4,command_argument_count(),nperyear,yrbeg,yrend,.true.,0,0)
     allocate(newdata(nperyearnew,yrbeg:yrend))
 !
 !   perform operation

@@ -51,13 +51,12 @@ program correlatefieldfield
         ltime2*128,history1*20000,history2*20000,cell_methods1*100 &
         ,cell_methods2*100,metadata1(2,100)*2000, &
         metadata2(2,100)*2000
-    integer :: iargc,llen
-    external llen,findx
+    external findx
 
 !   check arguments
 
     lwrite = .false.
-    n = iargc()
+    n = command_argument_count()
     if ( n < 3 ) then
         print *,'usage: correlatefieldfield '// &
         'field1.[ctl|nc] field2.[ctl|nc] '// &
@@ -69,14 +68,14 @@ program correlatefieldfield
         call exit(-1)
     end if
     call keepalive(0,0)
-    call getarg(1,infile1)
+    call get_command_argument(1,infile1)
     call getmetadata(infile1,mens11,mens1,ncid1,datfile1,nxmax,nx1 &
         ,xx1,nymax,ny1,yy1,nzmax,nz1,zz1,lz1,nt1,nperyear1,firstyr1 &
         ,firstmo1,ltime1,undef1,endian1,title1,history1,1,nvars1 &
         ,vars1,ivars1,lvars1,svars1,units1,cell_methods1,metadata1 &
         ,lwrite)
 
-    call getarg(2,infile2)
+    call get_command_argument(2,infile2)
     if ( infile2 == infile1 ) then
         nx2 = nx1
         ny2 = ny1
@@ -119,7 +118,7 @@ program correlatefieldfield
 
 !   save time on the initialization - but not too much.
     nt = nperyear*(lastyr-firstyr+1)
-    n = iargc()
+    n = command_argument_count()
     call getopts(3,n-1,nperyear,yrbeg,yrend, .true. , &
     min(mens11,mens12),max(mens1,mens2))
     if ( lag1 < 0 ) print *,'(field1 leading field2)'
@@ -194,7 +193,7 @@ program correlatefieldfield
 
 !   init
 
-    call getarg(n,outfile)
+    call get_command_argument(n,outfile)
     inquire(file=outfile,exist=lexist)
     if ( lexist ) then
         print *,'output file ',outfile(1:index(outfile,' ')-1), &
@@ -728,7 +727,7 @@ program correlatefieldfield
     end if
     if ( .not. lsubtract ) then
         call getenv('DIR',dir)
-        ldir = llen(dir)
+        ldir = len_trim(dir)
         if ( ldir == 0 ) ldir=1
         if ( dir(ldir:ldir) /= '/' ) then
             ldir = ldir + 1

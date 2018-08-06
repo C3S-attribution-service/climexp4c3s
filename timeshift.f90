@@ -9,15 +9,14 @@ program timeshift
     character :: file*1023,string*10,var*80,units*120,svar*120,lvar*120, &
         history*10000,metadata(2,100)*2000
     logical :: lwrite
-    integer :: iargc
     lwrite = .false.
 
-    if ( iargc().lt.2 ) then
+    if ( command_argument_count().lt.2 ) then
         write(0,*) 'usage: timeshift series nmonth'
         call exit(-1)
     endif
-    call getarg(1,file)
-    call getarg(2,string)
+    call get_command_argument(1,file)
+    call get_command_argument(2,string)
     read(string,*) nshift
 
     call readseriesmeta(file,data,npermax,yrbeg,yrend,nperyear,var,units,lvar,svar, &

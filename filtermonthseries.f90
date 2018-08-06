@@ -9,24 +9,23 @@ program filterseries
     integer :: i,j,yr,mo,nmonth,nperyear,mens1,mens
     real :: data(npermax,yrbeg:yrend)
     character file*256,line*256,hilo*2,filtertype*12,var*40,units*20
-    integer :: iargc
 
     lwrite = .false. 
-    if ( iargc() < 4 ) then
+    if ( command_argument_count() < 4 ) then
         write(0,*) 'usage: filtermonthseries hi|lo filtertype nmon file'
         call exit(-1)
     endif
-    call getarg(1,hilo)
+    call get_command_argument(1,hilo)
     if ( hilo /= 'hi' .and. hilo /= 'lo' ) then
         write(0,*) 'filterseries: error: say hi or lo, not ',hilo
         call exit(-1)
     endif
-    call getarg(2,filtertype)
-    call getarg(3,line)
+    call get_command_argument(2,filtertype)
+    call get_command_argument(3,line)
     read(line,*,err=901) nmonth
-    call getarg(4,file)
+    call get_command_argument(4,file)
     call readseries(file,data,npermax,yrbeg,yrend,nperyear,var,units, .false. ,lwrite)
-    call getopts(5,iargc()-1,nperyear,yrbeg,yrend, .true. ,mens1,mens)
+    call getopts(5,command_argument_count()-1,nperyear,yrbeg,yrend, .true. ,mens1,mens)
     if ( minfac < 0 ) minfac = 0.75
     call copyheader(file,6)
     if ( nperyear == 12 ) then

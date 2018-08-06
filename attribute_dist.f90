@@ -294,12 +294,11 @@ subroutine attribute_init(file,distribution,assume,off,nperyear,yrbeg,yrend,nens
     character file*(*),distribution*(*),assume*(*)
     logical lwrite
     character string*255,string1*255,string2*200   
-    integer iargc
 !
     call killfile(string,string1,string2,0) ! random strings
 !   the usual call to getopts comes way too late for these options...
     nperyear = 12
-    call getarg(1,file)
+    call get_command_argument(1,file)
     if ( file == 'gridpoints' ) then
         off = 1
     else if ( file == 'file' ) then
@@ -307,9 +306,9 @@ subroutine attribute_init(file,distribution,assume,off,nperyear,yrbeg,yrend,nens
     else
         off = 0
     end if
-    call getopts(6+off,iargc(),nperyear,yrbeg,yrend,.false.,0,nensmax)
+    call getopts(6+off,command_argument_count(),nperyear,yrbeg,yrend,.false.,0,nensmax)
 
-    call getarg(3+off,distribution)
+    call get_command_argument(3+off,distribution)
     call tolower(distribution)
     if ( distribution /= 'gev' .and. distribution /= 'gumbel' .and. &
     &    distribution /= 'gpd' .and. distribution /= 'gauss' ) then
@@ -317,12 +316,12 @@ subroutine attribute_init(file,distribution,assume,off,nperyear,yrbeg,yrend,nens
         call abort
     end if
 
-    call getarg(4+off,string)
+    call get_command_argument(4+off,string)
     if ( string(1:4) /= 'assu' ) then
         write(0,*) 'attribute: error: expecting "assume", not ',trim(string)
         call abort
     end if
-    call getarg(5+off,assume)
+    call get_command_argument(5+off,assume)
     call tolower(assume)
     if ( assume /= 'shift' .and. assume /= 'scale' .and. assume /= 'both' ) then
         write(0,*) 'attribute: error: only shift, scale or both supported, not ',assume
@@ -1269,7 +1268,7 @@ subroutine normaliseseries(series,nperyear,fyr,lyr,mens1,mens,j1,j2,assume,lwrit
 end subroutine
 
 subroutine checknonegative(series,nperyear,fyr,lyr,mens1,mens,j1,j2,assume, &
-&   lchangesign,lwrite)
+       lchangesign,lwrite)
 !
 !   check that series does not contain negative values
 !

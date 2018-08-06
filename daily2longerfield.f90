@@ -24,14 +24,14 @@ program daily2longerfield
         lz(3)*20,ltime*100,svars(nvmax)*50,punits*40,metadata(2,100)*2000
     logical :: normal,tdefined(ntmax),lexist
     logical,allocatable :: lvalid(:,:,:,:),lvalid1(:,:)
-    integer :: iargc,llen
+    integer :: command_argument_count
     lwrite = .false. 
     itype = 0               ! for the time being - no vector fields
     ivars(1,:) = 0
     ivars(2,:) = 99
     lgt = ' '
 
-    if ( iargc() < 4 ) then
+    if ( command_argument_count() < 4 ) then
         print *,'usage: daily2longerfield infield nperyearnew '// &
             'mean|sd|var|sum|abo|bel|min|max|num|mintime|maxtime'// &
             '|firsttime|lasttime|con [<> val[%|p]] outfield.ctl'
@@ -42,7 +42,7 @@ program daily2longerfield
 !   read data
 
     call keepalive1('Reading field',0,0)
-    call getarg(1,file)
+    call get_command_argument(1,file)
     if ( lwrite ) print *,'daily2longerfield: nf_opening file ',trim(file)
     status = nf_open(file,nf_nowrite,ncid)
     if ( status /= nf_noerr ) then
@@ -107,9 +107,9 @@ program daily2longerfield
 
 !   read operation
 
-    call getarg(2,string)
+    call get_command_argument(2,string)
     read(string,*,err=901) nperyearnew
-    call getarg(3,string)
+    call get_command_argument(3,string)
     if ( string == 'maxtime' ) string = 'xti'
     if ( string == 'mintime' ) string = 'nti'
     if ( string == 'firsttime' ) string = 'fti'
@@ -127,14 +127,14 @@ program daily2longerfield
         call exit(-1)
     end if
     normal = .false. 
-    if ( iargc() >= 5 ) then
-        call getarg(4,string)
+    if ( command_argument_count() >= 5 ) then
+        call get_command_argument(4,string)
         if ( string == 'lt' ) lgt = '<'
         if ( string == 'gt' ) lgt = '>'
         if ( string == '<' ) lgt = '<'
         if ( string == '>' ) lgt = '>'
         if ( lgt == '<' .or. lgt == '>' ) then
-            call getarg(5,string)
+            call get_command_argument(5,string)
             if ( string == 'n' ) then
 !               take normals wrt 1971-2000
                 allocate(normfield(nx,ny,nperyear))
@@ -224,7 +224,7 @@ program daily2longerfield
         else
             i = 4
         end if
-        call getopts(i,iargc()-1,nperyear,yrbeg,yrend, .true. ,0,0)
+        call getopts(i,command_argument_count()-1,nperyear,yrbeg,yrend, .true. ,0,0)
     end if
     if ( opera == 'fti' .or. opera == 'lti' ) then
         if ( lgt == ' ' ) then
@@ -324,7 +324,7 @@ program daily2longerfield
 
 !   output field
 
-    call getarg(iargc(),file)
+    call get_command_argument(command_argument_count(),file)
     i = index(file,'.ctl')
     if ( i /= 0 ) then
     !           grads file output (deprecated)

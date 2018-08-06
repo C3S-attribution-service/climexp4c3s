@@ -7,22 +7,22 @@ program plotdaily
     implicit none
     include 'param.inc'
     include 'getopts.inc'
-    integer nday,nperyear,mens,mens1,i,j,k,dy,mm,mo,yy,yr,yrlast,molast,dylast,n
-    real cumdata,cummean
+    integer :: nday,nperyear,mens,mens1,i,j,k,dy,mm,mo,yy,yr,yrlast,molast,dylast,n
+    real :: cumdata,cummean
     real,allocatable :: data(:,:),mean(:)
-    logical cdf
-    character file*255,var*20,units*20,string*80,enddate*20
-    integer iargc,leap
+    logical :: cdf
+    character :: file*255,var*20,units*20,string*80,enddate*20
+    integer,external :: leap
     
-    if ( iargc() < 3 ) then
+    if ( command_argument_count() < 3 ) then
         write(0,*) 'usage: plotdaily infile nday enddate [cdf] [begin yr1 end yr2] [anom]'
         call exit(-1)
     end if
     
-    call getarg(1,file)
-    call getarg(2,string)
+    call get_command_argument(1,file)
+    call get_command_argument(2,string)
     read(string,*) nday
-    call getarg(3,enddate)
+    call get_command_argument(3,enddate)
     allocate(data(npermax,yrbeg:yrend))
     lstandardunits = .true.
     lwrite = .false.
@@ -31,14 +31,14 @@ program plotdaily
     mens = 0
     n = 4
     cdf = .false.
-    if ( iargc() >= n ) then
-        call getarg(n,string)
+    if ( command_argument_count() >= n ) then
+        call get_command_argument(n,string)
         if ( string(1:3) == 'cdf' ) then
             n = n + 1
             cdf = .true.
         end if
     end if
-    call getopts(n,iargc(),nperyear,yrbeg,yrend,.true.,mens1,mens)
+    call getopts(n,command_argument_count(),nperyear,yrbeg,yrend,.true.,mens1,mens)
 
     allocate(mean(nperyear))
     if ( .not.anom ) then

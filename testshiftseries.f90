@@ -11,7 +11,7 @@ program testshiftseries
     
     print *,'dyr?'
     read *,dyr
-    call getarg(1,file)
+    call get_command_argument(1,file)
     call readseries(trim(file),data,366,yrbeg,yrend,nperyear,var,units,.false.,.false.)
     lwrite = .true.
     call shiftseriesyear(data,366,nperyear,yrbeg,yrend,dyr,lwrite)

@@ -12,7 +12,6 @@ program plotdat
     logical :: lanomal,lskip,lexist,lopened
     character :: line*1023,ensfile*255,var*40,units*40,name*1023,title*100
     character :: lvar*120,svar*120,history*50000,metadata(2,100)*1000
-    integer :: iargc
     lwrite = .false. 
     lskip = .false. 
     call getenv('PLOTDAT_LWRITE',line)
@@ -22,7 +21,7 @@ program plotdat
 
 !   init
 
-    if ( iargc() == 0 ) then
+    if ( command_argument_count() == 0 ) then
         print *,'usage: plotdat [anom [yr1 yr2]] [normsd [[mon M ] ave N]] datafile'
         stop
     endif
@@ -32,17 +31,17 @@ program plotdat
     ayr2 = yrend
     lanomal = .false. 
     iarg = 1
-    if ( iargc() > 1 ) then
-        call getarg(1,line)
+    if ( command_argument_count() > 1 ) then
+        call get_command_argument(1,line)
         if ( line(1:4) == 'anom' ) then
             lanomal = .true. 
-            if ( iargc() < 3 ) then
+            if ( command_argument_count() < 3 ) then
                 iarg = 2
             else
-                call getarg(2,line)
+                call get_command_argument(2,line)
                 read(line,*,err=901) ayr1
                 ayr1 = max(yrbeg,ayr1)
-                call getarg(3,line)
+                call get_command_argument(3,line)
                 read(line,*,err=901) ayr2
                 ayr2 = min(yrend,ayr2)
                 iarg = 4
@@ -53,14 +52,14 @@ program plotdat
         end if
     endif
       
-    call getarg(iargc(),line)
+    call get_command_argument(command_argument_count(),line)
     call keepalive1('Reading data',0,0)
     lstandardunits = .false. ! because we cannot call getopts before we know mens1,mens...
     allocate(data(npermax,yrbeg:yrend,0:nensmax))
     call readensseriesmeta(line,data,npermax,yrbeg,yrend,nensmax &
         ,nperyear,mens1,mens,var,units,lvar,svar,history,metadata,lstandardunits,lwrite)
     call keepalive1('Reading data',0,0)
-    call getopts(iarg,iargc()-1,nperyear,yrbeg,yrend,.true.,mens1,mens)
+    call getopts(iarg,command_argument_count()-1,nperyear,yrbeg,yrend,.true.,mens1,mens)
     if ( index(line,'++') > 0 .or. index(line,'%%') > 0 ) then
         inquire(file=trim(line),exist=lexist)
         if ( .not. lexist .or. index(line,'.nc') == 0 ) then

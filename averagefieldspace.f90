@@ -15,20 +15,20 @@ program averagefieldspace
     character :: file*255,datfile*255,title*1000,vars(1)*40,lvars(1)*200,svars(1)*200, &
         units(1)*40,lz(3)*10,ltime*100,history*20000,cell_methods(1)*100,metadata(2,100)*2000
     logical :: lwrite
-    integer :: iargc,llen,leap
+    integer :: leap
 
-    if ( iargc() /= 4 ) then
+    if ( command_argument_count() /= 4 ) then
         print *,'usage: averagefieldspace infield avex avey outfield'
         call exit(-1)
     endif
 
     lwrite = .false. 
     minfac = 0.3
-    call getarg(2,file)
+    call get_command_argument(2,file)
     read(file,*) avex
-    call getarg(3,file)
+    call get_command_argument(3,file)
     read(file,*) avey
-    call getarg(1,file)
+    call get_command_argument(1,file)
     call getmetadata(file,mens1,mens,ncid,datfile,nxmax,nx &
         ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo &
         ,ltime,undef,endian,title,history,1,nvars,vars,ivars &
@@ -91,9 +91,9 @@ program averagefieldspace
         end do
     end if
     undef = 3e33
-    write(title(llen(title)+2:),'(a,i2,a,i2,a)') ' averaged over ',avex,'x',avey,' grid boxes'
+    write(title(len_trim(title)+2:),'(a,i2,a,i2,a)') ' averaged over ',avex,'x',avey,' grid boxes'
     call coarsen_geospatial_metadata(metadata,avex,avey)
-    call getarg(4,file)
+    call get_command_argument(4,file)
     i = index(file,'.ctl')
     if ( i /= 0 ) then
         datfile = file(1:i)

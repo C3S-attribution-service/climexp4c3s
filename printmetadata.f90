@@ -77,7 +77,6 @@ subroutine extend_history(history)
     character history*(*)
     integer :: i,j,ii(8),l
     character :: string*1000,line*1000
-    integer :: iargc
     
     string = ' '
     call getenv('USER',string)
@@ -85,9 +84,9 @@ subroutine extend_history(history)
     call date_and_time(values=ii)
     write(string(len_trim(string)+2:),'(i4,a,i2.2,a,i2.2)') ii(1),'-',ii(2),'-',ii(3)
     write(string(len_trim(string)+2:),'(i2,a,i2.2,a,i2.2)') ii(5),':',ii(6),':',ii(7)
-    do i=0,iargc()
+    do i=0,command_argument_count()
         l = min(len_trim(string) + 2,len(string)-2)
-        call getarg(i,line)
+        call get_command_argument(i,line)
         if ( line(1:1) == '/' ) then
             ! convert from absolute path to relative one
             j = index(line,'/climexp/')

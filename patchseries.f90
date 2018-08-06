@@ -14,7 +14,6 @@ program patchseries
     character :: method*4,lvar*200,svar*100,lvar2*200,svar2*100, &
         metadata(2,100)*2000,metadata2(2,100)*2000,history*10000,history2*10000
     logical :: lwrite,lreversefit,lstandardunits
-    integer :: iargc
     data dpm /31,29,31,20,31,30,31,31,30,31,30,31/
 
     lwrite = .false.
@@ -22,7 +21,7 @@ program patchseries
     lstandardunits = .true.
     sx = 0
     sy = 0
-    if ( iargc() < 2 ) then
+    if ( command_argument_count() < 2 ) then
         write(0,*) 'usage: patchseries mainseries auxseries [regr|bias|none]'
         write(0,*) 'patches holes in mainseries using data from '// &
              'auxseries linearly regressed on mainseries | biascorrected to mainseries '// &
@@ -30,11 +29,11 @@ program patchseries
         stop
     endif
     allocate(maindata(npermax,yrbeg:yrend),auxdata(npermax,yrbeg:yrend))
-    call getarg(1,mainfile)
+    call get_command_argument(1,mainfile)
     if ( lwrite ) print *,'reading ',trim(mainfile)
     call readseriesmeta(mainfile,maindata,npermax,yrbeg,yrend,nperyear &
          ,var,units,lvar,svar,history,metadata,lstandardunits,lwrite)
-    call getarg(2,auxfile)
+    call get_command_argument(2,auxfile)
     if ( lwrite ) print *,'reading ',trim(auxfile)
     call readseriesmeta(auxfile,auxdata,npermax,yrbeg,yrend,nperyear2  &
          ,var2,units2,lvar2,svar2,history2,metadata2,lstandardunits,lwrite)
@@ -48,8 +47,8 @@ program patchseries
     if ( units /= units2 ) then
         write(0,*) 'patchseries: warning: unequal units ',trim(units),' vs ',trim(units2)
     end if
-    if ( iargc() >= 3 ) then
-        call getarg(3,method)
+    if ( command_argument_count() >= 3 ) then
+        call get_command_argument(3,method)
         ! "noscale" was recognised by a version that I mistakenly skipped
         if ( method == 'nosc' ) method = 'bias'
     else

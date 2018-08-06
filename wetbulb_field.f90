@@ -18,19 +18,18 @@ program wetbulb_field
     character tmaxfile*255,tdewfile*255,presfile*255,twetfile*255
     character title*255,vars(nvarmax)*50,lvars(nvarmax)*100
     character tmaxunits(nvarmax)*50,tdewunits(nvarmax)*50,presunits(nvarmax)*50,units(nvarmax)*50
-    integer iargc
     integer,external :: leap,nf_close
     real,external :: wetbulbdew
     
-    if ( iargc() /= 4 ) then
+    if ( command_argument_count() /= 4 ) then
         write(0,*) 'usage: wetbulbfield Tmax Tdew pressure Twetbulb'
         call exit(-1)
     end if
     
-    call getarg(1,tmaxfile)
-    call getarg(2,tdewfile)
-    call getarg(3,presfile)
-    call getarg(4,twetfile)
+    call get_command_argument(1,tmaxfile)
+    call get_command_argument(2,tdewfile)
+    call get_command_argument(3,presfile)
+    call get_command_argument(4,twetfile)
     
     lwrite = .false.
     idtmax = 0

@@ -13,9 +13,8 @@ program average_ensemble
     logical lstandardunits,lset,lwrite
     character file*255,var*20,units*20,string*80,oper*3,ids(0:mensmax)*30,command*500
     integer,external :: leap
-    integer iargc
 
-    if ( iargc().lt.2 ) then
+    if ( command_argument_count().lt.2 ) then
         print *,'usage: average_ensemble ensfile|(file setfile) [ens n1 n2] '// &
  &           '[mean|min|max|num] [debug] [dummy]'
         call exit(-1)
@@ -27,9 +26,9 @@ program average_ensemble
 
     lstandardunits = .false.
     lwrite = .false.
-    call getarg(1,file)
+    call get_command_argument(1,file)
     if ( file == 'file' ) then
-        call getarg(2,file)
+        call get_command_argument(2,file)
         lset = .true.
         iarg = 4
     else
@@ -39,12 +38,12 @@ program average_ensemble
     nens1 = 0
     nens2 = mensmax
     oper = 'mea'
-    do while ( iarg.le.iargc() )
-        call getarg(iarg,string)
+    do while ( iarg.le.command_argument_count() )
+        call get_command_argument(iarg,string)
         if ( string.eq.'ens' ) then
-            call getarg(iarg+1,string)
+            call get_command_argument(iarg+1,string)
             read(string,*) nens1
-            call getarg(iarg+2,string)
+            call get_command_argument(iarg+2,string)
             read(string,*) nens2
             iarg = iarg + 3
         else if ( string.eq.'mean' ) then
@@ -169,8 +168,8 @@ program average_ensemble
         end do
     end if
     command = '#'
-    do i=0,iargc()
-        call getarg(i,string)
+    do i=0,command_argument_count()
+        call get_command_argument(i,string)
         command = trim(command)//' '//trim(string(1+index(string,'/',.true.):))
     end do
     print '(a)',trim(command)

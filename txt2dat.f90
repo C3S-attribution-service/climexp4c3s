@@ -9,7 +9,7 @@ program txt2dat
     logical ensemble
     character file*255,line*255,ensfile*255,type*10,wmo*255,headerfile*256
 !
-    call getarg(1,file)
+    call get_command_argument(1,file)
     if ( index(file,'++').ne.0 .or. index(file,'%%').ne.0 ) then
         ensemble = .true.
         iens = -1

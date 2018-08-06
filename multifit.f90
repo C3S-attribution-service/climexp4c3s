@@ -14,18 +14,17 @@ program multifit
     common /cindx/ indx
     logical :: lwrite
     character string*255,indname(indxmx)*20
-    integer :: iargc
     external findx
 
 !   process arguments
 
     lwrite = .false. 
-    n = iargc()
+    n = command_argument_count()
     if ( n < 2 ) then
         print *,'usage: multifit dumpfile index1 index2 ...'
         call exit(-1)
     end if
-    call getarg(1,string)
+    call get_command_argument(1,string)
     i = index(string,' ')
     if ( lwrite ) print *,'opening old dumpfile ',string(1:i-1)
     open(1,file=string,status='old')
@@ -34,7 +33,7 @@ program multifit
     open(2,file=string)
     indname(1) = 'constant'
     do i=2,n
-        call getarg(i,indname(i))
+        call get_command_argument(i,indname(i))
     end do
 
 !   read data

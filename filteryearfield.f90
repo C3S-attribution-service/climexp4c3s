@@ -16,10 +16,10 @@ program filteryearfield
         ,lvars(nvmax)*256,svars(nvmax)*256,units(nvmax)*20,title*255,datfile*256 &
         ,prog*100,yearmonth*5,scale*2,lz(3)*10,ltime*100,history*20000 &
         ,cell_methods(nvmax)*100,metadata(2,100)*2000
-    integer :: iargc,llen,leap
+    integer,external :: leap
 
-    call getarg(0,prog)
-    if ( iargc() < 5 ) then
+    call get_command_argument(0,prog)
+    if ( command_argument_count() < 5 ) then
         write(0,*) 'usage: ',trim(prog),' hi|lo filtertype nyr infile outfile'
         stop
     endif
@@ -31,20 +31,20 @@ program filteryearfield
         write(0,*) trim(prog),': error: cannot identify program'
         call abort
     end if
-    call getarg(1,hilo)
+    call get_command_argument(1,hilo)
     if ( hilo /= 'hi' .and. hilo /= 'lo' ) then
         write(0,*) 'filterfield: error: say hi or lo, not ',hilo
         call abort
     endif
-    call getarg(2,filtertype)
-    call getarg(3,line)
+    call get_command_argument(2,filtertype)
+    call get_command_argument(3,line)
     read(line,*,err=901) nyr
-    call getarg(4,file)
+    call get_command_argument(4,file)
     call getmetadata(file,mens1,mens,ncid,datfile,nxmax,nx &
         ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo &
         ,ltime,undef,endian,title,history,1,nvars,vars,ivars &
         ,lvars,svars,units,cell_methods,metadata,lwrite)
-    call getopts(5,iargc()-1,nperyear,yrbeg,yrend,.true.,mens1,mens)
+    call getopts(5,command_argument_count()-1,nperyear,yrbeg,yrend,.true.,mens1,mens)
     if ( nperyear /= 366 ) then
         lastyr = firstyr + (nt+firstmo-2)/nperyear
     else
@@ -115,7 +115,7 @@ program filteryearfield
         enddo
     enddo
 
-    call getarg(iargc(),file)
+    call get_command_argument(command_argument_count(),file)
     if ( yearmonth == 'year' ) then
         scale = 'yr'
     else

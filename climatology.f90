@@ -15,12 +15,11 @@ program climatology
     logical :: lexist,lstandardunits,lwrite
     character :: file*1023,ensfile*1023,string*10,oper*1,var*40,units*80
     character :: lvar*120,svar*120,history*50000,metadata(2,100)*1000
-    integer :: iargc
     data pcut /.025,.17,.5,.83,.975/
     data dpm /31,29,31,30,31,30,31,31,30,31,30,31/
 
     lwrite = .false.
-    if ( iargc() < 1 ) then
+    if ( command_argument_count() < 1 ) then
         print *,'usage: climatology file [begin yr] [end yr]'// &
             ' [ave|sum n ] [smooth n [times m]]'
         stop
@@ -34,9 +33,9 @@ program climatology
     lsum = 1
     smooth = 1
     times = 1
-    do i=2,iargc()-1,2
-        call getarg(i,string)
-        call getarg(i+1,file)
+    do i=2,command_argument_count()-1,2
+        call get_command_argument(i,string)
+        call get_command_argument(i+1,file)
         if ( string(1:9) /= 'startstop' ) read(file,*) j
         if ( string(1:3) == 'beg' ) then
             yr1 = max(j,yrbeg)
@@ -53,7 +52,7 @@ program climatology
         elseif ( string(1:3) == 'tim' ) then
             times = j
         elseif ( string(1:9) == 'startstop' ) then
-            call getarg(i+1,file)
+            call get_command_argument(i+1,file)
             inquire(file=trim(file),exist=lexist)
             if ( lexist ) then
                 l = len_trim(file)
@@ -72,7 +71,7 @@ program climatology
 
 !   read data
 
-    call getarg(1,file)
+    call get_command_argument(1,file)
     lstandardunits = .false.
     call readensseriesmeta(file,data,npermax,yrbeg,yrend,nensmax &
         ,nperyear,mens1,mens,var,units,lvar,svar,history,metadata,lstandardunits,lwrite)

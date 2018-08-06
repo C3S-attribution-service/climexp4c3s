@@ -23,11 +23,11 @@ subroutine getlsmask(startopts,lsmasktype,nxmax,xxls,nymax,yyls,lwrite)
         ,lvars(1)*80,units(1)*40,longlsmasktype*100
     integer,external :: get_endian
 
-    call getarg(startopts,string)
+    call get_command_argument(startopts,string)
     lsmasktype = 'all'
     if ( string(1:3) == 'lsm' ) then
-        call getarg(startopts+1,file)
-        call getarg(startopts+2,lsmasktype)
+        call get_command_argument(startopts+1,file)
+        call get_command_argument(startopts+2,lsmasktype)
         startopts = startopts + 3
         if ( lsmasktype == 'all' ) return
         longlsmasktype = lsmasktype

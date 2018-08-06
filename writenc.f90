@@ -81,8 +81,6 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
     integer :: dpm(12)
     logical :: lwrite,lhasz,lnetcdf4,linstitution
     character string*10000,months(0:12,2)*3,clwrite*10,FORM_field*100
-!   externals
-    integer :: iargc
 !   date
     data months / &
         '???','JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG' &
@@ -174,7 +172,7 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
         if ( status /= nf_noerr ) call handle_err(status,'def level dim')
     endif
 
-!       define variables: first the axes
+!   define variables: first the axes
 
     if ( lwrite ) print *,'defining axes'
     idims(1) = ntdimid

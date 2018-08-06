@@ -16,23 +16,22 @@ program yearly2shorterfield
     character :: lz(3)*10,ltime*100,title*1000,history*20000,cell_methods(nvarmax)*100
     character :: metadata(2,100)*2000
     character :: string1*50,string2*50
-    integer :: iargc
 
     call killfile(file,string1,string2,0) ! random strings
-    if ( iargc().lt.2 ) then
+    if ( command_argument_count().lt.2 ) then
         print *,'usage: yearly2shorterfield infile.nc nperyearnew [mon n ave|sum m]'
         stop
     endif
-    call getarg(1,file)
-    call getarg(2,string1)
+    call get_command_argument(1,file)
+    call get_command_argument(2,string1)
     read(string1,*,err=901) npernew
 
     call getmetadata(file,mens1,mens,ncid,datfile,nxmax,nx &
              ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo &
              ,ltime,undef,endian,title,history,nvarmax,nvars,vars,jvars &
              ,lvars,svars,units,cell_methods,metadata,lwrite)
-    call getopts(3,iargc()-1,npernew,yrbeg,yrend,.false.,0,nensmax)
-    if ( iargc().gt.3 ) then
+    call getopts(3,command_argument_count()-1,npernew,yrbeg,yrend,.false.,0,nensmax)
+    if ( command_argument_count().gt.3 ) then
         if ( oper.eq.'v' ) then
             nfac = 1
         else if ( oper.eq.'+' ) then
@@ -89,7 +88,7 @@ program yearly2shorterfield
             end do
         end do
     end do
-    call getarg(iargc(),file) ! outfile
+    call get_command_argument(command_argument_count(),file) ! outfile
     yrbegin = fyr
     mobegin = 1
     undef = 3e33

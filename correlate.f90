@@ -47,7 +47,6 @@
         ,ivar*80,lvar*120,svar*120,iunits*20,newunits*60,dum1*40,dum2*40,varorg*40 &
         ,unitsorg*60
     character(4) :: runs(3,2)
-    integer :: iargc,llen
     data runs /'rmin','rmax','zdif', 'bmin','bmax','bdif'/
 !  #] declarations:
 !  #[ check arguments:
@@ -55,7 +54,7 @@
 !   check arguments
 
     lwrite = .false. 
-    n = iargc()
+    n = command_argument_count()
     if ( n < 1 ) then
         print *,'usage: correlate datafile index [lag n[:m]] '// &
             '[month m[:n] [sum|ave|max|min|sel m] [log|sqrt|rank]' &
@@ -74,7 +73,7 @@
 
 !   do not make them much bigger then needed...
 
-    call getarg(1,line)
+    call get_command_argument(1,line)
     call getfileunits(line,nx,ny,nz,nt,nperyear,nvarmax,nvars,var,units,newunits, &
         lvar,svar,xwrap,lwrite)
     if ( nperyear <= 0 ) then
@@ -115,12 +114,12 @@
     yrstart = yred
     yrstop  = yrbg
     call getenv('DIR',dir)
-    ldir = llen(dir)
+    ldir = len_trim(dir)
     if ( ldir <= 1 ) then
         call getenv('HOME',dir)
-        ldir = llen(dir)
-        dir = dir(1:llen(dir))//'/climexp/'
-        ldir = llen(dir)
+        ldir = len_trim(dir)
+        dir = dir(1:len_trim(dir))//'/climexp/'
+        ldir = len_trim(dir)
     elseif ( dir(ldir:ldir) /= '/' ) then
         ldir = ldir + 1
         dir(ldir:ldir) = '/'
@@ -133,7 +132,7 @@
 !   read data from station file downloaded from
 !   http://www.ncdc.noaa.gov/ghcn/ghcnV1.CLIMVIS.html
 
-    call getarg(1,line)
+    call get_command_argument(1,line)
     if ( lwrite ) print *,'reading data file ',trim(line)
     call readensseries(line,data,nperyear,yrbg,yred,nensmx &
         ,n,imens1(0),imens(0),var,units,lstandardunits,lwrite)
@@ -145,7 +144,7 @@
 
 !       process options
 
-    n = iargc()
+    n = command_argument_count()
     call getopts(2,n,nperyear,yrbg,yred, .true. ,imens1(0),imens(0))
     if ( lstandardunits ) then
         ! not right first time...
@@ -359,7 +358,7 @@
 
 !   am I being called as addseries?
 
-    call getarg(0,line)
+    call get_command_argument(0,line)
     if ( index(line,'addseries ') /= 0 ) then
         if ( lwrite ) print *,'adding series'
         if ( nens2 > 0 ) then
@@ -382,7 +381,7 @@
                 if ( j > 0 ) then
                     i = i+j-1
                 else
-                    i = i + llen(strindx(k))
+                    i = i + len_trim(strindx(k))
                 endif
                 plotfile(i:) = '+'
                 i = i+1
@@ -394,7 +393,7 @@
     
 !       construct file name
     
-        call getarg(1,plotfile)
+        call get_command_argument(1,plotfile)
         do i=len(plotfile),1,-1
             if ( plotfile(i:i) == '/' ) goto 510
         enddo
@@ -413,13 +412,13 @@
             write(plotfile(i:),'(i3,a)') ii,'.dat'
         else
             write(0,*) 'addseries: error: cannot open output file ' &
-                ,plotfile(1:llen(plotfile))
+                ,plotfile(1:len_trim(plotfile))
             write(*,*) 'addseries: error: cannot open output file ' &
-                ,plotfile(1:llen(plotfile))
+                ,plotfile(1:len_trim(plotfile))
             call exit(-1)
         endif
         open(99,file=plotfile,status='new',err=520)
-        print '(a)',plotfile(1:llen(plotfile))
+        print '(a)',plotfile(1:len_trim(plotfile))
     
 !       get the coefficients from the environment
 !       I assume they are stored as FORM_a1,FORM_a2,...

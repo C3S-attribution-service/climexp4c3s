@@ -77,13 +77,11 @@ subroutine checkval(retval,command)
     implicit none
     integer :: retval
     character command*(*)
-    integer :: llen
-    external llen
     if ( retval /= 0 ) then
         write(0,*) 'error ',retval,' in '
-        write(0,*) command(1:llen(command))
+        write(0,*) trim(command)
         write(*,*) 'error ',retval,' in '
-        write(*,*) command(1:llen(command))
+        write(*,*) trim(command)
         call exit(-1)
     endif
 end subroutine checkval

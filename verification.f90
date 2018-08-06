@@ -23,7 +23,6 @@
     real,allocatable :: obs(:,:),fcst(:,:,:)
     real :: s1,s2
     character line*255,varobs*40,unitobs*20,varfcst*4,unitfcst*20
-    integer :: iargc
 
 !  #] declarations:
 !  #[ check arguments:
@@ -32,7 +31,7 @@
 
     lwrite = .false. 
     lstandardunits = .true. 
-    if ( iargc() < 4 ) then
+    if ( command_argument_count() < 4 ) then
         print *,'usage: verification forecastfile '// &
         'file obsfile dump outtable '// &
         '[month m[:n] [sum|ave|max|min|sel m] '// &
@@ -43,7 +42,7 @@
 !  #] check arguments:
 !  #[ read forecast:
 
-    call getarg(1,line)
+    call get_command_argument(1,line)
     allocate(obs(npermax,yrbeg:yrend),fcst(npermax,yrbeg:yrend,0:nensmax))
     call readensseries(line,fcst,npermax,yrbeg,yrend,nensmax &
         ,nperyear2,mens1,mens,varfcst,unitfcst,lstandardunits,lwrite)
@@ -52,7 +51,7 @@
 !  #] read forecast:
 !  #[ options:
 
-    call getopts(2,iargc(),nperyear2,yrbeg,yrend, .true. ,mens1,mens)
+    call getopts(2,command_argument_count(),nperyear2,yrbeg,yrend, .true. ,mens1,mens)
     if ( .not. dump ) then
         write(0,*) 'verification: error: cannot find ''dump'' in argument list'
         write(*,*) 'verification: error: cannot find ''dump'' in argument list'

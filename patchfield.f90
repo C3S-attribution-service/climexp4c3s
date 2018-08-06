@@ -26,7 +26,6 @@ program patchfield
         units(nvarmax)*40,units1(nvarmax)*40,cell_methods(nvarmax)*40,metadata(2,100)*2000, &
         metadata1(2,100)*2000,history1*20000
     character :: method*4
-    integer :: iargc
     integer,external :: leap
     data dpm /31,29,31,20,31,30,31,31,30,31,30,31/
 !
@@ -34,7 +33,7 @@ program patchfield
 !
     lwrite = .false.
     lreversefit = .false.
-    if ( iargc().lt.3 ) then
+    if ( command_argument_count().lt.3 ) then
         write(0,*) 'usage: patchfield mainfield auxfield [regr|bias|none] outfield'
         write(0,*) 'patches holes in mainfield using data from '// &
  &           'auxfield using a linear regression, bias correction or straight copy '// &
@@ -44,18 +43,18 @@ program patchfield
 !
 !   read metadata
 !
-    call getarg(2,auxfile)
+    call get_command_argument(2,auxfile)
     call getmetadata(auxfile,mens11,mens01,ncid1,datfile1,nxmax,nx1 &
  &       ,xx1,nymax,ny1,yy1,nzmax,nz1,zz1,lz,nt1,nperyear1,firstyr1,firstmo1 &
  &       ,ltime,undef1,endian1,title1,history,nvarmax,nvars,vars,ivars1 &
  &       ,lvars,svars,units1,cell_methods,metadata1,lwrite)
-    call getarg(1,mainfile)
+    call get_command_argument(1,mainfile)
     call getmetadata(mainfile,mens1,mens,ncid,datfile,nxmax,nx &
  &       ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo &
  &       ,ltime,undef,endian,title,history1,nvarmax,nvars,vars,ivars &
  &       ,lvars,svars,units,cell_methods,metadata,lwrite)
-    if ( iargc() >= 4 ) then
-        call getarg(3,method)
+    if ( command_argument_count() >= 4 ) then
+        call get_command_argument(3,method)
         ! "noscale" was recognised by a version that I mistakenly skipped
         if ( method == 'nosc' ) method = 'bias'
     else
@@ -271,7 +270,7 @@ program patchfield
 !
 !   output
 !
-    call getarg(iargc(),outfile)
+    call get_command_argument(command_argument_count(),outfile)
     i = index(outfile,'.ctl')
     if ( i.ne.0 ) then
         write(0,*) 'error: grads output not supported'

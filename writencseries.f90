@@ -24,8 +24,7 @@ subroutine writencseries(file,data,npermax,yrbeg,yrend,nperyear, &
     character string*10000,months(0:12,2)*3,clwrite*10
 
 !   externals
-    integer iargc,julday,leap
-    external julday,leap
+    integer,external :: julday,leap
 
 !   date
     data months &

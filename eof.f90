@@ -33,11 +33,11 @@ program eof
         history*50000,ltime*120,lz(3)*20,svars(neofmax)*80, &
         metadata(2,100)*2000,FORM_field*250
     logical :: lexist,xrev,yrev,xwrap
-    integer :: iargc,getpid,putenv,system
+    integer :: getpid,putenv,system
     real*4 :: etime
 
     lwrite = .false. 
-    if ( iargc() < 2 ) then
+    if ( command_argument_count() < 2 ) then
         print *,'usage: eof field.[ctl|nc] [n] '// &
             '[lsmask maskfile all|lnd|sea] '// &
             '[normalize maxspace|varspace|vartime] '// &
@@ -48,7 +48,7 @@ program eof
             '[diff [nyr]] [detrend] outfield.[ctl|nc]'
         call exit(-1)
     end if
-    call getarg(1,infile)
+    call get_command_argument(1,infile)
     call getmetadata(infile,mens1,mens,ncid,datfile,nxmax,nx &
         ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo &
         ,ltime,undef,endian,title,history,nvarmax,nvars,vars,jvars &
@@ -63,7 +63,7 @@ program eof
     else
         ensemble = .false. 
     end if
-    call getarg(2,line)
+    call get_command_argument(2,line)
     if (  ichar(line(1:1)) >= ichar('0') .and. &
     ichar(line(1:1)) <= ichar('9') ) then
         iarg = 3
@@ -74,16 +74,16 @@ program eof
     if ( lsmasktype /= 'all' ) then
         call checkgridequal(nx,ny,xx,yy,nxls,nyls,xxls,yyls)
     end if
-    call getopts(iarg,iargc()-1,nperyear,yrbeg,yrend,.true.,mens1,mens)
+    call getopts(iarg,command_argument_count()-1,nperyear,yrbeg,yrend,.true.,mens1,mens)
     !!!print *,'m1,m2 = ',m1,m2
-    call getarg(1,infile)
+    call get_command_argument(1,infile)
     lyr = firstyr + (nt+firstmo-1)/nperyear
     lyr = min(yr2,lyr)
     fyr = max(yr1,firstyr)
     if ( lwrite ) print *,'allocating field(',nx,ny,nperyear,fyr,lyr,nens2,')'
     allocate(field(nx,ny,nperyear,fyr:lyr,0:nens2))
 
-    call getarg(2,line)
+    call get_command_argument(2,line)
     if (  ichar(line(1:1)) >= ichar('0') .and. &
     ichar(line(1:1)) <= ichar('9') ) then
         read(line,*,err=901) neigen
@@ -136,7 +136,7 @@ program eof
 
 !   open output file
 
-    call getarg(iargc(),outfile)
+    call get_command_argument(command_argument_count(),outfile)
     inquire(file=outfile,exist=lexist)
     if ( lexist ) then
         print *,'output file ',outfile(1:index(outfile,' ')-1), &

@@ -19,17 +19,16 @@ program subfieldseries
         svars(1)*80,history*50000,metadata(2,100)*1000,lz(3)*100, &
         svar2(1)*80,history2*50000,metadata2(2,100)*1000, &
         ltime*100,cell_methods(1)*80,seriesfile*1023,fieldfile*1023
-    integer :: iargc
 
 !   check arguments
 
     lwrite = .false. 
-    n = iargc()
+    n = command_argument_count()
     if ( n /= 3 ) then
         print *,'usage: subfieldseries field.[ctl|nc] series.[nc|dat] outfield.cftl'
         call exit(-1)
     end if
-    call getarg(1,fieldfile)
+    call get_command_argument(1,fieldfile)
     call getmetadata(fieldfile,mens1,mens,ncid,datfile,nxmax,nx &
         ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nper1,firstyr,firstmo &
         ,ltime,undef,endian,title,history,1,nvars,vars,ivars1 &
@@ -39,7 +38,7 @@ program subfieldseries
     if ( lwrite ) print *,'allocating field ',nx,ny,nper1,firstyr,lastyr
     allocate(field(nx,ny,nper1,firstyr:lastyr))
 
-    call getarg(2,seriesfile)
+    call get_command_argument(2,seriesfile)
     call readseriesmeta(seriesfile,data,npermax,yrbeg,yrend,nper2,var2,units2,lvar2,svar2, &
         history2,metadata2,.false.,lwrite)
 
@@ -64,7 +63,7 @@ program subfieldseries
 
 !   init
 
-    call getarg(3,outfile)
+    call get_command_argument(3,outfile)
     inquire(file=outfile,exist=lexist)
     if ( lexist ) then
         open(1,file=outfile)

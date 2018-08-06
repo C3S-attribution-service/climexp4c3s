@@ -53,7 +53,6 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     real,allocatable :: xx(:,:),yy(:),ys(:),zz(:),sig(:)
     logical lllwrite,lnone,last
     character lgt*4,string*1000,arg*250,method*3
-    integer iargc
 !
     integer nmax,ncur
     parameter(nmax=1000000)

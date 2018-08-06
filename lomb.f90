@@ -12,23 +12,22 @@ program lomb
         xmax,ymax,timescale
     real,allocatable :: data(:,:,:)
     character :: line*255,var*40,units*20
-    integer :: iargc
 
 !   init
 
     lwrite = .false. 
-    if ( iargc() == 0 ) then
+    if ( command_argument_count() == 0 ) then
         print *,'usage: lomb datafile [month n] [sum m] [detrend]'// &
             ' [anom] [ensanom] [diff [n]] [begin yyyy] [end yyyy] [xave n]'
         call exit(-1)
     endif
 
     n = 0
-    call getarg(1,line)
+    call get_command_argument(1,line)
     allocate(data(npermax,yrbeg:yrend,0:nensmax))
     call readensseries(line,data,npermax,yrbeg,yrend,nensmax &
         ,nperyear,mens1,mens,var,units, .false. ,lwrite)
-    call getopts(2,iargc(),nperyear,yrbeg,yrend, .true. ,mens1,mens)
+    call getopts(2,command_argument_count(),nperyear,yrbeg,yrend, .true. ,mens1,mens)
     yrstart = yr2
     yrstop  = yr1
     if ( mens > 0 ) then

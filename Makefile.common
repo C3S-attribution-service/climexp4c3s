@@ -371,7 +371,6 @@ PROGRAMS	  = scientific2decimal \
 		polygon2box \
 		extremeseries \
 		transform \
-		gen_time \
 		ecmwf_times \
 		printbigtable \
 		synthesis \
@@ -776,7 +775,13 @@ polygon2mask:	polygon2mask.o $(LIBRARY)
 polygon2box:	polygon2box.o
 		$(LD) $(FFLAGS) -o $@ $@.o
 
+coordinates2kml:	coordinates2kml.o
+		$(LD) $(FFLAGS) -o $@ $@.o
+
 ecmwf_times:	ecmwf_times.o
+		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
+
+gen_time:	gen_time.o
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
 
 compute_wetbulb:	compute_wetbulb.o $(LIBRARY)
@@ -860,11 +865,11 @@ rkeepalive.so:	rkeepalive.f
 F2f90:	F2f90.o
 		$(LD) $(FFLAGS) -o $@ $@.o
 
-WAVEFILES =		wave.F param.inc getopts.inc recfac.h netcdf.inc \
+WAVEFILES =		wave.f90 param.inc getopts.inc recfac.h netcdf.inc \
 		makeabsent.f readdat.F readncseries.f90 getopts.f90 \
 		sumit.f90 operations.f90 diffit.f anomal.f90 normon.f \
 		wavelet.f cfftpack.f chisqr.f \
-		parsectl.f writectl.F parsenc.f90 readncfile.f90 \
+		parsectl.f writectl.f90 parsenc.f90 readncfile.f90 \
 		llen.f rsunit.f getnumwords.f get_endian.f tolower.f
 
 wavecode.zip:	$(WAVEFILES)

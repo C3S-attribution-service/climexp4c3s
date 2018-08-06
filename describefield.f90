@@ -20,32 +20,32 @@ program describefield
         ,cell_methods(nvmax)*128,ew(2),ns(2),string*20,format*100 &
         ,metadata(2,100)*2000
     logical :: xwrap,xrev,yrev,lwrite,lexist,ensemble,tdefined(ntmax)
-    integer :: iargc,llen,leap
+    integer :: leap
     data months /'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'/
     data seasons/'DJF','MAM','JJA','SON'/
     lwrite = .false. 
 
 !   process command line
 
-    nargs = iargc()
+    nargs = command_argument_count()
     if ( nargs < 1 ) then
         write(0,*) 'usage: describefield infile.[ctl|nc] [file2 ...]'
         stop
     endif
-    call getarg(nargs,string)
+    call get_command_argument(nargs,string)
     if ( string == 'debug' .or. string == 'lwrite' ) then
         lwrite = .true. 
         nargs = nargs - 1
     end if
     ensemble = .false. 
     iens = 0
-    call getarg(1,infile)
+    call get_command_argument(1,infile)
     if ( index(infile,'%') /= 0 .or. index(infile,'++') /= 0 ) then
         ensemble = .true. 
         nens1 = 0
         nens2 = 0
         do iarg=1,nargs
-            call getarg(iarg,infile)
+            call get_command_argument(iarg,infile)
             do iens=0,nensmax
                 outfile = infile
                 call filloutens(outfile,iens)
@@ -70,7 +70,7 @@ program describefield
     firstyr = 9999
     do iarg = 1,nargs
         call keepalive1('Processing chunk',iarg,nargs)
-        call getarg(iarg,infile)
+        call get_command_argument(iarg,infile)
         if ( ensemble ) call filloutens(infile,nens1)
         if ( lwrite ) print *,'describefield: nf_opening file ',trim(infile)
         inquire(file=trim(infile),exist=lexist)
@@ -116,7 +116,7 @@ program describefield
 
     end do ! loop over files
     if ( nt == 0 ) call exit(-1)
-    write(0,'(2a)') title(1:llen(title)),'<br>'
+    write(0,'(2a)') trim(title),'<br>'
     call getxyprop(xx,nx,yy,ny,xrev,yrev,xwrap)
 
 !   X

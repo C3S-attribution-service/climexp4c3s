@@ -26,18 +26,18 @@ program difffield
              yesno*3,metadata(2,100)*2000,metadata1(2,100)*2000,         &
              history1*50000
     logical lexist,lequal
-    integer iargc,get_endian
+    integer get_endian
     real erfcc
     lstandardunits = .true.
     lwrite = .false.
-    do i=1,iargc()
-        call getarg(i,string)
+    do i=1,command_argument_count()
+        call get_command_argument(i,string)
         if ( string == 'debug' .or. string == 'lwrite' ) then
             lwrite = .true.
         end if
     end do
 
-    if ( iargc() < 3 ) then
+    if ( command_argument_count() < 3 ) then
         print *,'usage: difffield field1 field2 [lsmask landseamask all|land|sea] '//     &
                  '[mon n] [ave|sum n] [begin yr1] [end yr2] [begin2 yr1a] [end2 yr2a] '// &
                  '[normsd] outfield.nc'
@@ -52,7 +52,7 @@ program difffield
 !   read data
 !
     do ifield=1,2
-        call getarg(ifield,file)
+        call get_command_argument(ifield,file)
         call getmetadata(file,mens1,mens,ncid,datfile,nxmax,nx           &
                  ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr      &
                  ,firstmo,ltime,undef,endian,title,history,1,nvars,vars  &
@@ -71,7 +71,7 @@ program difffield
                 call exit(-1)
             end if
         end if
-        call getopts(startopts,iargc()-1,nperyear,yrbeg,yrend,.false.,mens1,mens)
+        call getopts(startopts,command_argument_count()-1,nperyear,yrbeg,yrend,.false.,mens1,mens)
         if ( m1 == 0 ) then
             if ( m2 == 0 ) then
                 m1 = 1
@@ -272,7 +272,7 @@ program difffield
 !
 !   output field
 !
-    call getarg(iargc(),outfile)
+    call get_command_argument(command_argument_count(),outfile)
     datfile = outfile
     i = index(outfile,'.ctl')
     if ( i /= 0 ) then

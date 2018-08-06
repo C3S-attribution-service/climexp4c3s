@@ -12,9 +12,8 @@ program printbigtable
     logical lstandardunits,lset,lwrite,printit
     character file*255,var*20,units*20,string*80,command*500,ids(0:mensmax)*30,format*2
     integer,external :: leap
-    integer iargc
 
-    if ( iargc().lt.1 ) then
+    if ( command_argument_count().lt.1 ) then
         print *,'usage: printtable ensfile|(file listfile prog) [dummy]'
         call exit(-1)
     endif
@@ -23,9 +22,9 @@ program printbigtable
 
     lstandardunits = .false.
     lwrite = .false.
-    call getarg(1,file)
+    call get_command_argument(1,file)
     if ( file == 'file' ) then
-        call getarg(2,file)
+        call get_command_argument(2,file)
         lset = .true.
         iarg = 4
     else
@@ -34,12 +33,12 @@ program printbigtable
     end if
     nens1 = 0
     nens2 = 999
-    do while ( iarg.le.iargc() )
-        call getarg(iarg,string)
+    do while ( iarg.le.command_argument_count() )
+        call get_command_argument(iarg,string)
         if ( string.eq.'ens' ) then
-            call getarg(iarg+1,string)
+            call get_command_argument(iarg+1,string)
             read(string,*) nens1
-            call getarg(iarg+2,string)
+            call get_command_argument(iarg+2,string)
             read(string,*) nens2
             iarg = iarg + 3
         else if ( string.eq.'debug' .or. string.eq.'lwrite' ) then
@@ -61,8 +60,8 @@ program printbigtable
     nens2 = min(nens2,mens)
 
     command = '#'
-    do i=0,iargc()
-        call getarg(i,string)
+    do i=0,command_argument_count()
+        call get_command_argument(i,string)
         command = trim(command)//' '//trim(string(1+index(string,'/',.true.):))
     end do
     print '(a)',trim(command)

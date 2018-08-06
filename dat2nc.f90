@@ -12,18 +12,17 @@ program dat2nc
     character           :: type*1,comment*10000,line*80,units*20,metadata(2,100)*2000
     character           :: history*20000,title*200
     logical             :: lwrite,lstandardunits,lexist
-    integer             :: iargc
-    integer,external    :: llen,leap
+    integer,external    :: leap
     lwrite = .FALSE.
 !
 !   read data
 !
-    if ( iargc().ne.4 ) then
-        print *,'usage: dat2nc infile type name outfile ',iargc()
+    if ( command_argument_count().ne.4 ) then
+        print *,'usage: dat2nc infile type name outfile ',command_argument_count()
         stop
     endif
-    call getarg(1,file)
-    call getarg(4,ncfile)
+    call get_command_argument(1,file)
+    call get_command_argument(4,ncfile)
     allocate(data(npermax,yrbeg:yrend,0:nensmax))
     if ( lwrite ) print *,'reading from ',trim(file)
     lstandardunits = .false.
@@ -68,9 +67,9 @@ program dat2nc
     end do
     close(1)
     comment = comment(3:) ! get rid of the leading ", "
-    comment(1+llen(comment):) = ', via the KNMI Climate Explorer (http://climexp.knmi.nl)'
+    comment(1+len_trim(comment):) = ', via the KNMI Climate Explorer (http://climexp.knmi.nl)'
     if ( var.eq.' ' ) then
-        call getarg(2,file)
+        call get_command_argument(2,file)
         if ( file.eq.'i') then
             var = 'index'
         elseif ( file.eq.'t' ) then
@@ -85,7 +84,7 @@ program dat2nc
             var = 'unknown'
         endif
     endif
-    call getarg(3,description)
+    call get_command_argument(3,description)
     do i=1,len(description)
         if ( description(i:i).eq.'_') description(i:i) = ' '
     enddo

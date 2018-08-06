@@ -3,25 +3,23 @@ program compute_wetbulb
 !   compute wet bulb temperatures at a station
 !
     implicit none
-    integer npermax,yrbeg,yrend
-    parameter(npermax=366*24,yrbeg=1850,yrend=2100)
-    integer hh,dd,mm,yyyy,i,j,nperyear,nperyear2
+    integer,parameter :: npermax=366*24,yrbeg=1850,yrend=2100
+    integer :: hh,dd,mm,yyyy,i,j,nperyear,nperyear2
     real,allocatable :: temp(:,:),dewtemp(:,:),pres(:,:),wetbulb(:,:)
-    logical lwrite,lstandardunits,lsimplified
-    character tempfile*255,dewtempfile*255,presfile*255,var*40,units*80,longname*80,line*255
-    integer iargc
+    logical :: lwrite,lstandardunits,lsimplified
+    character :: tempfile*255,dewtempfile*255,presfile*255,var*40,units*80,longname*80,line*255
     real,external :: wetbulbdew,wetbulbsim
 
     lwrite = .false.
-    if ( iargc() /= 3 ) then
+    if ( command_argument_count() /= 3 ) then
         write(0,*) 'usage: compute_wetbulb tempfile dewtempfile pressurefile|simplified'
         call exit(-1)
     end if
     allocate(temp(npermax,yrbeg:yrend),dewtemp(npermax,yrbeg:yrend))
     allocate(pres(npermax,yrbeg:yrend),wetbulb(npermax,yrbeg:yrend))
-    call getarg(1,tempfile)
-    call getarg(2,dewtempfile)
-    call getarg(3,presfile)
+    call get_command_argument(1,tempfile)
+    call get_command_argument(2,dewtempfile)
+    call get_command_argument(3,presfile)
     open(1,file=trim(tempfile),status='old')
     do
         read(1,'(a)') line

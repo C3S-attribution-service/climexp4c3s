@@ -7,27 +7,26 @@ program fieldclim
     include 'netcdf.inc'
     include 'getopts.inc'
     integer,parameter :: nvarmax=1
-    integer nx,ny,nz,nt,nperyear,firstyr,firstmo,lastyr,nvars, &
+    integer :: nx,ny,nz,nt,nperyear,firstyr,firstmo,lastyr,nvars, &
           ivars(2,nvmax),endian,status,ncid,jvars(6,nvmax)
-    integer yr,mo,i,j,n,yrbegin,ntmax,ntvarid,mens1,mens
+    integer :: yr,mo,i,j,n,yrbegin,ntmax,ntvarid,mens1,mens
     integer,allocatable :: nn(:,:,:),itimeaxis(:)
-    real xx(nxmax),yy(nymax),zz(nzmax),undef,lsmask(nxmax,nymax)
+    real :: xx(nxmax),yy(nymax),zz(nzmax),undef,lsmask(nxmax,nymax)
     real,allocatable :: field(:,:,:,:),mean(:,:,:),mean2(:,:,:),fxy(:,:), &
         fy(:,:,:)
-    character file*255,datfile*255,title*255,vars(nvmax)*40, &
+    character :: file*255,datfile*255,title*255,vars(nvmax)*40, &
         lvars(nvmax)*80,units(nvmax)*20,yesno*1,cell_methods(nvarmax)*100, &
         history*50000,ltime*120,lz(3)*20,svars(nvarmax)*80, &
         metadata(2,100)*2000
-    logical exist
-    integer iargc
+    logical :: exist
 !
     lwrite = .false.
-    if ( iargc() < 2 ) then
+    if ( command_argument_count() < 2 ) then
         print *,'usage: fieldclim file.[nc|ctl] [begin yr1] [end yr2] [ave n] clim.ctl'
         print *,'computes climatology of field'
         stop
     end if
-    call getarg(iargc(),file)
+    call get_command_argument(command_argument_count(),file)
     inquire(file=file,exist=exist)
     if ( exist ) then
         yesno = 'y'
@@ -43,7 +42,7 @@ program fieldclim
     end if
     nens1 = 0
     nens2 = 0
-    call getarg(1,file)
+    call get_command_argument(1,file)
     call getmetadata(file,mens1,mens,ncid,datfile,nxmax,nx &
         ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo &
         ,ltime,undef,endian,title,history,nvarmax,nvars,vars,jvars &
@@ -58,7 +57,7 @@ program fieldclim
 !
 !   other options
 !
-    n = iargc()
+    n = command_argument_count()
     call getopts(2,n,nperyear,firstyr,lastyr,.false.,0,0)
     firstyr = max(yr1,firstyr)
     yr1 = firstyr
@@ -162,7 +161,7 @@ program fieldclim
     end if
     ivars(1,1) = 0
     ivars(2,1) = 99
-    call getarg(iargc(),file)
+    call get_command_argument(command_argument_count(),file)
     i = index(file,'.ctl')
     if ( i == 0 ) then
         ! netcdf output

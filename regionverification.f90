@@ -37,12 +37,11 @@ program regionverification
         lvars1(1)*200,units1(1)*40,vars2(1)*20,lvars2(1)*200, &
         units2(1)*40,file*256,tmpunits*20,oldmodel*20,newmodel*20
     character line*80
-    integer :: iargc,llen
 
 !   check arguments
 
     lwrite = .FALSE. 
-    n = iargc()
+    n = command_argument_count()
     if ( n < 4 ) then
         print *,'usage: regionverification '// &
         'field1.[ctl|nc] field2.[ctl|nc] '// &
@@ -51,7 +50,7 @@ program regionverification
         stop
     endif
     call killfile(infile,datfile1,datfile2,0)
-    call getarg(1,infile)
+    call get_command_argument(1,infile)
     mens1 = 0
     if ( index(infile,'%') > 0 .OR. index(infile,'++') > 0 ) then
         ensemble = .TRUE. 
@@ -61,12 +60,12 @@ program regionverification
         inquire(file=infile,exist=lexist)
         if ( .NOT. lexist ) then
             if ( lwrite ) print *,'no, start at 1'
-            call getarg(1,infile)
+            call get_command_argument(1,infile)
             mens1 = 1
             call filloutens(infile,1)
         endif
         do mens=mens1+1,nensmax
-            call getarg(1,file)
+            call get_command_argument(1,file)
             if ( lwrite ) print *,'check whether ',trim(infile) &
             ,' exists'
             call filloutens(file,mens)
@@ -81,8 +80,7 @@ program regionverification
         mens1 = 0
         mens = 0
     endif
-    if ( lwrite ) print *,'regionverification: nf_opening file ' &
-    ,infile(1:llen(infile))
+    if ( lwrite ) print *,'regionverification: nf_opening file ',trim(infile)
     status = nf_open(infile,nf_nowrite,ncid1)
     if ( status /= nf_noerr ) then
         call parsectl(infile,datfile1,nxmax,nx1,xx1,nymax,ny1,yy1 &
@@ -96,7 +94,7 @@ program regionverification
         ,nvars,vars1,jvars1,lvars1,units1)
     endif
 
-    call getarg(2,infile)
+    call get_command_argument(2,infile)
     if ( infile == 'perfectmodel' ) then
         nmodel1 = mens1
         nmodel2 = mens
@@ -107,8 +105,7 @@ program regionverification
     else
         nmodel1 = -1
         nmodel2 = -1
-        if ( lwrite ) print *,'regionverification: nf_opening file ' &
-        ,infile(1:llen(infile))
+        if ( lwrite ) print *,'regionverification: nf_opening file ',trim(infile)
         status = nf_open(infile,nf_nowrite,ncid2)
         if ( status /= nf_noerr ) then
             call parsectl(infile,datfile2,nxmax,nx2,xx2,nymax,ny2 &
@@ -139,7 +136,7 @@ program regionverification
         lastyr = lastyr1
     endif
     nt = nperyear*(lastyr-firstyr+1)
-    call getopts(3,iargc(),nperyear,firstyr,lastyr, .TRUE. , &
+    call getopts(3,command_argument_count(),nperyear,firstyr,lastyr, .TRUE. , &
     mens1,mens)
     if ( lag1 /= 0 .OR. lag2 /= 0 ) print *,'ignoring lags'
     if ( .NOT. dump .AND. .NOT. plot ) write(0,*) &
@@ -198,7 +195,7 @@ program regionverification
     if ( ncid1 == -1 ) then
         if ( ensemble ) then
             do iens=nens1,nens2
-                call getarg(1,infile)
+                call get_command_argument(1,infile)
                 call filloutens(infile,iens)
                 call parsectl(infile,datfile1,nxmax,nx1,xx1,nymax &
                 ,ny1,yy1,nzmax,nz1,zz1,nt1,nper1,f1,fm1 &
@@ -227,7 +224,7 @@ program regionverification
     else
         if ( ensemble ) then
             do iens=nens1,nens2
-                call getarg(1,infile)
+                call get_command_argument(1,infile)
                 call filloutens(infile,iens)
                 status = nf_open(infile,nf_nowrite,ncid1)
                 call parsenc(infile,ncid1,nxmax,nx1,xx1,nymax,ny1 &
@@ -548,7 +545,7 @@ program regionverification
         ! observations
     
         i = index(plotfile,'.nc')
-        if ( i == 0 ) i = llen(plotfile) + 1
+        if ( i == 0 ) i = len_trim(plotfile) + 1
         plotfile(i:) = '_obs.nc'
         call writenc(plotfile,ncid2,ntvarid,itimeaxis,nt,nx,xx,ny &
         ,yy,nz,zz,nt,nperyear,yr1,mobegin,3e33,title2,nvars &

@@ -11,16 +11,15 @@ program netcdf2dat
     integer :: i,j,nperyear,status,ncid,mens1,mens,iens
     real,allocatable :: data(:,:,:)
     logical :: lwrite,lstandardunits
-    integer :: iargc
 
     allocate(data(npermx,yrbeg:yrend,0:nensmax))
     lwrite = .false. 
     lstandardunits = .false. 
-    if ( iargc() < 1 ) then
+    if ( command_argument_count() < 1 ) then
         print *,'usage: netcdf2dat infile'
         call exit(-1)
     endif
-    call getarg(1,file)
+    call get_command_argument(1,file)
     if ( lwrite ) print *,'calling readensseriesmeta'
     call readensseriesmeta(file,data,npermx,yrbeg,yrend,nensmax, &
         nperyear,mens1,mens,var,units,lvar,svar,history,metadata,lstandardunits,lwrite)

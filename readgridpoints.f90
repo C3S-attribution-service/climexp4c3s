@@ -18,7 +18,7 @@ subroutine readgridpoints(data,ids,npermax,yrbeg,yrend,nensmax, &
         vars(1)*40,svars(1)*80,lvars(1)*80,units(1)*80,cell_methods(1)*128, &
         metadata(2,100)*2000
 
-    call getarg(2,file)
+    call get_command_argument(2,file)
     call getmetadata(file,mens1,mens,ncid,datfile,nxmax,nx      &
         ,xx,nymax,ny,yy,1,nz,zz,lz,nt,nperyear,firstyr,firstmo  &
         ,ltime,undef,endian,title,history,1,nvars,vars,ivars    &

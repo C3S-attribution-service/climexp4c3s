@@ -22,7 +22,7 @@ program sstoi2dat
 !
 !       read data
 !
-    call getarg(1,infile)
+    call get_command_argument(1,infile)
     open(1,file=trim(infile),status='old')
 !   skip header
     do i=1,1

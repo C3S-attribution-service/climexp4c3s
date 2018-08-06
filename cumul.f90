@@ -10,7 +10,7 @@ program cumul
     character file*1024,var*100,units*50
     
     lwrite = .false.
-    call getarg(1,file)
+    call get_command_argument(1,file)
     call readseries(file,data,npermax,yrbeg,yrend,nperyear, &
         var,units,.false.,lwrite)
     sum = 0

@@ -14,20 +14,19 @@ program normdiff
     character :: lvar1*120,lvar2*120,svar1*120,svar2*120,history1*50000,history2*50000
     character :: metadata1(2,100)*2000,metadata2(2,100)*2000,title*250
     logical :: lwrite
-    integer :: iargc,llen
 
     lwrite = .false.
-    if ( iargc() < 3 ) then
+    if ( command_argument_count() < 3 ) then
         print *,'usage: normdiff series1 series2 '// &
  &           'none|monthly|yearly|full none|monthly|yearly|full'// &
  &           ' [add|ave]'
         stop
     endif
     
-    call getarg(1,file1)
+    call get_command_argument(1,file1)
     call readseriesmeta(file1,data1,npermax,yrbeg,yrend,nperyear,var1 &
  &       ,units1,lvar1,svar1,history1,metadata1,.false.,lwrite)
-    call getarg(2,file2)
+    call get_command_argument(2,file2)
     if ( file2 == 'null' .or. file2 == 'nothing' ) then
         data2 = 0
         i = nperyear
@@ -50,7 +49,7 @@ program normdiff
     endif
     call getmy(3,my1,nperyear)
     call getmy(4,my2,nperyear)
-    call getarg(5,string)
+    call get_command_argument(5,string)
     if ( string == 'add' ) then
         iadd = 1
     else if ( string == 'ave' ) then
@@ -136,7 +135,7 @@ subroutine getmy(i,my,nperyear)
     implicit none
     integer i,my,nperyear
     character*1 chr
-    call getarg(i,chr)
+    call get_command_argument(i,chr)
     if ( chr == 'n' ) then
         my = 0
     elseif ( chr == 'm' ) then

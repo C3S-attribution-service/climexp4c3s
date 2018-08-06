@@ -7,21 +7,20 @@ program makeundef
     integer :: nx,ny,nt,i,j,k
     real :: absent
     character(512) :: string
-    integer :: iargc
 
-    if ( iargc() /= 5 ) then
+    if ( command_argument_count() /= 5 ) then
         print *,'usage: makeundef nx ny nt undef outfile'
         stop
     endif
-    call getarg(1,string)
+    call get_command_argument(1,string)
     read(string,*) nx
-    call getarg(2,string)
+    call get_command_argument(2,string)
     read(string,*) ny
-    call getarg(3,string)
+    call get_command_argument(3,string)
     read(string,*) nt
-    call getarg(4,string)
+    call get_command_argument(4,string)
     read(string,*) absent
-    call getarg(5,string)
+    call get_command_argument(5,string)
     open(1,file=string,access='direct',form='unformatted',recl=recfa4*nx*ny)
     do k=1,nt
         write(1,rec=k) ((absent,i=1,nx),j=1,ny)

@@ -28,16 +28,15 @@ program synthesis
     real :: data(3,nmax),s1,s2,w1,ss2(2:3),refs(yrbeg:yrend),x,xlo,xhi,factor,w,chi2,f,ci(nmax),cc
     logical :: lnoave,lweighted,llog,lperc,lflip,printit
     character :: file*1024,line*128,home*1024,reffile*1024,names(nmax)*40
-    integer :: iargc
     
-    if ( iargc() < 3 ) then
+    if ( command_argument_count() < 3 ) then
         write(0,*) 'usage: synthesis file reffile weighted|unweighted|noave [log] [perc] [flipsign] [factor X] > outfile'
         call exit(-1)
     end if
 !
 !   process arguments
 !
-    call getarg(3,line)
+    call get_command_argument(3,line)
     call tolower(line)
     lweighted = .false.
     lnoave = .false.
@@ -56,8 +55,8 @@ program synthesis
     lflip = .false.
     factor = 1
     iskip = 0
-    do i=4,iargc()
-        call getarg(i,line)
+    do i=4,command_argument_count()
+        call get_command_argument(i,line)
         if ( iskip > 0 ) then
             iskip = iskip - 1
         else if ( line(1:3) == 'log' ) then
@@ -67,7 +66,7 @@ program synthesis
         else if ( line(1:3) == 'fli' ) then
             lflip = .true.
         else if ( line(1:3) == 'fac' ) then
-            call getarg(i+1,line)
+            call get_command_argument(i+1,line)
             if ( line(1:4) == 'auto' ) then
                 factor = -1
             else
@@ -82,7 +81,7 @@ program synthesis
 !
 !   read reference data
 !
-    call getarg(2,reffile)
+    call get_command_argument(2,reffile)
     if ( reffile == 'GMST' ) reffile = 'NASAData/giss_al_gl_a_4yrlo.dat'
     if ( reffile == 'CO2' ) reffile = 'CDIACData/co2_annual.dat'
     if ( reffile == 'time' ) then
@@ -109,7 +108,7 @@ program synthesis
 !   read PR/intensity data
 !   assumed to be in the format "yr1 yr2 xmid xlo xhi ci name"
 !
-    call getarg(1,file)
+    call get_command_argument(1,file)
     open(1,file=trim(file),status='old')
     n = 0
     nblank = 0

@@ -16,11 +16,10 @@ program attribute
     character seriesfile*1024,covariatefile*1024,distribution*6,assume*5,string*80
     character var*40,units*80,var1*40,units1*80,seriesids(0:mensmax)*30
     logical lprint,lfirst
-    integer iargc
     real scalingpower
     common /c_scalingpower/ scalingpower
 
-    if ( iargc().lt.8 ) then
+    if ( command_argument_count().lt.8 ) then
         write(0,*) 'usage: attribute series covariate_series|none ', &
         & 'GEV|Gumbel|GPD|Gauss assume shift|scale', &
         & 'mon n [sel m] [ave N] [log|sqrt] ', &
@@ -58,7 +57,7 @@ program attribute
         end if
     end if
     
-    call getarg(2+off,covariatefile)
+    call get_command_argument(2+off,covariatefile)
     allocate(covariate(npermax,yrbeg:yrend,0:mensmax))
     if ( covariatefile == 'none' ) then
         covariate = 0
@@ -82,7 +81,7 @@ program attribute
         end if
     end if
     
-    call getopts(6+off,iargc(),nperyear,yrbeg,yrend,.true.,mens1,mens)
+    call getopts(6+off,command_argument_count(),nperyear,yrbeg,yrend,.true.,mens1,mens)
     ! workaround, maybe debug more fully later
     mens1 = max(mens1,nens1)
     mens = min(mens,nens2)

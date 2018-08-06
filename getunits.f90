@@ -6,20 +6,20 @@ program getunits
     implicit none
     integer nvarmax
     parameter(nvarmax=100)
-    integer iargc
-    integer nx,ny,nz,nt,nperyear,nvars,i,j,nens,off,nargs,iarg,nt1
-    logical xwrap,lwrite,lexist
-    character file*255,var(nvarmax)*40,units(nvarmax)*60, &
- &       newunits(nvarmax)*60,lvar(nvarmax)*120,svar(nvarmax)*120,string*80,ensfile*255
-    if ( iargc().lt.1 ) then
+    integer :: nx,ny,nz,nt,nperyear,nvars,i,j,nens,off,nargs,iarg,nt1
+    logical :: xwrap,lwrite,lexist
+    character :: file*255,var(nvarmax)*40,units(nvarmax)*60, &
+        newunits(nvarmax)*60,lvar(nvarmax)*120,svar(nvarmax)*120,string*80,ensfile*255
+ 
+    if ( command_argument_count().lt.1 ) then
         print *,'usage: getunits file [file2 ..] [debug]'
         stop
     endif
-    call getarg(1,file)
+    call get_command_argument(1,file)
     lwrite = .false.
-    nargs = iargc()
+    nargs = command_argument_count()
     if ( nargs.gt.1 ) then
-        call getarg(nargs,string)
+        call get_command_argument(nargs,string)
         if ( string.eq.'debug' .or. string.eq.'lwrite' ) then
             lwrite = .true.
             print *,'getunits: turned on debug printing'
@@ -48,7 +48,7 @@ program getunits
     end if
     nt = 0
     do iarg=1,nargs
-        call getarg(iarg,file)
+        call get_command_argument(iarg,file)
         call getfileunits(file,nx,ny,nz,nt1,nperyear,nvarmax,nvars,var &
         &  ,units,newunits,lvar,svar,xwrap,lwrite)
         nt = nt + nt1

@@ -58,13 +58,12 @@ program get_index
         unitsmask*40
     character :: lsvars(1)*10,lslvars(1)*40,lsunits(1)*20,newunits*20
     character :: oper*1,masktype*4
-    integer :: iargc
     integer,external :: normx,get_endian,leap
 
     lwrite = .false.
-    call getarg(iargc(),file)
+    call get_command_argument(command_argument_count(),file)
     if ( file == 'debug' .or. file == 'lwrite' ) lwrite = .true.
-    if ( iargc() < 3 ) then
+    if ( command_argument_count() < 3 ) then
         print *,'usage: get_index file.[nc|ctl] ' &
         //'lon1 lon2 lat1 lat2|file listfile|mask file ' &
         //'[minfac r] [dipole tt|bb|ll|rr|tl|tr|bl|br] ' &
@@ -76,7 +75,7 @@ program get_index
     endif
     call killfile(file,datfile,title,1)
 
-    call getarg(1,file)
+    call get_command_argument(1,file)
     if ( lwrite ) print *,'get_index: nf_opening file ',trim(file)
     status = nf_open(trim(file),nf_nowrite,ncid)
     if ( lwrite ) print *,'           returns ',status
@@ -139,10 +138,10 @@ program get_index
 
 !   the area to be cut out
 
-    call getarg(2,string)
+    call get_command_argument(2,string)
     if ( string(1:4) == 'file' ) then
         npoints = 1000000
-        call getarg(3,string)
+        call get_command_argument(3,string)
         call rsunit(in)
         open(in,file=string,status='old')
         read(in,'(a)') datadir
@@ -150,7 +149,7 @@ program get_index
     else if ( string(1:4) == 'mask' ) then
         npoints = 1 ! for the time being only one mask can be requested at a time
         lmask = .true.
-        call getarg(3,string)
+        call get_command_argument(3,string)
         write(0,'(3a)') 'cutting out region defined by mask ',trim(string),'<br>'
         write(*,'(2a)') '# cutting out region defined by mask ',trim(string)
         ncidmask = 0
@@ -174,11 +173,11 @@ program get_index
     else
         npoints = 1
         read(string,*,err=901) lon1
-        call getarg(3,string)
+        call get_command_argument(3,string)
         read(string,*,err=902) lon2
-        call getarg(4,string)
+        call get_command_argument(4,string)
         read(string,*,err=903) lat1
-        call getarg(5,string)
+        call get_command_argument(5,string)
         read(string,*,err=904) lat2
         if ( lat2 < lat1 ) then
             w = lat2
@@ -194,13 +193,13 @@ program get_index
     dipole = 'no'
     oper = 'v'
     lsmasktype = 'all '
-    do i=mopts,iargc()
+    do i=mopts,command_argument_count()
         if ( iskip > 0 ) then
             iskip = iskip - 1
         else
-            call getarg(i,string)
+            call get_command_argument(i,string)
             if ( string(1:6) == 'minfac' ) then
-                call getarg(i+1,string)
+                call get_command_argument(i+1,string)
                 read(string,*) minfac
                 iskip = 1
                 if ( missing ) then
@@ -218,14 +217,14 @@ program get_index
                 write(*,'(a)') '# anomalies'
             endif
             if ( string(1:6) == 'dipole' ) then
-                call getarg(i+1,dipole)
+                call get_command_argument(i+1,dipole)
                 iskip = 1
                 if ( dipole /= 'no' ) then
                     print '(2a)','# using dipole ',dipole
                 endif
             endif
             if ( string(1:5) == 'noise' ) then
-                call getarg(i+1,string)
+                call get_command_argument(i+1,string)
                 iskip = 1
                 read(string,*) noisemodel
                 if (noisemodel /= 1 ) then
@@ -253,7 +252,7 @@ program get_index
                 npoints = 100000
                 gridpoints = .true.
                 iskip = 1
-                call getarg(i+1,fieldname)
+                call get_command_argument(i+1,fieldname)
                 if ( fieldname == ' ' ) then
                     write(0,*) 'get_index: error: expecting fieldname'
                     write(*,*) 'get_index: error: expecting fieldname'
@@ -267,7 +266,7 @@ program get_index
             if ( string(1:4) == 'outf' ) then
                 outfield = .true.
                 iskip = 1
-                call getarg(i+1,outfile)
+                call get_command_argument(i+1,outfile)
                 if ( outfile == ' ' ) then
                     write(0,*) &
                     'get_index: error: expecting outfile'
@@ -461,7 +460,7 @@ program get_index
 
     if ( gridpoints ) then
         if ( lmask ) then
-            !!!call getarg(3,string)
+            !!!call get_command_argument(3,string)
             !!!write(*,'(3a)') trim(fieldname),' grid points within mask ',trim(string)
             ! compute the bounding box of the mask
             call getfirstnonzero(mask,nx,ny,'y',1,y1)

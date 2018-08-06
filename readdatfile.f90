@@ -15,14 +15,15 @@ subroutine readdatfile(datfile,field,nxf,nyf,nx,ny,nperyear &
     integer :: unit,jx,jy,i,ii,j,jj,k,localendian,retval,noleap,ierr &
         ,nerr,nn
     character :: tmpfile*1023,command*1023
-    integer :: llen,getpid,get_endian,leap
+    integer :: getpid
+    integer,external :: get_endian,leap
 
     ierr = 0
     nerr = 1
     localendian = get_endian()
     if ( lwrite ) then
         print *,'readdatfile called with parameters'
-        print *,'datfile = ',datfile(1:llen(datfile))
+        print *,'datfile = ',trim(datfile)
         print *,'nxf,nyf = ',nxf,nyf
         print *,'nx,ny   = ',nx,ny
         print *,'yrbeg,end ',yrbeg,yrend

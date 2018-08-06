@@ -9,17 +9,16 @@ program operate
     character :: file*1024,line*128,oper*3,var*100,units*100,lvar*200,svar*100, &
         history*10000,metadata(2,100)*2000,title*100
     logical :: lwrite,lstandardunits
-    integer :: iargc,llen
 
     lwrite = .false. 
     lstandardunits = .false. 
-    if ( iargc() < 2 ) then
+    if ( command_argument_count() < 2 ) then
         write(0,*) &
         'usage: operate log|sqrt|exp file'
         stop
     endif
-    call getarg(1,oper)
-    call getarg(2,file)
+    call get_command_argument(1,oper)
+    call get_command_argument(2,file)
     call readseriesmeta(file,data,npermax,yrbeg,yrend,nperyear,var,units, &
         lvar,svar,history,metadata,lstandardunits,lwrite)
 

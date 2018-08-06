@@ -26,30 +26,30 @@
         ,histoptions*80,email*80,attribute_args*1024,country*40 &
         ,pid*20
     logical :: lwrite,interp
-    integer :: iargc,getpid
+    integer :: getpid
     real :: erfc
     data psigns /0.1,0.05,0.01,0.005,0.001/
 
     lwrite = .false. 
     nsigns = 0
     ltwosided = .false.
-    if ( iargc() < 4 ) then
+    if ( command_argument_count() < 4 ) then
         print *,'usage: stationlist listfile outfile prog operation ...'
-        stop
+        call exit(-1)
     end if
     call getenv('EMAIL',email)
-    call getarg(4,line)
+    call get_command_argument(4,line)
     if ( line(1:6) == 'ifield' ) then
         oper = line(7:)
         interp = .true. 
         letter = 'i'
-        call getarg(5,field)
+        call get_command_argument(5,field)
         nextarg = 6
     elseif ( line(1:5) == 'field' ) then
         oper = line(6:)
         interp = .false. 
         letter = 'n'
-        call getarg(5,field)
+        call get_command_argument(5,field)
         nextarg = 6
     else
         oper = line
@@ -57,7 +57,7 @@
         nextarg = 5
     end if
     if ( lwrite ) print *,'stationlist: oper = ',oper
-    call getarg(3,prog)
+    call get_command_argument(3,prog)
     if ( (prog(1:3) /= 'get' .and. prog(1:3) /= 'eca' .and. &
           prog(1:4) /= 'beca' .and. prog(1:4) /= 'gdcn' .and. &
           prog(1:4) /= 'grid' ) .or. &
@@ -80,9 +80,9 @@
     else
         filterext = ' '
     end if
-    call getarg(2,file)
+    call get_command_argument(2,file)
     open(2,file=trim(file),status='unknown',err=900)
-    call getarg(1,file)
+    call get_command_argument(1,file)
     open(1,file=trim(file),status='old',err=1)
     goto 2
 1   continue
@@ -97,10 +97,10 @@
 2   continue
     j=1
     options = ' '
-    do i=nextarg,iargc()
-        call getarg(i,options(j:))
+    do i=nextarg,command_argument_count()
+        call get_command_argument(i,options(j:))
         if ( options(j:j+3) == 'runc' .or. options(j:j+3) == 'runr' ) then
-            call getarg(i+2,runfile)
+            call get_command_argument(i+2,runfile)
         end if
         if ( options(j:j+4) == 'debug' ) then
             lwrite = .true. 

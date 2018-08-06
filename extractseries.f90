@@ -14,13 +14,12 @@ program extractseries
     real,allocatable :: fcst(:,:,:)
     real :: s1,s2
     character :: line*255,varfcst*20,unitfcst*40
-    integer :: iargc
 
 !   check arguments
 
     lwrite = .false. 
     lstandardunits = .true. 
-    if ( iargc() < 4 ) then
+    if ( command_argument_count() < 4 ) then
         print *,'usage: extractseries infile '// &
             '[month m[:n] [sum|ave|max|min|sel m] '// &
             '[begin yr] [end yr] [detrend]'// &
@@ -28,14 +27,14 @@ program extractseries
         call exit(-1)
     endif
 
-    call getarg(1,line)
+    call get_command_argument(1,line)
     allocate(fcst(npermax,yrbeg:yrend,0:nensmax))
     call readensseries(line,fcst,npermax,yrbeg,yrend,nensmax &
         ,nperyear,mens1,mens,varfcst,unitfcst,lstandardunits &
         ,lwrite)
     print '(a,i2,a,i2)','# located ensemble members ',mens1,' to ',mens
 
-    call getopts(2,iargc(),nperyear,yrbeg,yrend, .true. ,mens1,mens)
+    call getopts(2,command_argument_count(),nperyear,yrbeg,yrend, .true. ,mens1,mens)
     if ( .not. dump ) then
         write(0,*) 'extractseries: error: cannot find ''dump'' in argument list'
         write(*,*) 'extractseries: error: cannot find ''dump'' in argument list'

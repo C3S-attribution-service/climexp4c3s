@@ -23,14 +23,10 @@ program histogram
         ,chsq,prob,lon,lat,elev,threshold,z,tx,tx25 &
         ,tx975,t(10),t25(10),t975(10),xmax
     real :: mean(0:nboot),sd(0:nboot),skew(0:nboot),ranf
-    character file*255,string*100,var*20,units*20,prog*100, &
-    number*100,line*255,command*255,extraargs*100, &
-    extraargs_*100,ids(0:nensmax)*30,assume*5
-
-    integer :: iargc
-    real :: gammln,erf,erfcc,gammq,gammp,invcumpois,invcumgamm
-    external gammln,erf,erfcc,gammp,gammq,invcumpois &
-        ,invcumgamm
+    character :: file*255,string*100,var*20,units*20,prog*100, &
+        number*100,line*255,command*255,extraargs*100, &
+        extraargs_*100,ids(0:nensmax)*30,assume*5
+    real,external :: gammln,erf,erfcc,gammq,gammp,invcumpois,invcumgamm
 
     real :: scalingpower
     common /c_scalingpower/ scalingpower
@@ -41,7 +37,7 @@ program histogram
     allocate(xx(maxldat))
     allocate(xs(maxldat))
     lwrite = .false. 
-    n = iargc()
+    n = command_argument_count()
     if ( n < 2 ) then
         print *,'usage: histogram {timeseries|file list prog} nbins' &
             //' hist hist|qq|gumbel|log|sqrtlog' &
@@ -51,15 +47,15 @@ program histogram
 
 !    record the exact command used in the output file
     command = '#'
-    do i=0,iargc()
-        call getarg(i,line)
+    do i=0,command_argument_count()
+        call get_command_argument(i,line)
         command = trim(command)//' '//trim(line)
     end do
     print '(a)',trim(command)
 
 !   getopts comes way too late for these options...
-    do i=4,iargc()
-        call getarg(i,string)
+    do i=4,command_argument_count()
+        call get_command_argument(i,string)
         if ( string == 'debug' .or. string == 'lwrite' ) then
             lwrite = .true. 
         end if
@@ -67,7 +63,7 @@ program histogram
             lstandardunits = .true. 
         end if
     end do
-    call getarg(1,file)
+    call get_command_argument(1,file)
     allocate(data(npermax,yrbeg:yrend,0:nensmax))
     if ( file /= 'file' ) then
     !           simple data file (possibly an ensemble)
@@ -79,7 +75,7 @@ program histogram
         call readsetseries(data,ids,npermax,yrbeg,yrend,nensmax, &
             nperyear,mens1,mens,var,units,lstandardunits,lwrite)
     end if
-    call getarg(2+off,string)
+    call get_command_argument(2+off,string)
     read(string,*) nbin
     if ( nbin > maxbin ) then
         write(0,*) 'histogram: error: increase maxbin'
@@ -93,9 +89,9 @@ program histogram
     assume = 'shift'
     if ( n >= i ) then
         10 continue
-        call getarg(i,string)
+        call get_command_argument(i,string)
         if ( string(1:3) == 'fit' ) then
-            call getarg(i+1,string)
+            call get_command_argument(i+1,string)
             i = i + 2
             if ( string(1:2) == 'no' ) then
                 nfit = 0
@@ -119,7 +115,7 @@ program histogram
             goto 10
         end if
         if ( string(1:4) == 'hist' ) then
-            call getarg(i+1,string)
+            call get_command_argument(i+1,string)
             i = i + 2
             call tolower(string)
             if ( string(1:4) == 'hist' ) then
@@ -140,7 +136,7 @@ program histogram
             goto 10
         end if
         if ( string(1:6) == 'assume' ) then
-            call getarg(i+1,assume)
+            call get_command_argument(i+1,assume)
             i = i + 2
             goto 10
         end if

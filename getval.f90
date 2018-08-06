@@ -10,17 +10,16 @@ program getval
     real :: data(npermax,yrbeg:yrend),xx(yrend-yrbeg+1),x1,s1
     logical :: lopen
     character file*256,var*20,units*20
-    integer :: iargc,llen
 
     lwrite = .false. 
-    if ( iargc() < 3 ) then
+    if ( command_argument_count() < 3 ) then
         print *,'usage: getval file end2 yr [mon mo [name name]]'
         stop
     endif
-    call getarg(1,file)
+    call get_command_argument(1,file)
     call readseries(file,data,npermax,yrbeg,yrend,nperyear,var,units,lstandardunits,lwrite)
     if ( nperyear == 0 ) goto 999
-    call getopts(2,iargc(),nperyear,yrbeg,yrend,.false.,0,0)
+    call getopts(2,command_argument_count(),nperyear,yrbeg,yrend,.false.,0,0)
     if ( yr2a > yrend .or. yr2a < yrbeg ) then
         if ( yr2b > yrend .or. yr2b < yrbeg ) then
             write(*,*) 'getval: error: year undefined',yr2a,yr2b

@@ -31,27 +31,27 @@ program getmomentsfield
      &       ,title*255,history*20000,units(nvarmax)*20, &
      &       cell_methods(nvarmax)*100,lsmasktype*4,ltime*120,metadata(2,100)*2000
         character yesno*1,dir*255,string*15,saveunits*20,format*10,assume*5
-        integer iargc,llen,rindex
+        integer rindex
 !
 !       process command line
 !
-        n = iargc()
+        n = command_argument_count()
         if ( n.lt.3 ) then
             write(0,*) 'usage: getmomentsfield infile.[ctl|nc] [1234] ' &
      &            //'[month m[:n] [sum|ave|max|min|sel n] [log|sqrt] ' &
      &            //'[minfac r] [minnum n] [begin yr] [end yr] ' &
      &            //'[lt cut] [gt cut] [diff [nyr]] [detrend] ' &
      &            //'outfile.[ctl|nc]'
-            stop
+            call exit(-1)
         end if
         lwrite = .false.
         do i=1,n
-            call getarg(i,line)
+            call get_command_argument(i,line)
             if ( line.eq.'debug' .or. line.eq.'lwrite' ) then
                 lwrite = .true.
             end if
         end do
-        call getarg(1,infile)
+        call get_command_argument(1,infile)
         call getmetadata(infile,mens1,mens,ncid,datfile,nxmax,nx &
      &       ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo &
      &       ,ltime,undef,endian,title,history,nvarmax,nvars,vars,jvars &
@@ -70,11 +70,11 @@ program getmomentsfield
             else if ( units(1).eq.'period' ) then
                 write(0,*) 'getomomentsfield: error: cannot determine ', &
      &               'length of period'
-                call abort
+                call exit(-1)
             end if
         end if
 !       process arguments
-        call getarg(2,line)
+        call get_command_argument(2,line)
         if ( line(1:4).eq.'perc' .or. line(1:6).eq.'pot_rt' .or. &
      &       line(1:6).eq.'gev_rt' .or. line(1:7).eq.'norm_rt' .or. &
      &       line(1:6).eq.'norm_z' .or. line(1:4).eq.'rank' ) then
@@ -87,7 +87,7 @@ program getmomentsfield
             call checkgridequal(nx,ny,xx,yy,nxls,nyls,xxls,yyls)
         end if
         call getopts(i,n-1,nperyear,yrbeg,yrend,.true.,mens1,mens)
-        call getarg(1,infile)
+        call get_command_argument(1,infile)
         if ( index(infile,'%').gt.0 .or. &
      &       index(infile,'++').gt.0 ) then
             write(0,*) 'Using ensemble members ',nens1,' to ',nens2 &
@@ -106,7 +106,7 @@ program getmomentsfield
         allocate(res(nx,ny,nz,0:12,nvarmax))
         allocate(fxy(nperyear,yr1:yr2,0:nens2))
         allocate(ddata(1+nperyear*(yr2-yr1+1)*(nens2-nens1+1)))
-        call getarg(2,line)
+        call get_command_argument(2,line)
         year = 0
         if (  ichar(line(1:1)).ge.ichar('0') .and. &
      &        ichar(line(1:1)).le.ichar('9') ) then
@@ -123,7 +123,7 @@ program getmomentsfield
             imoment = 2
             if ( line(1:7).eq.'norm_rt' .or. line(1:6).eq.'norm_z' ) &
      &           then
-                call getarg(3,line)
+                call get_command_argument(3,line)
                 read(line,*,err=905) year
             end if
         elseif ( line(1:4).eq.'skew' ) then
@@ -132,7 +132,7 @@ program getmomentsfield
             imoment = 4
         elseif ( line(1:4).eq.'perc' ) then
             imoment = -1
-            call getarg(3,line)
+            call get_command_argument(3,line)
             read(line,*,err=902) perc
         elseif ( line(1:3).eq.'max' ) then
             imoment = +100
@@ -140,19 +140,19 @@ program getmomentsfield
             imoment = -100
         elseif ( line(1:3).eq.'pot' ) then
             if ( line(1:6).eq.'pot_rt' ) then
-                call getarg(3,line)
+                call get_command_argument(3,line)
                 read(line,*,err=905) year
             end if
             assume = 'shift'
             imoment = 200
         elseif ( line(1:3).eq.'gev' ) then
             if ( line(1:6).eq.'gev_rt' ) then
-                call getarg(3,line)
+                call get_command_argument(3,line)
                 read(line,*,err=905) year
             end if
             imoment = 300
         elseif ( line(1:4).eq.'rank' ) then
-            call getarg(3,line)
+            call get_command_argument(3,line)
             read(line,*,err=905) year
             imoment = 1000
         elseif ( line(1:5).eq.'timex' ) then
@@ -174,7 +174,7 @@ program getmomentsfield
         if ( itype.ne.0 .and. imoment.ne.1 ) then
             write(0,*) 'getmomemntsfield: error: can only compute ', &
      &           'mean of cyclical data, not ',trim(line)
-            call abort
+            call exit(-1)
         end if
 !       range of years
         yr1 = max(yr1,firstyr)
@@ -188,7 +188,7 @@ program getmomentsfield
             call keepalive1('Reading ensemble member', &
      &           iens-nens1+1,nens2-nens1+1)
             if ( ncid.eq.-1 ) then
-                call getarg(1,infile)
+                call get_command_argument(1,infile)
                 if ( index(infile,'%').gt.0 .or. &
      &               index(infile,'++').gt.0 ) then
                     call filloutens(infile,iens)
@@ -207,13 +207,11 @@ program getmomentsfield
                     if ( .not.lexist ) then
                         nens2 = iens-1
                         if ( nens2.ge.nens1 ) then
-                            write(0,*) 'Found ensemble 0 to ',nens2 &
-     &                           ,'<br>'
+                            write(0,*) 'Found ensemble 0 to ',nens2,'<br>'
                             goto 5
                         else
-                            write(0,*) 'Cannot locate file ' &
-     &                            ,datfile(1:llen(dir))
-                            call abort
+                            write(0,*) 'Cannot locate file ',trim(datfile)
+                            call exit(-1)
                         end if
                     end if
                 end if
@@ -225,12 +223,11 @@ program getmomentsfield
      &                f,firstmo,nt,undef,endian,lwrite,yr1,yr2,1,1 &
      &                )
             else
-                call getarg(1,infile)
+                call get_command_argument(1,infile)
                 if ( index(infile,'%').gt.0 .or. &
      &               index(infile,'++').gt.0 ) then
                     call filloutens(infile,iens)
-                    if ( lwrite ) print *,'calling parsenc on ', &
-     &                   infile(1:llen(infile))
+                    if ( lwrite ) print *,'calling parsenc on ',trim(infile)
                     status = nf_open(infile,nf_nowrite,ncid)
                 end if
                 call parsenc(infile,ncid,nxmax,nx,xx,nymax,ny,yy &
@@ -250,7 +247,7 @@ program getmomentsfield
 !
 !       open output file
 !
-        call getarg(iargc(),outfile)
+        call get_command_argument(command_argument_count(),outfile)
         inquire(file=outfile,exist=lexist)
         if ( lexist ) then
             print *,'output file ',outfile(1:index(outfile,' ')-1), &
@@ -458,7 +455,7 @@ program getmomentsfield
                                             write(*,*)'getmomentsfield' &
      &                                           //': error: cannot ' &
      &                                           //'handle ensembles'
-                                            call abort
+                                            call exit(-1)
                                         end if
                                         if ( j1.ne.j2 ) then
                                             write(0,*)'getmomentsfield' &
@@ -467,7 +464,7 @@ program getmomentsfield
                                             write(*,*)'getmomentsfield' &
      &                                           //': error: can only ' &
      &                                           //'handle annual data'
-                                            call abort
+                                            call exit(-1)
                                         end if
                                         xyear = fxy(j,i,iens)
                                         fxy(j,i,iens) = absent
@@ -582,7 +579,7 @@ program getmomentsfield
      &                           then
                                 write(0,*) 'getmomentsfield: error: '// &
      &                               'threshold invalid: ',pmindata
-                                call abort
+                                call exit(-1)
                             end if
                             call moment(ddata,n,xmom(1),xmom(5),xmom(2), &
      &                          var,xmom(3),xmom(4))
@@ -692,7 +689,7 @@ program getmomentsfield
                             nvars = 1
                         else
                             write(0,*) 'error: unknown imoment ',imoment
-                            call abort
+                            call exit(-1)
                         end if
                         if ( lwrite ) then
                             do i=1,nvars
@@ -745,7 +742,7 @@ program getmomentsfield
 !
         call savestartstop(yrstart,yrstop)
         call getenv('DIR',dir)
-        ldir = llen(dir)
+        ldir = len_trim(dir)
         if ( ldir.eq.0 ) ldir=1
         if ( dir(ldir:ldir).ne.'/' ) then
             ldir = ldir + 1
@@ -884,7 +881,7 @@ program getmomentsfield
             end if
         else
             write(0,*) 'getmomentsfield: error: imoment = ',imoment
-            call abort
+            call exit(-1)
         end if
         do i=1,nvars
             ivars(1,i) = nz
@@ -937,24 +934,18 @@ program getmomentsfield
 !       error messages
 !
         goto 999
-  901   print *,'getmomentsfield: error reading moment [1-4] from ' &
-     &        ,line(1:llen(line))
-        call abort
-  902   print *,'getmomentsfield: error reading percentile from ' &
-     &        ,line(1:llen(line))
-        call abort
-  903   print *,'error reading date from file ',line(1:index(line,' ')-1 &
-     &        ),' at record ',k
-        call abort
-  904   print *,'error cannot locate field file file ',line(1:index(line &
-     &        ,' ')-1)
-        call abort
-  905   print *,'getmomentsfield: error reading year from ' &
-     &        ,line(1:llen(line))
-        call abort
-  920   print *,'error cannot open new correlations file ' &
-     &        ,datfile(1:index(datfile,' ')-1)
-        call abort
+  901   print *,'getmomentsfield: error reading moment [1-4] from ',trim(line)
+        call exit(-1)
+  902   print *,'getmomentsfield: error reading percentile from ',trim(line)
+        call exit(-1)
+  903   print *,'error reading date from file ',trim(line),' at record ',k
+        call exit(-1)
+  904   print *,'error cannot locate field file file ',trim(line)
+        call exit(-1)
+  905   print *,'getmomentsfield: error reading year from ',trim(line)
+        call exit(-1)
+  920   print *,'error cannot open new correlations file ',trim(datfile)
+        call exit(-1)
   999   continue
  end program
 
@@ -964,6 +955,6 @@ program getmomentsfield
         if ( year.gt.9999 .or. year.lt.-999 ) then
             write(0,*) 'getmomentsfield: error: year = ',year
             write(*,*) 'getmomentsfield: error: year = ',year
-            call abort
+            call exit(-1)
         end if
 end subroutine

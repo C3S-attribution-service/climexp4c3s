@@ -11,19 +11,19 @@ program diffdat
     logical :: lwrite
 
     minfac = 0.7            ! arbitrary
-    call getarg(1,file)
+    call get_command_argument(1,file)
     if ( file == ' ' ) then
         write(0,*) 'usage: diffdat file [n [debug]]'
         write(0,*) '       computes first derivative of file using n consecutive values'
         call exit(-1)
     end if
-    call getarg(2,string)
+    call get_command_argument(2,string)
     lwrite = .false. 
     if ( string /= ' ' ) then
         read(string,*) n
         if ( n < 2 ) n = 2
         if ( n >= 3 .and. mod(n,2) /= 1 ) n = n + 1
-        call getarg(3,string)
+        call get_command_argument(3,string)
         if ( string == 'lwrite' .or. string == 'debug' ) then
             lwrite = .true. 
         end if

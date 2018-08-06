@@ -24,10 +24,9 @@
     character vars(nvarmax)*20,svars(nvarmax)*20,lvars(nvarmax)*120,units(nvarmax)*40
     character cell_methods(nvarmax)*100,metadata(2,100)*2000,orgunits*40,outfile*1024, &
         format*20,seriesids(0:nensmax)*10
-    integer iargc
     data iyrs /10,20,50,100,200,500,1000,2000,5000,10000/
 !
-    if ( iargc().lt.8 ) then
+    if ( command_argument_count().lt.8 ) then
         write(0,*) 'usage: attributefield field covariate_series ', &
         & 'GEV|Gumbel|GPD|Gauss assume shift|scale ', &
         & 'mon n [sel m] [ave N] [log|sqrt] ', &
@@ -63,7 +62,7 @@
      &       ,firstyr,firstmo,nt,undef,endian,vars,orgunits,lstandardunits &
      &       ,lwrite)
     
-    call getarg(2+off,covariatefile)
+    call get_command_argument(2+off,covariatefile)
     allocate(covariate(npermax,fyr:lyr,0:nensmax))
     if ( covariatefile == 'none' ) then
         covariate = 0
@@ -80,7 +79,7 @@
             ,nperyear1,var1,units1,lstandardunits,lwrite)
     end if
     
-    call getopts(6+off,iargc()-1,nperyear,yrbeg,yrend,.true.,mens1,mens)
+    call getopts(6+off,command_argument_count()-1,nperyear,yrbeg,yrend,.true.,mens1,mens)
     yr1 = max(yr1,fyr) ! messed up by getopts :-(
     yr2 = min(yr2,lyr)
     if ( yr1a.lt.yr1 .or. yr1a.lt.yrbeg ) then
@@ -286,7 +285,7 @@
         ivars(1,1:nvars) = 1
     end if
 
-    call getarg(iargc(),outfile)
+    call get_command_argument(command_argument_count(),outfile)
     title = 'Fit of '//trim(file)//' with '//trim(distribution)//' dependent on'// &
     &   trim(covariatefile)
     call writenc(outfile,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny,yy &

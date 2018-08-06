@@ -9,28 +9,27 @@ program seriesanomal
     logical :: lwrite,lstandardunits
     character file*255,outfile*255,ensfile*255,var*20,units*40, &
     line*255
-    integer :: iargc
     lwrite = .false. 
     lstandardunits = .false. 
 
     allocate(data(npermax,yrbeg:yrend,0:nensmax))
-    if ( iargc() < 2 ) then
+    if ( command_argument_count() < 2 ) then
         print *,'usage: seriesanomal [yr1 yr2] infile outfile'
         call abort
     end if
 
-    if ( iargc() == 4 ) then
-        call getarg(1,file)
+    if ( command_argument_count() == 4 ) then
+        call get_command_argument(1,file)
         read(file,*) yr1
-        call getarg(2,file)
+        call get_command_argument(2,file)
         read(file,*) yr2
-        call getarg(3,file)
-        call getarg(4,outfile)
+        call get_command_argument(3,file)
+        call get_command_argument(4,outfile)
     else
         yr1 = yrbeg
         yr2 = yrend
-        call getarg(1,file)
-        call getarg(2,outfile)
+        call get_command_argument(1,file)
+        call get_command_argument(2,outfile)
     end if
     call readensseries(file,data,npermax,yrbeg,yrend,nensmax &
        ,nperyear,mens1,mens,var,units,lstandardunits,lwrite)

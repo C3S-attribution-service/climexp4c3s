@@ -18,28 +18,27 @@ program series
     parameter (absent=3e33)
     character line*256,var*40,units*20
     logical :: lprec,lwrite,lastvalid,lplot,linvalid
-    integer :: iargc
 
-!       init
+!   init
 
     lwrite = .false. 
-    if ( iargc() /= 1 .and. iargc() /= 3 ) then
+    if ( command_argument_count() /= 1 .and. command_argument_count() /= 3 ) then
         write(0,*) 'usage: series datafile [plot plotfile]'
         stop
     endif
 
     lplot = .false. 
-    if ( iargc() == 3 ) then
+    if ( command_argument_count() == 3 ) then
         lplot = .true. 
-        call getarg(2,line)
+        call get_command_argument(2,line)
         if ( line(1:4) /= 'plot') then
             write(0,*) 'series: error: expecting "plot", found ',trim(line)
             call exit(-1)
         end if
-        call getarg(3,line)
+        call get_command_argument(3,line)
         open(1,file=trim(line),status='unknown') ! allow overwriting...
     end if
-    call getarg(1,line)
+    call get_command_argument(1,line)
     allocate(data(npermax,yrbeg:yrend,0:nensmax))
     call readensseries(line,data,npermax,yrbeg,yrend,nensmax &
         ,nperyear,mens1,mens,var,units, .false. ,lwrite)

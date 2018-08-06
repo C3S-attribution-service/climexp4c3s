@@ -5,23 +5,23 @@ program ecmwf_times
     implicit none
     integer year,mo,lead
     integer i,j,y,m,n,yrend,moend,dyend,dpm(12,2)
-    integer leap,iargc
+    integer leap
     character string*100,version*10,nformat*2
     data dpm /31,28,31,30,31,30,31,31,30,31,30,31, &
     &         31,29,31,30,31,30,31,31,30,31,30,31/
     
-    if ( iargc().lt.3 ) then
+    if ( command_argument_count().lt.3 ) then
         write(0,*) 'usage: ecmwf_time year mo lead'
         write(0,*) 'gives: analysis time, hours to end of averaging period, date of end of average period'
         call exit(-1)
     end if
-    call getarg(1,string)
+    call get_command_argument(1,string)
     read(string,*) year
-    call getarg(2,string)
+    call get_command_argument(2,string)
     read(string,*) mo
-    call getarg(3,string)
+    call get_command_argument(3,string)
     read(string,*) lead
-    call getarg(4,version)
+    call get_command_argument(4,version)
     
     if ( version == ' ' ) then
         yrend = year

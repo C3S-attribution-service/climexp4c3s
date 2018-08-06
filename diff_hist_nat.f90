@@ -14,12 +14,11 @@ program dff_hist_nat
     real      :: xx(3,2),diff(3),ci(2)
     logical   :: logscale,lperc,lexist
     character :: file*1024,string*128
-    integer   :: iargc
 
     logscale = .false.
     lperc = .false.
-    if ( iargc() > 0 ) then
-        call getarg(1,file)
+    if ( command_argument_count() > 0 ) then
+        call get_command_argument(1,file)
         inquire(file=trim(file),exist=lexist)
     else
         lexist = .false.
@@ -46,9 +45,9 @@ program dff_hist_nat
         goto 10
 20      continue
     end if
-    do i=1,iargc()
+    do i=1,command_argument_count()
         if ( lexist .and. i == 1 ) cycle
-        call getarg(i,string)
+        call get_command_argument(i,string)
         if ( string(1:3) == 'log' ) logscale = .true.
         if ( string(1:4) == 'perc' ) lperc = .true.
     end do
