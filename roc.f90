@@ -11,7 +11,7 @@ program roc
     character :: file*255,line*1024,type*4
     integer,external :: getnumwords
 
-    if ( iargc() < 3 ) then
+    if ( command_argument_count() < 3 ) then
         print *,'usage: roc {threshold|prob} threshold_obs threshold_mod table [debug]'
         call exit(-1)
     endif
@@ -19,7 +19,7 @@ program roc
 !       init
 
     lwrite = .false. 
-    if ( iargc() >= 5 ) then
+    if ( command_argument_count() >= 5 ) then
         call get_command_argument(5,line)
         if ( line == 'debug' .or. line == 'lwrite' ) then
             lwrite = .true. 

@@ -29,7 +29,7 @@ program get_index
     integer :: i,j,k,k1,n,x1,x2,y1,y2,year,month,iskip,sgn,ii, &
         npoints,ipoints,in,mopts,out,noisemodel, &
         lsncid,ndpm,yr1,yr2,nyr,ntvarid,nxf,nyf, &
-        nzf,it,mo,yr,irec,ix,iy
+        nzf,it,mo,yr,irec,ix,iy,ncount
     integer :: ncidmask,nxmask,nymask,nzmask,ntmask,fyr,fmo, &
         jvarsmask(6,1),iarray1(13),iarray2(13),iret1,iret2,iret
     integer :: xlist(nxmax*nymax),ylist(nxmax*nymax)
@@ -730,6 +730,8 @@ program get_index
         endif
         ave(1:nperyear) = 3e33
         year = firstyr
+        ncount = 0
+!does not work $omp parallel do private(i)
         do k=k1,nt+firstmo-1
             month = month + 1
             if ( month > nperyear ) then
@@ -877,8 +879,11 @@ program get_index
                     if ( lwrite ) write(*,*) 'avemean(',month+nperyear,') = ',avemean(month+nperyear),sw
                 endif
             endif
-            call keepalive1('Time step',k-k1+1,nt+firstmo-k1)
+!does not work $omp atomic update
+            ncount = ncount + 1
+            call keepalive1('Time step',ncount,nt+firstmo-k1)
         enddo               ! loop over all months in file
+!does not work $omp end parallel do
 !       print last (possibly incomplete) record
         call outputave(out,year,ave,nperyear,lstandardunits, &
             offset,slope,ndpm,year,yr1,yr2,nyr)
@@ -906,6 +911,7 @@ program get_index
                 ))//'nc',iret)
         endif
     900 continue
+        ncount = ncount + 1
         call keepalive1('Writing grid points',ipoints,npoints)
     enddo
     goto 999
