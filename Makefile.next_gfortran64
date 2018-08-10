@@ -1,5 +1,5 @@
-###EOFFLAGS = -O3 -m64 -Dlinux -fbackslash -fopenmp
-EOFFLAGS = -g -m64 -Dlinux -fbackslash -fbounds-check # -fopenmp
+EOFFLAGS = -O3 -m64 -Dlinux -fbackslash -fopenmp
+###EOFFLAGS = -g -m64 -Dlinux -fbackslash -fbounds-check # -fopenmp
 FFLAGS = $(EOFFLAGS) -ffpe-trap=invalid,zero,overflow
 
 CFLAGS = -O -m64
