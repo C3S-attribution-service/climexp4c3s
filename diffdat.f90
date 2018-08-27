@@ -39,7 +39,7 @@ program diffdat
         print '(2a)','# centered derivative of ',trim(file)
         if ( n > 3 ) print '(a,i3,a)','using linear regression over ',n,' data points'
     end if
-    var = 'd_'//trim(var)//'/dt'
+    var = 'd_'//trim(var)//'_dt'
     lvar = 'time derivative of '//lvar
     call nperyear2units(nperyear,string)
     units = trim(units)//'/'//string
