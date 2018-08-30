@@ -63,7 +63,7 @@ program averagefieldspace
             ,lastyr,firstyr,firstmo,nt,undef,lwrite,firstyr,lastyr &
             ,ivars)
         status = nf_close(ncid)
-    endif
+    end if
 
 !   average
 
@@ -110,14 +110,14 @@ program averagefieldspace
             if ( mo > nperyear ) then
                 mo = mo - nperyear
                 yr = yr + 1
-            endif
+            end if
             if ( nperyear == 366 .and. mo == 60 ) then
                 if ( leap(yr) == 1 ) then
                     mo = mo + 1
                 end if
-            endif
-        enddo
-    elseif ( index(file,'.nc') /= 0 ) then
+            end if
+        end do
+    else if ( index(file,'.nc') /= 0 ) then
         ivars = 0
         call enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny,yy, &
             nz,zz,lz,nnt,nperyear,firstyr,firstmo,ltime,undef,title, &
@@ -139,11 +139,11 @@ program averagefieldspace
                 if ( leap(yr) == 1 ) then
                     mo = mo + 1
                 end if
-            endif
-        enddo
+            end if
+        end do
         status = nf_close(ncid) ! otherwise the buffer won't be flushed...
     else
         write(0,*) 'need .ctl or .nc in output file name'
         call exit(-1)
-    endif
+    end if
 end program averagefieldspace
