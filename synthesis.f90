@@ -248,12 +248,12 @@ program synthesis
         w1 = w1 + w
         s1 = s1 + w*data(1,i)
         do j=2,3
-            ss2(j) = ss2(j) + w*(data(1,i)-data(j,i))**2
+            ss2(j) = ss2(j) + (w*(data(1,i)-data(j,i)))**2
         end do
     end do
     s1 = s1/w1
     do j=2,3
-        ss2(j) = sqrt(ss2(j)/w1)
+        ss2(j) = sqrt(ss2(j))/w1
     end do
     nblank(n) = 1
     n = n + 1
