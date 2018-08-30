@@ -40,10 +40,10 @@ program fix_undef
         call exit(-1)
     end if
     lastyr = firstyr + (firstmo+nt-2)/nperyear
-    call getopts(2,iargc()-1,nperyear,yrbeg,yrend,.false.,mens1,mens)
+    call getopts(2,command_argument_count()-1,nperyear,yrbeg,yrend,.false.,mens1,mens)
     yr1 = firstyr
     yr2 = lastyr
-    call get_command_argument(iargc(),outfile)
+    call get_command_argument(command_argument_count(),outfile)
 
 !   allocate field
 
