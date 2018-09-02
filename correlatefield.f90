@@ -25,7 +25,8 @@ program correlatefield
          ,l,ldir,ntvarid,itimeaxis(ntmax)    &
          ,nrec,iens,jens,ndup(0:mpermax),validens(nensmax)     &
          ,nens2series,iens2,imens(0:1),nold,yrstart,yrstop   &
-         ,fyr,yrmo(2,ndatmax),mdatmax,irec,ntp,ndiffn,nmetadata
+         ,fyr,mdatmax,irec,ntp,ndiffn,nmetadata
+    integer,allocatable :: yrmo(:,:)
     real,allocatable :: field(:,:,:,:,:,:),r(:,:,:,:),prob(:,:,:,:), &
          a(:,:,:,:),b(:,:,:,:),da(:,:,:,:),db(:,:,:,:),             &
          a1(:,:,:,:),da1(:,:,:,:),cov(:,:,:,:),relregr(:,:,:,:),    &
@@ -36,13 +37,13 @@ program correlatefield
     real,allocatable :: aaa1(:,:,:,:,:),bbb1(:,:,:,:,:),            &
          aaa(:),bbb(:),field2(:,:,:,:,:,:)
     real :: xx(nxmax),yy(nymax),zz(nzmax),undef,xxls(nxmax),yyls(nymax)
-    real :: ddata(ndatmax),dindx(ndatmax),dddata(ndatmax),             &
-         adata,sxx,aindx,syy,sxy,df,d,zd,z,probd,sig(1),chi2, &
+    real,allocatable :: ddata(:),dindx(:),dddata(:)
+    real :: adata,sxx,aindx,syy,sxy,df,d,zd,z,probd,sig(1),chi2, &
          q,sum,fac,aa,daa,bb,dbb,dresult(-2:2),         &
          results(nmc),rmins(nmc),rmaxs(nmc),zdifs(nmc),dum,zold,    &
          sxxold,alpha,xrand,s
-    logical :: lexist,ensseries,lfirst(ndatmax),llwrite
-    logical,allocatable :: lnewyr(:,:)
+    logical :: lexist,ensseries,llwrite
+    logical,allocatable :: lnewyr(:,:),lfirst(:)
     character :: title*512,vars(nvarmax)*60,lvars(nvarmax)*128,        &
           units(nvarmax)*60,lsmasktype*4
     character :: invars(nvarmax)*60,inlvars(nvarmax)*128,intitle*255,inunits(nvarmax)*60
@@ -187,6 +188,8 @@ program correlatefield
         aaa1 = 3e33
         bbb1 = 3e33
     end if
+    allocate(yrmo(2,ndatmax),lfirst(ndatmax))
+    allocate(ddata(ndatmax),dindx(ndatmax),dddata(ndatmax))
 !
 !   init
 !
