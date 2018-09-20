@@ -27,10 +27,10 @@ subroutine readncseriesmeta(file,data,npermx,nperyear,yr1,yr2,ncid,var,units,lva
     integer,parameter :: mtmax=24*366*200
     integer,parameter :: mxmax=1,mymax=1,mzmax=1,nvmax=1
     integer :: i,j,n,nx,ny,nz,nt,firstyr,firstmo,nvars,ivars(6,nvmax),lastyr
-    integer :: nens1,nens2
+    integer :: nens1,nens2,nt1,nt2,ntp
     real :: xx(mxmax),yy(mymax),zz(mzmax),undef
     real,allocatable :: ddata(:,:,:,:)
-    logical :: tdefined(mtmax)
+    logical :: tdefined(mtmax),bugsfixed
     character :: title*512,vars(nvmax)*20,lvars(nvmax)*80, &
         lz(3)*20,svars(100)*100,ltime*120,cell_methods(100)*100
 
@@ -73,9 +73,25 @@ subroutine readncseriesmeta(file,data,npermx,nperyear,yr1,yr2,ncid,var,units,lva
     call readncfile(ncid,ddata,1,1,nx,ny,nperyear,firstyr,lastyr, &
         firstyr,firstmo,nt,undef,lwrite, &
         max(yr1,yrbeg,firstyr),min(yr2,yrend,lastyr),ivars)
-!!!    ntp = @@@
-!!!    call fixholefield(ddata,nx,ny,nz,nperyear,firstyr &
-!!!        ,lastyr,firstyr,firstmo,ntp,nt,tdefined,lwrite)
+    ntp = nt
+    do i=1,ntmax
+        if ( tdefined(i) ) then
+            nt1 = i
+            exit
+        end if
+    end do
+    do i=ntmax,1,-1
+        if ( tdefined(i) ) then
+            nt2 = i
+            exit
+        end if
+    end do
+    nt = nt2 - nt1 + 1
+    bugsfixed = .false.
+    if ( bugsfixed ) then
+        call fixholefield(ddata,1,1,1,nperyear,firstyr &
+            ,lastyr,firstyr,firstmo,ntp,nt,tdefined,lwrite)
+    end if
     do i=max(yr1,yrbeg,firstyr),min(yr2,yrend,lastyr)
         do j=1,nperyear
             data(j,i) = ddata(1,1,j,i)
