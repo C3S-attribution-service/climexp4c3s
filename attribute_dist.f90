@@ -210,7 +210,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
                 i = i + 1
                 do j=1,ntot
                     yyy(j) = xxx(1,j,iens)
-                    zzz(j) = xxx(2,j,iens)
+                    zzz(j) = xxx(1,j,jens)
                 end do
                 df = ntot
                 call pearsnxx(yyy,zzz,ntot,crosscorr(iens,jens),prob,z,ax,sxx,ay,syy,sxy,df)
