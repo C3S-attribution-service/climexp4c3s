@@ -190,6 +190,7 @@
         index(line,'regions in') + index(line,'rid points in') + &
         index(line,'Found')*index(line,' stations')
     if ( i == 0 ) goto 100
+    if ( index(line,'inside polygon') /= 0 ) goto 100
 
     i = index(line,'ions in') + index(line,'ints in')
     if ( i /= 0 ) then

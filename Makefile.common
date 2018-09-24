@@ -253,6 +253,7 @@ OBJS =	makeabsent.o \
 		isnan.o \
 		legzo.o \
 		nperyear2string.o \
+		in_polygon.o \
 		$(EXTRAOBJS)
 
 LIBRARY		  = climexp.a $(NUMLIB)
