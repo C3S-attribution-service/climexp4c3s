@@ -728,8 +728,8 @@ subroutine fit0gpdcov(a,b,xi,iter)
         n = n + 1
         if ( llwrite ) then
             print *,n,'searching for good initial values, these all give 3e33'
-            do i=1,4
-                print *,(p(i,j),j=1,3),y(i)
+            do i=1,3
+                print *,(p(i,j),j=1,2),y(i)
             enddo
         end if
         if ( xi /= 0 ) then
