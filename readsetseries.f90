@@ -1,17 +1,31 @@
 subroutine readsetseries(data,ids,npermax,yrbeg,yrend,nensmax, &
     nperyear,mens1,mens,var,units,lstandardunits,lwrite)
+    implicit none
+    integer   :: npermax,yrbeg,yrend,nensmax,nperyear,mens1,mens
+    real      :: data(npermax,yrbeg:yrend,0:nensmax)
+    logical   :: lwrite,lstandardunits
+    character :: ids(0:nensmax)*(*),var*(*),units*(*)
+    character :: lvar*120,svar*120,history*50000,metadata(2,100)*2000
+    call readsetseriesmeta(data,ids,npermax,yrbeg,yrend,nensmax, &
+        nperyear,mens1,mens,var,units,lvar,svar,history,metadata,lstandardunits,lwrite)
+end subroutine readsetseries
+
+subroutine readsetseriesmeta(data,ids,npermax,yrbeg,yrend,nensmax, &
+    nperyear,mens1,mens,var,units,lvar,svar,history,metadata,lstandardunits,lwrite)
 !
 !   read a set of time series files in a list in the old stupid getstations
 !   output format; after a line with coordinates there is a line
 !   with after the colon a 'number', which is used by the program
 !   (the next argument) to retrieve the data and store it in
 !   data/prognumber.dat
+!   metadata from the first series is returned.
 !
     implicit none
     integer   :: npermax,yrbeg,yrend,nensmax,nperyear,mens1,mens
     real      :: data(npermax,yrbeg:yrend,0:nensmax)
     logical   :: lwrite,lstandardunits
     character :: ids(0:nensmax)*(*),var*(*),units*(*)
+    character :: lvar*(*),svar*(*),history*(*),metadata(2,100)*(*)
     integer   :: i,m,iret,filetime,stringtime,ntot
     real      :: lon,lat,elev
     logical   :: lexist,pexist
@@ -27,7 +41,7 @@ subroutine readsetseries(data,ids,npermax,yrbeg,yrend,nensmax, &
          index(prog,';') /= 0 .or. index(prog,'`') /= 0 .or. &
          index(prog,'&') /= 0 .or. index(prog,'|') /= 0 ) then
         print *,'readsetseries: invalid argument ',prog
-        call abort
+        call exit(-1)
     endif
 !   one prog has underscores in its name, which conflicts with the convention to put the extra
 !   arguments there
@@ -43,8 +57,7 @@ subroutine readsetseries(data,ids,npermax,yrbeg,yrend,nensmax, &
         prog = prog(:i-1)
         extraargs_ = extraargs
         do i=1,len(extraargs)
-            if ( extraargs(i:i) == '_' ) &
-            extraargs(i:i) = ' '
+            if ( extraargs(i:i) == '_' ) extraargs(i:i) = ' '
         end do
         write(0,*) 'readsetseries: transforming stations to '// &
             'lower time resolution ',trim(extraargs),'<br>'
@@ -86,8 +99,7 @@ subroutine readsetseries(data,ids,npermax,yrbeg,yrend,nensmax, &
         prog(1:6) == 'getmin' .or. prog(1:6) == 'getmax' .or. &
         prog(1:6) == 'getslp' ) then
         ! generate it
-        write(command,'(10a)') './bin/',trim(prog), &
-            ' ',trim(number),' ',trim(file)
+        write(command,'(10a)') './bin/',trim(prog),' ',trim(number),' ',trim(file)
         if ( lwrite ) print *,trim(command),'<br>'
         call mysystem(trim(command),iret)
     else if ( .not. lexist .and. pexist ) then
@@ -124,26 +136,30 @@ subroutine readsetseries(data,ids,npermax,yrbeg,yrend,nensmax, &
         goto 1
     end if
     call keepalive1('Reading series',mens,ntot)
-    call readseries(file,data(1,yrbeg,mens),npermax,yrbeg,yrend &
-    ,m,var,units,lstandardunits, .FALSE. )
+    if ( mens == 0 ) then
+        call readseriesmeta(file,data(1,yrbeg,mens),npermax,yrbeg,yrend &
+            ,m,var,units,lvar,svar,history,metadata,lstandardunits,.false.)
+    else
+        call readseries(file,data(1,yrbeg,mens),npermax,yrbeg,yrend &
+            ,m,var,units,lstandardunits,.false.)
+    end if
     ids(mens) = number
     if ( m == 0 ) goto 1
     if ( mens == 0 ) then
         nperyear = m
     else
         if ( m /= nperyear ) then
-            write(0,*) 'readsetseries: error: different time scales' &
-            ,m,nperyear
-            call abort
+            write(0,*) 'readsetseries: error: different time scales',m,nperyear
+            call exit(-1)
         endif
     endif
     mens = mens + 1
     if ( mens > nensmax ) then
         write(0,*) 'readsetseries: error: increase nensmax'
-        call abort
+        call exit(-1)
     endif
     goto 1
 2   continue
     mens = mens - 1
-end subroutine readsetseries
+end subroutine readsetseriesmeta
 

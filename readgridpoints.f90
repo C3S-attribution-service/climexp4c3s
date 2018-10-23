@@ -1,5 +1,20 @@
 subroutine readgridpoints(data,ids,npermax,yrbeg,yrend,nensmax, &
     nperyear,mens1,mens,nens1,nens2,outvar,outunits,lstandardunits,lwrite)
+    implicit none
+    integer,parameter :: nxmax=1000,nymax=1000
+    integer   :: npermax,yrbeg,yrend,nensmax,nperyear,mens1,mens,nens1,nens2
+    real      :: data(npermax,yrbeg:yrend,0:nensmax)
+    logical   :: lwrite,lstandardunits
+    character :: ids(0:nensmax)*(*),outvar*(*),outunits*(*)
+    character :: outlvar*120,outsvar*120,history*50000,metadata(2,100)*2000
+    call readgridpointsmeta(data,ids,npermax,yrbeg,yrend,nensmax, &
+        nperyear,mens1,mens,nens1,nens2,outvar,outunits, &
+        outlvar,outsvar,history,metadata,lstandardunits,lwrite)
+end subroutine readgridpoints
+
+subroutine readgridpointsmeta(data,ids,npermax,yrbeg,yrend,nensmax, &
+    nperyear,mens1,mens,nens1,nens2,outvar,outunits, &
+    outlvar,outsvar,history,metadata,lstandardunits,lwrite)
 !
 !   read the grid points of a netcdf file into a set of time series
 !
@@ -8,15 +23,15 @@ subroutine readgridpoints(data,ids,npermax,yrbeg,yrend,nensmax, &
     integer   :: npermax,yrbeg,yrend,nensmax,nperyear,mens1,mens,nens1,nens2
     real      :: data(npermax,yrbeg:yrend,0:nensmax)
     logical   :: lwrite,lstandardunits
-    character :: ids(0:nensmax)*(*),outvar*(*),outunits*(*)
+    character :: ids(0:nensmax)*(*),outvar*(*),outunits*(*),outlvar*(*),outsvar*(*), &
+        history*(*),metadata(2,100)*(*)
     integer   :: ncid,nx,ny,nz,nt,firstyr,firstmo,endian,nvars,ivars(6,1)
     integer   :: nens,ix,iy,iz,yr,mo,iens,lastyr
     real      :: xx(nxmax),yy(nymax),zz(1),undef
     real,allocatable :: field(:,:,:,:,:,:)
     logical   :: validdata
-    character :: file*1024,datfile*1014,lz(3)*20,ltime*100,title*1024,history*20000, &
-        vars(1)*40,svars(1)*80,lvars(1)*80,units(1)*80,cell_methods(1)*128, &
-        metadata(2,100)*2000
+    character :: file*1024,datfile*1014,lz(3)*20,ltime*100,title*1024, &
+        vars(1)*40,svars(1)*80,lvars(1)*80,units(1)*80,cell_methods(1)*128
 
     call get_command_argument(2,file)
     call getmetadata(file,mens1,mens,ncid,datfile,nxmax,nx      &
@@ -65,5 +80,7 @@ subroutine readgridpoints(data,ids,npermax,yrbeg,yrend,nensmax, &
     mens = nens-1
     outunits = units(1)
     outvar = vars(1)
-end subroutine
+    outlvar = lvars(1)
+    outsvar = svars(1)
+end subroutine readgridpointsmeta
 

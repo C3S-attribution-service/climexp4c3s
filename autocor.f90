@@ -12,7 +12,8 @@ program autocor
     integer :: i,ii,j,jj,lag,n,nperyear,iens,mens1,mens,yr,mo,yrstart,yrstop,lagunit
     real :: s,adata,cc(0:lagmax),sig(0:lagmax),norlag,lagfac
     real,allocatable :: data(:,:,:)
-    character :: line*128,var*40,units*120
+    character :: line*128,file*1024,var*80,units*80,lvar*120,svar*120,history*50000, &
+        metadata(2,100)*2000
 !
 !   check arguments
 !
@@ -23,13 +24,13 @@ program autocor
         stop
     end if
 !
-!       read data
+!   read data
 !
     lstandardunits = .false.
     allocate(data(npermax,yrbeg:yrend,0:nensmax))
-    call get_command_argument(1,line)
-    call readensseries(line,data,npermax,yrbeg,yrend,nensmax &
-        ,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
+    call get_command_argument(1,file)
+    call readensseriesmeta(file,data,npermax,yrbeg,yrend,nensmax &
+        ,nperyear,mens1,mens,var,units,lvar,svar,history,metadata,lstandardunits,lwrite)
 !
 !   arguments
 !
@@ -98,6 +99,8 @@ program autocor
 !
     call autocov(data,npermax,yrbeg,yrend,nperyear,lagmax,cc,sig,yrstart,yrstop,lagunit)
 
+
+    call printmetadata(6,trim(file),' ','autocorrelation of ',history,metadata)
     print '(a)','# lag     autocor     autocov   2/sqrt(N)'
     if ( nperyear/lagunit.eq.1 ) then
         print '(a)','# lag in yr'

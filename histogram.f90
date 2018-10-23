@@ -26,6 +26,7 @@ program histogram
     character :: file*255,string*100,var*20,units*20,prog*100, &
         number*100,line*255,command*255,extraargs*100, &
         extraargs_*100,ids(0:nensmax)*30,assume*5
+    character :: lvar*120,svar*120,history*50000,metadata(2,100)*1000
     real,external :: gammln,erf,erfcc,gammq,gammp,invcumpois,invcumgamm
 
     real :: scalingpower
@@ -66,14 +67,16 @@ program histogram
     call get_command_argument(1,file)
     allocate(data(npermax,yrbeg:yrend,0:nensmax))
     if ( file /= 'file' ) then
-    !           simple data file (possibly an ensemble)
+!       simple data file (possibly an ensemble)
         off = 0
-        call readensseries(file,data,npermax,yrbeg,yrend,nensmax &
-        ,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
+        call readensseriesmeta(file,data,npermax,yrbeg,yrend,nensmax, &
+            nperyear,mens1,mens,var,units,lvar,svar,history,metadata, &
+            lstandardunits,lwrite)
     else
         off = 2
         call readsetseries(data,ids,npermax,yrbeg,yrend,nensmax, &
-            nperyear,mens1,mens,var,units,lstandardunits,lwrite)
+            nperyear,mens1,mens,var,units,lvar,svar,history,metadata, &
+            lstandardunits,lwrite)
     end if
     call get_command_argument(2+off,string)
     read(string,*) nbin
@@ -981,6 +984,7 @@ program histogram
         end if
     end do
 999 continue
+    call printmetadata(6,file,' ','histogram of',history,metadata)
     call savestartstop(yrstart,yrstop)
 end program
 

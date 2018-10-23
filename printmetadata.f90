@@ -17,8 +17,18 @@ subroutine printmetadata(lun,file,FORM_field,title,history,metadata)
     end if
     ititle = 0
     if ( title /= ' ' ) then
-        ititle = 1
-        write(lun,'(2a)') '# title :: ',trim(title)
+        i = len_trim(title)
+        if ( title(i-2:i) == ' of' ) then
+            do j=1,100
+                if ( metadata(1,j) == 'title' ) then
+                    metadata(2,j) = trim(title)//' '//trim(metadata(2,j))
+                    exit
+                end if
+            end do
+        else
+            ititle = 1
+            write(lun,'(2a)') '# title :: ',trim(title)
+        end if
     end if
     linstitution = .false.
     do i=1,100

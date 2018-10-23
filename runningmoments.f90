@@ -13,7 +13,8 @@ program runningmoments
         ,ave,adev,sdev,sd2,skew,curt,ave1,adev1,sdev1,sd21,skew1 &
         ,curt1,signmin,signmax,signdif,noise,alpha
     logical :: first
-    character file*255,string*100,momentvar*4,var*40,units*20
+    character :: file*1024,string*100,momentvar*4,var*80,units*80,lvar*120,svar*120,history*50000, &
+        metadata(2,100)*2000
     real :: gasdev
     external gasdev
     data iran /0/
@@ -28,8 +29,8 @@ program runningmoments
     call get_command_argument(1,file)
     print '(2a)','# file ',file(1:index(file,' ')-1)
     allocate(data(npermax,yrbeg:yrend,0:nensmax))
-    call readensseries(file,data,npermax,yrbeg,yrend,nensmax &
-        ,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
+    call readensseriesmeta(file,data,npermax,yrbeg,yrend,nensmax &
+        ,nperyear,mens1,mens,var,units,lvar,svar,history,metadata,lstandardunits,lwrite)
     call get_command_argument(2,string)
     if ( string(1:3) == 'mea' .or. string(1:3) == 'ave' .or. string(1:1) == '1' ) then
         imom = 1
@@ -163,6 +164,7 @@ program runningmoments
     else
         momentvar = '????'
     end if
+    call printmetadata(14,file,' ','running '//momentvar//' of',history,metadata)
     if ( lweb ) then
         write(14,'(a)') '# <table class="realtable" '// &
             'border=0 cellpadding=0 cellspacing=0>'// &

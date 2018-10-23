@@ -13,10 +13,11 @@ program series
     implicit none
     integer,parameter :: yrbeg=1600,yrend=2300,npermax=366,nensmax=750
     integer :: i,j,k,nperyear,itype,iens,mens1,mens,n,m,ilast
-    real :: s(41,yrbeg:yrend),absent,ss,a1,sx,sy,w,t(41)
+    real :: s(41,yrbeg:yrend),ss,a1,sx,sy,w,t(41)
     real,allocatable :: data(:,:,:)
-    parameter (absent=3e33)
-    character line*256,var*40,units*20
+    real,parameter :: absent=3e33
+    character :: line*256,file*1024,var*80,units*80,lvar*120,svar*120,history*50000, &
+        metadata(2,100)*2000
     logical :: lprec,lwrite,lastvalid,lplot,linvalid
 
 !   init
@@ -38,12 +39,12 @@ program series
         call get_command_argument(3,line)
         open(1,file=trim(line),status='unknown') ! allow overwriting...
     end if
-    call get_command_argument(1,line)
+    call get_command_argument(1,file)
     allocate(data(npermax,yrbeg:yrend,0:nensmax))
-    call readensseries(line,data,npermax,yrbeg,yrend,nensmax &
-        ,nperyear,mens1,mens,var,units, .false. ,lwrite)
+    call readensseriesmeta(file,data,npermax,yrbeg,yrend,nensmax &
+        ,nperyear,mens1,mens,var,units,lvar,svar,history,metadata,.false.,lwrite)
     print '(5a)','# ',trim(var),' [',trim(units),']'
-    if ( index(line,'/dd') > 0 .or. index(line,'dd') == 1 ) then
+    if ( index(file,'/dd') > 0 .or. index(file,'dd') == 1 ) then
         write(0,*) 'Hmm. This looks like a (wind) direction to me.'
         write(0,*) 'Averaging over a unit circle.<p>'
         itype = 1
@@ -55,19 +56,19 @@ program series
 !   determine type of quantity - precipitation or not?
 
     do j=80,1,-1
-        if ( line(j:j) == '/' ) goto 100
+        if ( file(j:j) == '/' ) goto 100
     enddo
-    100 continue
+100 continue
     j = j+1
-    if ( line(j:j) == 'p' ) then
+    if ( (file(j:j) == 'p' .or. file(j+1:j+1) == 'rr' .or. file(j+1:j+1) == 'rh' ) &
+            .and. units(1:4) == 'mm/m' ) then
         lprec = .true. 
-        print '(2a)','# series: summed file ',line(1:index(line,' ') &
-        -1)
+        print '(2a)','# series: summed file ',trim(file)
     else
         lprec = .false. 
-        print '(2a)','# series: averaged file ',line(1:index(line &
-        ,' ')-1)
+        print '(2a)','# series: averaged file ',trim(file)
     endif
+    call printmetadata(6,file,' ','monthly, seasonal, biannual and annual means of',history,metadata)
     print '(5a)','#year     Jan     Feb     Mar     Apr     May', &
         '     Jun     Jul     Aug     Sep     Oct     Nov', &
         '     Dec     DJF     MAM     JJA     SON Oct-Mar', &

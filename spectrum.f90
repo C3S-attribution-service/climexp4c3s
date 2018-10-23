@@ -10,7 +10,7 @@ program spectrum
     real :: epx(4*ndata),epy(4*ndata),ofac,fac,xmax,ymax,alpha,s2,sd,probmax,mean,mean1
     real,allocatable :: epx1(:),epy1(:),epyall(:,:),prob(:),data(:,:,:)
     integer,allocatable :: imax(:)
-    character line*255,var*40,units*20
+    character line*255,file*1024,var*80,units*60,lvar*120,svar*120,history*50000,metadata(2,100)*2000
 
 !   init
 
@@ -22,13 +22,13 @@ program spectrum
     end if
 
     n = 0
-    call get_command_argument(1,line)
+    call get_command_argument(1,file)
     allocate(data(npermax,yrbeg:yrend,0:nensmax))
-    call readensseries(line,data,npermax,yrbeg,yrend,nensmax &
-        ,nperyear,mens1,mens,var,units, .false. ,lwrite)
-    call getopts(2,command_argument_count(),nperyear,yrbeg,yrend, .true. ,mens1,mens)
+    call readensseriesmeta(file,data,npermax,yrbeg,yrend,nensmax &
+        ,nperyear,mens1,mens,var,units,lvar,svar,history,metadata,.false.,lwrite)
+    call getopts(2,command_argument_count(),nperyear,yrbeg,yrend,.true.,mens1,mens)
 !   I am abusing yr1a,yr2a here...
-    if ( yr1a == yr1 ) yr1a=yrbeg
+    if ( yr1a == yr1 ) yr1a = yrbeg
     if ( yr2a == yr2 ) yr2a = yrend + 1
     yrstart = yr2
     yrstop  = yr1
@@ -58,7 +58,7 @@ program spectrum
         end if
     end if
 
-!       sum
+!   sum
 
     if ( lsum > 1 ) then
         if ( lwrite ) print '(a)','# Summing data'
@@ -67,7 +67,7 @@ program spectrum
         end do
     end if
 
-!       logscale
+!   logscale
 
     if ( logscale ) then
         if ( lwrite ) print '(a,2i3)','# Taking log of series '
@@ -76,7 +76,7 @@ program spectrum
         end do
     end if
 
-!       sqrtscale
+!   sqrtscale
 
     if ( sqrtscale ) then
         if ( lwrite ) print '(a,2i3)','# Taking sqrt of series '
@@ -85,7 +85,7 @@ program spectrum
         end do
     end if
 
-!       squarescale
+!   squarescale
 
     if ( squarescale ) then
         if ( lwrite ) print '(a,2i3)','# Taking sqrt of series '
@@ -94,7 +94,7 @@ program spectrum
         end do
     end if
 
-!       detrending
+!   detrending
 
     if ( ldetrend ) then
         if ( lwrite ) print *,'Detrending data'
@@ -109,7 +109,7 @@ program spectrum
         end do
     end if
 
-!       anomalies w.r.t. seasonal cycle
+!   anomalies w.r.t. seasonal cycle
 
     if ( anom ) then
         do iens=nens1,nens2
@@ -117,7 +117,7 @@ program spectrum
         end do
     end if
 
-!       anomalies wrt ensemble mean
+!   anomalies wrt ensemble mean
 
     if ( lensanom .and. min(nens2,mens) > max(nens1,mens1) ) then
         if ( lwrite ) print *,'Taking anomalies wrt ensemble mean'
@@ -135,7 +135,7 @@ program spectrum
     nmc = 1000000000/i**2
     nmc = min(5000,nmc)
     nmc = max(200,nmc)
-    print '(a,3i6)','# i,nmc = ',nout,nmc
+    !!!print '(a,3i6)','# i,nmc = ',nout,nmc
     allocate(epx1(4*ndata))
     allocate(epy1(4*ndata))
     allocate(epyall(nmc,nout))
@@ -177,8 +177,9 @@ program spectrum
         end if
     end do
 
-!       output; do not yet know how to treat dependent data.
+!   output; do not yet know how to treat dependent data.
 
+    call printmetadata(6,trim(file),' ','spectrum of ',history,metadata)
     print '(a)','# frequency power AR(1)  prob'
     print '(3a)','# power in [',trim(units),'^2]'
     if ( nperyear >= 53 ) then
@@ -234,7 +235,7 @@ program spectrum
     end if
     call savestartstop(yrstart,yrstop)
     goto 999
-900 print *,'error: cannot read integer from ',line
+900 print *,'error: cannot read integer from ',file
     call exit(-1)
 999 continue
 end program spectrum

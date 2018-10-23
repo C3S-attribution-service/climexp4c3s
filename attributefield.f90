@@ -20,7 +20,7 @@
     real,allocatable :: field(:,:,:,:,:,:),covariate(:,:,:),series(:,:,:),res(:,:,:,:,:)
     logical xrev,yrev,xwrap,lfirst,lprint
     character file*1024,datfile*1024,covariatefile*1024,distribution*6,assume*5,string*80
-    character var*40,var1*40,units1*80,lz(3)*20,ltime*120,title*255,history*2048
+    character var*40,var1*40,lvar*120,svar*120,units1*80,lz(3)*20,ltime*120,title*255,history*2048
     character vars(nvarmax)*20,svars(nvarmax)*20,lvars(nvarmax)*120,units(nvarmax)*40
     character cell_methods(nvarmax)*100,metadata(2,100)*2000,orgunits*40,outfile*1024, &
         format*20,seriesids(0:nensmax)*10
@@ -187,7 +187,8 @@
             results = 3e33
             xyearsave = xyear
             call attribute_dist(series,nperyear,covariate,nperyear1,npermax,fyr,lyr,&
-            &   mens1,mens,assume,distribution,seriesids,results,nresmax,nresults,lprint)
+                mens1,mens,assume,distribution,seriesids,results,nresmax,nresults,lprint, &
+                var,units,lvar,svar,history,metadata)
             if ( nresults > nresmax ) then
                 write(0,*) 'attributefield: error: got back too many results ',nresults,nresmax
                 call exit(-1)

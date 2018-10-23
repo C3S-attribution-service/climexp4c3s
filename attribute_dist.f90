@@ -1,5 +1,6 @@
 subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yrend,&
-&   mens1,mens,assume,distribution,seriesids,results,nresmax,nresults,lprint)
+    mens1,mens,assume,distribution,seriesids,results,nresmax,nresults,lprint, &
+    var,units,lvar,svar,history,metadata)
 !
 !   take block maxima, convert to linear arrays and call fitgevcov / fitgumcov or
 !   take average, convert to linear arrays and call fitgaucov / fitgpdcov
@@ -7,17 +8,18 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
 !
     implicit none
     include "getopts.inc"
-    integer nperyear,nperyear1,npermax,yrbeg,yrend,mens1,mens,nresmax,nresults
-    real series(npermax,yrbeg:yrend,0:mens),covariate(npermax,yrbeg:yrend,0:mens)
-    real results(3,nresmax)
-    character seriesids(0:mens)*(*),assume*(*),distribution*(*)
-    integer fyr,lyr,ntot,i,j,k,ntype,nmax,npernew,j1,j2,iens,jens,ensmax,init,ndecor,n
+    integer :: nperyear,nperyear1,npermax,yrbeg,yrend,mens1,mens,nresmax,nresults
+    real :: series(npermax,yrbeg:yrend,0:mens),covariate(npermax,yrbeg:yrend,0:mens)
+    real :: results(3,nresmax)
+    character :: seriesids(0:mens)*(*),assume*(*),distribution*(*)
+    character :: var*(*),units*(*),lvar*(*),svar*(*),history*(*),metadata(2,100)*(*)
+    integer :: fyr,lyr,ntot,i,j,k,ntype,nmax,npernew,j1,j2,iens,jens,ensmax,init,ndecor,n
     integer,allocatable :: yrs(:)
-    real a(3),b(3),xi(3),alpha(3),beta(3),cov1,cov2,cov3,offset,t(3,10,3),tx(3,3), &
+    real :: a(3),b(3),xi(3),alpha(3),beta(3),cov1,cov2,cov3,offset,t(3,10,3),tx(3,3), &
         regr,intercept,sigb,siga,chi2,q,prob,z,ax,sxx,ay,syy,sxy,df
     real,allocatable :: xx(:,:),yrseries(:,:,:),yrcovariate(:,:,:),yy(:),crosscorr(:,:), &
         xxx(:,:,:),yyy(:),zzz(:),sig(:)
-    logical lboot,lprint,subtract_offset,lset
+    logical :: lboot,lprint,subtract_offset,lset,lopen
     character :: operation*4,file*1024,idmax*30,string*20
     data init /0/
 
@@ -260,7 +262,21 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     else
         write(0,*) 'attribute_dist: error: unknown distribution ',trim(distribution)
     end if
-    if ( .not.lprint ) then
+    if ( lprint ) then
+        ! include metadata in all three (possible) output files
+        call get_command_argument(1,file)
+        call printmetadata(6,file,' ','trend in extremes of',history,metadata)
+        if ( plot ) then ! I do not think this is actually used...
+            call printmetadata(11,file,' ','trend in extremes of',history,metadata)
+        end if
+        if ( dump ) then
+            call printmetadata(10,file,' ','trend in extremes of',history,metadata)
+        end if
+        inquire(unit=15,opened=lopen)
+        if ( lopen ) then
+            call printmetadata(15,file,' ','trend in extremes of',history,metadata)
+        end if
+    else
         results(:,1) = a
         results(:,2) = b
         results(:,3) = xi
@@ -274,7 +290,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
             do i=1,10
                 k = k + 1
                 if ( k > nresmax ) then
-                    write(0,*) 'attrubute_dist: internal error: results array to small: ',nresmax
+                    write(0,*) 'attribute_dist: internal error: results array to small: ',nresmax
                     call abort
                 end if
                 results(:,k) = t(:,i,j)

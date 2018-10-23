@@ -14,10 +14,8 @@
 !       jan-2000, added ensembles sep-2002, added running correlatons
 !       2004, finally implemented ensembles correctly 2005
 !
-!  #[ declarations:
     implicit none
-    integer :: nmc,nvarmax
-    parameter(nmc=1000,nvarmax=1)
+    integer,parameter :: nmc=1000,nvarmax=1
     include 'param.inc'
     include 'getopts.inc'
     integer :: i,ii,j,jj,k,l,m,n,j1,j2,if,im,ip,jm,jp,lag,year,month &
@@ -25,7 +23,7 @@
         ,ndup(0:npermax),ndum(0:npermax),validens(nensmax), &
         imens1(0:indxmx),imens(0:indxmx),yr1s,yr2s,nunequal &
         ,iunequal,mo,nfac(indxmx),yrstart,yrstop,mdata,nx,ny,nz,nt &
-        ,nvars,nu,yrbg,yred,nensmx
+        ,nvars,nu,yrbg,yred,nensmx,iindex,lastmeta
     integer,allocatable :: yrmo(:,:)
     real,allocatable :: data(:,:,:),indx(:,:,:,:), &
         mcdata(:,:,:),mcindx(:,:,:,:), &
@@ -43,13 +41,14 @@
         laddfile(indxmx),lbb1allocated
     logical,allocatable :: lfirst(:)
     parameter (absent=3e33)
-    character :: line*256,string*10,dir*256,ensfile*256,var*40,units*60 &
-        ,ivar*80,lvar*120,svar*120,iunits*20,newunits*60,dum1*40,dum2*40,varorg*40 &
-        ,unitsorg*60
+    character :: line*256,file*124,string*10,dir*256,ensfile*256, &
+        newunits*60,dum1*40,dum2*40,varorg*80,unitsorg*60
+    character :: var*80,units*60,lvar*120,svar*120,history*50000,metadata(2,100)*2000
+    character :: ivar(indxmx)*80,iunits(indxmx)*60,ilvar(indxmx)*120,isvar(indxmx)*120, &
+        ihistory(indxmx)*50000,imetadata(2,100,indxmx)*1000
+
     character(4) :: runs(3,2)
     data runs /'rmin','rmax','zdif', 'bmin','bmax','bdif'/
-!  #] declarations:
-!  #[ check arguments:
 
 !   check arguments
 
@@ -68,16 +67,14 @@
         write(0,*) 'expecting indxmx=19, not ',indxmx
         call exit(-1)
     endif
-!  #] check arguments:
-!  #[ allocate big arrays:
 
 !   do not make them much bigger then needed...
 
-    call get_command_argument(1,line)
-    call getfileunits(line,nx,ny,nz,nt,nperyear,nvarmax,nvars,var,units,newunits, &
+    call get_command_argument(1,file)
+    call getfileunits(file,nx,ny,nz,nt,nperyear,nvarmax,nvars,var,units,newunits, &
         lvar,svar,xwrap,lwrite)
     if ( nperyear <= 0 ) then
-        write(0,*) 'correlate: error: the file ',trim(line),' is not readable'
+        write(0,*) 'correlate: error: the file ',trim(file),' is not readable'
         call exit(-1)
     end if
 !       do not let the arrays get too large
@@ -104,9 +101,6 @@
     if ( lwrite ) print *,'allocating ',mdata*2,' reals'
     allocate(yrmo(2,mdata))
 
-!  #] allocate big arrays:
-!  #[ init:
-
 !   init
 
     imens1 = 0
@@ -126,21 +120,17 @@
     endif
     iunequal = 0
     nunequal = 1
-!  #] init:
-!  #[ read data:
 
 !   read data from station file downloaded from
 !   http://www.ncdc.noaa.gov/ghcn/ghcnV1.CLIMVIS.html
 
-    call get_command_argument(1,line)
-    if ( lwrite ) print *,'reading data file ',trim(line)
-    call readensseries(line,data,nperyear,yrbg,yred,nensmx &
-        ,n,imens1(0),imens(0),var,units,lstandardunits,lwrite)
+    call get_command_argument(1,file)
+    if ( lwrite ) print *,'reading data file ',trim(file)
+    call readensseriesmeta(file,data,nperyear,yrbg,yred,nensmx, &
+        n,imens1(0),imens(0),var,units,lvar,svar,history,metadata, &
+        lstandardunits,lwrite)
     if ( n /= nperyear ) call exit(-1)
     if ( imens(0) > 0 ) ensemble = .true. 
-
-!  #] read data:
-!  #[ process options:
 
 !       process options
 
@@ -173,7 +163,6 @@
 100 continue
 !**        if ( lsum.gt.1 .and. lsel.gt.1 ) goto 915
     if ( dump ) then
-        write(10,'(2a)') '# ',line(1:index(line,' '))
         write(10,'(6a)') '# ',trim(var),' [',trim(units),']'
         if ( logscale ) write(10,'(a)') '# logarithmic plot'
         if ( sqrtscale ) write(10,'(a)') '# sqrt plot'
@@ -182,8 +171,8 @@
         allocate(aa(mdata))
         allocate(bb(mdata))
     end if
-!  #] process options:
-!  #[ get SOI,NINO,NAO:
+
+!   get SOI,NINO,NAO (really old set-up)
 
     do k=1,indxmx
         call makeabsent(indx(1,yrbg,0,k),nperyear,yrbg,yred)
@@ -195,8 +184,9 @@
 
     if ( lincl(1) ) then
         if ( lwrite ) print *,'reading SOI file soi.dat'
-        call readseries(trim(dir)//'CRUData/soi.dat', &
-            indx(1,yrbg,0,1),nperyear,yrbg,yred,n,var,units,.false.,lwrite)
+        call readseriesmeta(trim(dir)//'CRUData/soi.dat', &
+            indx(1,yrbg,0,1),nperyear,yrbg,yred,n,ivar(1),iunits(1),ilvar(1),isvar(1), &
+            ihistory(1),imetadata(1,1,1),.false.,lwrite)
         if ( n /= nperyear ) goto 916
     endif
 
@@ -204,95 +194,69 @@
 
     if ( lincl(2) ) then
         if ( lwrite ) print *,'reading NCDCData/ersst_nino12a.dat'
-        call readseries(trim(dir)//'NCDCData/ersst_nino12.dat' &
-            ,indx(1,yrbg,0,2),nperyear,yrbg,yred,n,var,units, .false.,lwrite)
+        call readseriesmeta(trim(dir)//'NCDCData/ersst_nino12.dat', &
+            indx(1,yrbg,0,2),nperyear,yrbg,yred,n,ivar(1),iunits(2),ilvar(2),isvar(2), &
+            ihistory(2),imetadata(1,1,2),.false.,lwrite)
         if ( n /= nperyear ) goto 916
     end if
     if ( lincl(3) ) then
         if ( lwrite ) print *,'reading NCDCData/ersst_nino3a.dat'
-        call readseries(trim(dir)//'NCDCData/ersst_nino3a.dat' &
-            ,indx(1,yrbg,0,3),nperyear,yrbg,yred,n,var,units,.false.,lwrite)
+        call readseriesmeta(trim(dir)//'NCDCData/ersst_nino3a.dat', &
+            indx(1,yrbg,0,3),nperyear,yrbg,yred,n,ivar(3),iunits(3),ilvar(3),isvar(3), &
+            ihistory(3),imetadata(1,1,3),.false.,lwrite)
         if ( n /= nperyear ) goto 916
     end if
     if ( lincl(4) ) then
         if ( lwrite ) print *,'reading NCDCData/ersst_nino4a.dat'
-        call readseries(trim(dir)//'NCDCData/ersst_nino4a.dat' &
-            ,indx(1,yrbg,0,4),nperyear,yrbg,yred,n,var,units,.false.,lwrite)
+        call readseriesmeta(trim(dir)//'NCDCData/ersst_nino4a.dat', &
+            indx(1,yrbg,0,4),nperyear,yrbg,yred,n,ivar(4),iunits(4),ilvar(4),isvar(4), &
+            ihistory(4),imetadata(1,1,4),.false.,lwrite)
         if ( n /= nperyear ) goto 916
     end if
     if ( lincl(5) ) then
         if ( lwrite ) print *,'reading NCDCData/ersst_nino3.4a.dat'
-        call readseries(trim(dir)//'NCDCData/ersst_nino3.4a.dat' &
-            ,indx(1,yrbg,0,5),nperyear,yrbg,yred,n,var,units,.false.,lwrite)
+        call readseriesmeta(trim(dir)//'NCDCData/ersst_nino3.4a.dat', &
+            indx(1,yrbg,0,5),nperyear,yrbg,yred,n,ivar(5),iunits(5),ilvar(5),isvar(5), &
+            ihistory(5),imetadata(1,1,5),.false.,lwrite)
         if ( n /= nperyear ) goto 916
     end if
 
 !   and the NAO data
 
     if ( lincl(6) ) then
-        call readseries(trim(dir)//'CRUData/nao.dat', &
-            indx(1,yrbg,0,6),nperyear,yrbg,yred,n,var,units,.false.,lwrite)
+        call readseriesmeta(trim(dir)//'CRUData/nao.dat', &
+            indx(1,yrbg,0,6),nperyear,yrbg,yred,n,ivar(6),iunits(6),ilvar(6),isvar(6), &
+            ihistory(6),imetadata(1,1,6),.false.,lwrite)
         if ( nperyear /= n ) goto 916
     endif
-!  #] get SOI,NINO,NAO:
-!  #[ get sunspot data:
 
 !   and the sunspot data, 1749-1991
 
     if ( lincl(7) ) then
-        call readseries(trim(dir)//'SIDCData/sunspots.dat', &
-            indx(1,yrbg,0,7),nperyear,yrbg,yred,n,var,units,.false.,lwrite)
+        call readseriesmeta(trim(dir)//'SIDCData/sunspots.dat', &
+            indx(1,yrbg,0,7),nperyear,yrbg,yred,n,ivar(7),iunits(7),ilvar(7),isvar(7), &
+            ihistory(7),imetadata(1,1,7),.false.,lwrite)
         if ( nperyear /= n ) goto 916
     endif
     if ( lincl(8) ) then
-        n = 12
-        if ( nperyear /= 12 ) goto 916
-        if ( lwrite ) print *,'Opening file sunhist_2.html'
-        open(1,file=trim(dir)//'SIDCData/sunhist_2.html',status='old')
-        !   data is in the format
-        !   no yrmin valmin yrmax valmax rise fall length
-        do i=1,10000
-            read(1,'(a)',err=904,end=500) line
-            if ( line(1:2) == '  ' .and. &
-            (line(3:3) >= '0' .and. line(3:3) <= '9' .or. &
-            line(3:3) == ' ') .and. &
-            (line(4:4) >= '0' .and. line(4:4) <= '9') ) then
-                read(line,*,err=904) j
-                if ( j < 22 ) then
-                    read(line,*,err=904) j,yrmin(j),xmin,yrmax(j),xmax,rise,fall,slength(j)
-                else
-                    read(line,*,err=904) j,yrmin(j),xmin,yrmax(j),xmax
-                endif
-                if ( lwrite ) print *,'read ',j,yrmin(j),xmin,yrmax(j),xmax,rise,fall,slength(j)
-            endif
-        enddo
-    500 continue
-        j = 1
-        do year=yrbg,yred
-            do month=1,12
-                ayr = year + (month-0.5)/12
-                if ( j <= 22 ) then
-                    if ( ayr > yrmin(j) ) then
-                        j = j + 1
-                    endif
-                    if ( j > 1 .and. j <= 22 ) then
-                        indx(month,year,0,8) = slength(j-1)
-                        if ( lwrite ) print *,year,month,slength(j-1)
-                    endif
-                endif
-            enddo
-        enddo
-        close(1)
+        write(0,*) 'this option is no longer supported'
+        write(*,*) 'this option is no longer supported'
+        call exit(-1)
     endif
     if ( lincl(9) ) then
+        ! time
+        ivar(9) = 'time'
+        iunits(9) = 'yr'
+        isvar(9) = 'time'
+        ilvar(9) = 'years from 2000'
+        ihistory(9) = ' '
+        imetadata(:,:,9) = ' '
         do i=yrbg,yred
             do j=1,nperyear
                 indx(j,i,0,9) = i-2000 + (j-0.5)/nperyear
             enddo
         enddo
     endif
-!  #] get sunspot data:
-!  #[ get user file:
 
 !   get my own file
 
@@ -302,9 +266,17 @@
             write(0,*) 'correlate: error: empty file name ',i
             call exit(-1)
         end if
-        call readensseries(indexfiles(i),indx(1,yrbg,0,i),nperyear &
-            ,yrbg,yred,nensmx,n,imens1(i),imens(i),ivar,iunits,lstandardunits,lwrite)
-        if ( lwrite ) print *,'nperyear from this file = ',n
+        call readensseriesmeta(indexfiles(i),indx(1,yrbg,0,i),nperyear &
+            ,yrbg,yred,nensmx,n,imens1(i),imens(i),ivar(i),iunits(i),ilvar(i),isvar(i), &
+            ihistory(i),imetadata(1,1,i),lstandardunits,lwrite)
+        if ( lwrite ) then
+            print *,'nperyear from this file = ',n
+            print *,'metadata ',i
+            do j=1,100
+                if ( imetadata(1,j,i) == ' ' ) exit
+                print *,j,trim(imetadata(1,j,i)),' :: ',trim(imetadata(2,j,i))
+            end do
+        end if
         if ( n /= nperyear ) goto 916
         if ( imens(i) > 0 ) then
             ensindex = .true. 
@@ -353,8 +325,30 @@
             endif
         endif
     enddo
-!  #] get user file:
-!  #[ addseries:
+
+!   merge metadata
+
+    do lastmeta = 1,100
+        if ( metadata(1,lastmeta) == ' ' ) exit
+    end do
+    lastmeta = lastmeta - 1
+    iindex = 0
+    do i=1,indxuse
+        if ( lincl(i) .or. i >= 10 ) iindex = iindex + 1
+    end do
+    do i=1,indxuse
+        if ( lincl(i) .or. i >= 10 ) then
+            if ( iindex == 1) then
+                string = 'index_'
+            else
+                write(string,'(a,i2.2,a)') 'index_',i,'_'
+            end if
+            call merge_metadata(metadata,lastmeta,imetadata(i,1,1),' ',ihistory(i),trim(string))
+        end if
+    end do
+    if ( dump ) then
+        call printmetadata(10,file,' ','correlation analysis of',history,metadata)
+    end if
 
 !   am I being called as addseries?
 
@@ -649,11 +643,10 @@
 !
 !       output
 !
+        call printmetadata(99,file,' ','time series with regressions subtractief',history,metadata)
         call printdatfile(99,data,nperyear,nperyear,yrbg,yred)
         goto 999
     endif
-!  #] addseries:
-!  #[ manipulate time series:
 
 !   monthly diffs
 
@@ -951,8 +944,6 @@
             endif
         enddo
     endif
-!  #] manipulate time series:
-!  #[ correlate:
 
 !   correlate!
 
@@ -964,7 +955,7 @@
             call checkdup(lboot,ndup,nperyear,j1,j2)
         endif
     
-    !           fill linear arrays without absent values and compute r
+!       fill linear arrays without absent values and compute r
         do lag=lag1,lag2
             do k=1,indxuse
                 if ( .not. lincl(k) ) goto 800
@@ -1147,8 +1138,6 @@
     enddo                   ! month
     call printcorrfooter
     call savestartstop(yrstart,yrstop)
-!  #] correlate:
-!  #[ error messages:
 
 !   error messages
 
@@ -1183,10 +1172,8 @@
 916 print *,'error: cannot interpolate in time (yet) ',n,nperyear
     call exit(-1)
 999 continue
-!  #] error messages:
 end program
 
-!  #[ checkdup:
 subroutine checkdup(lboot,ndup,nperyear,j1,j2)
     implicit none
     logical :: lboot
@@ -1201,4 +1188,3 @@ subroutine checkdup(lboot,ndup,nperyear,j1,j2)
         print '(a,i10,a)','# cannot compute bootstrap with ',ndup(0),' duplicates'
     endif
 end subroutine checkdup
-!  #] checkdup:
