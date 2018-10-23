@@ -164,7 +164,7 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
         call getabfromcov(a,b,alpha,beta,cov3,aaa,bbb)
         acov(1,3) = aaa
     end if
-    call write_threshold(cmin,cmax,a,b,alpha,beta,offset,lchangesign)
+    call write_threshold(cmin,cmax,a,b,xi,alpha,beta,offset,lchangesign,gaucovreturnlevel)
 !
 !   Bootstrap for error estimate
 !

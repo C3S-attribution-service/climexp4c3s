@@ -275,7 +275,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
             acov(1,3) = aaa
         end if
     end if
-    call write_threshold(cmin,cmax,a,b,alpha,beta,offset,lchangesign)
+    call write_threshold(cmin,cmax,a,b,xi,alpha,beta,offset,lchangesign,gpdcovreturnlevel)
 !
 !   bootstrap to find error estimates
 !

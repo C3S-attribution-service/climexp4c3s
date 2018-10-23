@@ -412,7 +412,7 @@ subroutine val_or_inf(atx,tx,lweb)
             atx = '0'
         end if
         if ( tx < 0 ) then
-            atx = '-'//atx
+            atx = '-'//trim(atx)
         end if
     end if
 end subroutine val_or_inf
@@ -1059,12 +1059,13 @@ subroutine write_obscov(xx,yrs,ntot,xmin,cov2,xyear,year,offset,lchangesign)
     end subroutine write_obscov
 
 
-subroutine write_threshold(cmin,cmax,a,b,alpha,beta,offset,lchangesign)
+subroutine write_threshold(cmin,cmax,a,b,xi,alpha,beta,offset,lchangesign,covreturnlevel)
     implicit none
-    real :: cmin,cmax,a,b,alpha,beta,offset
+    real :: cmin,cmax,a,b,xi,alpha,beta,offset
+    real,external :: covreturnlevel
     logical :: lchangesign
     integer :: i,is
-    real :: c,aa,bb
+    real :: c,aa,bb,x6,x40,v6,v40
     logical :: lopen
     inquire(unit=15,opened=lopen) ! no flag in getopts.inc
     if ( lopen ) then
@@ -1075,14 +1076,18 @@ subroutine write_threshold(cmin,cmax,a,b,alpha,beta,offset,lchangesign)
         end if
         write(15,'(a)')
         write(15,'(a)')
-        write(15,'(a)') '# covariate threshold/position scale'
+        write(15,'(a)') '# covariate threshold/position value(6yr) val(40yr)'
         do i=0,100
             c = cmin + (cmax-cmin)*i/100.
             call getabfromcov(a,b,alpha,beta,c,aa,bb)
-            write(15,'(3g20.6)') c+offset,is*aa,is*bb
+            x6 = log10(6.)
+            v6 = covreturnlevel(a,b,xi,alpha,beta,x6,c)
+            x40 = log10(40.)
+            v40 = covreturnlevel(a,b,xi,alpha,beta,x40,c)
+            write(15,'(4g20.6)') c+offset,is*aa,is*v6,is*v40
         end do
     endif
-    end subroutine write_threshold
+end subroutine write_threshold
 
 
 subroutine write_dthreshold(cov1,cov2,cov3,acov,offset,lchangesign)
