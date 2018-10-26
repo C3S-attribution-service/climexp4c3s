@@ -703,14 +703,14 @@ real function gaucovreturnlevel(a,b,xi,alpha,beta,x,cov)
 !   x = log10(returntime) for covariant cov and fit parameter alpha
 !
     implicit none
-    real a,b,xi,alpha,beta,x,cov
-    integer ier
-    real aa,bb,f,z,t
+    real :: a,b,xi,alpha,beta,x,cov
+    real :: aa,bb,f,z,t
+    real,external :: serfci
 !
     call getabfromcov(a,b,alpha,beta,cov,aa,bb)
     f = 10.**x
-    f = 1-2/f
-    call merfi(f,z,ier)
+    f = 2/f
+    z = serfci(f)
     t = aa + sqrt(2.)*bb*z
     gaucovreturnlevel = t
 end function

@@ -127,7 +127,8 @@ OBJS =	makeabsent.o \
 		keepalive.o \
 		filloutens.o \
 		makeensfull.o \
-		merfi.o \
+		serfi.o \
+		r1mach.o \
 		wavelet.o \
 		cfftpack.o \
 		chisqr.o \

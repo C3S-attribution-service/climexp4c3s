@@ -10,7 +10,7 @@ program histogram
     parameter (maxbin=1000,maxldat=10000000,nboot=800)
 
     integer :: i,ii,j,jj,j1,j2,n,m,nperyear,nbin,month,yr,nn(maxbin) &
-        ,Nless,nfit,ntot,ntype,ier,iens,mens1,mens,l,nnn &
+        ,Nless,nfit,ntot,ntype,iens,mens1,mens,l,nnn &
         ,iboot,mboot,ndecor,nfitted,it,tmax,off,yrstart,yrstop &
         ,dy,mo,iret,jmax,iensmax
     integer,allocatable :: yrs(:)
@@ -27,7 +27,7 @@ program histogram
         number*100,line*255,command*255,extraargs*100, &
         extraargs_*100,ids(0:nensmax)*30,assume*5
     character :: lvar*120,svar*120,history*50000,metadata(2,100)*2000
-    real,external :: gammln,erf,erfcc,gammq,gammp,invcumpois,invcumgamm
+    real,external :: gammln,erf,erfcc,gammq,gammp,invcumpois,invcumgamm,serfi
 
     real :: scalingpower
     common /c_scalingpower/ scalingpower
@@ -912,8 +912,8 @@ program histogram
                     else
                         ff = ff - 1
                     end if
-                    ! IMSL routine
-                    call merfi(ff,z,ier)
+                    ! netlib routine
+                    z = serfi(ff)
                     s = a + sqrt2*b*z
                 else if ( nfit == 3 ) then
                     ! Gamma distribution

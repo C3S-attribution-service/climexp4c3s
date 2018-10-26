@@ -430,13 +430,13 @@ subroutine plot_ordered_points(xx,xs,yrs,ntot,ntype,nfit, &
     real :: xx(ntot),xs(ntot),frac,a,b,xi
     real :: minindx,mindata,pmindata,xyear,snorm
     logical :: lchangesign,lwrite,last
-    integer :: i,j,ier,it
+    integer :: i,j,it
     real :: f,ff,s,x,z,sqrt2,tmax
     real,save :: smin=3e33,smax=-3e33
     character string*100
     logical :: lprinted
     real :: erf
-    real,external :: gammp,gammq,invcumgamm,invcumpois
+    real,external :: gammp,gammq,invcumgamm,invcumpois,serfi
     real :: scalingpower
     common /c_scalingpower/ scalingpower
 
@@ -500,8 +500,8 @@ subroutine plot_ordered_points(xx,xs,yrs,ntot,ntype,nfit, &
             else
                 ff = ff - 1
             endif
-        !   IMSL routine
-            call merfi(ff,z,ier)
+        !   netlib routine
+            z = serfi(ff)
             s = a + sqrt2*b*z
             if ( lchangesign ) s = -s
         elseif ( nfit == 3 ) then
