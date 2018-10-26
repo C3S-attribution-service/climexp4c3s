@@ -18,7 +18,7 @@ program daily2longer
     logical :: lvalidclim(mpermax),lvalidclim2(mpermax), &
         lvalid(mpermax,yrbeg:yrend)
     character file*1023,string*512,lgt*1,moper*3,var*20,units*20, &
-        climunits*10
+        climunits*10,lvar*120,svar*120,history*50000,metadata(2,100)*2000
     integer,external :: leap
 
     lwrite = .false. 
@@ -55,8 +55,8 @@ program daily2longer
     if ( moper == 'max' .or. moper == 'min' .or. moper(2:3) == 'ti' &
         .or. moper == 'num' ) lstandardunits = .false. 
     call get_command_argument(1,file)
-    call readseries(file,olddata,mpermax,yrbeg,yrend,nperyear,var &
-        ,units,lstandardunits,lwrite)
+    call readseriesmeta(file,olddata,mpermax,yrbeg,yrend,nperyear,var &
+        ,units,lvar,svar,history,metadata,lstandardunits,lwrite)
     if ( index(file,'/dd') > 0 .or. index(file,'dd') == 1 ) then
         write(0,*) 'Hmm. This looks like a (wind) direction to me.'
         write(0,*) 'Averaging over a unit circle.<p>'
@@ -254,24 +254,10 @@ program daily2longer
 
 !   print output
 
-    if ( lgt == ' ' ) then
-        print '(a,i4,2a)','# daily2longer ',nperyearnew,' ',moper
-    elseif ( abs(pcut) < 1 ) then
-        print '(a,i4,3a,g20.4,a)','# daily2longer ',nperyearnew,' ',moper,lgt,pcut,'%'
-    else
-        print '(a,i4,3a,g20.4)','# daily2longer ',nperyearnew,' ',moper,lgt,cut(1)
-    endif
-    open(1,file=file)
-    do
-        read(1,'(a)') file
-        if ( file(1:2) == ' #' ) file = file(2:)
-        if ( file(1:1) /= '#' ) exit
-        call adjustunitstring(file,units,var)
-        print '(a)',trim(file)
-    enddo
-    close(1)
-    call printdatfile(6,newdata,npermax,abs(nperyearnew), &
-    yrbeg,yrend)
+    call adjustlvar(moper,lvar,nperyearnew,lwrite)
+    call printvar(6,var,units,lvar)
+    call printmetadata(6,file,' ',' ',history,metadata)
+    call printdatfile(6,newdata,npermax,abs(nperyearnew),yrbeg,yrend)
 
 !   error messages
 
@@ -282,16 +268,3 @@ program daily2longer
     call exit(-1)
 999 continue
 end program daily2longer
-
-    subroutine adjustunitstring(string,units,var)
-    implicit none
-    character string*(*),units*(*),var*(*)
-    integer :: i,j
-    i = index(string,'[')
-    if ( i /= 0 ) then
-        j = index(string,']')
-        if ( j /= 0 ) then
-            string = '# '//trim(var)//' ['//trim(units)//string(j:)
-        endif
-    endif
-    end subroutine adjustunitstring
