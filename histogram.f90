@@ -26,7 +26,7 @@ program histogram
     character :: file*255,string*100,var*20,units*20,prog*100, &
         number*100,line*255,command*255,extraargs*100, &
         extraargs_*100,ids(0:nensmax)*30,assume*5
-    character :: lvar*120,svar*120,history*50000,metadata(2,100)*1000
+    character :: lvar*120,svar*120,history*50000,metadata(2,100)*2000
     real,external :: gammln,erf,erfcc,gammq,gammp,invcumpois,invcumgamm
 
     real :: scalingpower
