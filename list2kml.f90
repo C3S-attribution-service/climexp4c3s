@@ -9,7 +9,7 @@
     character file*255,email*80,prog*40,extraargs*255,line*255, &
     code*20,name*80,nameu*80,climate*40
 
-    if ( command_argument_count() < 3 ) then
+    if ( command_argument_count() < 4 ) then
         print *,'usage: list2kml plotlist var email prog [extraargs]'
         call exit(-1)
     endif
@@ -21,8 +21,11 @@
     enddo
     call get_command_argument(3,email)
     call get_command_argument(4,prog)
-    call get_command_argument(5,extraargs)
-
+    if ( command_argument_count() == 5 ) then
+        call get_command_argument(5,extraargs)
+    else
+        extraargs = ' '
+    end if
     open(1,file=file,status='old')
     print '(a)','<?xml version="1.0" encoding="UTF-8"?>'
     print '(a)','<kml xmlns="http://earth.google.com/kml/2.0">'
@@ -62,10 +65,17 @@
     print '(a)','</coordinates></Point>'
     print '(a)','<description><![CDATA['
 !**        print '(3a)','<h2>',trim(name),'</h2>'
-    print '(13a)','<a href="http://climexp.knmi.nl/',trim(prog) &
-        ,'.cgi?id=',trim(email),'&WMO=',trim(code),'&STATION=', &
-        trim(nameu),'&extraargs=',trim(extraargs),'">', &
-        trim(climate),'</a>'
+    if ( extraargs /= ' ' ) then
+        print '(13a)','<a href="http://climexp.knmi.nl/',trim(prog) &
+            ,'.cgi?id=',trim(email),'&WMO=',trim(code),'&STATION=', &
+            trim(nameu),'&extraargs=',trim(extraargs),'">', &
+            trim(climate),'</a>'
+    else
+        print '(13a)','<a href="http://climexp.knmi.nl/',trim(prog) &
+            ,'.cgi?id=',trim(email),'&WMO=',trim(code),'&STATION=', &
+            trim(nameu),'">', &
+            trim(climate),'</a>'        
+    end if
     print '(a)',']]></description>'
     print '(a)','</Placemark>'
     goto 100
