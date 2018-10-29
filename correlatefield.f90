@@ -919,12 +919,18 @@ program correlatefield
                             goto 790
                         end if
                         if ( lfitnoise ) then
-                            call fitnoisemodel(ddata,dindx,n,           &
-                                 a1(jx,jy,jz,m),da1(jx,jy,jz,m),        &
-                                 a(jx,jy,jz,m),da(jx,jy,jz,m),          &
-                                 b(jx,jy,jz,m),db(jx,jy,jz,m),          &
-                                 r(jx,jy,jz,m),prob(jx,jy,jz,m),        &
-                                 cov(jx,jy,jz,m),lbootstrap,lwrite)
+                            if ( .true. ) then
+                                write(0,*) 'correlatefield: error: option fitnoise no longer supported'
+                                write(0,*) 'correlatefield: error: option fitnoise no longer supported'
+                                call exit(-1)
+                            else
+                                call fitnoisemodel(ddata,dindx,n,           &
+                                    a1(jx,jy,jz,m),da1(jx,jy,jz,m),        &
+                                    a(jx,jy,jz,m),da(jx,jy,jz,m),          &
+                                    b(jx,jy,jz,m),db(jx,jy,jz,m),          &
+                                    r(jx,jy,jz,m),prob(jx,jy,jz,m),        &
+                                    cov(jx,jy,jz,m),lbootstrap,lwrite)
+                            end if
                         elseif ( lrank ) then
                             if ( lwrite ) then
                                 if ( month == 0 ) then
