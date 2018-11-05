@@ -6,13 +6,15 @@ subroutine nperyear2string(nperyear,string)
         write(string,'(i1,a)') nint(24*365.25/nperyear),'-hr'
     elseif ( nperyear >= 360 ) then
         string = 'daily'
+    elseif ( nperyear == 36 ) theN
+        string = 'decadal'
     elseif ( nperyear > 12 ) theN
         write(string,'(i3,a)') nint(365.25/nperyear),'-dy'
     elseif ( nperyear == 12 ) then
         string = 'monthly'
     elseif ( nperyear == 4 ) then
         string = 'seasonal'
-    elseif ( nperyear == 4 ) then
+    elseif ( nperyear == 2 ) then
         string = 'biannual'
     elseif ( nperyear == 1 ) then
         string = 'annual'
