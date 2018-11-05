@@ -17,12 +17,13 @@ program describefield
     character :: infile*255,datfile*255,outfile*255,units(nvmax)*60 &
         ,vars(nvmax)*40,lvars(nvmax)*200,svars(nvmax)*80,title*1024 &
         ,history*50000,months(12)*3,seasons(4)*3,lz(3)*20,ltime*100 &
-        ,cell_methods(nvmax)*128,ew(2),ns(2),string*20,format*100 &
-        ,metadata(2,100)*2000
+        ,cell_methods(nvmax)*128,ew(2),ns(2),string*100,format*100  &
+        ,metadata(2,100)*2000,halfyears(2)*7
     logical :: xwrap,xrev,yrev,lwrite,lexist,ensemble,tdefined(ntmax)
     integer :: leap
     data months /'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'/
     data seasons/'DJF','MAM','JJA','SON'/
+    data halfyears /'Oct-Mar','Apr-Sep'/ ! not 'winter','summer' because of the Australians
     lwrite = .false. 
 
 !   process command line
@@ -122,7 +123,10 @@ program describefield
 !   X
 
     if ( nx == 1 ) then
-        if ( jvars(2,1) /= 0 ) then
+        if ( jvars(2,1) == 0 ) then
+            call getlonfrommetadata(ncid,xx,lwrite)
+        end if
+        if ( xx(1) < 1e33 ) then
             if ( xx(1) < 0 ) then
                 write(0,'(a,f8.2,a)') 'X at ',-xx(1),'&deg; W'
             else
@@ -166,7 +170,10 @@ program describefield
 !   Y
 
     if ( ny == 1 ) then
-        if ( jvars(3,1) /= 0 ) then
+        if ( jvars(3,1) == 0 ) then
+            call getlatfrommetadata(ncid,yy(1),lwrite)
+        end if
+        if ( yy(1) < 1e33 ) then
             if ( yy(1) < 0 ) then
                 write(0,'(a,f8.2,a)') 'Y at ',-yy(1),'&deg; S'
             else
@@ -249,6 +256,15 @@ program describefield
     if ( ntt > 0 ) then
         if ( nperyear == 0 ) then
             write(0,'(a)') 'Time axis was not identified correctly'
+        elseif ( nperyear == 1 ) then
+            write(0,'(a,i4,a,i4.4,a,i4,a)') &
+                'Yearly data available from ',firstyr &
+                ,' to ',firstyr + nt - 1,' (',ntt,' years)'
+        elseif ( nperyear == 2 ) then
+            write(0,'(2a,i4.4,2a,i4.4,a,i4,a)') &
+                'Biannual data available from ',halfyears(firstmo) &
+                ,firstyr,' to ',halfyears(1+mod(firstmo+nt-2,2)) &
+                ,firstyr+(firstmo+nt-2)/2,' (',ntt,' half years)'
         elseif ( nperyear == 4 ) then
             write(0,'(2a,i4.4,2a,i4.4,a,i4,a)') &
                 'Seasonal data available from ',seasons(firstmo) &
@@ -264,16 +280,18 @@ program describefield
                 'Monthly data available from ',months(firstmo) &
                 ,firstyr,' to ',months(1+mod(firstmo+nt-2,12)) &
                 ,firstyr +(firstmo+nt-2)/12,' (',ntt,' months)'
-        elseif ( nperyear == 1 ) then
-            write(0,'(a,i4,a,i4.4,a,i4,a)') &
-                'Yearly data available from ',firstyr &
-                ,' to ',firstyr + nt - 1,' (',ntt,' years)'
         elseif ( nperyear < 12 ) then
             write(0,'(i2,2a,i4.4,2a,i4.4,a,i4,a)') 12/nperyear, &
                 '-monthly data available from ',months(firstmo*12 &
                 /nperyear),firstyr,' to ',months(1+mod((firstmo+nt &
                 -2)*12/nperyear,12)),firstyr+(firstmo+nt-2) &
                 /nperyear,' (',ntt,' times)'
+        elseif ( nperyear == 36 ) then
+            write(0,'(a,i2,a,i4.4,a,i2,a,i4.4,a,i4,a)') &
+                'Decadal data available from ',5+10*mod(firstmo-1,3), &
+                months(1+(firstmo-1)/3),firstyr,' to ',5+10*mod(firstmo+ntt-2,3), &
+                months(1+mod((firstmo-1)/3+nt-1,12)) &
+                ,firstyr+(firstmo+nt-2)/36,' (',ntt,' decades)'
         elseif ( nperyear <= 366 ) then
             call getdymo(dy1,mo1,firstmo,nperyear)
             ntp = nt

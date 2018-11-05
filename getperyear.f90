@@ -50,6 +50,9 @@ subroutine getperyear(ncid,varid,tt,nt,firstmo,firstyr,nperyear &
                 dtt = dtt1
             end if
         end if
+        if ( units(1:3) == 'day' .and. dtt >= 8 .and. dtt < 10 ) then
+            dtt = 10 ! decadal data
+        end if
         if ( dtt <= 0 ) then
             write(0,*) 'getperyear: error: time step is zero'
             if ( lwrite ) then
@@ -113,8 +116,8 @@ subroutine getperyear(ncid,varid,tt,nt,firstmo,firstyr,nperyear &
                 iperyear = 366
                 nperyear = nint(366/dtt)
 !               needed for first month of NCAR CCSM data...
-                if ( nperyear > 12 .and. nperyear <= 17 ) &
-                nperyear = 12
+                if ( nperyear > 12 .and. nperyear <= 17 ) nperyear = 12
+                if ( iperyear == 366 .and. dtt == 10 ) nperyear = 36
             endif
 !           calendar type
             call gettextattopt(ncid,varid,'calendar',calendar,lwrite)
@@ -140,18 +143,14 @@ subroutine getperyear(ncid,varid,tt,nt,firstmo,firstyr,nperyear &
                     if ( nperyear >= 360 ) &
                     nperyear = 360*nint(nperyear/360.)
                 else
-                    write(0,*)'getperyear: error: unknown calendar ' &
-                    ,trim(calendar)
-                    write(*,*)'getperyear: error: unknown calendar ' &
-                    ,trim(calendar)
+                    write(0,*)'getperyear: error: unknown calendar ',trim(calendar)
+                    write(*,*)'getperyear: error: unknown calendar ',trim(calendar)
                     call exit(-1)
                 endif
             endif
 !           this assumes nperyear <= iperyear but include 366 vs 360
-            if ( nperyear > 0 .and. iperyear > 0 .and. &
-            nperyear <= iperyear ) then
-                nperyear = nint(real(iperyear)/ &
-                nint(real(iperyear)/nperyear))
+            if ( nperyear > 0 .and. iperyear > 0 .and. nperyear <= iperyear .and. nperyear /= 36 ) then
+                nperyear = nint(real(iperyear)/nint(real(iperyear)/nperyear))
             end if
             if ( lwrite ) print *,'iperyear,nperyear = ' &
             ,iperyear,nperyear
@@ -340,17 +339,19 @@ subroutine getperyear(ncid,varid,tt,nt,firstmo,firstyr,nperyear &
     endif
     if ( lwrite ) print *,'getperyear: firstyr,firstmo = ',firstyr,firstmo
 
-    if ( nperyear <= 360 .eqv. iperyear <= 360 ) then
-        dtt = iperyear/real(nperyear)
-    else
-        dtt = 365.24d0*nint(iperyear/365.)/real(nperyear)
+    if ( dtt /= 10 ) then
+        if ( nperyear <= 360 .eqv. iperyear <= 360 ) then
+            dtt = iperyear/real(nperyear)
+        else
+            dtt = 365.24d0*nint(iperyear/365.)/real(nperyear)
+        end if
+        if ( lwrite ) print *,'adjusted dtt to ',dtt
     end if
-    if ( lwrite ) print *,'adjusted dtt to ',dtt
     it = 1
     tdefined(it) = .true.
     lwarn = .false. 
     do i=2,nt
-        if ( abs(tt(i)-tt(i-1)-dtt) < 0.11*dtt ) then
+        if ( abs(tt(i)-tt(i-1)-dtt) < 0.11*dtt .or. dtt == 10 .and. abs(tt(i)-tt(i-1)-dtt) <= 2 ) then
             it = it + 1
             tdefined(it) = .true. 
         else
@@ -1090,7 +1091,7 @@ subroutine makelonreasonable(xx,nx)
 end subroutine makelonreasonable
 
 subroutine stripnonprint(string,lwrite)
-    character*(*) string
+    character*(*) :: string
     logical :: lwrite
     integer :: i
     character validchars*95
@@ -1117,3 +1118,45 @@ subroutine stripnonprint(string,lwrite)
     end do
     if ( .false. .and. lwrite ) print *,'after weeding  ',trim(string)
 end subroutine stripnonprint
+
+subroutine getlonfrommetadata(ncid,xx,lwrite)
+!
+!   search global metadata from a longitude
+!
+    implicit none
+    include 'netcdf.inc'
+    integer :: ncid
+    real :: xx
+    logical :: lwrite
+    integer :: i
+    character :: string*100
+
+    xx = 3e33
+    call gettextattopt(ncid,nf_global,'longitude',string,lwrite)
+    i = index(string,'degrees_east')
+    if ( i > 0 ) then
+        read(string(:i-1),*,end=100,err=100) xx
+    end if
+100 continue
+end subroutine getlonfrommetadata
+
+subroutine getlatfrommetadata(ncid,yy,lwrite)
+!
+!   search global metadata from a latitude
+!
+    implicit none
+    include 'netcdf.inc'
+    integer :: ncid
+    real :: yy
+    logical :: lwrite
+    integer :: i
+    character :: string*100
+
+    yy = 3e33
+    call gettextattopt(ncid,nf_global,'latitude',string,lwrite)
+    i = index(string,'degrees_north')
+    if ( i > 0 ) then
+        read(string(:i-1),*,end=100,err=100) yy
+    end if
+100 continue
+end subroutine getlatfrommetadata

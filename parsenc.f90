@@ -186,6 +186,15 @@ subroutine ensparsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
         end if               ! variable-recognition case
     end do
 
+!   if there is no spatial dimension  we may be able to find it in the metadata
+
+    if ( nx == 1 .and. ix == -1 ) then
+        call getlonfrommetadata(ncid,xx(1),lwrite)
+    end if
+    if ( ny == 1 .and. iy == -1 ) then
+        call getlatfrommetadata(ncid,yy(1),lwrite)
+    end if
+
 !   the rest cannot handle nz=0
 
     if ( nz == 0 ) then

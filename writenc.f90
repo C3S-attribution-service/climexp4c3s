@@ -144,7 +144,7 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
     status = nf_put_att_text(ncid,nf_global,'history',len_trim(history),history)
     if ( status /= nf_noerr ) call handle_err(status,'put att history')
 
-!       define dimensions
+!   define dimensions
 
     if ( lwrite ) print *,'defining dimensions'
     if ( nt > 0 ) then
@@ -374,29 +374,7 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
     else
         n = nperyear
     end if
-    if ( n == 1 .or. n == 12 .or. n == 366 .or. n == 365 .or. n == 360 ) then
-        if ( nperday == 1 .or. nperday == 24 ) then
-            do i=1,j
-                itimeaxis(i) = i-1
-            enddo
-        else
-            do i=1,j
-                itimeaxis(i) = (24/nperday)*(i-1)
-            enddo
-        end if
-    elseif ( nperyear < 12 ) then
-        do i=1,j
-            itimeaxis(i) = (i-1)*12/nperyear
-        enddo
-    elseif ( nperyear < 360 ) then
-        do i=1,j
-            itimeaxis(i) = (i-1)*nint(365./nperyear)
-        enddo
-    else
-        write(0,*) 'writenc: cannot handle nperyear = ',nperyear
-        write(0,*) '         in defining time axus'
-        call exit(-1)
-    endif
+    call maketimeaxis(nperyear,j,yrbegin,itimeaxis,lwrite)
     if ( lwrite ) print *,'put time axis ',itimeaxis(1:j)
     status = nf_put_var_int(ncid,ntvarid,itimeaxis)
     if ( status /= nf_noerr ) call handle_err(status,'put time')
@@ -623,3 +601,64 @@ subroutine write_metadata(ncid,metadata,lwrite)
         if ( status /= nf_noerr ) call handle_err(status,'put att institution')
     end if
 end subroutine
+
+subroutine maketimeaxis(nperyear,nt,yr1,itimeaxis,lwrite)
+!
+!   make a time axis from our nperyear convention
+!
+    implicit none
+    integer :: nperyear,nt,yr1,itimeaxis(nt)
+    logical :: lwrite
+    integer :: dpm(12),nperday,n,i,month,year
+    integer,external :: leap
+    data dpm /31,28,31,30,31,30,31,31,30,31,30,31/
+
+    nperday = max(1,nint(nperyear/365.))
+    if ( nperday > 1 ) then
+        n = nperyear/nperday
+    else
+        n = nperyear
+    end if
+    if ( n == 1 .or. n == 12 .or. n == 366 .or. n == 365 .or. n == 360 ) then
+        if ( nperday == 1 .or. nperday == 24 ) then
+            do i=1,nt
+                itimeaxis(i) = i-1
+            end do
+        else
+            do i=1,nt
+                itimeaxis(i) = (24/nperday)*(i-1)
+            end do
+        end if
+    else if ( nperyear < 12 ) then
+        do i=1,nt
+            itimeaxis(i) = (i-1)*12/nperyear
+        end do
+    else if ( nperyear == 36 ) then
+        month = 1
+        year = yr1
+        itimeaxis(1) = 0
+        do i=2,nt
+            if ( mod(i,3) == 2 .or. mod(i,3) == 0 ) then
+                itimeaxis(i) = itimeaxis(i-1) + 10
+            else
+                itimeaxis(i) = itimeaxis(i-1) + dpm(month) - 20
+                if ( leap(year) == 2 ) then
+                    itimeaxis(i) = itimeaxis(i) + 1
+                end if
+                month = month + 1
+                if ( month.gt.12 ) then
+                    month = month - 12
+                    year = year + 1
+                end if
+            end if
+        end do
+    else if ( nperyear < 360 ) then
+        do i=1,nt
+            itimeaxis(i) = (i-1)*nint(365./nperyear)
+        end do
+    else
+        write(0,*) 'maketimeaxis: cannot handle nperyear = ',nperyear
+        write(0,*) '              in defining time axis' 
+        call exit(-1)
+    end if
+end subroutine maketimeaxis

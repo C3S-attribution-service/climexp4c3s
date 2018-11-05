@@ -8,20 +8,20 @@ subroutine writencseries(file,data,npermax,yrbeg,yrend,nperyear, &
     include 'netcdf.inc'
 
 !   arguments
-    integer npermax,yrbeg,yrend,nperyear
-    real data(npermax,yrbeg:yrend)
-    character file*(*),title*(*),description*(*),comment*(*),metadata(2,100)*(*), &
+    integer :: npermax,yrbeg,yrend,nperyear
+    real :: data(npermax,yrbeg:yrend)
+    character :: file*(*),title*(*),description*(*),comment*(*),metadata(2,100)*(*), &
         history*(*),var*(*),lvar*(*),units*(*)
 
 !   local variables
-    integer status,ncid,ntdimid,idim,i,j,l,ii(8),dy,mo,yr,yr0,yr1
-    integer yr2,nt,ivar,ntvarid,year,month,n,nperday
-    integer dpm(12),firstmo,firstdy,chunks(5)
+    integer :: status,ncid,ntdimid,idim,i,j,l,ii(8),dy,mo,yr,yr0,yr1
+    integer :: yr2,nt,ivar,ntvarid,year,month,n,nperday
+    integer :: firstmo,firstdy,chunks(5)
     integer,allocatable :: itimeaxis(:)
-    real array(1)
+    real :: array(1)
     real,allocatable :: linear(:)
-    logical lwrite,lcompress,lcomment
-    character string*10000,months(0:12,2)*3,clwrite*10
+    logical :: lwrite,lcompress,lcomment
+    character :: string*10000,months(0:12,2)*3,clwrite*10
 
 !   externals
     integer,external :: julday,leap
@@ -31,7 +31,6 @@ subroutine writencseries(file,data,npermax,yrbeg,yrend,nperyear, &
  &        /'???','JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG'  &
  &        ,'SEP','OCT','NOV','DEC','???','jan','feb','mar','apr' &
  &        ,'may','jun','jul','aug','sep','oct','nov','dec'/
-    data dpm /31,28,31,30,31,30,31,31,30,31,30,31/
     lwrite = .FALSE.
     call getenv('WRITENC_LWRITE',clwrite)
     if ( index(clwrite,'T') + index(clwrite,'t') .gt.0 ) then
@@ -223,48 +222,7 @@ subroutine writencseries(file,data,npermax,yrbeg,yrend,nperyear, &
 !
 !   write axes
 !
-    if ( n.eq.1 .or. n.eq.12 .or. n.eq.366 .or. n.eq.365 .or. n.eq.360 ) then
-        if ( nperday.le.1 ) then
-            do i=1,nt
-                itimeaxis(i) = i-1
-            end do
-        else
-            do i=1,nt
-                itimeaxis(i) = (24/nperday)*i
-            end do
-        end if
-    else if ( nperyear.lt.12 ) then
-        do i=1,nt
-            itimeaxis(i) = (i-1)*12/nperyear
-        end do
-    else if ( nperyear.eq.36 ) then
-        month = 1
-        year = yr1
-        itimeaxis(1) = 0
-        do i=2,nt
-            if ( mod(i,3).eq.2 .or. mod(i,3).eq.0 ) then
-                itimeaxis(i) = itimeaxis(i-1) + 10
-            else
-                itimeaxis(i) = itimeaxis(i-1) + dpm(month) - 20
-                if ( leap(year).eq.2 ) then
-                    itimeaxis(i) = itimeaxis(i) + 1
-                end if
-                month = month + 1
-                if ( month.gt.12 ) then
-                    month = month - 12
-                    year = year + 1
-                end if
-            end if
-        end do
-    else if ( nperyear.lt.360 ) then
-        do i=1,nt
-            itimeaxis(i) = (i-1)*nint(365./nperyear)
-        end do
-    else
-        write(0,*) 'writencseries: cannot handle nperyear = ',nperyear
-        write(0,*) '               in defining time axis' 
-        call exit(-1)
-    end if
+    call maketimeaxis(nperyear,nt,yr1,itimeaxis,lwrite)
     if ( lwrite ) print *,'put time axis ',itimeaxis(1:nt)
     status = nf_put_var_int(ncid,ntvarid,itimeaxis)
     if ( status.ne.nf_noerr ) call handle_err(status,'put time')
