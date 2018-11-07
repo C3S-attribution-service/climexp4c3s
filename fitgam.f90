@@ -90,7 +90,7 @@ subroutine fitgam(xx,ntot,mean,sd,a,b,j1,j2,lweb,ntype &
     end do
 
     if ( xyear < 1e33 ) then
-        tx = gamreturnyear(a,b,xyear)/xn
+        tx = gamreturnyear(a,b,xn,xyear)/(j2-j1+1)
         if ( lwrite ) then
             print *,'return time = ',tx
         end if
@@ -146,10 +146,11 @@ subroutine fitgam(xx,ntot,mean,sd,a,b,j1,j2,lweb,ntype &
             end if
         end do
         if ( xyear < 1e33 ) then
-            txtx(iens) = gamreturnyear(aa(iens),bb(iens),xyear)/xn
+            txtx(iens) = gamreturnyear(aa(iens),bb(iens),xnxn(iens),xyear)
             if ( txtx(iens) < 1 ) then
-                print *,'gamreturnyear(',aa(iens),bb(iens),xyear,') = ',txtx(iens),iens
+                print *,'gamreturnyear(',aa(iens),bb(iens),xnxn(iens),xyear,') = ',txtx(iens),iens
             end if
+            txtx(iens) = txtx(iens)/(j2-j1+1)
         end if
     end do
     if ( lchangesign ) then
@@ -392,7 +393,7 @@ real function invcumgamm(p,a,b)
 !   the equation.
 
     implicit none
-    real :: p,a,b
+    real,intent(in) :: p,a,b
     integer :: i
     real :: x,x1,x2,tol
     real :: pc,ac,bc
@@ -473,27 +474,29 @@ real function gamreturnlevel(a,b,xn,x)
     end if
 end function gamreturnlevel
 
-real function gamreturnyear(a,b,xyear)
+real function gamreturnyear(a,b,xn,xyear)
 
 !   compute the return time of the value xyear with the fitted values
 
     implicit none
-    real,intent(in) :: a,b,xyear
+    real,intent(in) :: a,b,xn,xyear
     integer,save :: init=0
     real :: p
-    real,external :: cumgamm
+    real,external :: gammp
 
-    real :: pc,ac,bc
-    common /ccumgamm/ pc,ac,bc
-
-    pc = 0
-    ac = a
-    bc = b
-    p = cumgamm(xyear)
-    if ( p < 0.00001 .and. init == 0 ) then
+    p = gammp(a,xyear/b)
+    if ( ( p > 0.99999 .or. p < 0.00001 ) .and. init == 0 ) then
         init = 1
         write(0,*) 'gamreturnyear: loss of precision, please upgrade algorithms ',p
     end if
-    gamreturnyear = 1/(1-p)
+    if ( b > 0 ) then
+        p = 1-p
+    end if
+    if ( p > 0 ) then
+        gamreturnyear = 1/p/xn
+    else
+        gamreturnyear = 1e20 ! can do better
+    end if
+    if ( .false. ) print *,'a,b,xn,xyear,p,gamreturnyear = ',a,b,xn,xyear,p,gamreturnyear
 end function gamreturnyear
 
