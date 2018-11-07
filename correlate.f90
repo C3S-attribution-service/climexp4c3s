@@ -41,7 +41,7 @@
         laddfile(indxmx),lbb1allocated
     logical,allocatable :: lfirst(:)
     parameter (absent=3e33)
-    character :: line*256,file*124,string*10,dir*256,ensfile*256, &
+    character :: line*1024,file*1024,string*10,dir*256,ensfile*1024, &
         newunits*60,dum1*40,dum2*40,varorg*80,unitsorg*60
     character :: var*80,units*60,lvar*120,svar*120,history*50000,metadata(2,100)*2000
     character :: ivar(indxmx)*80,iunits(indxmx)*60,ilvar(indxmx)*120,isvar(indxmx)*120, &
