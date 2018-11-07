@@ -39,12 +39,14 @@ ADAPTED = adapted_amoeba.o \
 		adapted_sort8.o \
 		adapted_zbrent.o
 
-WRAPPERS = betai.o \
+WRAPPERS = amoeba.o \
+		betai.o \
 		caldat.o \
 		chsone.o \
 		erfc.o \
 		fit.o \
 		gammpq.o \
+		dgammln.o \
 		gasdev.o \
 		julday.o \
 		moment.o \
@@ -186,7 +188,7 @@ OBJS =	makeabsent.o \
 		fitgum.o \
 		fitgumcov.o \
 		fitpoisson.o \
-		fitgamma.o \
+		fitgam.o \
 		attribute_dist.o \
 		printpoint.o \
 		printval.o \
@@ -393,7 +395,7 @@ all:		$(PROGRAMS) $(SHLIBS) sstoi2dat
 install:	$(PROGRAMS)
 		cp $(PROGRAMS) $(HOME)/oceano/climexp/bin
 
-climexp.a:	$(OBJS) $(MAKEFILE)
+climexp.a:	$(OBJS) $(EXTRAOBJS) $(MAKEFILE)
 		ar cruv $@ $(OBJS)
 		$(RANLIB) climexp.a
 

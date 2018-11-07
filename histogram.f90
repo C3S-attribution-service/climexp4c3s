@@ -12,7 +12,7 @@ program histogram
     integer :: i,ii,j,jj,j1,j2,n,m,nperyear,nbin,month,yr,nn(maxbin) &
         ,Nless,nfit,ntot,ntype,iens,mens1,mens,l,nnn &
         ,iboot,mboot,ndecor,nfitted,it,tmax,off,yrstart,yrstop &
-        ,dy,mo,iret,jmax,iensmax
+        ,dy,mo,iret,jmax,iensmax,nzero
     integer,allocatable :: yrs(:)
     logical :: lastvalid,lprinted,lexist
     logical,allocatable :: lf(:)
@@ -91,7 +91,7 @@ program histogram
     yrs(0) = 0
     assume = 'shift'
     if ( n >= i ) then
-        10 continue
+     10 continue
         call get_command_argument(i,string)
         if ( string(1:3) == 'fit' ) then
             call get_command_argument(i+1,string)
@@ -146,6 +146,11 @@ program histogram
         call getopts(i,n,nperyear,yrbeg,yrend, .true. ,mens1,mens)
         if ( mens > 0 ) then
             print '(a,i3,a,i3)','# using ensemble members ',nens1,' to ',nens2
+        end if
+    end if
+    if ( lchangesign ) then
+        if ( ntype < 3 ) then ! no effect on histogram or QQ plot
+            lchangesign = .false.
         end if
     end if
     if ( plot .and. .not. lbootstrap ) then
@@ -540,7 +545,19 @@ program histogram
             nfitted = 3
         else if ( nfit == 3 ) then
 !           Gamma distribution
-            call fitgam(xx,ntot,mean(0),sd(0),a,b)
+            if ( units(1:4) == 'mm/d' ) then
+                ! impose the ETCCDI cut-off of 1 mm/dy for wet days.
+                do i=1,ntot
+                    if ( xx(i) > 0 .and. xx(i) < 1 ) xx(i) = 0
+                end do
+            end if
+            nzero = 0
+            do i=1,ntot
+                if ( xx(i) == 0 ) nzero = nzero + 1
+            end do
+            call fitgam(xx,ntot,mean(0),sd(0),a,b,j1,j2,lweb,ntype &
+                ,lchangesign,yr2a,xyear,t,t25,t975,tx &
+                ,tx25,tx975,confidenceinterval,.true.,.true.,lwrite)
             if ( minindx > -1e33 ) then
                 if ( maxindx < 1e33 ) then
                     snorm = gammp(a,maxindx/b) - gammp(a,minindx/b)
@@ -568,10 +585,8 @@ program histogram
             if ( lchangesign ) a = -a
         else if ( nfit == 5 ) then
 !           GEV distribution
-            if ( nperyear > 12 .and. oper /= 'a' .and. oper /= 'i' &
-            ) then
-                write(0,*) 'Warning: data do not appear to be block' &
-                //' maxima or minima.<p>'
+            if ( nperyear > 12 .and. oper /= 'a' .and. oper /= 'i' ) then
+                write(0,*) 'Warning: data do not appear to be block maxima or minima.<p>'
             end if
             call fitgev(xx,ntot,mean(0),sd(0),a,b,xi,j1,j2,lweb &
                 ,ntype,lchangesign,yr2a,xyear,t,t25,t975,tx &
@@ -719,22 +734,21 @@ program histogram
             else if ( nfit == 3 ) then
                 ! Gamma distribution
                 do i=1,nbin
-                    x1 = (mindat + d*(i-1))/b
-                    x2 = (mindat + d*i    )/b
-                    if ( x2 < a-1 ) then
-                        s = gammp(a,x2) - gammp(a,x1)
+                    x1 = (mindat + d*(i-1))/abs(b)
+                    x2 = (mindat + d*i    )/abs(b)
+                    if ( abs(x2) < a-1 ) then
+                        s = gammp(a,abs(x2)) - gammp(a,abs(x1))
                     else
-                        s = gammq(a,x1) - gammq(a,x2)
+                        s = gammq(a,abs(x1)) - gammq(a,abs(x2))
                     end if
-                    yy(i) = ntot*s/snorm
+                    yy(i) = (ntot-nzero)*abs(s)/snorm
                 end do
             else if ( nfit == 4 ) then
                 ! Gumbel distribution
                 do i=1,nbin
                     x1 = (mindat + d*(i-1) - a)/b
                     x2 = (mindat + d*i     - a)/b
-                    yy(i) = ntot*(exp(-exp(-x2))-exp(-exp(-x1))) &
-                    /snorm
+                    yy(i) = ntot*(exp(-exp(-x2))-exp(-exp(-x1)))/snorm
                 end do
             else if ( nfit == 5 ) then
                 ! GEV distribution
@@ -836,7 +850,7 @@ program histogram
                     if ( lwrite ) print *,'looking for non-zero bin: ',i,xy(i),xn(i)
                     if ( xy(i) > 0.1 .or. xn(i) > 0 ) goto 410
                 end do
-                410 continue
+            410 continue
                 n = i
                 if ( lwrite ) then
                     do i=1,n
@@ -917,11 +931,16 @@ program histogram
                     s = a + sqrt2*b*z
                 else if ( nfit == 3 ) then
                     ! Gamma distribution
-                    f = snorm*f
-                    if ( minindx > 0 ) then
-                        f = f + gammp(a,minindx/b)
+                    if ( i <= nzero ) then
+                        s = 0
+                    else
+                        f = (ntot*f - nzero)/(ntot - nzero)
+                        f = snorm*f
+                        if ( minindx > 0 ) then
+                            f = f + gammp(a,minindx/b)
+                        end if
+                        s = invcumgamm(f,a,abs(b))
                     end if
-                    s = invcumgamm(f,a,b)
                 else if ( nfit == 4 ) then
                     ! Gumbel distribution
                     s = snorm*f
@@ -957,6 +976,9 @@ program histogram
                 end if
             end do
         else if ( ntype == 2 .or. ntype == 3 .or. ntype == 4 ) then
+
+!           CDF
+
             if ( plot ) then
                 do i=1,10
                     write(11,'(3g16.4)') t(i),t25(i),t975(i)
@@ -972,6 +994,16 @@ program histogram
             if ( lchangesign .and. nfit == 5 ) then ! heuristic
                 a = -a
                 b = -b
+            end if
+            if ( lchangesign .and. nfit == 3 ) then ! heuristic
+                b = -b
+            end if
+            if ( nfit == 3 .and. units(1:4) == 'mm/d' ) then
+                ! impose the ETCCDI cut-off of 1 mm/dy for wet days.
+                do i=1,ntot
+                    if ( xx(i) > 0 .and. xx(i) < 1 ) xx(i) = 0
+                    if ( xs(i) > 0 .and. xs(i) < 1 ) xs(i) = 0
+                end do                
             end if
             frac = 1
             call plot_ordered_points(xx,xs,yrs,ntot,ntype,nfit, &

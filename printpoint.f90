@@ -430,7 +430,7 @@ subroutine plot_ordered_points(xx,xs,yrs,ntot,ntype,nfit, &
     real :: xx(ntot),xs(ntot),frac,a,b,xi
     real :: minindx,mindata,pmindata,xyear,snorm
     logical :: lchangesign,lwrite,last
-    integer :: i,j,it
+    integer :: i,j,it,nzero
     real :: f,ff,s,x,z,sqrt2,tmax
     real,save :: smin=3e33,smax=-3e33
     character string*100
@@ -447,6 +447,10 @@ subroutine plot_ordered_points(xx,xs,yrs,ntot,ntype,nfit, &
     end if
     call keepalive1('Output',0,ntot+100)
     call nrsort(ntot,xx)
+    do nzero = 1,ntot
+        if ( xx(nzero) /= 0 ) exit
+    end do
+    nzero = nzero - 1
     do i=1,ntot+100
         if ( mod(i,1000) == 0 ) call keepalive1('Output',i,ntot+100)
     
@@ -505,12 +509,18 @@ subroutine plot_ordered_points(xx,xs,yrs,ntot,ntype,nfit, &
             s = a + sqrt2*b*z
             if ( lchangesign ) s = -s
         elseif ( nfit == 3 ) then
-        !   Gamma distribution
-            f = snorm*f
-            if ( minindx > 0 ) then
-                f = f + gammp(a,minindx/b)
-            endif
-            s = invcumgamm(f,a,b)
+        !   Gamma distribution plus possible delta at zero
+            if ( i <= nzero ) then
+                s = 0
+            else
+                ff = (f*ntot - nzero)/(ntot - nzero)
+                ff = snorm*ff
+                if ( minindx > 0 ) then
+                    ff = ff + gammp(a,minindx/b)
+                endif
+                if ( lchangesign ) ff = 1 - ff
+                s = invcumgamm(ff,a,abs(b))
+            end if
         elseif ( nfit == 4 ) then
         !   Gumbel distribution
             s = snorm*f
