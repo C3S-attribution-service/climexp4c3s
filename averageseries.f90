@@ -147,6 +147,7 @@ program averageseries
 
 !   output
 
+    call printvar(6,var,units,lvar)
     if ( lweigh ) then
         title = 'weighted average of '//trim(title)
     else
