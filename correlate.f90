@@ -343,7 +343,7 @@
             else
                 write(string,'(a,i2.2,a)') 'index_',i,'_'
             end if
-            call merge_metadata(metadata,lastmeta,imetadata(i,1,1),' ',ihistory(i),trim(string))
+            call merge_metadata(metadata,lastmeta,imetadata(1,1,i),' ',ihistory(i),trim(string))
         end if
     end do
     if ( dump ) then
