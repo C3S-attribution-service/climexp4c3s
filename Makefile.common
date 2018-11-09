@@ -37,10 +37,13 @@ ADAPTED = adapted_amoeba.o \
 		adapted_gser.o \
 		adapted_period.o \
 		adapted_sort8.o \
-		adapted_zbrent.o
+		adapted_zbrent.o \
+		adapted_brent.o
 
 WRAPPERS = amoeba.o \
 		betai.o \
+		brent.o \
+		zbrent.o \
 		caldat.o \
 		chsone.o \
 		erfc.o \
@@ -187,7 +190,7 @@ OBJS =	makeabsent.o \
 		fitgaucov.o \
 		fitgum.o \
 		fitgumcov.o \
-		fitpoisson.o \
+		fitpoi.o \
 		fitgam.o \
 		attribute_dist.o \
 		printpoint.o \
