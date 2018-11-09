@@ -1,8 +1,8 @@
 subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
- &       ,mens1,mens,crosscorr,a3,b3,alpha3,beta3,j1,j2,nens1,nens2   &
- &       ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2 &
- &       ,cov3,offset,t3,tx3,assume,confidenceinterval,ndecor              &
- &       ,lboot,lprint,dump,plot,lwrite)
+        ,mens1,mens,crosscorr,a3,b3,alpha3,beta3,j1,j2,nens1,nens2   &
+        ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2 &
+        ,cov3,offset,t3,tx3,assume,confidenceinterval,ndecor              &
+        ,lboot,lprint,dump,plot,lwrite)
 !
 !   a fit a Gumbel distribution to the data, which is already assumed to be block max
 !   input:
@@ -20,24 +20,24 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
     integer npernew,fyr,lyr,mens1,mens,nmc,ntot,j1,j2,nens1,nens2, &
         ntype,yr1a,yr2a,yr2b,ndecor
     real yrseries(npernew,fyr:lyr,0:mens),yrcovariate(npernew,fyr:lyr,0:mens), &
- &       crosscorr(0:mens,0:mens),a3(3),b3(3),alpha3(3),beta3(3),xyear,        &
- &       cov1,cov2,cov3,offset,t3(3,10,3),tx3(3,3),confidenceinterval
+        crosscorr(0:mens,0:mens),a3(3),b3(3),alpha3(3),beta3(3),xyear,        &
+        cov1,cov2,cov3,offset,t3(3,10,3),tx3(3,3),confidenceinterval
     character assume*(*),idmax*(*)
     logical lweb,lchangesign,lboot,lprint,dump,plot,lwrite
 !
     integer i,j,nx,iter,iens,nfit,year,nj
     integer,allocatable :: yrs(:)
     real,allocatable :: aa(:),bb(:),baba(:),xixi(:),           &
- &       tt(:,:,:),txtx(:,:),alphaalpha(:),betabeta(:),        &
- &       aacov(:,:)
+        tt(:,:,:),txtx(:,:),alphaalpha(:),betabeta(:),        &
+        aacov(:,:)
     real x,a,b,ba,xi,alpha,beta,t5(10,4),t1(10,4),db,f         &
- &       ,threshold,thens,z,ll,ll1                             &
- &       ,a25,a975,b25,b975,alpha25,alpha975,beta25,beta975    &
- &       ,aa25,aa975,bb25,bb975,ba25,ba975                     &
- &       ,ranf,mean,sd,dalpha,dbeta,mindata,minindx,pmindata   &
- &       ,snorm,s,frac,t(10,4),t25(10,4),t975(10,4)            &
- &       ,tx(4),tx25(4),tx975(4),ttt(10,4),txtxtx(4),xi3(4)    &
- &       ,acov(3,3),cmin,cmax,plo,phi,scross,sdecor
+        ,threshold,thens,z,ll,ll1                             &
+        ,a25,a975,b25,b975,alpha25,alpha975,beta25,beta975    &
+        ,aa25,aa975,bb25,bb975,ba25,ba975                     &
+        ,ranf,mean,sd,dalpha,dbeta,mindata,minindx,pmindata   &
+        ,snorm,s,frac,t(10,4),t25(10,4),t975(10,4)            &
+        ,tx(4),tx25(4),tx975(4),ttt(10,4),txtxtx(4),xi3(4)    &
+        ,acov(3,3),cmin,cmax,plo,phi,scross,sdecor
     real adev,var,skew,curt,aaa,bbb,siga,chi2,q
     real,allocatable :: xx(:,:),yy(:),ys(:),zz(:),sig(:)
     logical lnone,last
@@ -60,7 +60,7 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
     nmc = max(1000,nint(25*2/(1-confidenceinterval/100)))
     allocate(yrs(0:nmax))
     allocate(xx(2,nmax),aa(nmc),bb(nmc),baba(nmc),xixi(nmc),tt(nmc,10,4),  &
- &       txtx(nmc,4),alphaalpha(nmc),betabeta(nmc),aacov(nmc,3))
+        txtx(nmc,4),alphaalpha(nmc),betabeta(nmc),aacov(nmc,3))
     year = yr2a
     if ( cov1 == 0 .and. cov2 == 0 ) then
         lnone = .true.
@@ -70,10 +70,10 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
 
     if ( lwrite ) print *,'fitgumcov: calling fill_linear_array'
     call fill_linear_array(yrseries,yrcovariate,npernew,j1,j2,   &
- &       fyr,lyr,mens1,mens,xx,yrs,nmax,ntot,lwrite)
+        fyr,lyr,mens1,mens,xx,yrs,nmax,ntot,lwrite)
     if ( lprint .and. lweb ) then
         print '(a,i9,a)','# <tr><td>N:</td><td>&nbsp;</td><td>', &
- &           ntot,'</td><td>&nbsp;</td></tr>'
+            ntot,'</td><td>&nbsp;</td></tr>'
     end if
     if ( ntot < 5 ) then
         print '(a)','</table>'
@@ -156,16 +156,14 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
         dbeta = dalpha
         call fit2gumcov(a,b,alpha,beta,dalpha,dbeta,iter)
     else
-        write(0,*) 'fitgumcov: error: unknown value for assume ', &
- &           assume
+        write(0,*) 'fitgumcov: error: unknown value for assume ',assume
     end if
     if ( assume == 'scale' ) ba = b/a
     xi = 0
-    call getreturnlevels(a,b,xi,alpha,beta,cov1,cov2,cov3,        &
- &       gevcovreturnlevel,j1,j2,assume,t)
+    call getreturnlevels(a,b,xi,alpha,beta,cov1,cov2,cov3,gevcovreturnlevel,j1,j2,assume,t)
     if ( xyear < 1e33 ) then
         call getreturnyears(a,b,xi,alpha,beta,xyear,cov1,cov2,cov3, &
- &           gevcovreturnyear,j1,j2,tx,lchangesign,lwrite)
+            gevcovreturnyear,j1,j2,tx,lchangesign,lwrite)
     end if
     call getabfromcov(a,b,alpha,beta,cov1,aaa,bbb)
     acov(1,1) = aaa
@@ -207,7 +205,7 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
         return
     end if
     if ( lprint .and. .not.lweb ) print '(a,i6,a)','# Doing a ',nmc  &
- &        ,'-member bootstrap to obtain error estimates'
+         ,'-member bootstrap to obtain error estimates'
     scross = 0
     do iens=1,nmc
         call keepalive1('Computing bootstrap sample ',iens,nmc)
@@ -218,14 +216,14 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
                 j = 1+int(ntot*ranf)
                 if ( j < 1 .or. j > ncur ) then
                     write(0,*) 'fitgumcov: error: j = ',j
-                    call abort
+                    call exit(-1)
                 end if
                 data(:,i) = xx(:,j)
             end do
         else
             call sample_bootstrap(yrseries,yrcovariate,             &
- &               npernew,j1,j2,fyr,lyr,nens1,nens2,crosscorr,       &
- &               ndecor,data,nmax,ntot,sdecor,lwrite)
+                npernew,j1,j2,fyr,lyr,nens1,nens2,crosscorr,       &
+                ndecor,data,nmax,ntot,sdecor,lwrite)
             scross = scross + sdecor
         end if
         aa(iens) = a
@@ -241,26 +239,26 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
         else if ( assume == 'both' ) then
             betabeta(iens) = beta
             call fit2gumcov(aa(iens),bb(iens),                       &
- &               alphaalpha(iens),betabeta(iens),dalpha,dbeta,iter)
+                alphaalpha(iens),betabeta(iens),dalpha,dbeta,iter)
         else
             write(0,*) 'fitgumcov: cannot handle assume = ',assume
-            call abort
+            call exit(-1)
         end if
         if ( assume == 'scale' ) baba(iens) = bb(iens)/aa(iens)
         call getabfromcov(aa(iens),bb(iens),                         &
- &           alphaalpha(iens),betabeta(iens),cov1,aaa,bbb)
+            alphaalpha(iens),betabeta(iens),cov1,aaa,bbb)
         aacov(iens,1) = aaa
         call getabfromcov(aa(iens),bb(iens),                         &
- &           alphaalpha(iens),betabeta(iens),cov2,aaa,bbb)
+            alphaalpha(iens),betabeta(iens),cov2,aaa,bbb)
         aacov(iens,2) = aaa
         if ( cov3 < 1e33 ) then
             call getabfromcov(aa(iens),bb(iens),                     &
- &               alphaalpha(iens),betabeta(iens),cov3,aaa,bbb)
+                alphaalpha(iens),betabeta(iens),cov3,aaa,bbb)
             aacov(iens,3) = aaa
         end if
         xi = 0
         call getreturnlevels(aa(iens),bb(iens),xi,alphaalpha(iens),  &
- &           betabeta(iens),cov1,cov2,cov3,gevcovreturnlevel,j1,j2,assume,ttt)
+            betabeta(iens),cov1,cov2,cov3,gevcovreturnlevel,j1,j2,assume,ttt)
         do i=1,10
             do j=1,4
                 tt(iens,i,j) = ttt(i,j)
@@ -268,8 +266,8 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
         end do
         if ( xyear < 1e33 ) then
             call getreturnyears(aa(iens),bb(iens),xi,                 &
- &               alphaalpha(iens),betabeta(iens),xyear,cov1,cov2,cov3, &
- &               gevcovreturnyear,j1,j2,txtxtx,lchangesign,lwrite)
+                alphaalpha(iens),betabeta(iens),xyear,cov1,cov2,cov3, &
+                gevcovreturnyear,j1,j2,txtxtx,lchangesign,lwrite)
             do j=1,4
                 txtx(iens,j) = txtxtx(j)
             end do
@@ -362,47 +360,42 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
 !
     if ( .not.lprint ) then
         call copyab3etc(a3,b3,xi3,alpha3,beta3,t3,tx3,                &
- &           a,a25,a975,b,b975,xi,xi,xi,alpha,alpha25,alpha975,       &
- &           beta,beta25,beta975,t,t25,t975,tx,tx25,tx975)
+            a,a25,a975,b,b975,xi,xi,xi,alpha,alpha25,alpha975,       &
+            beta,beta25,beta975,t,t25,t975,tx,tx25,tx975)
         if ( .not.lwrite ) return
     end if
     if ( lweb ) then
         if ( lnone ) then
             print '(a)','# <tr><td colspan="4">Fitted to Gumbel '//            &
-     &           'distribution P(x) = exp(-exp(-(x-&mu;)/&sigma;))'   &
-     &           //'</td></tr>'
+                'distribution P(x) = exp(-exp(-(x-&mu;)/&sigma;))</td></tr>'
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'//         &
-     &           '&mu;:</td><td>',a,'</td><td>',       &
-     &           a25,'...',a975,'</td></tr>'
+                '&mu;:</td><td>',a,'</td><td>',a25,'...',a975,'</td></tr>'
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'//         &
-     &           '&sigma;:</td><td>',b,'</td><td>',    &
-     &           b25,'...',b975,'</td></tr>'
+                '&sigma;:</td><td>',b,'</td><td>',b25,'...',b975,'</td></tr>'
             if ( assume == 'scale' ) then
                 print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
-            &           '&sigma;/&mu;:</td><td>',ba,'</td><td>',ba25,'...',ba975,'</td></tr>'
+                       '&sigma;/&mu;:</td><td>',ba,'</td><td>',ba25,'...',ba975,'</td></tr>'
             end if
         else
             print '(a)','# <tr><td colspan="4">Fitted to Gumbel '//       &
-     &           'distribution P(x) = exp(-exp(-(x-&mu;'')/&sigma;''))'   &
-     &           //'</td></tr>'
+                'distribution P(x) = exp(-exp(-(x-&mu;'')/&sigma;''))'   &
+                //'</td></tr>'
             call printab(lweb)
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'//  &
-     &           '&mu;:</td><td>',a,'</td><td>',a25,'...',a975,           &
-     &           '</td></tr>'
+                '&mu;:</td><td>',a,'</td><td>',a25,'...',a975,'</td></tr>'
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'//  &
-     &           '&sigma;:</td><td>',b,'</td><td>',b25,'...',b975,        &
-     &           '</td></tr>'
+                '&sigma;:</td><td>',b,'</td><td>',b25,'...',b975,'</td></tr>'
             if ( assume == 'scale' ) then
                 print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
-            &           '&sigma;/&mu;:</td><td>',ba,'</td><td>',ba25,'...',ba975,'</td></tr>'
+                       '&sigma;/&mu;:</td><td>',ba,'</td><td>',ba25,'...',ba975,'</td></tr>'
             end if
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'//  &
-     &           '&alpha;:</td><td>',alpha,'</td><td>',alpha25,'...',     &
-     &           alpha975,'</td></tr>'
+                '&alpha;:</td><td>',alpha,'</td><td>',alpha25,'...',     &
+                alpha975,'</td></tr>'
             if ( assume == 'both' ) then
                 print '(a,f16.3,a,f16.3,a,f16.3,a)',                       &
-     &               '# <tr><td colspan=2>&beta;:</td><td>',beta,          &
-     &               '</td><td>',beta25,'...',beta975,'</td></tr>'
+                    '# <tr><td colspan=2>&beta;:</td><td>',beta,          &
+                    '</td><td>',beta25,'...',beta975,'</td></tr>'
             end if
         end if
     else
@@ -466,22 +459,22 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
         call plotreturnvalue(ntype,t25(1,1),t975(1,1),j2-j1+1)
         ys(1:ntot) = yy(1:ntot)
         call plot_ordered_points(yy,ys,yrs,ntot,ntype,nfit,   &
-     &       frac,a,b,xi,j1,j2,minindx,mindata,pmindata,      &
-     &       year,xyear,snorm,lchangesign,lwrite,.true.)
+            frac,a,b,xi,j1,j2,minindx,mindata,pmindata,      &
+            year,xyear,snorm,lchangesign,lwrite,.true.)
     else
         ! compute distribution at past year and plot it
         call adjustyy(ntot,xx,assume,a,b,alpha,beta,cov1,      &
-     &       yy,zz,aaa,bbb,lchangesign,lwrite)
+            yy,zz,aaa,bbb,lchangesign,lwrite)
         ys(1:ntot) = yy(1:ntot)
         print '(a,i5)','# distribution in year ',yr1a
         call plotreturnvalue(ntype,t25(1,1),t975(1,1),j2-j1+1)
         call plot_ordered_points(yy,ys,yrs,ntot,ntype,nfit,    &
-     &       frac,aaa,bbb,xi,j1,j2,minindx,mindata,pmindata,   &
-     &       year,xyear,snorm,lchangesign,lwrite,.false.)
+            frac,aaa,bbb,xi,j1,j2,minindx,mindata,pmindata,   &
+            year,xyear,snorm,lchangesign,lwrite,.false.)
 
         ! compute distribution at current year and plot it
         call adjustyy(ntot,xx,assume,a,b,alpha,beta,cov2,      &
-     &       yy,zz,aaa,bbb,lchangesign,lwrite)
+            yy,zz,aaa,bbb,lchangesign,lwrite)
         ys(1:ntot) = yy(1:ntot)
         print '(a)'
         print '(a)'
@@ -493,8 +486,8 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
         end if
         call plotreturnvalue(ntype,t25(1,2),t975(1,2),j2-j1+1)
         call plot_ordered_points(yy,ys,yrs,ntot,ntype,nfit,    &
-     &       frac,aaa,bbb,xi,j1,j2,minindx,mindata,pmindata,   &
-     &       year,xyear,snorm,lchangesign,lwrite,last)
+            frac,aaa,bbb,xi,j1,j2,minindx,mindata,pmindata,   &
+            year,xyear,snorm,lchangesign,lwrite,last)
         if ( cov3 < 1e33 ) then
             ! compute distribution at optional future year and plot it
             ! only plot the data points if they (almost) go up to that year
@@ -518,6 +511,7 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
 end subroutine
 
 subroutine fit0gumcov(a,b,iter)
+    use AmoebaToGSL
     implicit none
     integer iter
     real a,b,alpha,dalpha
@@ -553,6 +547,7 @@ subroutine fit0gumcov(a,b,iter)
 end subroutine
 
 subroutine fit1gumcov(a,b,alpha,dalpha,iter)
+    use AmoebaToGSL
     implicit none
     integer iter
     real a,b,alpha,dalpha
@@ -594,6 +589,7 @@ subroutine fit1gumcov(a,b,alpha,dalpha,iter)
 end subroutine
 
 subroutine fit2gumcov(a,b,alpha,beta,dalpha,dbeta,iter)
+    use AmoebaToGSL
     implicit none
     integer iter
     real a,b,alpha,beta,dalpha,dbeta
@@ -644,8 +640,7 @@ subroutine fit2gumcov(a,b,alpha,beta,dalpha,dbeta,iter)
     alpha = p(1,3)
     beta = p(1,4)
 end subroutine
-!  #] fit2gumcov:
-!  #[ llgumbelcov:
+
 real function llgumbelcov(p)
 !
 !   computes the log-likelihood function for a Gumbel distribution
@@ -690,8 +685,7 @@ real function llgumbelcov(p)
     end if
 !   minimum, not maximum
     llgumbelcov = -llgumbelcov
-    if ( llwrite ) print *,'a,b,alpha,llgumcov = ',    &
- &       p(1),p(2),p(3),llgumbelcov
+    if ( llwrite ) print *,'a,b,alpha,llgumcov = ',p(1),p(2),p(3),llgumbelcov
 !
 999 continue
 end function
@@ -704,7 +698,7 @@ subroutine gumbcovnorm(a,b,alpha,beta,s)
 
     if ( minindx > -1e33 .or. maxindx < 1e33 ) then
         write(0,*) 'gumbcovnorm: boundaries not yet available for fit of gumbel(t)'
-        call abort
+        call exit(-1)
     else
         s = 1
     end if

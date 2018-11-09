@@ -209,6 +209,7 @@ subroutine fitgev(xx,ntot,mean,sd,a,b,xi,j1,j2,lweb,ntype &
 end subroutine fitgev
 
 subroutine fit1gev(a,b,xi,iter)
+    use AmoebaToGSL
     implicit none
     integer :: iter
     real :: a,b,xi

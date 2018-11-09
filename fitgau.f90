@@ -4,6 +4,7 @@ subroutine fitgau(xx,ntot,mean,sd,a,b,minindx,maxindx,ntype, &
 
 !   a fit a gaussian distribution to the data
 
+    use AmoebaToGSL
     implicit none
 
     integer :: ntot,ntype,j1,j2,year

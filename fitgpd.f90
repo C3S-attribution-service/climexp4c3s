@@ -18,20 +18,19 @@ subroutine fitgpd(xx,ntot,mean,sd,b,xi,j1,j2,lweb,ntype &
     parameter(nmc=1000)
     integer :: ntot,j1,j2,ntype,year
     real :: xx(ntot),mean,sd,b,pthreshold,inrestrain,xyear, &
-    t(10),t25(10),t975(10),tx,tx25,tx975,confidenceinterval
+        t(10),t25(10),t975(10),tx,tx25,tx975,confidenceinterval
     logical :: lweb,lchangesign,lboot,lprint,lwrite
     character assume*5
 
-    integer :: i,j,k,n,nx,iter,iens,iweird,nweird
+    integer :: i,j,k,n,nx,iter,iens
     real :: x,xi,bb(nmc),xixi(nmc),tt(nmc,10),b25 &
-    ,b975,xi25,xi975,t5(10),t1(10),db,dxi,f &
-    ,threshold,thens,z,ll,ll1,txtx(nmc),ranf
-    character lgt*4
-    save iweird,nweird
-    data iweird,nweird /0,1/
+        ,b975,xi25,xi975,t5(10),t1(10),db,dxi,f &
+        ,threshold,thens,z,ll,ll1,txtx(nmc),ranf
+    character :: lgt*4
+    integer,save :: iweird=0,nweird=1
 
-    integer :: nmax,ncur
-    parameter(nmax=100000)
+    integer :: ncur
+    integer,parameter :: nmax=100000
     real :: data(nmax),restrain,cthreshold
     logical :: llwrite,llchangesign
     common /fitdata1/ data
@@ -39,13 +38,11 @@ subroutine fitgpd(xx,ntot,mean,sd,b,xi,j1,j2,lweb,ntype &
     character cassume*5
     common /fitdata4/ cassume
 
-    real :: llgpd
-    external llgpd
+    real,external :: llgpd
 
     if ( ntot > nmax ) then
-        write(0,*) 'fitgpd: error: recompile with nmax at least ', &
-        ntot
-        call abort
+        write(0,*) 'fitgpd: error: recompile with nmax at least ',ntot
+        call exit(-1)
     end if
     llwrite = lwrite
     if ( lwrite ) then
@@ -57,11 +54,11 @@ subroutine fitgpd(xx,ntot,mean,sd,b,xi,j1,j2,lweb,ntype &
         if ( .false. ) then
             do i=1,ntot
                 print *,i,xx(i)
-            enddo
-        endif
-    endif
+            end do
+        end if
+    end if
 
-!       ill-defined case
+!   ill-defined case
 
     if ( sd == 0 ) then
         xi = 3e33
@@ -73,31 +70,29 @@ subroutine fitgpd(xx,ntot,mean,sd,b,xi,j1,j2,lweb,ntype &
         tx25 = 3e33
         tx975 = 3e33
         return
-    endif
+    end if
 
 !   copy to common for routine llgpd
 
     if ( pthreshold > 1e33 .or. pthreshold == 0 ) then
-        write(*,'(a)') '# histogram: please specify threshold when' &
-        //' fitting GPD to tail'
-        call abort
-    endif
+        write(*,'(a)') '# histogram: please specify threshold when fitting GPD to tail'
+        call exit(-1)
+    end if
     call getcut(threshold,pthreshold,ntot,xx)
     ncur = 0
     do i=1,ntot
         if ( xx(i) >= threshold ) then
             ncur = ncur + 1
             data(ncur) = xx(i) - threshold
-        endif
-    enddo
+        end if
+    end do
     restrain = inrestrain
     cthreshold = threshold
     cassume = assume
     llchangesign = lchangesign
-    if ( lwrite ) print *,'fitgpd: found ',ncur &
-    ,' points above threshold'
-!       make sure that points with a lot of equal values at the
-!       threshold are not included...
+    if ( lwrite ) print *,'fitgpd: found ',ncur,' points above threshold'
+!   make sure that points with a lot of equal values at the
+!   threshold are not included...
     if ( ncur < 3 .or. ncur > 2*(1-pthreshold/100)*ntot ) then
         xi = 3e33
         b = 3e33
@@ -108,7 +103,7 @@ subroutine fitgpd(xx,ntot,mean,sd,b,xi,j1,j2,lweb,ntype &
         tx25 = 3e33
         tx975 = 3e33
         return
-    endif
+    end if
     b = sd
     if ( lchangesign .and. cassume == 'scale' ) then
         xi = -0.1
@@ -121,9 +116,8 @@ subroutine fitgpd(xx,ntot,mean,sd,b,xi,j1,j2,lweb,ntype &
         iweird = iweird + 1
         if ( iweird >= nweird ) then
             nweird = 2*nweird
-            print '(a,2g16.4,2i8)','# fitgpd: weird result for b = ' &
-            ,b,xi,ncur,iweird
-        endif
+            print '(a,2g16.4,2i8)','# fitgpd: weird result for b = ',b,xi,ncur,iweird
+        end if
         xi = 3e33
         b = 3e33
         t = 3e33
@@ -133,23 +127,23 @@ subroutine fitgpd(xx,ntot,mean,sd,b,xi,j1,j2,lweb,ntype &
         tx25 = 3e33
         tx975 = 3e33
         return
-    endif
+    end if
     do i=1,10
         if ( mod(i,3) == 1 ) then
             x = 1 + i/3
-        elseif ( mod(i,3) == 2 ) then
+        else if ( mod(i,3) == 2 ) then
             x = 1 + log10(2.) + i/3
         else
             x = log10(5.) + i/3
-        endif
+        end if
         x = x + log10(real(j2-j1+1)) + log10(1-pthreshold/100)
         if ( abs(xi) < 1e-4 ) then
             t(i) = b*x*log(10.) + 0.5*xi*(x*log(10.))**2
         else
             t(i) = b/xi*(-1 + exp(xi*x*log(10.)))
-        endif
+        end if
         t(i) = t(i) + threshold
-    enddo
+    end do
 
     if ( xyear < 1e33 ) then
         if ( xyear > threshold ) then
@@ -174,15 +168,15 @@ subroutine fitgpd(xx,ntot,mean,sd,b,xi,j1,j2,lweb,ntype &
             n = 0
             do i=1,ntot
                 if ( xx(i) > xyear ) n = n + 1
-            enddo
+            end do
             tx = real(ntot+1)/real(n)
-        endif
+        end if
         ! convert to years
         tx = tx/(j2-j1+1)
         if ( lwrite ) then
             print *,'return time = ',tx
         end if
-    endif
+    end if
 
 !   bootstrap to find error estimates
 
@@ -190,11 +184,10 @@ subroutine fitgpd(xx,ntot,mean,sd,b,xi,j1,j2,lweb,ntype &
         if ( lchangesign ) then
             b = -b
             t = -t
-        endif
+        end if
         return
-    endif
-    if ( .not. lweb ) print '(a,i6,a)','# doing a ',nmc &
-    ,'-member bootstrap to obtain error estimates'
+    end if
+    if ( .not. lweb ) print '(a,i6,a)','# doing a ',nmc,'-member bootstrap to obtain error estimates'
     do iens=1,nmc
         call keepalive1('Bootstrapping',iens,nmc)
         if ( .not. lweb .and. mod(iens,100) == 0 ) &
@@ -204,40 +197,39 @@ subroutine fitgpd(xx,ntot,mean,sd,b,xi,j1,j2,lweb,ntype &
             j = 1+int(ntot*ranf)
             if ( j < 1 .or. j > ntot ) then
                 write(0,*) 'fitgpd: error: j = ',j
-                call abort
-            endif
+                call exit(-1)
+            end if
             data(i) = xx(j)
-        enddo
+        end do
         call getcut(thens,pthreshold,ntot,data)
-    !           as a side effect, data is now sorted
+!       as a side effect, data is now sorted
         do i=ntot,1,-1
             data(i) = data(i) - thens
             if ( data(i) < 0 ) exit
-        enddo
+        end do
         ncur = ntot - i
         do i=1,ncur
             data(i) = data(i+ntot-ncur)
-        enddo
+        end do
         bb(iens) = b
         xixi(iens) = 0
         call fit1gpd(bb(iens),xixi(iens),iter)
         do i=1,10
             if ( mod(i,3) == 1 ) then
                 x = 1 + i/3
-            elseif ( mod(i,3) == 2 ) then
+            else if ( mod(i,3) == 2 ) then
                 x = 1 + log10(2.) + i/3
             else
                 x = log10(5.) + i/3
-            endif
+            end if
             x = x + log10(real(j2-j1+1)) + log10(1-pthreshold/100)
             if ( abs(xixi(iens)) < 1e-4 ) then
                 tt(iens,i) = bb(iens)*x*log(10.)
             else
-                tt(iens,i) = bb(iens)/xixi(iens)*(-1 + &
-                exp(xixi(iens)*x*log(10.)))
-            endif
+                tt(iens,i) = bb(iens)/xixi(iens)*(-1 + exp(xixi(iens)*x*log(10.)))
+            end if
             tt(iens,i) = tt(iens,i) + thens
-        enddo
+        end do
         if ( xyear < 1e33 ) then
             if ( xyear > thens ) then
                 x =  xyear - thens
@@ -249,34 +241,34 @@ subroutine fitgpd(xx,ntot,mean,sd,b,xi,j1,j2,lweb,ntype &
                         z = (1 + xixi(iens)*x/bb(iens))
                     else
                         z = 1e20
-                    endif
+                    end if
                     if ( z > 0 ) then
                         z = log(z)/xixi(iens)
                         if ( z < 65 ) then
                             txtx(iens) = exp(z)/(1-pthreshold/100)
                         else
                             txtx(iens) = 1e20
-                        endif
+                        end if
                     else
                         txtx(iens) = 1e20
-                    endif
-                endif
+                    end if
+                end if
             else
                 n = 0
                 do i=1,ntot
                     if ( data(i) > xyear-thens ) n = n + 1
-                enddo
+                end do
                 txtx(iens) = real(ntot+1)/real(n)
-            endif
-        ! convert to years
+            end if
+            ! convert to years
             txtx(iens) = txtx(iens)/(j2-j1+1)
             if ( lwrite ) print *,'return time ',iens,txtx(iens)
-        endif
-    enddo
+        end if
+    end do
     if ( lchangesign ) then
         t = -t
         tt = -tt
-    endif
+    end if
     call getcut( b25,(100-confidenceinterval)/2,nmc,bb)
     call getcut(b975,(100+confidenceinterval)/2,nmc,bb)
     call getcut( xi25,(100-confidenceinterval)/2,nmc,xixi)
@@ -290,72 +282,64 @@ subroutine fitgpd(xx,ntot,mean,sd,b,xi,j1,j2,lweb,ntype &
             lgt = '&gt;'
             call getcut(t5(i),95.,nmc,tt(1,i))
             call getcut(t1(i),99.,nmc,tt(1,i))
-        endif
+        end if
         call getcut( t25(i),(100-confidenceinterval)/2,nmc,tt(1,i))
         call getcut(t975(i),(100+confidenceinterval)/2,nmc,tt(1,i))
-    enddo
+    end do
     if ( xyear < 1e33 ) then
         call getcut( tx25,(100-confidenceinterval)/2,nmc,txtx)
         call getcut(tx975,(100+confidenceinterval)/2,nmc,txtx)
-    endif
+    end if
 
 !   output
 
     if ( .not. lprint .and. .not. lwrite ) return
     if ( lweb ) then
         print '(a)','# <tr><td colspan="3">Fitted to GPD '// &
-        'distribution H(x) = 1 - (1+&xi;(x-&mu;)/&sigma;)'// &
-        '^(-1/&xi;)</td></tr>'
+            'distribution H(x) = 1 - (1+&xi;(x-&mu;)/&sigma;)^(-1/&xi;)</td></tr>'
         if ( lchangesign ) then
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>&mu;:'// &
-            '</td><td>',-threshold,'</td><td>(',100-pthreshold, &
-            '%)</td></tr>'
+                '</td><td>',-threshold,'</td><td>(',100-pthreshold,'%)</td></tr>'
         else
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>&mu;:'// &
-            '</td><td>',threshold,'</td><td>(',pthreshold, &
-            '%)</td></tr>'
+                '</td><td>',threshold,'</td><td>(',pthreshold,'%)</td></tr>'
         end if
         print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>&sigma;:'// &
-        '</td><td>',b,'</td><td>',b25,'...',b975,'</td></tr>'
+            '</td><td>',b,'</td><td>',b25,'...',b975,'</td></tr>'
         print '(a,f16.3,a,f16.3,a,f16.3,a)' &
-        ,'# <tr><td>&xi;:</td><td>',xi,'</td><td>',xi25,'...' &
-        ,xi975,'</td></tr>'
+            ,'# <tr><td>&xi;:</td><td>',xi,'</td><td>',xi25,'...' ,xi975,'</td></tr>'
     else
-        print '(a,i5,a)','# Fitted to GPD distribution in ',iter &
-        ,' iterations'
+        print '(a,i5,a)','# Fitted to GPD distribution in ',iter,' iterations'
         print '(a)','# H(x) = 1-(1+xi*(x-a)/b)**(-1/xi) with'
-        print '(a,f16.3,a,f16.3,a,f16.3)','# a = ',threshold, &
-        ' (',pthreshold,'%)'
-        print '(a,f16.3,a,f16.3,a,f16.3)','# b = ',b,' \\pm ',b975 &
-        -b25
-        print '(a,f16.3,a,f16.3,a,f16.3)','# xi= ',xi,' \\pm ',xi975 &
-        -xi25
-    endif
+        print '(a,f16.3,a,f16.3,a,f16.3)','# a = ',threshold,' (',pthreshold,'%)'
+        print '(a,f16.3,a,f16.3,a,f16.3)','# b = ',b,' \\pm ',b975-b25
+        print '(a,f16.3,a,f16.3,a,f16.3)','# xi= ',xi,' \\pm ',xi975-xi25
+    end if
     call printreturnvalue(ntype,t,t25,t975,lweb)
     if ( lchangesign .and. xyear < 1e33 ) xyear = -xyear
     call printreturntime(year,xyear,tx,tx25,tx975,lweb)
     if ( lchangesign .and. xyear < 1e33 ) xyear = -xyear
     call plotreturnvalue(ntype,t25,t975,j2-j1+1)
-    end subroutine fitgpd
-!  #] fitgpd:
-!  #[ fit1gpd:
-    subroutine fit1gpd(b,xi,iter)
+end subroutine fitgpd
+
+subroutine fit1gpd(b,xi,iter)
+    use AmoebaToGSL
     implicit none
     integer :: iter
     real :: b,xi
     integer :: i
     real :: q(2),p(3,2),y(3),tol
     logical :: lok
-    integer :: nmax,ncur
-    parameter(nmax=100000)
+
+    integer :: ncur
+    integer,parameter :: nmax=100000
     real :: data(nmax),restrain,cthreshold
     logical :: llwrite,llchangesign
     common /fitdata1/ data
     common /fitdata2/ restrain,ncur,llwrite,llchangesign,cthreshold
     character cassume*5
     common /fitdata4/ cassume
-    real :: llgpd
-    external llgpd
+    real,external :: llgpd
 
 !   fit, using Numerical Recipes routines
 
@@ -374,7 +358,7 @@ subroutine fitgpd(xx,ntot,mean,sd,b,xi,j1,j2,lweb,ntype &
         q(2) = p(i,2)
         y(i) = llgpd(q)
         if ( y(i) < 1e33 ) lok = .true. 
-    enddo
+    end do
     if ( .not. lok ) then
         if ( xi /= 0 ) then
             xi = xi + 0.1*xi/abs(xi)
@@ -407,8 +391,8 @@ end subroutine fit1gpd
 
 real function llgpd(p)
 
-!       computes the log-likelihood function for a GPD distribution
-!       with parameters a,b=p(1),p(2) and data in common.
+!   computes the log-likelihood function for a GPD distribution
+!   with parameters a,b=p(1),p(2) and data in common.
 
     implicit none
 
@@ -435,14 +419,14 @@ real function llgpd(p)
     if ( b <= 1e-15 ) then
         llgpd = 3e33
         goto 999
-    endif
+    end if
     if ( abs(xi) > 10 ) then
         llgpd = 3e33
         goto 999
-    endif
+    end if
     if ( restrain < 0 ) then
         write(0,*) 'llgpd: restrain<0 ',restrain
-        call abort
+        call exit(-1)
     end if
     if ( llchangesign .and. cassume == 'scale' ) then
         if ( init == 0 ) then
@@ -450,14 +434,14 @@ real function llgpd(p)
             write(0,*) 'Enforcing a hard lower bound of zero.'
         end if
         if ( xi >= 0 ) then
-        ! scaling implies (for climate) that the distribution cannot cross zero,
-        ! so xi must be < 0
+            ! scaling implies (for climate) that the distribution cannot cross zero,
+            ! so xi must be < 0
             llgpd = 3e33
             goto 999
         end if
         if ( b > abs(cthreshold*xi) ) then
-        ! scaling implies (for climate) that the distribution cannot cross zero,
-        ! so the upper limit must be <0 (for flipped signs)
+            ! scaling implies (for climate) that the distribution cannot cross zero,
+            ! so the upper limit must be <0 (for flipped signs)
             llgpd = 3e33
             goto 999
         end if
@@ -467,12 +451,12 @@ real function llgpd(p)
         z = data(i)
         if ( z < 0 ) then
             write(0,*) 'llgpd: z<0 ',z,i,ncur
-            call abort
-        endif
+            call exit(-1)
+        end if
         if ( 1+xi*z/b <= 0 ) then
             llgpd = 3e33
             goto 999
-        endif
+        end if
         llold = llgpd
         if ( abs(xi) < 1e-4 ) then
             llgpd = llgpd - z/b + (z/b)**2*xi/2
@@ -480,20 +464,20 @@ real function llgpd(p)
         else
             llgpd = llgpd - (1+1/xi)*log(1+xi*z/b)
         !!!                print *,i,z, - (1+1/xi)*log(1+xi*z/b) - log(b)
-        endif
+        end if
         if ( llwrite ) print *,i,z,b,llgpd-llold
-    enddo
+    end do
     if ( restrain == 0 ) then
         llgpd = llgpd - ncur*log(b)
     else
-    !   the -2 gives visually much better results;
-    !   I am unsure of the mathematical derivation
+        !   the -2 gives visually much better results;
+        !   I am unsure of the mathematical derivation
         llgpd = llgpd - (ncur-2)*log(b)
-    !   preconditioning on xi with gaussian of width restrain/2
-    !   around 0
+        !   preconditioning on xi with gaussian of width restrain/2
+        !   around 0
         llgpd = llgpd - (xi/(restrain/2))**2/2
-    endif
-!       minimum, not maximum
+    end if
+    !       minimum, not maximum
     llgpd = -llgpd
 999 continue
 !!!        print '(a,i3,2f6.2,f10.4)','ncur,b,xi,llgpd = ',ncur,p(1),p(2)

@@ -1,8 +1,8 @@
 subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
-     &       ,mens1,mens,crosscorr,a3,b3,alpha3,beta3,j1,j2,nens1,nens2 &
-     &       ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2 &
-     &       ,cov3,offset,t3,tx3,assume,confidenceinterval,ndecor,lboot &
-     &       ,lprint,dump,plot,lwrite)
+            ,mens1,mens,crosscorr,a3,b3,alpha3,beta3,j1,j2,nens1,nens2 &
+            ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2 &
+            ,cov3,offset,t3,tx3,assume,confidenceinterval,ndecor,lboot &
+            ,lprint,dump,plot,lwrite)
 !
 !   a fit a gaussian distribution with mean linearly dependent on a covariate 
 !   to the data
@@ -11,9 +11,9 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
 !
     integer npernew,fyr,lyr,mens1,mens,ntot,ntype,j1,j2,nens1,nens2,yr1a,yr2a,yr2b,ndecor
     real yrseries(npernew,fyr:lyr,0:mens), &
-     &       yrcovariate(npernew,fyr:lyr,0:mens),crosscorr(0:mens,0:mens), &
-     &       a3(3),b3(3),alpha3(3),beta3(3),xyear,cov1,cov2,cov3, &
-     &       offset,t3(3,10,3),tx3(3,3),confidenceinterval
+            yrcovariate(npernew,fyr:lyr,0:mens),crosscorr(0:mens,0:mens), &
+            a3(3),b3(3),alpha3(3),beta3(3),xyear,cov1,cov2,cov3, &
+            offset,t3(3,10,3),tx3(3,3),confidenceinterval
     logical lweb,lchangesign,lboot,lprint,dump,plot,lwrite
     character assume*(*),idmax*(*)
 !
@@ -22,9 +22,9 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
     integer i,j,jj,n,nx,iter,iens,nfit,imc,ier,year,nj
     integer,allocatable :: yrs(:)
     real a,b,ba,t(10,4),t25(10,4),t975(10,4),tx(4),tx25(4),tx975(4), &
-     &       aa(nmc),bb(nmc),baba(nmc),tt(nmc,10,4),xi,alpha,beta,dalpha,dbeta, &
-     &       xmin,z,x,f,txtx(nmc,4),alphaalpha(nmc),betabeta(nmc), &
-     &       mean,sd,ranf,mindata,minindx,pmindata,snorm,s,frac,scross,sdecor
+            aa(nmc),bb(nmc),baba(nmc),tt(nmc,10,4),xi,alpha,beta,dalpha,dbeta, &
+            xmin,z,x,f,txtx(nmc,4),alphaalpha(nmc),betabeta(nmc), &
+            mean,sd,ranf,mindata,minindx,pmindata,snorm,s,frac,scross,sdecor
     real a25,a975,b25,b975,ba25,ba975,alpha25,alpha975,beta25,beta975,aa25,aa975,bb25,bb975
     real adev,var,skew,curt,aaa,bbb,siga,chi2,q,cmin,cmax,plo,phi
     real ttt(10,4),txtxtx(4),dum,xi3(3),acov(3,3),aacov(nmc,3)
@@ -54,10 +54,10 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
 
     if ( lwrite ) print *,'fitgaucov: calling fill_linear_array'
     call fill_linear_array(yrseries,yrcovariate,npernew,j1,j2, &
-     &       fyr,lyr,mens1,mens,xx,yrs,nmax,ntot,lwrite)
+            fyr,lyr,mens1,mens,xx,yrs,nmax,ntot,lwrite)
     if ( lprint .and. lweb ) then
         print '(a,i9,a)','# <tr><td>N:</td><td>&nbsp;</td><td>', &
-     &           ntot,'</td><td>&nbsp;</td></tr>'
+                ntot,'</td><td>&nbsp;</td></tr>'
     end if
     if ( ntot < 5 ) then
         print '(a)','</table>'
@@ -197,7 +197,7 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
         return
     endif
     if ( lprint .and. .not.lweb ) print '(a,i6,a)','# doing a ',nmc &
-     &        ,'-member bootstrap to obtain error estimates'
+             ,'-member bootstrap to obtain error estimates'
     scross = 0
     do iens=1,nmc
         if ( lprint .and. .not.lweb .and. mod(iens,100).eq.0 ) print '(a,i6)','# ',iens
@@ -226,8 +226,8 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
             enddo
         else
             call sample_bootstrap(yrseries,yrcovariate, &
-     &               npernew,j1,j2,fyr,lyr,nens1,nens2,crosscorr, &
-     &               ndecor,data,nmax,ntot,sdecor,lwrite)
+                    npernew,j1,j2,fyr,lyr,nens1,nens2,crosscorr, &
+                    ndecor,data,nmax,ntot,sdecor,lwrite)
             scross = scross + sdecor
         end if
         aa(iens) = a
@@ -258,8 +258,8 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
             aacov(iens,3) = aaa
         end if
         call getreturnlevels(aa(iens),bb(iens),dum, &
-     &           alphaalpha(iens),betabeta(iens), &
-     &           cov1,cov2,cov3,gaucovreturnlevel,j1,j1,assume,ttt)
+                alphaalpha(iens),betabeta(iens), &
+                cov1,cov2,cov3,gaucovreturnlevel,j1,j1,assume,ttt)
         do i=1,10
             do j=1,4
                 tt(iens,i,j) = ttt(i,j)
@@ -267,8 +267,8 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
         end do
         if ( xyear.lt.1e33 ) then
             call getreturnyears(aa(iens),bb(iens),dum, &
-     &               alphaalpha(iens),betabeta(iens),xyear,cov1,cov2,cov3, &
-     &               gaucovreturnyear,j1,j1,txtxtx,lchangesign,lwrite)
+                    alphaalpha(iens),betabeta(iens),xyear,cov1,cov2,cov3, &
+                    gaucovreturnyear,j1,j1,txtxtx,lchangesign,lwrite)
             do j=1,4
                 txtx(iens,j) = txtxtx(j)
             end do
@@ -357,57 +357,57 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
     if ( .not.lprint ) then
         xi = 0
         call copyab3etc(a3,b3,xi3,alpha3,beta3,t3,tx3, &
-     &           a,a25,a975,b,b975,xi,xi,xi,alpha,alpha25,alpha975, &
-     &           beta,beta25,beta975,t,t25,t975,tx,tx25,tx975)
+                a,a25,a975,b,b975,xi,xi,xi,alpha,alpha25,alpha975, &
+                beta,beta25,beta975,t,t25,t975,tx,tx25,tx975)
         if ( .not.lwrite ) return
     end if
     if ( lweb ) then
         if ( lnone ) then
             print '(a)','# <tr><td colspan="4">Fitted to normal '// &
-         &           'distribution P(x) = exp(-(x-&mu;)&sup2;'// &
-         &           '/(2&sigma;&sup2;))/(&sigma;&radic;(2&pi;))</td></tr>'
+                'distribution P(x) = exp(-(x-&mu;)&sup2;'// &
+                '/(2&sigma;&sup2;))/(&sigma;&radic;(2&pi;))</td></tr>'
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
-         &           '&mu;:</td><td>',a,'</td><td>',a25,'...',a975,'</td></tr>'
+                '&mu;:</td><td>',a,'</td><td>',a25,'...',a975,'</td></tr>'
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
-         &           '&sigma;:</td><td>',b,'</td><td>',b25,'...',b975,'</td></tr>'
+                '&sigma;:</td><td>',b,'</td><td>',b25,'...',b975,'</td></tr>'
             if ( assume == 'scale' ) then
                 print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
-            &           '&sigma;/&mu;:</td><td>',ba,'</td><td>',ba25,'...',ba975,'</td></tr>'
+                    '&sigma;/&mu;:</td><td>',ba,'</td><td>',ba25,'...',ba975,'</td></tr>'
             end if
         else
             print '(a)','# <tr><td colspan="4">Fitted to normal '// &
-         &           'distribution P(x) = exp(-(x-&mu;'')&sup2;'// &
-         &           '/(2&sigma;''&sup2;))/(&sigma;''&radic;(2&pi;))</td></tr>'
+                'distribution P(x) = exp(-(x-&mu;'')&sup2;'// &
+                '/(2&sigma;''&sup2;))/(&sigma;''&radic;(2&pi;))</td></tr>'
             call printab(lweb)
             call getabfromcov(a,b,alpha,beta,cov1,aaa,bbb)
             call getabfromcov(a25,b25,alpha,beta,cov1,aa25,bb25)
             call getabfromcov(a975,b975,alpha,beta,cov1,aa975,bb975)
             print '(a,i5,a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>'//         &
-     &           '&mu;'':</td><td>',yr1a,'</td><td>',aaa,'</td><td>',       &
-     &           aa25,'...',aa975,'</td></tr>'
+                '&mu;'':</td><td>',yr1a,'</td><td>',aaa,'</td><td>',       &
+                aa25,'...',aa975,'</td></tr>'
             print '(a,i5,a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>'//         &
-     &           '&sigma;'':</td><td>',yr1a,'</td><td>',bbb,'</td><td>',    &
-     &           bb25,'...',bb975,'</td></tr>'
+                '&sigma;'':</td><td>',yr1a,'</td><td>',bbb,'</td><td>',    &
+                bb25,'...',bb975,'</td></tr>'
             call getabfromcov(a,b,alpha,beta,cov2,aaa,bbb)
             call getabfromcov(a25,b25,alpha,beta,cov2,aa25,bb25)
             call getabfromcov(a975,b975,alpha,beta,cov2,aa975,bb975)
             print '(a,i5,a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>'//         &
-     &           '&mu;'':</td><td>',yr2a,'</td><td>',aaa,'</td><td>',       &
-     &           aa25,'...',aa975,'</td></tr>'
+                '&mu;'':</td><td>',yr2a,'</td><td>',aaa,'</td><td>',       &
+                aa25,'...',aa975,'</td></tr>'
             print '(a,i5,a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>'//         &
-     &           '&sigma;'':</td><td>',yr2a,'</td><td>',bbb,'</td><td>',    &
-     &           bb25,'...',bb975,'</td></tr>'
+                '&sigma;'':</td><td>',yr2a,'</td><td>',bbb,'</td><td>',    &
+                bb25,'...',bb975,'</td></tr>'
             if ( assume == 'scale' ) then
                 print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
-            &           '&sigma;/&mu;:</td><td>',ba,'</td><td>',ba25,'...',ba975,'</td></tr>'
+                    '&sigma;/&mu;:</td><td>',ba,'</td><td>',ba25,'...',ba975,'</td></tr>'
             end if
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
-         &           '&alpha;:</td><td>',alpha,'</td><td>',alpha25,'...', &
-         &           alpha975,'</td></tr>'
+                    '&alpha;:</td><td>',alpha,'</td><td>',alpha25,'...', &
+                    alpha975,'</td></tr>'
             if ( assume.eq.'both' ) then
                 print '(a,f16.3,a,f16.3,a,f16.3,a)', &
-         &               '# <tr><td colspan=2>&beta;:</td><td>',beta, &
-         &               '</td><td>',beta25,'...',beta975,'</td></tr>'
+                        '# <tr><td colspan=2>&beta;:</td><td>',beta, &
+                        '</td><td>',beta25,'...',beta975,'</td></tr>'
             end if
         end if
     else
@@ -517,9 +517,10 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
                 year,xyear,snorm,lchangesign,lwrite,.true.)
         end if
      end if
-end subroutine
+end subroutine fitgaucov
 
 subroutine fit0gaucov(a,b,iter)
+    use AmoebaToGSL
     implicit none
     integer iter
     real a,b
@@ -550,9 +551,10 @@ subroutine fit0gaucov(a,b,iter)
 !   maybe add restart later
     a = p(1,1)
     b = p(1,2)
-end subroutine
+end subroutine fit0gaucov
 
 subroutine fit1gaucov(a,b,alpha,dalpha,iter)
+    use AmoebaToGSL
     implicit none
     integer iter
     real a,b,alpha,dalpha
@@ -591,9 +593,10 @@ subroutine fit1gaucov(a,b,alpha,dalpha,iter)
     a = p(1,1)
     b = p(1,2)
     alpha = p(1,3)
-end subroutine
+end subroutine fit1gaucov
 
 subroutine fit2gaucov(a,b,alpha,beta,dalpha,dbeta,iter)
+    use AmoebaToGSL
     implicit none
     integer iter
     real a,b,alpha,beta,dalpha,dbeta
@@ -642,7 +645,7 @@ subroutine fit2gaucov(a,b,alpha,beta,dalpha,dbeta,iter)
     b = p(1,2)
     alpha = p(1,3)
     beta = p(1,4)
-end subroutine
+end subroutine fit2gaucov
 
 real function llgausscov(p)
 !
@@ -679,7 +682,7 @@ real function llgausscov(p)
     llgausscov = -llgausscov
 !!!        print *,'a,b,llgausscov = ',p(1),p(2),llgausscov
 !
-end function
+end function llgausscov
 
 subroutine gauscovnorm(a,b,s)
     implicit none
@@ -695,7 +698,7 @@ subroutine gauscovnorm(a,b,s)
         s = 1
     endif
 !!!        print *,'gauscovnorm: norm = ',a,b,s
-end subroutine
+end subroutine gauscovnorm
 
 real function gaucovreturnlevel(a,b,xi,alpha,beta,x,cov)
 !
@@ -713,7 +716,7 @@ real function gaucovreturnlevel(a,b,xi,alpha,beta,x,cov)
     z = serfci(f)
     t = aa + sqrt(2.)*bb*z
     gaucovreturnlevel = t
-end function
+end function gaucovreturnlevel
 
 real function gaucovreturnyear(a,b,xi,alpha,beta,xyear,cov,lchangesign)
 !
@@ -733,4 +736,4 @@ real function gaucovreturnyear(a,b,xi,alpha,beta,xyear,cov,lchangesign)
         tx = 2/erfc(z/sqrt(2.))
     end if
     gaucovreturnyear = tx
-end function
+end function gaucovreturnyear

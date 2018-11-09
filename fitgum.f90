@@ -201,6 +201,7 @@ subroutine fit1gum(a,b,iter)
 
 !   fit, using Numerical Recipes routines
 
+    use AmoebaToGSL
     implicit none
     real,intent(inout) :: a,b
     integer,intent(out) :: iter

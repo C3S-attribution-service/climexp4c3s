@@ -220,6 +220,7 @@ subroutine fit1gam(a,b,iter)
 
 !   fit, using Numerical Recipes routines
 
+    use AmoebaToGSL
     implicit none
     real,intent(inout) :: a,b
     integer,intent(out) :: iter
@@ -241,8 +242,10 @@ subroutine fit1gam(a,b,iter)
     tol = 1e-4
     call amoeba(p,y,3,2,2,tol,llgamma,iter)
 !   maybe add restart later
+    write(0,*) '@@@ back from amoeba'
     a = p(1,1)
     b = p(1,2)
+    write(0,*) '@@@ a,b = ',a,b
 end subroutine fit1gam
 
 real function llgamma(p)
@@ -252,7 +255,7 @@ real function llgamma(p)
 
     implicit none
     include 'getopts.inc'
-    real :: p(2)
+    real,intent(in) :: p(2)
     integer :: i
     integer,parameter :: nmax=10000000
     integer :: ncur
@@ -263,6 +266,7 @@ real function llgamma(p)
 
     real,external :: gammln,gammp,gammq
 
+    if ( llwrite .and. .true. ) print *,'llgamma: input ',p(1),p(2),ncur
     llgamma = 0
     do i=1,ncur
         if ( data(i)/p(2) <= 0 ) then
@@ -285,7 +289,7 @@ real function llgamma(p)
     end if
 !   minimum, not maximum
     llgamma = -llgamma
-    !!!print *,'a,b,llgamma,ncur = ',p(1),p(2),llgamma,ncur
+    if ( llwrite .and. .true. ) print *,'llgamma: output = ',llgamma
 
 end function llgamma
 
@@ -374,30 +378,32 @@ real function cumgamm(x)
 
     implicit none
     real :: x
-    real :: pc,ac,bc
-    common /ccumgamm/ pc,ac,bc
-    real,external :: gammp
+    real :: pc,ac,bc,p1c
+    common /ccumgamm/ pc,ac,bc,p1c
+    real,external :: gammp,gammq
 
     if ( x <= 0 ) then
         cumgamm = -pc
-    else
+    else if ( pc < 0.5 ) then
         cumgamm = gammp(ac,x/bc) - pc
+    else
+        cumgamm = p1c - gammq(ac,x/bc)
     end if
 
 end function cumgamm
 
-real function invcumgamm(p,a,b)
+real function invcumgamm(p,p1,a,b)
 
 !   compute the inverse of the cumulative Gamma distribution P(a,x/b)
 !   as long as I do not find or make an explicit function just solve
 !   the equation.
 
     implicit none
-    real,intent(in) :: p,a,b
+    real,intent(in) :: p,p1,a,b
     integer :: i
     real :: x,x1,x2,tol
-    real :: pc,ac,bc
-    common /ccumgamm/ pc,ac,bc
+    real :: pc,ac,bc,p1c
+    common /ccumgamm/ pc,ac,bc,p1c
     real,external :: cumgamm,zbrent
 
 !   check argument
@@ -416,6 +422,7 @@ real function invcumgamm(p,a,b)
     ac = a
     bc = b
     pc = p
+    p1c = p1
 
 !   bracket zero
 
@@ -454,23 +461,24 @@ real function gamreturnlevel(a,b,xn,x)
     implicit none
     real,intent(in) :: a,b,xn,x
     integer,save :: init=0
-    real :: p
+    real :: p,p1
     real,external :: invcumgamm
 
     if ( b > 0 ) then ! upper tail
-        p = 1 - 10**(-x)
+        p1 = 10**(-x)
+        p = 1 - p1
     else
         p = 10**(-x)
+        p1 = 1 - p
     end if
     if ( p < 1-xn ) then
         gamreturnlevel = 0
     else
-        p = (p+xn-1)/xn
-        if ( p > 0.99999 .and. init == 0 ) then
-            init = 1
-            write(0,*) 'gamreturnlevel: loss of precision, please upgrade algorithms ',p
+        if ( xn /= 1 ) then
+            p = (p+(xn-1))/xn
+            p1 = p1/xn
         end if
-        gamreturnlevel = invcumgamm(p,a,abs(b))
+        gamreturnlevel = invcumgamm(p,p1,a,abs(b))
     end if
 end function gamreturnlevel
 
@@ -482,15 +490,12 @@ real function gamreturnyear(a,b,xn,xyear)
     real,intent(in) :: a,b,xn,xyear
     integer,save :: init=0
     real :: p
-    real,external :: gammp
+    real,external :: gammp,gammq
 
-    p = gammp(a,xyear/b)
-    if ( ( p > 0.99999 .or. p < 0.00001 ) .and. init == 0 ) then
-        init = 1
-        write(0,*) 'gamreturnyear: loss of precision, please upgrade algorithms ',p
-    end if
     if ( b > 0 ) then
-        p = 1-p
+        p = gammq(a,xyear/b) ! = 1- gammp but numerically better.
+    else
+        p = gammp(a,xyear/b)
     end if
     if ( p > 0 ) then
         gamreturnyear = 1/p/xn

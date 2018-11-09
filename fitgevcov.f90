@@ -73,10 +73,10 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
 
     if ( lwrite ) print *,'fitgevcov: calling fill_linear_array'
     call fill_linear_array(yrseries,yrcovariate,npernew,j1,j2,          &
- &       fyr,lyr,mens1,mens,xx,yrs,nmax,ntot,lwrite)
+         fyr,lyr,mens1,mens,xx,yrs,nmax,ntot,lwrite)
     if ( lprint .and. lweb ) then
         print '(a,i9,a)','# <tr><td>N:</td><td>&nbsp;</td><td>',        &
- &           ntot,'</td><td>&nbsp;</td></tr>'
+             ntot,'</td><td>&nbsp;</td></tr>'
     end if
     if ( ntot < 6 ) then
         print '(a)','</table>'
@@ -136,7 +136,7 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
         return
     endif
 !
-!       copy to common for routine llgevcov
+!   copy to common for routine llgevcov
 !
     ncur = ntot
     do i=1,ncur
@@ -222,14 +222,14 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
         return
     endif
     if ( lprint .and. .not.lweb ) print '(a,i6,a)','# doing a ',nmc     &
- &        ,'-member bootstrap to obtain error estimates'
+          ,'-member bootstrap to obtain error estimates'
     iens = 0
     scross = 0
     do iiens=1,nmc
         iens = iens + 1
         call keepalive1('Bootstrapping',iiens,nmc)
         if ( lprint .and. .not.lweb .and. mod(iiens,100) == 0 )         &
- &           print '(a,i6)','# ',iiens
+             print '(a,i6)','# ',iiens
         method = 'new'
         if ( method == 'old' ) then
             do i=1,ntot
@@ -243,8 +243,8 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
             enddo
         else
             call sample_bootstrap(yrseries,yrcovariate,                 &
- &               npernew,j1,j2,fyr,lyr,nens1,nens2,crosscorr,           &
- &               ndecor,data,nmax,ntot,sdecor,lwrite)
+                 npernew,j1,j2,fyr,lyr,nens1,nens2,crosscorr,           &
+                 ndecor,data,nmax,ntot,sdecor,lwrite)
             scross = scross + sdecor
         end if
         aa(iens) = a
@@ -262,7 +262,7 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
         else if ( assume == 'both' ) then
             betabeta(iens) = beta
             call fit2gevcov(aa(iens),bb(iens),xixi(iens),               &
- &               alphaalpha(iens),betabeta(iens),dalpha,dbeta,iter)
+                 alphaalpha(iens),betabeta(iens),dalpha,dbeta,iter)
         else
             write(0,*) 'fitgevcov: error: unknown value for assume ',assume
         end if
@@ -286,8 +286,8 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
         end do
         if ( xyear < 1e33 ) then
             call getreturnyears(aa(iens),bb(iens),xixi(iens),           &
- &               alphaalpha(iens),betabeta(iens),xyear,cov1,cov2,cov3,  &
- &               gevcovreturnyear,j1,j2,txtxtx,lchangesign,lwrite)
+                 alphaalpha(iens),betabeta(iens),xyear,cov1,cov2,cov3,  &
+                 gevcovreturnyear,j1,j2,txtxtx,lchangesign,lwrite)
             do j=1,4
                 txtx(iens,j) = txtxtx(j)
             end do
@@ -393,73 +393,71 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
 !
     if ( .not.lprint ) then
         call copyab3etc(a3,b3,xi3,alpha3,beta3,t3,tx3,                  &
- &           a,a25,a975,b,b975,xi,xi,xi,alpha,alpha25,alpha975,         &
- &           beta,beta25,beta975,t,t25,t975,tx,tx25,tx975)
+             a,a25,a975,b,b975,xi,xi,xi,alpha,alpha25,alpha975,         &
+             beta,beta25,beta975,t,t25,t975,tx,tx25,tx975)
         if ( .not.lwrite ) return
     end if
     if ( lweb ) then
         if ( lnone ) then
             print '(a)','# <tr><td colspan="4">Fitted to GEV '//            &
-     &           'distribution P(x) = exp(-(1+&xi;(x-&mu;)'//             &
-     &               '/&sigma;)^(-1/&xi;))</td></tr>'
+                 'distribution P(x) = exp(-(1+&xi;(x-&mu;)'//             &
+                     '/&sigma;)^(-1/&xi;))</td></tr>'
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'//         &
-     &           '&mu;:</td><td>',a,'</td><td>',       &
-     &           a25,'...',a975,'</td></tr>'
+                 '&mu;:</td><td>',a,'</td><td>',       &
+                 a25,'...',a975,'</td></tr>'
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'//         &
-     &           '&sigma;:</td><td>',b,'</td><td>',    &
-     &           b25,'...',b975,'</td></tr>'
+                 '&sigma;:</td><td>',b,'</td><td>',    &
+                 b25,'...',b975,'</td></tr>'
             if ( assume == 'scale' ) then
                 print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
-     &           '&sigma;/&mu;:</td><td>',ba,'</td><td>',ba25,'...',ba975,'</td></tr>'
+                 '&sigma;/&mu;:</td><td>',ba,'</td><td>',ba25,'...',ba975,'</td></tr>'
             end if
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'//    &
-     &           '&xi;:</td><td>',xi,'</td><td>',xi25,'...',xi975,          &
-     &           '</td></tr>'
+                 '&xi;:</td><td>',xi,'</td><td>',xi25,'...',xi975,          &
+                 '</td></tr>'
         else
             print '(a)','# <tr><td colspan="4">Fitted to GEV '//            &
-     &           'distribution P(x) = exp(-(1+&xi;(x-&mu;'')'//             &
-     &               '/&sigma;'')^(-1/&xi;))</td></tr>'
+                 'distribution P(x) = exp(-(1+&xi;(x-&mu;'')'//             &
+                     '/&sigma;'')^(-1/&xi;))</td></tr>'
             call printab(lweb)
             call getabfromcov(a,b,alpha,beta,cov1,aaa,bbb)
             call getabfromcov(a25,b25,alpha,beta,cov1,aa25,bb25)
             call getabfromcov(a975,b975,alpha,beta,cov1,aa975,bb975)
             print '(a,i5,a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>'//         &
-     &           '&mu;'':</td><td>',yr1a,'</td><td>',aaa,'</td><td>',       &
-     &           aa25,'...',aa975,'</td></tr>'
+                 '&mu;'':</td><td>',yr1a,'</td><td>',aaa,'</td><td>',       &
+                 aa25,'...',aa975,'</td></tr>'
             print '(a,i5,a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>'//         &
-     &           '&sigma;'':</td><td>',yr1a,'</td><td>',bbb,'</td><td>',    &
-     &           bb25,'...',bb975,'</td></tr>'
+                 '&sigma;'':</td><td>',yr1a,'</td><td>',bbb,'</td><td>',    &
+                 bb25,'...',bb975,'</td></tr>'
             call getabfromcov(a,b,alpha,beta,cov2,aaa,bbb)
             call getabfromcov(a25,b25,alpha,beta,cov2,aa25,bb25)
             call getabfromcov(a975,b975,alpha,beta,cov2,aa975,bb975)
             print '(a,i5,a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>'//         &
-     &           '&mu;'':</td><td>',yr2a,'</td><td>',aaa,'</td><td>',       &
-     &           aa25,'...',aa975,'</td></tr>'
+                 '&mu;'':</td><td>',yr2a,'</td><td>',aaa,'</td><td>',       &
+                 aa25,'...',aa975,'</td></tr>'
             print '(a,i5,a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td>'//         &
-     &           '&sigma;'':</td><td>',yr2a,'</td><td>',bbb,'</td><td>',    &
-     &           bb25,'...',bb975,'</td></tr>'
+                 '&sigma;'':</td><td>',yr2a,'</td><td>',bbb,'</td><td>',    &
+                 bb25,'...',bb975,'</td></tr>'
             if ( assume == 'scale' ) then
                 print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
              &           '&sigma;/&mu;:</td><td>',ba,'</td><td>',ba25,'...',ba975,'</td></tr>'
             end if
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'//    &
-     &           '&xi;:</td><td>',xi,'</td><td>',xi25,'...',xi975,          &
-     &           '</td></tr>'
+                 '&xi;:</td><td>',xi,'</td><td>',xi25,'...',xi975,          &
+                 '</td></tr>'
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'//    &
-     &           '&alpha;:</td><td>',alpha,'</td><td>',alpha25,'...',       &
-     &           alpha975,'</td></tr>'
+                 '&alpha;:</td><td>',alpha,'</td><td>',alpha25,'...',       &
+                 alpha975,'</td></tr>'
             if ( assume == 'both' ) then
                 print '(a,f16.3,a,f16.3,a,f16.3,a)',                        &
-     &               '# <tr><td colspan=2>&beta;:</td><td>',beta,           &
-     &               '</td><td>',beta25,'...',beta975,'</td></tr>'
+                     '# <tr><td colspan=2>&beta;:</td><td>',beta,           &
+                     '</td><td>',beta25,'...',beta975,'</td></tr>'
             end if
         end if
     else
-        print '(a,i5,a)','# Fitted to GEV distribution in ',iter        &
- &           ,' iterations'
+        print '(a,i5,a)','# Fitted to GEV distribution in ',iter,' iterations'
         if ( lnone ) then
-            print '(a)','# P(x) = exp(-(1+xi*(x-a/b)**'//               &
-     &           '(-1/xi)) with'
+            print '(a)','# P(x) = exp(-(1+xi*(x-a/b)**(-1/xi)) with'
             print '(a,f16.3,a,f16.3,a,f16.3)','# a = ',a,' \\pm ',(a975-a25)/2
             print '(a,f16.3,a,f16.3,a,f16.3)','# b = ',b,' \\pm ',(b975-b25)/2
         else
@@ -519,8 +517,8 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
         call plotreturnvalue(ntype,t25(1,1),t975(1,1),j2-j1+1)
         ys(1:ntot) = yy(1:ntot)
         call plot_ordered_points(yy,ys,yrs,ntot,ntype,nfit,                 &
-     &       frac,a,b,xi,j1,j2,minindx,mindata,pmindata,                &
-     &       year,xyear,snorm,lchangesign,lwrite,.true.)
+             frac,a,b,xi,j1,j2,minindx,mindata,pmindata,                &
+             year,xyear,snorm,lchangesign,lwrite,.true.)
     else
     ! compute distribution at past year and plot it
         call adjustyy(ntot,xx,assume,a,b,alpha,beta,cov1,yy,zz,aaa,bbb,lchangesign,lwrite)
@@ -528,12 +526,12 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
         print '(a,i5)','# distribution in year ',yr1a
         call plotreturnvalue(ntype,t25(1,1),t975(1,1),j2-j1+1)
         call plot_ordered_points(yy,ys,yrs,ntot,ntype,nfit,                 &
-     &       frac,aaa,bbb,xi,j1,j2,minindx,mindata,pmindata,                &
-     &       year,xyear,snorm,lchangesign,lwrite,.false.)
+             frac,aaa,bbb,xi,j1,j2,minindx,mindata,pmindata,                &
+             year,xyear,snorm,lchangesign,lwrite,.false.)
 
         ! compute distribution at present year and plot it
         call adjustyy(ntot,xx,assume,a,b,alpha,beta,cov2,                   &
-     &       yy,zz,aaa,bbb,lchangesign,lwrite)
+             yy,zz,aaa,bbb,lchangesign,lwrite)
         ys(1:ntot) = yy(1:ntot)
         print '(a)'
         print '(a)'
@@ -545,8 +543,8 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
         end if
         call plotreturnvalue(ntype,t25(1,2),t975(1,2),j2-j1+1)
         call plot_ordered_points(yy,ys,yrs,ntot,ntype,nfit,                 &
-     &       frac,aaa,bbb,xi,j1,j2,minindx,mindata,pmindata,                &
-     &       year,xyear,snorm,lchangesign,lwrite,last)
+             frac,aaa,bbb,xi,j1,j2,minindx,mindata,pmindata,                &
+             year,xyear,snorm,lchangesign,lwrite,last)
         if ( cov3 < 1e33 ) then
             ! compute distribution at optional future year and plot it
             ! only plot the data points if they (almost) go up to that year
@@ -567,9 +565,10 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
         end if
     end if
 
-end subroutine
+end subroutine fitgevcov
 
 subroutine fit0gevcov(a,b,xi,iter)
+    use AmoebaToGSL
     implicit none
     integer iter
     real a,b,xi
@@ -632,9 +631,10 @@ subroutine fit0gevcov(a,b,xi,iter)
     a = p(1,1)
     b = abs(p(1,2))
     xi = p(1,3)
-end subroutine
+end subroutine fit0gevcov
 
 subroutine fit1gevcov(a,b,xi,alpha,dalpha,iter)
+    use AmoebaToGSL
     implicit none
     integer iter
     real a,b,xi,alpha,dalpha
@@ -706,9 +706,10 @@ subroutine fit1gevcov(a,b,xi,alpha,dalpha,iter)
     b = abs(p(1,2))
     xi = p(1,3)
     alpha = p(1,4)
-end subroutine
+end subroutine fit1gevcov
 
 subroutine fit2gevcov(a,b,xi,alpha,beta,dalpha,dbeta,iter)
+    use AmoebaToGSL
     implicit none
     integer iter
     real a,b,xi,alpha,beta,dalpha,dbeta
@@ -793,7 +794,7 @@ subroutine fit2gevcov(a,b,xi,alpha,beta,dalpha,dbeta,iter)
     xi = p(1,3)
     alpha = p(1,4)
     beta = p(1,5)
-end subroutine
+end subroutine fit2gevcov
 
 real function llgevcov(p)
 !
@@ -895,7 +896,7 @@ real function llgevcov(p)
 !
 999 continue
     if ( llwrite ) print *,'a,b,xi,alpha,llgevcov = ',p(1),p(2),p(3),p(4),llgevcov
-end function
+end function llgevcov
 
 subroutine gevcovnorm(a,b,xi,alpha,beta,s)
     implicit none
@@ -910,7 +911,7 @@ subroutine gevcovnorm(a,b,xi,alpha,beta,s)
         s = 1
     endif
 !!!        print *,'gevcovnorm: norm = ',a,b,s
-end subroutine
+end subroutine gevcovnorm
 
 real function gevcovreturnlevel(a,b,xi,alpha,beta,x,cov)
 !
@@ -939,7 +940,7 @@ real function gevcovreturnlevel(a,b,xi,alpha,beta,x,cov)
         end if
     end if
     gevcovreturnlevel = t
-end function
+end function gevcovreturnlevel
 
 real function gevcovreturnyear(a,b,xi,alpha,beta,xyear,cov,lchangesign)
 !
@@ -991,4 +992,4 @@ real function gevcovreturnyear(a,b,xi,alpha,beta,xyear,cov,lchangesign)
         write(0,*) 'a,b,xi,alpha,xyear = ',a,b,alpha,xi,xyear
     endif
     gevcovreturnyear = tx
-end function
+end function gevcovreturnyear
