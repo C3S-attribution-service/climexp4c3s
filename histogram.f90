@@ -939,7 +939,7 @@ program histogram
                         if ( minindx > 0 ) then
                             f = f + gammp(a,minindx/b)
                         end if
-                        s = invcumgamm(f,a,abs(b))
+                        s = invcumgamm(f,1-f,a,abs(b))
                     end if
                 else if ( nfit == 4 ) then
                     ! Gumbel distribution

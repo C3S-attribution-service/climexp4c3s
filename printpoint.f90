@@ -519,7 +519,7 @@ subroutine plot_ordered_points(xx,xs,yrs,ntot,ntype,nfit, &
                     ff = ff + gammp(a,minindx/b)
                 endif
                 if ( lchangesign ) ff = 1 - ff
-                s = invcumgamm(ff,a,abs(b))
+                s = invcumgamm(ff,1-ff,a,abs(b))
             end if
         elseif ( nfit == 4 ) then
         !   Gumbel distribution
