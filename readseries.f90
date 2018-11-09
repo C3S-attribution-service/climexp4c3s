@@ -237,7 +237,7 @@ subroutine readseriesheader(var,units,lvar,svar,history,metadata,line,unit,lwrit
             history = line(j+4:)
         else if ( line(k:j-1) == 'standard_name' ) then
             svar = line(j+4:)
-        else
+        else if ( n < 100 ) then
             n = n + 1
             metadata(1,n) = line(k:j-1)
             metadata(2,n) = line(j+4:)
