@@ -194,8 +194,7 @@ subroutine getperyear(ncid,varid,tt,nt,firstmo,firstyr,nperyear &
         else if ( abs(dtt-1) < 0.005 ) then
             nperyear = 1
         else
-            write(0,*) 'getperyear: error: cannot handle '// &
-            'timestep of ',dtt,' years yet'
+            write(0,*) 'getperyear: error: cannot handle timestep of ',dtt,' years yet'
             call exit(-1)
         endif
     endif
@@ -207,7 +206,7 @@ subroutine getperyear(ncid,varid,tt,nt,firstmo,firstyr,nperyear &
 111 continue
     j = j+1
     if ( ichar(units(j:j)) >= ichar('0') .and. &
-    ichar(units(j:j)) <= ichar('9') ) goto 111
+         ichar(units(j:j)) <= ichar('9') ) goto 111
     read(units(i:j-1),'(i4)') firstyr
     if ( lwrite ) print *,'read firstyr=',firstyr
     i = j+1
@@ -215,7 +214,7 @@ subroutine getperyear(ncid,varid,tt,nt,firstmo,firstyr,nperyear &
     112 continue
     j = j+1
     if ( ichar(units(j:j)) >= ichar('0') .and. &
-    ichar(units(j:j)) <= ichar('9') ) goto 112
+         ichar(units(j:j)) <= ichar('9') ) goto 112
     read(units(i:j-1),'(i2)') firstmo
     if ( lwrite ) print *,'read firstmo=',firstmo
     i = j+1
@@ -223,7 +222,7 @@ subroutine getperyear(ncid,varid,tt,nt,firstmo,firstyr,nperyear &
 113 continue
     j = j+1
     if ( ichar(units(j:j)) >= ichar('0') .and. &
-    ichar(units(j:j)) <= ichar('9') ) goto 113
+         ichar(units(j:j)) <= ichar('9') ) goto 113
     read(units(i:j-1),'(i2)') firstdy
     if ( lwrite ) print *,'read firstdy=',firstdy
 !       NCEP/NCAR reanalysis have hours since 1-1-1;

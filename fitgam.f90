@@ -242,10 +242,8 @@ subroutine fit1gam(a,b,iter)
     tol = 1e-4
     call amoeba(p,y,3,2,2,tol,llgamma,iter)
 !   maybe add restart later
-    write(0,*) '@@@ back from amoeba'
     a = p(1,1)
     b = p(1,2)
-    write(0,*) '@@@ a,b = ',a,b
 end subroutine fit1gam
 
 real function llgamma(p)
@@ -398,13 +396,14 @@ real function invcumgamm(p,p1,a,b)
 !   as long as I do not find or make an explicit function just solve
 !   the equation.
 
+    use ZbrentToGSL
     implicit none
     real,intent(in) :: p,p1,a,b
     integer :: i
     real :: x,x1,x2,tol
     real :: pc,ac,bc,p1c
     common /ccumgamm/ pc,ac,bc,p1c
-    real,external :: cumgamm,zbrent
+    real,external :: cumgamm
 
 !   check argument
 

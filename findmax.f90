@@ -394,3 +394,48 @@ subroutine gfield(datfile,ncid,field,nx,xx,ny,yy,nz,zz,nt &
     call exit(-1)
 999 continue
 end subroutine gfield
+
+subroutine zerolin(xnul,negpos,x,y,n)
+
+!   compute the first zero fitting a straight line through the
+!   2 points around the maximum.  Does not assume equidistant points.
+!   if negpos<0 look for descending slope, if >0 ascending,
+!   if 0 don't care.
+
+    implicit none
+    integer :: negpos,n
+    real :: xnul,x(n),y(n)
+    integer :: i,imax
+    real :: xm,xp,ym,yp,a,b,xx,yy
+    logical,parameter :: lwrite= .false.
+    if ( lwrite ) then
+        print *,'zerolin: input n=',n
+        print *,'x = ',x
+        print *,'y = ',y
+    endif
+
+!   safety first
+
+    xnul = 3e33
+    if ( n < 2 ) then
+        write(0,*) 'zerolin: error: array too short',n,'<br>'
+        return
+    end if
+
+!   find first zero
+
+    do i=2,n
+        if ( y(i) < 1e33 .and. y(i-1) < 1e33 .and. ( &
+             negpos == 0 .and. y(i)*y(i-1) < 0 .or. &
+             negpos < 0 .and. y(i-1) > 0 .and. y(i) < 0 .or. &
+             negpos > 0 .and. y(i-1) < 0 .and. y(i) > 0 ) ) then
+            xnul = (x(i-1)*y(i) - x(i)*y(i-1))/(y(i)-y(i-1))
+            if ( lwrite ) print *,'zerolin: found zero at ',xnul
+            return
+        end if
+    end do
+    if ( lwrite ) then
+        write(*,*) 'zerolin: no zero crossing found'
+    endif
+    return
+end subroutine zerolin

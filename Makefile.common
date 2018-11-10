@@ -54,17 +54,17 @@ WRAPPERS = amoeba.o \
 		julday.o \
 		moment.o \
 		pearsnxx.o \
+		pearsncross.o \
+		period.o \
 		sort.o \
 		spear.o \
 		svdfit.o
 
 
 OBJS =	makeabsent.o \
-		makefieldabsent.o \
 		operations.o \
 		readdatfile.o \
 		zreaddatfile.o \
-		rdtxtdat.o \
 		rsunit.o \
 		llen.o \
 		leap.o \
@@ -152,7 +152,6 @@ OBJS =	makeabsent.o \
 		getdf.o \
 		makemcseries.o \
 		maxquad.o \
-		zerolin.o \
 		getmoment.o \
 		getseriesmoment.o \
 		bootmoment.o \
@@ -160,8 +159,6 @@ OBJS =	makeabsent.o \
 		mhipass.o \
 		myloess.o \
 		hipass.o \
-		fit_noise_point.o \
-		fitnoisemodel.o \
 		latlonint.o \
 		day2period.o \
 		units2longer.o \
@@ -209,7 +206,6 @@ OBJS =	makeabsent.o \
 		spatialaverage.o \
 		getword.o \
 		normvector.o \
-		makeskew.o \
 		derivative.o \
 		annual2shorter.o \
 		getweightedquant.o \
@@ -262,7 +258,7 @@ OBJS =	makeabsent.o \
 		in_polygon.o \
 		$(EXTRAOBJS)
 
-LIBRARY		  = climexp.a $(NUMLIB)
+LIBRARY		  = $(NUMLIB) climexp.a
 
 LIBS		  = $(LIBRARY) $(SYSLIBS)
 
@@ -877,7 +873,7 @@ WAVEFILES =		wave.f90 param.inc getopts.inc recfac.h netcdf.inc \
 		sumit.f90 operations.f90 diffit.f anomal.f90 normon.f \
 		wavelet.f cfftpack.f chisqr.f \
 		parsectl.f writectl.f90 parsenc.f90 readncfile.f90 \
-		llen.f rsunit.f getnumwords.f get_endian.f tolower.f
+		llen.f rsunit.f90 getnumwords.f get_endian.f tolower.f90
 
 wavecode.zip:	$(WAVEFILES)
 		zip wavecode.zip $(WAVEFILES)

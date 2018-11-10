@@ -152,14 +152,14 @@ real function invcumpois(p,mu)
 !   as long as I do not find or make an explicit function just solve
 !   the equation.
 
+    use ZbrentToGSL
     implicit none
     real :: p,mu
     integer :: i
     real :: x,x1,x2,tol
     real :: pc,muc
     common /ccumpois/ pc,muc
-    real :: cumpois,zbrent
-    external cumpois,zbrent
+    real,external :: cumpois
 
 !   check argument
 

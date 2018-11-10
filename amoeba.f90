@@ -12,7 +12,7 @@ module AmoebaToGSL
 
     interface
         function funk_interface(x)
-            real, intent(in) :: x(4) ! old-school Fortran array, if I specify x(:) I get an f90-array
+            real, intent(in) :: x(10) ! old-school Fortran array, if I specify x(:) I get an f90-array
             real :: funk_interface ! because amoeba gets a pointer to a function that returns a real
         end function funk_interface
     end interface
@@ -40,13 +40,11 @@ contains
         integer(fgsl_int)          :: status
         logical,parameter          :: lwrite=.false.
         
-        if ( lwrite ) print *,'funk_wrapper: ndimensions = ',ndimensions
         call fgsl_obj_c_ptr(vec, x)
         status = fgsl_vector_align(pvec, vec)
         if ( lwrite ) print *,'funk_wrapper: pvec = ',pvec(1:ndimensions)
         allocate(rr(ndimensions))
         rr(1:ndimensions) = pvec(1:ndimensions)
-        if ( lwrite) print *,'funk_wrapper: calling funk_pointer with arg ',rr
         funk_wrapper = dble(funk_pointer(rr))
         if ( lwrite) print *,'funk_wrapper: funk_pointer returned ',funk_wrapper
         deallocate(rr)
@@ -67,7 +65,7 @@ contains
         real,external        :: funk
         interface
             function funk(x)
-                real,intent(in) :: x(4) ! data
+                real,intent(in) :: x(10) ! data
             end function funk
         end interface
 
@@ -84,7 +82,7 @@ contains
         logical,parameter              :: lwrite=.false.
         character(kind=fgsl_char,len=fgsl_strmax) :: name
         real(fgsl_double), pointer     :: xptr(:)
-        real                           :: xret,z(4)        
+        real                           :: xret,z(10)        
 !
 !       convert to fgsl_size_t/fgsl_double
 !
@@ -101,7 +99,7 @@ contains
 
         funk_pointer => funk
         ndimensions  =  ndim
-        if ( ndim > 4 ) then
+        if ( ndim > 10 ) then
             write(0,*) 'amoeba: error: arrays too small, please increase size to ',ndim
             call exit(-1)
         end if
@@ -113,7 +111,6 @@ contains
         ! initialize function object
         fpar(:) = pp(1,1:ndim)
         ptr     = c_loc(fpar)
-        if ( lwrite ) print *,'amoeba: calling fgsl_multimin_function_init'
         mmin_f  = fgsl_multimin_function_init(funk_wrapper,ndim,ptr)
 !
         xv(:)  = pp(1,1:ndim)
@@ -132,7 +129,6 @@ contains
             print*, 'Failed to construct the step size vector: status=',status
         end if
 
-        if ( lwrite ) print *,'amoeba: calling fgsl_multimin_fminimizer_set'
         status = fgsl_multimin_fminimizer_set(mmin_fmin, mmin_f, xvec, step)
         if (status /= fgsl_success) then
             print *, 'Failed to configure the minimizer: status=',status
@@ -144,7 +140,6 @@ contains
         iter = 0
         do
             iter = iter + 1
-            if ( lwrite ) print *,'amoeba: calling fgsl_multimin_fminimizer_iterate ',iter
             status = fgsl_multimin_fminimizer_iterate(mmin_fmin)
             if (status /= fgsl_success .or. iter >= ITMAX) exit
 
@@ -156,19 +151,14 @@ contains
             end if
         end do
 
-        if ( lwrite ) print *,'amoeba: calling fgsl_multimin_fminimizer_x'
         xvec   = fgsl_multimin_fminimizer_x(mmin_fmin)
-        if ( lwrite ) print *,'amoeba: calling fgsl_vector_align'
         status = fgsl_vector_align(xptr, xvec)
         if (status /= fgsl_success) then
             print *, 'Failed to retrieve the current best estimate: status=',status
         end if
-        if ( lwrite ) print *,'amoeba: copying to output'
         pp(1,1:ndim) = xptr(:)
 
-        if ( lwrite ) print *,'amoeba: calling fgsl_multimin_fminimizer_free'
         call fgsl_multimin_fminimizer_free(mmin_fmin)
-        if ( lwrite ) print *,'amoeba: calling fgsl_multimin_function_free'
         call fgsl_multimin_function_free(mmin_f)
 
         funk_pointer => Null()
