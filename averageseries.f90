@@ -20,14 +20,12 @@ program averageseries
     lstandardunits = .false. 
     nseries = command_argument_count() - 1
     if ( nseries < 2 ) then
-        write(0,*) 'usage: averageseries const|weight series1 '// &
-        '... seriesN'
-        stop
+        write(0,*) 'usage: averageseries const|weight series1 ... seriesN'
+        call exit(-1)
     end if
     if ( nseries > nmax ) then
-        print *,'averageseries: error: recompile with nmax=' &
-        ,nseries
-        call abort
+        print *,'averageseries: error: recompile with nmax=',nseries
+        call exit(-1)
     end if
     allocate(data(mpermax,yr1:yr2,0:nseries))
     allocate(means(mpermax))
