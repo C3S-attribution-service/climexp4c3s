@@ -532,14 +532,16 @@ program histogram
             snorm = 1
         else if ( nfit == 1 ) then
 !           Poisson distribution
-            call fitpoi(xx,ntot,mean(0),a)
+            call fitpoi(xx,ntot,mean(0),a,j1,j2,lweb,ntype &
+                ,lchangesign,yr2a,xyear,t,t25,t975,tx &
+                ,tx25,tx975,confidenceinterval,.true.,.true.,lwrite)
             call poisnorm(a,snorm)
             nfitted = 2
         else if ( nfit == 2 ) then
 !           Gaussian distribution
             call fitgau(xx,ntot,mean(0),sd(0),a,b,minindx,maxindx, &
                 ntype,j1,j2,yr2a,xyear,t,t25,t975,tx,tx25,tx975, &
-                confidenceinterval, .true. , .true. ,lweb,lchangesign, &
+                confidenceinterval,.true.,.true.,lweb,lchangesign, &
                 lwrite)
             call gausnorm(a,b,snorm)
             nfitted = 3
@@ -913,7 +915,7 @@ program histogram
                         if ( minindx > 0 ) then
                             f = f + gammq(minindx+0.5,a)
                         end if
-                        s = invcumpois(f,a)
+                        s = invcumpois(f,1-f,a)
                     else
                         s = 3e33
                     end if

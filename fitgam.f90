@@ -459,7 +459,6 @@ real function gamreturnlevel(a,b,xn,x)
 
     implicit none
     real,intent(in) :: a,b,xn,x
-    integer,save :: init=0
     real :: p,p1
     real,external :: invcumgamm
 
@@ -487,7 +486,6 @@ real function gamreturnyear(a,b,xn,xyear)
 
     implicit none
     real,intent(in) :: a,b,xn,xyear
-    integer,save :: init=0
     real :: p
     real,external :: gammp,gammq
 

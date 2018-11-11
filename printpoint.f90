@@ -491,7 +491,7 @@ subroutine plot_ordered_points(xx,xs,yrs,ntot,ntype,nfit, &
                 if ( minindx > 0 ) then
                     f = f + gammq(minindx+0.5,a)
                 endif
-                s = invcumpois(f,a)
+                s = invcumpois(f,1-f,a)
             else
                 s = -999.9
             endif

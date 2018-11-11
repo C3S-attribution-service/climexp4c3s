@@ -53,11 +53,22 @@ real function factrl(n)
 !    wrapper for FGSL function
 !
     use fgsl
-    use, intrinsic :: iso_c_binding
     implicit none
     integer :: n
-    integer(c_int) :: dim
-    dim = n
-    factrl = fgsl_sf_fact(dim)
+    integer(fgsl_int) :: nn
+    nn = n
+    factrl = fgsl_sf_fact(nn)
 end function factrl
+
+real function factln(n)
+!
+!    wrapper for FGSL function
+!
+    use fgsl
+    implicit none
+    integer :: n
+    integer(fgsl_int) :: nn
+    nn = n
+    factln = fgsl_sf_lnfact(nn)
+end function factln
 
