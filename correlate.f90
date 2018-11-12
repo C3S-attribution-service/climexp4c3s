@@ -132,7 +132,7 @@
     if ( n /= nperyear ) call exit(-1)
     if ( imens(0) > 0 ) ensemble = .true. 
 
-!       process options
+!   process options
 
     n = command_argument_count()
     call getopts(2,n,nperyear,yrbg,yred, .true. ,imens1(0),imens(0))
