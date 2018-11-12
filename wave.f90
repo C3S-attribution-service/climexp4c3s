@@ -1,30 +1,27 @@
 program getwave
 
-!       compute wavelet transform and significances.
-!       based on wavetest.f by Christopher Torrence and Gilbert P. Compo
-!       for more info see http://paos.colorado.edu/research/wavelets/
+!   compute wavelet transform and significances.
+!   based on wavetest.f by Christopher Torrence and Gilbert P. Compo
+!   for more info see http://paos.colorado.edu/research/wavelets/
 
     implicit none
     include 'param.inc'
     include 'getopts.inc'
     integer,parameter :: jtotmax=88,nvarmax=4,nsig=100,recfa4=4
-!**        parameter(npadmax=2**18)
     integer :: i,j,k,k1,n,nperyear,ninter,i0,i1,subscale,jtot,j1,j2 &
-    ,ibase2,npad,mother,m,yr,mo,npadmax
+        ,ibase2,npad,mother,m,yr,mo,npadmax
     real :: eta,p
     real,allocatable :: data(:,:,:)
     complex :: c
-!       I am too lazy to convert to single precision, which should be
-!       enough
+!   I am too lazy to convert to single precision, which should be enough
     double precision,allocatable :: y(:),coi(:)
     double precision :: pi,dt,s0,dj,param
     double precision :: scale(jtotmax),period(jtotmax)
     double complex,allocatable :: wave(:,:)
     double precision :: clag0,clag1,siglvl(nsig),dof(jtotmax)
-    double precision :: fft_theor(jtotmax),signif(jtotmax,nsig),ymean &
-    ,variance
+    double precision :: fft_theor(jtotmax),signif(jtotmax,nsig),ymean,variance
     double precision :: Cdelta,psi0
-!       real again
+!   real again
     integer :: nvars,ivars(2,nvarmax),iens,mens1,mens,iu
     real :: xx(1),yy(1),zz(jtotmax),ss(nsig),sl(nsig),power,signi,dy
     real,allocatable :: coifield(:,:),powfield(:,:),sigfield(:,:)
@@ -34,79 +31,77 @@ program getwave
     external factln,gammln
     pi = 4*atan(1.d0)
 
-!       process arguments
+!   process arguments
 
     n = command_argument_count()
     if ( n < 4 ) then
         print *,'usage: wave infile type param options outfile.ctl'
         call exit(-1)
-    endif
+    end if
     call get_command_argument(2,file)
     if ( file(1:6) == 'morlet' ) then
         print '(a)','# using Morlet wavelet'
         mother = 0
-    elseif ( file(1:4) == 'paul' ) then
+    else if ( file(1:4) == 'paul' ) then
         print '(a)','# using Paul wavelet'
         mother = 1
-    elseif ( file(1:3) == 'dog' ) then
+    else if ( file(1:3) == 'dog' ) then
         print '(a)','# using DOG wavelet'
         mother = 2
     else
         write(0,*) 'error: please specify one of morlet|paul|dog'
-        call abort
-    endif
+        call exit(-1)
+    end if
     call get_command_argument(3,file)
     read(file,*,err=900) param
     print '(a,f6.2,a)','# using ',param,' wiggles/pattern'
     call get_command_argument(1,file)
     allocate(data(npermax,yrbeg:yrend,0:nensmax))
     call readensseries(file,data,npermax,yrbeg,yrend,nensmax &
-    ,nperyear,mens1,mens,vars(1),units(1),lstandardunits &
-    ,lwrite)
+        ,nperyear,mens1,mens,vars(1),units(1),lstandardunits &
+        ,lwrite)
     call getopts(4,n-1,nperyear,yrbeg,yrend, .true. ,mens1,mens)
     if ( mens > 0 ) then
-        write(0,'(a,i4,a,i4,a)') 'Averaging ensemble members ',nens1 &
-        ,' to ',nens2,'<br>'
-        write(*,'(a,i4,a,i4)') '# Averaging ensemble members ',nens1 &
-        ,' to ',nens2
-    endif
+        write(0,'(a,i4,a,i4,a)') 'Averaging ensemble members ',nens1,' to ',nens2,'<br>'
+        write(*,'(a,i4,a,i4)') '# Averaging ensemble members ',nens1,' to ',nens2
+    end if
 
-!       sum series
+!   sum series
 
     if ( lsum > 1 ) then
         print '(a,i4,a)','# summing over ',lsum,' periods'
         do iens=nens1,nens2
             call sumit(data(1,yrbeg,iens),npermax,nperyear &
-            ,yrbeg,yrend,lsum,oper)
-        enddo
-    endif
+                ,yrbeg,yrend,lsum,oper)
+        end do
+    end if
 
-!       log, sqrt
+!   log, sqrt
 
     if ( logscale ) then
         print '(a)','# taking logarithm'
         do iens=nens1,nens2
             call takelog(data(1,yrbeg,iens),npermax,nperyear &
-            ,yrbeg,yrend)
-        enddo
-    endif
+                ,yrbeg,yrend)
+        end do
+    end if
     if ( sqrtscale ) then
         print '(a)','# taking sqrt'
         do iens=nens1,nens2
             call takesqrt(data(1,yrbeg,iens),npermax,nperyear &
-            ,yrbeg,yrend)
-        enddo
-    endif
+                ,yrbeg,yrend)
+        end do
+    end if
 
-!       differentiate data
+!   differentiate data
 
     if ( ndiff /= 0 ) then
         print '(a,i4)','# taking differences/averaging ',ndiff
         do iens=nens1,nens2
             call diffit(data(1,yrbeg,iens),npermax,nperyear &
-            ,yrbeg,yrend,ndiff)
-        enddo
-    endif
+                ,yrbeg,yrend,ndiff)
+        end do
+    end if
 
 !       anomalies - necessary if we consider more than one month
 
@@ -115,8 +110,8 @@ program getwave
         do iens=nens1,nens2
             call anomal(data(1,yrbeg,iens),npermax,nperyear,yrbeg &
             ,yrend,yr1,yr2)
-        enddo
-    endif
+        end do
+    end if
 
     if ( m1 == 0 ) then
         j1 = 1
@@ -129,7 +124,7 @@ program getwave
         call month2period(j2,nperyear,0)
         if ( j2 < j1 ) j2 = j1 + nperyear
         dt = 1
-    endif
+    end if
 
 !       find first, last valid data
 
@@ -140,13 +135,13 @@ program getwave
                 call normon(j,yr,i,nperyear)
                 if ( i < yr1 .or. i > yr2 ) cycle
                 if ( data(j,i,iens) < 1e33 ) goto 100
-            enddo
-        enddo
-    enddo
+            end do
+        end do
+    end do
     goto 110
-    100 continue
+100 continue
     yr1 = i
-    110 continue
+110 continue
     do yr=yr2,yr1-1,-1
         do iens=nens1,nens2
             do mo=j1,j2
@@ -154,22 +149,22 @@ program getwave
                 call normon(j,yr,i,nperyear)
                 if ( i < yr1 .or. i > yr2 ) cycle
                 if ( data(j,i,iens) < 1e33 ) goto 200
-            enddo
-        enddo
-    enddo
+            end do
+        end do
+    end do
     goto 210
-    200 continue
+200 continue
     yr2 = i
-    210 continue
+210 continue
     if ( lwrite ) print *,'found valid data in ',yr1,yr2
 
-!       loop over ensemble members
+!   loop over ensemble members
 
     npadmax = 4*(yr2-yr1+1)*nperyear
     allocate(y(npadmax))
     do iens=nens1,nens2
     
-    !           make a vector of values
+!       make a vector of values
     
         n = 0
         do i=yr1,yr2
@@ -178,182 +173,174 @@ program getwave
                     n = n + 1
                     if ( n > npadmax ) then
                         do iu=0,6,6
-                            write(iu,*) 'wave: error: linear array ' &
-                            //'too small: ',npadmax
-                        enddo
-                        call abort
-                    endif
+                            write(iu,*) 'wave: error: linear array too small: ',npadmax
+                        end do
+                        call exit(-1)
+                    end if
                     if ( j >= j1 .and. j <= j2 .or. &
-                    j >= j1-nperyear .and. j <= j2-nperyear ) &
-                    then
+                    j >= j1-nperyear .and. j <= j2-nperyear ) then
                         y(n) = data(j,i,iens)
                     else
                         y(n) = 3e33
-                    endif
+                    end if
                     if ( lwrite) print *,'n,y(n) = ',n,y(n)
-                enddo
+                end do
             else
                 n = n + 1
                 if ( n > npadmax ) then
                     do iu=0,6,6
-                        write(iu,*) 'wave: error: linear array ' &
-                        //'too small: ',npadmax
-                    enddo
-                    call abort
-                endif
+                        write(iu,*) 'wave: error: linear array too small: ',npadmax
+                    end do
+                    call exit(-1)
+                end if
                 y(n) = data(j,i,iens)
                 if ( lwrite) print *,'n,y(n) = ',n,y(n)
-            endif
-        enddo
+            end if
+        end do
     
-    !           replace missing data by a linear interpolation
+!       replace missing data by a linear interpolation
     
         ninter = 0
         i0 = -1
         i1 = -1
         do i=1,n
             if ( y(i) > 1e33 ) then
-            !                   search next defined point
+!               search next defined point
                 if ( i1 == -1 ) then
                     do j=i+1,n
                         if ( y(j) < 1e33 ) then
                             i1 = j
                             goto 300
-                        endif
-                    enddo
-                !                       no more valid values - extrapolating is different
+                        end if
+                    end do
+!                   no more valid values - extrapolating is different
                     goto 400
-                    300 continue
-                endif
+                300 continue
+                end if
                 if ( i0 > 0 ) then
-                !                       interpolate
+!                   interpolate
                     ninter = ninter + 1
                     y(i) = ((i-i0)*y(i1) + (i1-i)*y(i0))/(i1-i0)
-                endif
+                end if
             else
-            !                   set previous defined point
+!               set previous defined point
                 i0 = i
                 i1 = -1
-            endif
-        enddo
-        400 continue
+            end if
+        end do
+    400 continue
     
-    !           determine total lenghth of vector.  Note that I add a longer
-    !           stretch of padding, at least equal to the data.
+!       determine total lenghth of vector.  Note that I add a longer
+!       stretch of padding, at least equal to the data.
     
         ibase2 = int(log(dble(n))/log(2.d0)) + 2
         npad = nint(2.d0**ibase2)
         write(*,'(a,i5,a,i6,a)') &
-        '# The time series has been extended from ',n,' to ', &
-        npad,' elements with a straight line'
+            '# The time series has been extended from ',n,' to ', &
+            npad,' elements with a straight line'
         if ( npad > npadmax ) then
             do iu=0,6,6
-                write(iu,*) &
-                'wave: error: array y too small, extend from ' &
-                ,npadmax,' to ',npad
-            enddo
-            call abort
-        endif
+                write(iu,*) 'wave: error: array y too small, extend from ' &
+                    ,npadmax,' to ',npad
+            end do
+            call exit(-1)
+        end if
     
-    !       fill padding area with data interpolated between last and first
-    !       value.  i0 still has the position of the last valid datum, find
-    !       first valid one and interpolate
+!       fill padding area with data interpolated between last and first
+!       value.  i0 still has the position of the last valid datum, find
+!       first valid one and interpolate
     
         do i1=1,n
             if ( y(i1) < 1e33 ) goto 410
-        enddo
-        410 continue
+        end do
+    410 continue
         do i=1,i1-1
             y(i) = ((i+npad-i0)*y(i1) + (i1-i)*y(i0))/(i1-i0+npad)
-        enddo
+        end do
         do i=i0+1,npad
             y(i) = ((i-i0)*y(i1) + (i1+npad-i)*y(i0))/(i1-i0+npad)
-        enddo
+        end do
     
-    !           Wavelet transform
+!       Wavelet transform
     
-    !           print numbers for illustration plot
+!       print numbers for illustration plot
         if ( iens == nens1 ) then
             if ( mother == 0 ) then
                 do i=-400,400
                     eta = i/100.
                     print *,eta, &
-                    cos(param*eta)*exp(-eta**2/2)/sqrt(sqrt(pi)), &
-                    sin(param*eta)*exp(-eta**2/2)/sqrt(sqrt(pi))
-                enddo
-            elseif ( mother == 1 ) then
+                        cos(param*eta)*exp(-eta**2/2)/sqrt(sqrt(pi)), &
+                        sin(param*eta)*exp(-eta**2/2)/sqrt(sqrt(pi))
+                end do
+            else if ( mother == 1 ) then
                 m = nint(param)
                 if (abs(param-m) > 0.01 ) then
-                    write(0,*) &
-                    'error: only works for integer parameter, not' &
-                    ,param
-                    call abort
-                endif
+                    write(0,*) 'error: only works for integer parameter, not',param
+                    call exit(-1)
+                end if
                 do i=-400,400
                     eta = i/100.
                     c = CMPLX(0.,2.)**m * exp(factln(m) - factln(2*m)/2) &
-                    /sqrt(pi) * CMPLX(1.,-eta)**(-m-1)
+                        /sqrt(pi) * CMPLX(1.,-eta)**(-m-1)
                     print *,eta,REAL(c),AIMAG(c)
-                enddo
-            elseif ( mother == 2 ) then
+                end do
+            else if ( mother == 2 ) then
                 m = nint(param)
                 if (abs(param-m) > 0.01 ) then
-                    write(0,*) &
-                    'error: only works for integer parameter, not' &
-                    ,param
-                    call abort
-                endif
+                    write(0,*)  'error: only works for integer parameter, not',param
+                    call exit(-1)
+                end if
                 do i=-400,400
                     eta = i/100.
-                !                   hand-derived, I hope there are not too many errors
+!                   hand-derived, I hope there are not too many errors
                     if ( m == 0 ) then
                         p = 1
-                    elseif ( m == 1 ) then
+                    else if ( m == 1 ) then
                         p = eta
-                    elseif ( m == 2 ) then
+                    else if ( m == 2 ) then
                         p = eta**2 - 1
-                    elseif ( m == 3 ) then
+                    else if ( m == 3 ) then
                         p = eta*(eta**2 - 3)
-                    elseif ( m == 4 ) then
+                    else if ( m == 4 ) then
                         p = eta**2*(eta**2 - 6) + 3
-                    elseif ( m == 5 ) then
+                    else if ( m == 5 ) then
                         p = eta*(eta**2*(eta**2 - 10) + 15)
-                    elseif ( m == 6 ) then
+                    else if ( m == 6 ) then
                         p = eta**2*(eta**2*(eta**2 - 15) + 45) - 15
-                    elseif ( m == 7 ) then
+                    else if ( m == 7 ) then
                         p = eta*(eta**2*(eta**2*(eta**2 - 21) + 105) -  105)
-                    elseif ( m == 8 ) then
+                    else if ( m == 8 ) then
                         p = eta**2*(eta**2*(eta**2*(eta**2 - 28) + 210)-520) + 105
                     else
                         write(0,*) 'Sorry, DOG plot for m = ',m,' not yet ready'
                         goto 500
-                    endif
+                    end if
                     print *,eta,p*exp(-eta**2/2)*exp(-gammln(m+0.5)/2),0.
-                enddo
-                500 continue
+                end do
+            500 continue
             else
                 write(0,*) 'Other wavelets not yet supported',mother
-            endif
-        endif
+            end if
+        end if
     
-    !           a few more parameters; I follow the comments in wavetest.f
+!       a few more parameters; I follow the comments in wavetest.f
     
         if ( mother == 0 ) then
             s0 = dt
-        elseif ( mother == 1 ) then
+        else if ( mother == 1 ) then
             s0 = dt/4
         else
             s0 = 2*dt
-        endif
+        end if
         subscale = 8
         dj=1./subscale
         jtot=11*subscale
         if ( jtot > jtotmax ) then
             write(0,*) 'wave: error: increase jtotmax to ',jtot
-            call abort
-        endif
+            call exit(-1)
+        end if
     
-    !           get the wavelet transform
+!       get the wavelet transform
     
         print '(a)','# computing wavelet transform...'
         if ( lwrite ) then
@@ -361,21 +348,20 @@ program getwave
             print *,'jtot,jtotmax = ',jtot,jtotmax
             do i=1,npad
                 print *,i,y(i)
-            enddo
-        endif
+            end do
+        end if
         if ( iens == nens1 ) then
             allocate(wave(npadmax,jtotmax))
             allocate(coi(npadmax))
         end if
-        call wavelet(n,npadmax,y,dt,mother,param,s0,dj,jtot,npad, &
-        wave,scale,period,coi)
+        call wavelet(n,npadmax,y,dt,mother,param,s0,dj,jtot,npad,wave,scale,period,coi)
         if ( lwrite ) then
             print *,'wave returned'
             do i=1,npad
                 print *,i,(wave(i,jtot),j=1,jtot)
-            enddo
-        endif
-    !           convert coi to a field
+            end do
+        end if
+!       convert coi to a field
         if ( iens == nens1 ) then
             allocate(coifield(npadmax,jtotmax))
             allocate(powfield(npadmax,jtotmax))
@@ -386,46 +372,46 @@ program getwave
                         coifield(i,j) = 0
                     else
                         coifield(i,j) = 1
-                    endif
-                enddo
-            enddo
-        endif
+                    end if
+                end do
+            end do
+        end if
     
-    !           local significance tests
+!       local significance tests
     
         ymean = 0
         do i=1,n
             ymean = ymean + y(i)
-        enddo
+        end do
         ymean = ymean/n
         clag0 = 0
         clag1 = 0
         do i=1,n-1
             clag0 = clag0 + (y(i)-ymean)**2
             clag1 = clag1 + (y(i)-ymean)*(y(i+1)-ymean)
-        enddo
+        end do
         clag1 = clag1/clag0
         if ( lwrite ) print *,'clag1 = ',clag1
         do k=1,nsig
             siglvl(k) = 10.d0**(-5.d0*k/nsig)
             if ( lwrite ) print *,'calling wave_signif',k,siglvl(k)
             call wave_signif(0,n,y,dt,mother,param,dj,jtot, &
-            scale,period,clag1,siglvl(k),dof,fft_theor &
-            ,signif(1,k),ymean,variance,Cdelta,psi0,lwrite)
+                scale,period,clag1,siglvl(k),dof,fft_theor &
+                ,signif(1,k),ymean,variance,Cdelta,psi0,lwrite)
             if ( lwrite ) print *,'back from wave_signif'
-        enddo
+        end do
     
-    !           collect information from ensemble members
+!       collect information from ensemble members
     
         do j=1,jtot
             do k=1,nsig
                 ss(k) = signif(j,k)
                 sl(k) = siglvl(k)
-            enddo
+            end do
             do i=1,n
                 power = abs(wave(i,j))**2
                 call hunt(ss,nsig,power,k1)
-                k1 = min(max(1,k1-2),n-3)
+                k1 = min(max(1,k1-2),nsig-3)
                 call polint(ss(k1),sl(k1),4,power,signi,dy)
                 if ( iens == nens1 ) then
                     powfield(i,j) = power
@@ -433,27 +419,27 @@ program getwave
                 else
                     powfield(i,j) = powfield(i,j) + power
                     sigfield(i,j) = 3e33 ! I have to think about this
-                endif
-            enddo
-        enddo
-    enddo
+                end if
+            end do
+        end do
+    end do
     if ( nens2 > nens1 ) then
         do j=1,jtot
             do i=1,n
                 powfield(i,j) = powfield(i,j)/(nens2-nens1)
                 sigfield(i,j) = -3e33
-            enddo
-        enddo
-    endif
+            end do
+        end do
+    end if
     print '(a)','# writing output...'
     call get_command_argument(command_argument_count(),ctlfile)
     datfile = ctlfile(1:index(ctlfile,'.ctl '))//'grd'
-!       convert to single precision
+!   convert to single precision
     xx(1) = 0
     yy(1) = 0
     do j=1,jtot
         zz(j) = period(j)
-    enddo
+    end do
     nvars = 3
     vars(1) = 'power'
     units(1) = '('//trim(units(1))//')^2'
@@ -472,28 +458,26 @@ program getwave
     ivars(2,3) = 99
     do i=len(file),1,-1
         if ( file(i:i) == '/' ) goto 777
-    enddo
+    end do
 777 continue
     call args2title(title)
     call writectl(ctlfile,datfile,1,xx,1,yy,jtot,zz,n,nint(1/dt), &
-    yr1,j1,3e33,title,nvars,vars,ivars,lvars,units)
+        yr1,j1,3e33,title,nvars,vars,ivars,lvars,units)
     ctlfile=ctlfile(1:index(ctlfile,'.ctl')-1)//'f.ctl'
     do j=1,jtot
         zz(j) = 1/zz(j)
-    enddo
+    end do
     call writectl(ctlfile,datfile,1,xx,1,yy,jtot,zz,n,nint(1/dt), &
-    yr1,j1,3e33,title,nvars,vars,ivars,lvars,units)
-    open(1,file=datfile,access='direct',recl=jtot*recfa4, &
-    status='old',err=800)
+        yr1,j1,3e33,title,nvars,vars,ivars,lvars,units)
+    open(1,file=datfile,access='direct',recl=jtot*recfa4,status='old',err=800)
     close(1,status='delete')
 800 continue
-    open(1,file=datfile,access='direct',recl=3*jtot*recfa4, &
-    status='new')
+    open(1,file=datfile,access='direct',recl=3*jtot*recfa4,status='new')
     do i=1,n
         write(1,rec=i) (powfield(i,j),j=1,jtot), &
-        (coifield(i,j),j=1,jtot), &
-        (sigfield(i,j),j=1,jtot)
-    enddo
+            (coifield(i,j),j=1,jtot), &
+            (sigfield(i,j),j=1,jtot)
+    end do
     close(1)
     call savestartstop(yr1,yr2)
     goto 999

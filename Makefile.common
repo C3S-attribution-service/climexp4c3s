@@ -51,11 +51,13 @@ WRAPPERS = amoeba.o \
 		gammpq.o \
 		dgammln.o \
 		gasdev.o \
+		hunt.o \
 		julday.o \
 		moment.o \
 		pearsnxx.o \
 		pearsncross.o \
 		period.o \
+		polint.o \
 		sort.o \
 		spear.o \
 		svdfit.o
@@ -159,7 +161,6 @@ OBJS =	makeabsent.o \
 		mhipass.o \
 		myloess.o \
 		hipass.o \
-		latlonint.o \
 		day2period.o \
 		units2longer.o \
 		adjustunits.o \
@@ -258,7 +259,7 @@ OBJS =	makeabsent.o \
 		in_polygon.o \
 		$(EXTRAOBJS)
 
-LIBRARY		  = $(NUMLIB) climexp.a
+LIBRARY		  = $(NUMLIB) climexp.a $(NUMLIB) # once to force earlier compilation of modules, once for linking
 
 LIBS		  = $(LIBRARY) $(SYSLIBS)
 
