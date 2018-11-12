@@ -16,7 +16,7 @@ subroutine nperyear2string(nperyear,string)
         string = 'seasonal'
     elseif ( nperyear == 2 ) then
         string = 'biannual'
-    elseif ( nperyear == 1 ) then
+    elseif ( abs(nperyear) == 1 ) then
         string = 'annual'
     else
         write(0,*) 'nperyear2string: error: cannot handle ',nperyear,' yet'
@@ -41,7 +41,7 @@ subroutine nperyear2units(nperyear,units)
         units = '3mo'
     elseif ( nperyear == 2 ) then
         units = '6mo'
-    elseif ( nperyear == 1 ) then
+    elseif ( abs(nperyear) == 1 ) then
         units = 'yr'
     else
         write(0,*) 'nperyear2units: error: cannot handle ',nperyear,' yet'
