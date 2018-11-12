@@ -200,16 +200,21 @@ program daily2longerfield
                             do jx=1,nx
                                 do yr=firstyr,lastyr
                                     do j=1,nperyear
-                                        oldseries(j,yr) = &
-                                        oldfield(jx,jy,j,yr)
+                                        oldseries(j,yr) = oldfield(jx,jy,j,yr)
                                     end do
                                 end do
-                                do j=1,nperyear
-                                    call getcutoff(cut(jx,jy,j),pcut &
-                                    ,oldseries,nperyear &
-                                    ,nperyear,firstyr,lastyr &
-                                    ,firstyr,lastyr,j,j,0)
-                                end do
+                                if ( lastyr > firstyr ) then
+                                    ! compute percentiles over time for each day/month of the year
+                                    do j=1,nperyear
+                                        call getcutoff(cut(jx,jy,j),pcut,oldseries,nperyear &
+                                            ,nperyear,firstyr,lastyr,firstyr,lastyr,j,j,0)
+                                    end do
+                                else
+                                    ! compute percentiles over the seasonal cycle
+                                    call getcutoff(cut(jx,jy,1),pcut,oldseries,nperyear &
+                                        ,nperyear,firstyr,lastyr,firstyr,lastyr,1,nperyear,0)
+                                    cut(jx,jy,2:nperyear) = cut(jx,jy,1)
+                                end if
                             end do
                             call keepalive1('Normals for latitude',jy,ny)
                         end do
