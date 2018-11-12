@@ -233,7 +233,7 @@ subroutine gfield(datfile,ncid,field,res,nx,xx,ny,yy,nz,zz,nt &
 
 !       open output file
     
-        call get_command_argument(iargc(),outfile)
+        call get_command_argument(command_argument_count(),outfile)
         if ( ensemble ) call filloutens(outfile,iens)
         inquire(file=outfile,exist=lexist)
         if ( lexist ) then
@@ -442,7 +442,7 @@ subroutine gfield(datfile,ncid,field,res,nx,xx,ny,yy,nz,zz,nt &
             end if
             title = ' '
             n = 1
-            do i=0,iargc()-1
+            do i=0,command_argument_count()-1
                 call get_command_argument(i,line)
                 if ( line(1:ldir) == dir(1:ldir) ) then
                     title(n:) = line(ldir+1:)
