@@ -203,7 +203,6 @@ OBJS =	makeabsent.o \
 		project3.o \
 		fitcross.o \
 		autocov.o \
-		getspectrum.o \
 		spatialaverage.o \
 		getword.o \
 		normvector.o \
@@ -299,7 +298,6 @@ PROGRAMS	  = scientific2decimal \
 		annual2string \
 		series \
 		multifit \
-		lomb \
 		spectrum \
 		diamond2year \
 		extendyear \
