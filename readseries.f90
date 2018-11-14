@@ -242,6 +242,7 @@ subroutine readseriesheader(var,units,lvar,svar,history,metadata,line,unit,lwrit
             metadata(1,n) = line(k:j-1)
             metadata(2,n) = line(j+4:)
         end if
+        go to 100
     end if
     
 !   var, units, lvar
