@@ -301,6 +301,7 @@ subroutine lintransform(series,npermax,yrbeg,yrend,horizon,deltas,newseries,lwri
 end subroutine lintransform
 
 subroutine rrtransform(oldseries,npermax,yrbeg,yrend,horizon,deltas,series,lwrite)
+    use ZbrentToGSL
     implicit none
     integer :: npermax,yrbeg,yrend,horizon
     real :: oldseries(npermax,yrbeg:yrend),series(npermax,yrbeg:yrend),deltas(5,12)
@@ -315,7 +316,7 @@ subroutine rrtransform(oldseries,npermax,yrbeg,yrend,horizon,deltas,series,lwrit
     real,allocatable :: Xm(:),X1m(:),precwet(:),aa(:)
     logical :: leftdry,rightdry,available
     character :: version*4
-    real,external :: rr_transform_f,zbrent
+    real,external :: rr_transform_f
     ! to the fit routine to determine b
     integer nXmax
     parameter(nXmax=31*150) ! max 150 years, 31 days per month
