@@ -31,7 +31,6 @@ ADAPTED = adapted_amoeba.o \
 		adapted_pearsn.o \
 		adapted_pearsncross.o \
 		adapted_sort2.o \
-		adapted_ffsort.o \
 		adapted_ttestx.o \
 		adapted_dfpmin.o \
 		adapted_gser.o \
@@ -48,6 +47,7 @@ WRAPPERS = amoeba.o \
 		chsone.o \
 		erfc.o \
 		fit.o \
+		ffsort.o \
 		gammpq.o \
 		dgammln.o \
 		gasdev.o \
