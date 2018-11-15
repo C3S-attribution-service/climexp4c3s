@@ -67,7 +67,6 @@ OBJS =	makeabsent.o \
 		rsunit.o \
 		leap.o \
 		rindex.o \
-		readdat.o \
 		readseries.o \
 		readensseries.o \
 		readsetseries.o \
@@ -523,9 +522,6 @@ runningmean:	runningmean.o $(LIBRARY)
 plotsoi:	plotsoi.o rmean.o normon.o makeabsent.o
 		$(LD) $(FFLAGS) -o $@ plotsoi.o rmean.o normon.o makeabsent.o
 
-plotnao:	plotnao.o makeabsent.o readdat.o rmean.o normon.o
-		$(LD) $(FFLAGS) -o $@ plotnao.o makeabsent.o readdat.o rmean.o normon.o
-
 plotdat:	plotdat.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ plotdat.o $(LIBRARY) $(LIBS)
 
@@ -678,9 +674,6 @@ makeweek:	makeweek.o
 
 makeleap:	makeleap.o
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
-
-dat2sound:	dat2sound.o readdat.o rsunit.o makeabsent.o
-		$(LD) $(FFLAGS) -o $@ dat2sound.o readdat.o rsunit.o makeabsent.o
 
 maketestfile:	maketestfile.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ maketestfile.o $(LIBS)
@@ -852,16 +845,6 @@ rkeepalive.so:	rkeepalive.f
 
 F2f90:	F2f90.o
 		$(LD) $(FFLAGS) -o $@ $@.o
-
-WAVEFILES =		wave.f90 param.inc getopts.inc recfac.h netcdf.inc \
-		makeabsent.f readdat.F readncseries.f90 getopts.f90 \
-		sumit.f90 operations.f90 diffit.f anomal.f90 normon.f \
-		wavelet.f cfftpack.f chisqr.f \
-		parsectl.f90 writectl.f90 parsenc.f90 readncfile.f90 \
-		rsunit.f90 getnumwords.f get_endian.f tolower.f90
-
-wavecode.zip:	$(WAVEFILES)
-		zip wavecode.zip $(WAVEFILES)
 
 climexp2extreme.o:	climexp2extreme.f90 extreme.h
 

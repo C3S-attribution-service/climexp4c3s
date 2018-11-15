@@ -37,10 +37,8 @@ program extractfield
     lwrite = .false. 
     n = command_argument_count()
     if ( n < 3 ) then
-        print *,'usage: extractfield '// &
-        'field.[ctl|nc] '// &
-        ' [sum|ave|max|min|sel n] '// &
-        '[begin yr] [end yr] plot file.nc'
+        print *,'usage: extractfield field.[ctl|nc] '// &
+            ' [sum|ave|max|min|sel n] [begin yr] [end yr] plot file.nc'
         call exit(-1)
     endif
     call killfile(infile,datfile,file,0)
