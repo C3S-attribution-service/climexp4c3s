@@ -120,8 +120,9 @@ subroutine merge_metadata(metadata1,nmetadata1,metadata2,title2,history2,prefix)
 !   - prefix the rest from dataset 2 with prefix
 
     implicit none
-    integer nmetadata1
-    character metadata1(2,100)*(*),metadata2(2,100)*(*),title2*(*),history2*(*),prefix*(*)
+    integer,intent(out) :: nmetadata1
+    character,intent(inout) :: metadata1(2,100)*(*),metadata2(2,100)*(*)
+    character,intent(in) :: title2*(*),history2*(*),prefix*(*)
     integer i,j,k
 
 !   get number of non-blank items in metadata1
