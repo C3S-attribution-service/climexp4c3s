@@ -357,7 +357,6 @@ PROGRAMS	  = scientific2decimal \
 		quantiles_series \
 		testerfcc \
 		fillin \
-		convert2r \
 		convertmetadata \
 		fix_undef \
 		fieldsignificance \
@@ -472,12 +471,6 @@ convertmetadata:	convertmetadata.o $(LIBRARY)
 
 fix_undef:	fix_undef.o $(LIBRARY)
 		$(LD) $(EOFFLAGS) $(LDBIGFLAG) -o $@ $@.o $(LIBS)
-
-convert2r:	convert2r.o $(LIBRARY)
-		$(LD) $(FFLAGS) -o $@ convert2r.o $(LIBS)
-
-convert2rclimdex:	convert2rclimdex.o $(LIBRARY)
-		$(LD) $(FFLAGS) -o $@ convert2rclimdex.o $(LIBS)
 
 flattennc:	flattennc.o	 $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ flattennc.o $(LIBS)
@@ -688,9 +681,6 @@ makeleap:	makeleap.o
 
 dat2sound:	dat2sound.o readdat.o rsunit.o makeabsent.o
 		$(LD) $(FFLAGS) -o $@ dat2sound.o readdat.o rsunit.o makeabsent.o
-
-testparsenc:	testparsenc.o parsenc.o libnetcdf.a tolower.o
-		$(LD) $(FFLAGS) -o $@ testparsenc.o parsenc.o tolower.o libnetcdf.a
 
 maketestfile:	maketestfile.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ maketestfile.o $(LIBS)
