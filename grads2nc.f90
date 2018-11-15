@@ -15,7 +15,7 @@ program grads2nc
     character :: vars(nvarmax)*10,lvars(nvarmax)*80,units(nvarmax)*40
     character(255) :: ctlfile,datfile,ncfile,title
     logical :: lwrite
-    integer :: iargc,llen,get_endian
+    integer,external :: get_endian
     data dpm &
     /31,28,31,30,31,30,31,31,30,31,30,31 &
     ,31,29,31,30,31,30,31,31,30,31,30,31/

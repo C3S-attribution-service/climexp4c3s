@@ -291,53 +291,6 @@ real function llgamma(p)
 
 end function llgamma
 
-subroutine dllgamma(p,dp)
-
-!   computes the derivatives of the log-likelihood function for a
-!   Gamma distribution with parameters p(1),p(2) and data in common.
-!   currently unused.
-
-    implicit none
-    real :: p(2),dp(2)
-    integer :: i
-    real :: p1(2),p2(2),d
-    integer,parameter :: nmax=10000000
-    integer :: ncur
-    real :: data(nmax),xrestrain
-    logical :: llwrite,llchangesign
-    common /fitdata1/ data
-    common /fitdata2/ xrestrain,ncur,llwrite,llchangesign
-    real,external :: dgammln,llgamma
-
-    dp(1) = 0
-    dp(2) = 0
-    do i=1,ncur
-        dp(1) = dp(1) &
-        + log(data(i)/p(2)) - dgammln(p(1))
-        dp(2) = dp(2) &
-        - p(1)/p(2) + data(i)/p(2)**2
-    end do
-!   minimum, not maximum
-    dp(1) = -dp(1)
-    dp(2) = -dp(2)
-
-    print *,'dp(1) = ',dp(1)
-    p1(1) = p(1) + 1e-3
-    p1(2) = p(2)
-    p2(1) = p(1) - 1e-3
-    p2(2) = p(2)
-    d = (llgamma(p1)-llgamma(p2))/2e-3
-    print *,'    cmp ',d
-    print *,'dp(2) = ',dp(2)
-    p1(1) = p(1)
-    p1(2) = p(2) + 10
-    p2(1) = p(1)
-    p2(2) = p(2) - 10
-    d = (llgamma(p1)-llgamma(p2))/20
-    print *,'    cmp ',d
-
-end subroutine dllgamma
-
 real function gamdist(x)
 
 !   Gamma distribution, parameters passed in common
