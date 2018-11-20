@@ -7,8 +7,9 @@ subroutine getcutoff(cut,pcut,dat,npermax,nperyear,yrbeg,yrend,yr1,yr2,j1,j2,lag
 !   If the data is daily, a 5-day window is considered.
 !
     implicit none
-    integer npermax,nperyear,yrbeg,yrend,yr1,yr2,j1,j2,lag
-    real cut,pcut,dat(npermax,yrbeg:yrend)
+    integer,intent(in) :: npermax,nperyear,yrbeg,yrend,yr1,yr2,j1,j2,lag
+    real,intent(in) :: pcut,dat(npermax,yrbeg:yrend)
+    real,intent(out) :: cut
 !
     integer yr,jj,m,j,i,ii,n,k,kdif,nmax
     real x
@@ -55,18 +56,19 @@ subroutine getcutoff(cut,pcut,dat,npermax,nperyear,yrbeg,yrend,yr1,yr2,j1,j2,lag
         print *,'           lag           = ',lag
         print *,'           cut           = ',cut
     endif
-end subroutine
+end subroutine getcutoff
 
 subroutine getcut(cut,pcut,n,a)
 !
 !   the other half - break to be able to tie in getmomentsfield
 !
     implicit none
-    integer n
-    real cut,pcut,a(n)
+    integer,intent(in) :: n
+    real,intent(in) :: pcut
+    real,intent(inout) :: a(n)
+    real,intent(out) :: cut
     integer i
-	logical lwrite
-	parameter (lwrite=.false.)
+	logical,parameter :: lwrite=.false.
 !
 	if ( lwrite ) then
         print *,'getcut: pcut,n = ',pcut,n
@@ -77,18 +79,18 @@ subroutine getcut(cut,pcut,n,a)
 !   sort (Numerical Recipes quicksort)
     call nrsort(n,a)
     call getcut1(cut,pcut,n,a,lwrite)
-end subroutine
+end subroutine getcut
 
 subroutine getcut1(cut,pcut,n,a,lwrite)
 !
 !   this entry point assumes the array a has already been sorted
 !
     implicit none
-    integer n
-    real cut,pcut,a(n)
-    logical lwrite
-    real eps
-    parameter (eps=1e-5)
+    integer,intent(in) :: n
+    real,intent(in) :: pcut,a(n)
+    real,intent(out) :: cut
+    logical,intent(in) :: lwrite
+    real,parameter :: eps=1e-5
     integer i,m
     real x
     if ( n <= 1 ) then
@@ -128,7 +130,7 @@ subroutine getcut1(cut,pcut,n,a,lwrite)
         endif
     endif
     if ( lwrite ) print *,'getcut: cut = ',cut
-end subroutine
+end subroutine getcut1
 
 subroutine invgetcut(pcut,cut,n,a)
 !
@@ -137,12 +139,13 @@ subroutine invgetcut(pcut,cut,n,a)
 !   can be made much more efficient with standard routines but OK for now.
 !
     implicit none
-    integer n
-    real cut,pcut,a(n)
+    integer,intent(in) :: n
+    real,intent(in) :: cut
+    real,intent(inout) :: a(n)
+    real,intent(out) :: pcut
 !
     integer i
-	logical lwrite
-	parameter (lwrite=.false.)
+	logical,parameter :: lwrite=.false.
 !
 	if ( lwrite ) then
         print *,'invgetcut: cut,n = ',cut,n
@@ -153,7 +156,7 @@ subroutine invgetcut(pcut,cut,n,a)
 !   sort (Numerical Recipes quicksort)
     call nrsort(n,a)
     call invgetcut1(pcut,cut,n,a,lwrite)
-end subroutine
+end subroutine invgetcut
 
 subroutine invgetcut1(pcut,cut,n,a,llwrite)
 !
@@ -162,14 +165,15 @@ subroutine invgetcut1(pcut,cut,n,a,llwrite)
 !   can be made much more efficient with standard routines but OK for now.
 !
     implicit none
-    integer n
-    real pcut,cut,a(n)
-    logical llwrite
+    integer,intent(in) :: n
+    real, intent(in) :: cut,a(n)
+    real,intent(out) :: pcut
+    logical,intent(in) :: llwrite
     integer i,m
     logical lwrite
-!       first cut out the undefined ones
     lwrite = llwrite
     lwrite = .false.
+!   first cut out the undefined ones
     do m=n,1,-1
         if ( a(m) < 1e33 ) exit
     end do
@@ -185,6 +189,6 @@ subroutine invgetcut1(pcut,cut,n,a,llwrite)
         end do
         pcut = (i + (cut-a(i))/(a(i+1)-a(i)))/real(m+1)
         if ( lwrite ) print *,'a(',i,') < cut < a(',i+1,') ', &
-     &      a(i),cut,a(i+1),' hence pcut = ',i/real(m+1),(i+1)/real(m+1),pcut
+            a(i),cut,a(i+1),' hence pcut = ',i/real(m+1),(i+1)/real(m+1),pcut
     end if
-end subroutine
+end subroutine invgetcut1

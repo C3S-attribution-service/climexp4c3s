@@ -20,16 +20,11 @@ subroutine bootstrap(y,x,f,ys,xs,n,rr,kind,ndecor,w1,w2,ncrossvalidate)
 
     integer,parameter :: nboot=1000
     integer :: i,j,k,l,m,ii
-    real :: r(nboot),prob,z,ax,ay,sx,sy,sxy,df,d,probd,val(-2:2),bias
+    real :: r(nboot),prob,z,ax,ay,sx,sy,sxy,df,d,probd,val(-2:2),bias,ranf
     real,allocatable :: wy(:),wx(:)
-    logical :: lwrite
-    save val,lwrite
-
-    real*8 :: ranf
-    external ranf
-
+    logical,save :: lwrite=.false.
+    save val
     data val /-95.,-68.3,0,68.3,95./
-    data lwrite / .false. /
 
 !   input
 
@@ -54,9 +49,10 @@ subroutine bootstrap(y,x,f,ys,xs,n,rr,kind,ndecor,w1,w2,ncrossvalidate)
     do i=1,nboot
         do j=1,m,ndecor
             ii = 0
-            100 continue
+        100 continue
             ii = ii + 1
-            k = 1+min(n-ndecor,int((n-ndecor)*ranf(i+j)))
+            call random_number(ranf)
+            k = 1+min(n-ndecor,int((n-ndecor)*ranf))
             do l=1,ndecor-1
                 if ( f(k+l) ) then
                     if ( ii < 100 ) then
