@@ -146,7 +146,7 @@ program patternfield
             print '(a)','# converting to standard units'
         else
             write(0,*) 'error: do not understand argument ',line
-            call abort
+            call exit(-1)
         endif
     enddo
 

@@ -48,7 +48,7 @@ subroutine getj1j2(j1,j2,month,nperyear,lprintin)
                 else
                     write(0,*) &
                     'getj1j2: error: cannot handle nperyear = ',nperyear,' yet'
-                    call abort
+                    call exit(-1)
                 endif
             else
                 if ( nperyear >= 12 ) then

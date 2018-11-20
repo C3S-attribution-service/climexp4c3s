@@ -81,7 +81,7 @@ program averageseries
             else
                 print *,'error: not enough data for month ',j &
                 ,' in reference series'
-                call abort
+                call exit(-1)
             end if
         end do
         if ( nperyear >= 360 ) then

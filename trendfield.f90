@@ -91,7 +91,7 @@ program trendfield
                     else
                         write(0,*)'trendfield: error: cannot locate' &
                         ,' file ',trim(datfile)
-                        call abort
+                        call exit(-1)
                     endif
                 endif
             endif

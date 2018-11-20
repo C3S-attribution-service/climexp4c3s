@@ -119,7 +119,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
             &   nperyear1,nperyear
             write(*,*) 'atribute_dist: error: covariate should not have higher time resolution than series: ', &
             &   nperyear1,nperyear
-            call abort
+            call exit(-1)
         else ! equal already
             if ( lwrite ) print *,'copying covariate ',nperyear
             yrcovariate(1:nperyear,fyr:lyr,mens1:mens) = covariate(1:nperyear,fyr:lyr, &
@@ -130,7 +130,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     else
         write(*,*) 'attribute_dist: error: unknown distribution ',trim(distribution)
         write(0,*) 'attribute_dist: error: unknown distribution ',trim(distribution)
-        call abort
+        call exit(-1)
     end if
     
     if ( assume == 'scale' ) then
@@ -291,7 +291,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
                 k = k + 1
                 if ( k > nresmax ) then
                     write(0,*) 'attribute_dist: internal error: results array to small: ',nresmax
-                    call abort
+                    call exit(-1)
                 end if
                 results(:,k) = t(:,i,j)
             end do
@@ -329,19 +329,19 @@ subroutine attribute_init(file,distribution,assume,off,nperyear,yrbeg,yrend,nens
     if ( distribution /= 'gev' .and. distribution /= 'gumbel' .and. &
     &    distribution /= 'gpd' .and. distribution /= 'gauss' ) then
         write(0,*) 'attribute: error: only GEV, GPD or Gauss supported, not ',distribution
-        call abort
+        call exit(-1)
     end if
 
     call get_command_argument(4+off,string)
     if ( string(1:4) /= 'assu' ) then
         write(0,*) 'attribute: error: expecting "assume", not ',trim(string)
-        call abort
+        call exit(-1)
     end if
     call get_command_argument(5+off,assume)
     call tolower(assume)
     if ( assume /= 'shift' .and. assume /= 'scale' .and. assume /= 'both' ) then
         write(0,*) 'attribute: error: only shift, scale or both supported, not ',assume
-        call abort
+        call exit(-1)
     end if
 end subroutine
 
@@ -364,7 +364,7 @@ subroutine getdpm(dpm,nperyear)
         dpm = 1
     else
         write(0,*) 'getdpm: error: unknown nperyear = ',nperyear
-        call abort
+        call exit(-1)
     end if
 end subroutine getdpm
 
@@ -413,7 +413,7 @@ subroutine make_annual_values(series,nperyear,npermax,yrbeg,yrend,mens1,mens, &
                             s = s + series(dy,yr,iens)
                         else
                             write(0,*) 'make_annual_values: unknown operation ',trim(operation)
-                            call abort
+                            call exit(-1)
                         end if
                     end if
                 end do
@@ -424,7 +424,7 @@ subroutine make_annual_values(series,nperyear,npermax,yrbeg,yrend,mens1,mens, &
                         yrseries(1,yr,iens) = s/m
                     else
                         write(0,*) 'make_annual_values: unknown operation ',trim(operation)
-                        call abort
+                        call exit(-1)
                     end if
                 end if
             end do ! yr
@@ -467,7 +467,7 @@ subroutine make_annual_values(series,nperyear,npermax,yrbeg,yrend,mens1,mens, &
                                     s = s + series(dy,yr,iens)
                                 else
                                     write(0,*) 'make_annual_values: unknown operation ',trim(operation)
-                                    call abort
+                                    call exit(-1)
                                 end if
                             end if
                         end if
@@ -481,7 +481,7 @@ subroutine make_annual_values(series,nperyear,npermax,yrbeg,yrend,mens1,mens, &
                         yrseries(1,yy,iens) = s/m
                     else
                         write(0,*) 'make_annual_values: unknown operation ',trim(operation)
-                        call abort
+                        call exit(-1)
                     end if
                 end if
             end do ! yy
@@ -546,7 +546,7 @@ subroutine make_two_annual_values(series,covariate,nperyear,npermax,yrbeg,yrend,
                             yrcovariate(1,yr,iens) = yrcovariate(1,yr,iens) + covariate(dy,yr,iens)
                         else
                             write(0,*) 'make_annual_values: unknown operation ',trim(operation)
-                            call abort
+                            call exit(-1)
                         end if
                     end if
                 end do
@@ -558,7 +558,7 @@ subroutine make_two_annual_values(series,covariate,nperyear,npermax,yrbeg,yrend,
                         yrcovariate(1,yr,iens) = yrcovariate(1,yr,iens)/m
                     else
                         write(0,*) 'make_annual_values: unknown operation ',trim(operation)
-                        call abort
+                        call exit(-1)
                     end if
                     if ( lwrite ) print *,yr,yrcovariate(1,yr,iens),yrseries(1,yr,iens)
                 end if
@@ -606,7 +606,7 @@ subroutine make_two_annual_values(series,covariate,nperyear,npermax,yrbeg,yrend,
                                     yrcovariate(1,yr,iens) = yrcovariate(1,yr,iens) + covariate(dy,yr,iens)
                                 else
                                     write(0,*) 'make_annual_values: unknown operation ',trim(operation)
-                                    call abort
+                                    call exit(-1)
                                 end if
                             end if
                         end if
@@ -621,7 +621,7 @@ subroutine make_two_annual_values(series,covariate,nperyear,npermax,yrbeg,yrend,
                         yrcovariate(1,yr,iens) = yrcovariate(1,yr,iens)/m
                     else
                         write(0,*) 'make_annual_values: unknown operation ',trim(operation)
-                        call abort
+                        call exit(-1)
                     end if
                 end if
             end do ! yy

@@ -147,7 +147,7 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
         call fit2gaucov(a,b,alpha,beta,dalpha,dbeta,iter)
     else
         write(0,*) 'fitgaucov: cannot handle assume = ',assume
-        call abort
+        call exit(-1)
     end if
     if ( assume == 'scale' ) ba = b/a
     dum = 0
@@ -212,7 +212,7 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
                 j = 1 + min(ntot-ndecor,int((ntot-ndecor)*ranf))
                 if ( j.lt.1 .or. j.gt.ntot ) then
                     write(0,*) 'fitgaucov: error: j = ',j
-                    call abort
+                    call exit(-1)
                 endif
                 if ( i.lt.n ) then ! the blocks that fit in whole
                     do jj=0,ndecor-1
@@ -246,7 +246,7 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
             call fit2gaucov(aa(iens),bb(iens),alphaalpha(iens),betabeta(iens),dalpha,dbeta,iter)
         else
             write(0,*) 'fitgaucov: cannot handle assume = ',assume
-            call abort
+            call exit(-1)
         end if
         if ( assume == 'scale' ) baba(iens) = bb(iens)/aa(iens)
         call getabfromcov(aa(iens),bb(iens),alphaalpha(iens),betabeta(iens),cov1,aaa,bbb)
@@ -693,7 +693,7 @@ subroutine gauscovnorm(a,b,s)
     external erfcc
     if ( minindx.gt.-1e33 .or. maxindx.lt.1e33 ) then
         write(0,*) 'gauscovnorm: boundaries not yet available for fit of gauss(t)'
-        call abort
+        call exit(-1)
     else
         s = 1
     endif

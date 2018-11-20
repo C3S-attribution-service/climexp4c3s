@@ -237,7 +237,7 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
                 j = 1+int(ntot*ranf)
                 if ( j < 1 .or. j > ntot ) then
                     write(0,*) 'fitgev: error: j = ',j
-                    call abort
+                    call exit(-1)
                 endif
                 data(:,i) = xx(:,j)
             enddo
@@ -825,7 +825,7 @@ real function llgevcov(p)
     endif
     if ( restrain < 0 ) then
         write(0,*) 'llgevcov: restrain<0 ',restrain
-        call abort
+        call exit(-1)
     end if
     if ( cassume == 'scale' .and. llchangesign ) then
         if ( init == 0 ) then

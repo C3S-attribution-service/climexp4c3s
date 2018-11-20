@@ -25,7 +25,7 @@ program month2lead
     nplus = index(file,'+++')
     if ( nplus == 0 ) then
         write(0,*) 'error: expecting ''+++'' in file name'
-        call abort
+        call exit(-1)
     endif
 
 !       read series

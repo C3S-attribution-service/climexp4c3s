@@ -43,7 +43,7 @@ SUBROUTINE LEGZO(n,x,w)
 
 !!!         if ( p.eq.0 ) then
 !!!             write(0,*) 'legzo: error: p = 0, pf = ',pf
-!!!             call abort
+!!!             call exit(-1)
 !!!         end if
             fd = pf/p
             q  = 0.0
@@ -57,12 +57,12 @@ SUBROUTINE LEGZO(n,x,w)
             gd = (pd - q*fd)
 !!!         if ( p.eq.0 ) then
 !!!             write(0,*) 'legzo: error: p = 0, gd = ',gd
-!!!             call abort
+!!!             call exit(-1)
 !!!         end if
             gd = gd/p
 !!!         if ( gd.eq.0 ) then
 !!!             write(0,*) 'legzo: error: gd = 0, fd = ',fd
-!!!             call abort
+!!!             call exit(-1)
 !!!         end if
             z  = z - fd/gd
     

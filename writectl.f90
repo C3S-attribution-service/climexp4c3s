@@ -122,7 +122,7 @@ subroutine writectl(file,datfile,nx,xx,ny,yy,nz,zz, &
     elseif ( nperyear < 12 ) then
         write(0,*) 'writectl: cannot handle nperyear = ',nperyear, &
         ' properly yet'
-        call abort
+        call exit(-1)
     else
         if ( mobegin < 1 .or. mobegin > nperyear ) then
             write(0,*) 'writectl: error: period = ',mobegin
@@ -164,7 +164,7 @@ subroutine writectl(file,datfile,nx,xx,ny,yy,nz,zz, &
         else
             write(0,*) 'writectl: error: cannot handle nperyear = ' &
             ,nperyear,' yet'
-            call abort
+            call exit(-1)
         endif
     endif
     write(unit,'(a,i4)') 'VARS ',nvars

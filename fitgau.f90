@@ -90,7 +90,7 @@ subroutine fitgau(xx,ntot,mean,sd,a,b,minindx,maxindx,ntype, &
                 j = 1+int(ntot*ranf)
                 if ( j < 1 .or. j > ntot ) then
                     write(0,*) 'fitgau: error: j = ',j
-                    call abort
+                    call exit(-1)
                 end if
                 data(i) = xx(j)
             end do

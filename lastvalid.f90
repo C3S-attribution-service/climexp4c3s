@@ -10,7 +10,7 @@ program lastvalid
             
     if ( command_argument_count() /= 1 ) then
         write(0,*) 'usage: lastvalid series.dat'
-        call abort
+        call exit(-1)
     end if
 
     call get_command_argument(1,file)

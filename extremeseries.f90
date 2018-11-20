@@ -35,7 +35,7 @@ program extremeseries
     if ( abs(nperyearnew).gt.12 .or. nperyearnew.lt.1 ) then
         write(0,*) 'extremeseries: error: nperyearnew = ',nperyearnew,' not yet supported'
         write(*,*) 'extremeseries: error: nperyearnew = ',nperyearnew,' not yet supported'
-        call abort
+        call exit(-1)
     endif
     call get_command_argument(3,climdex)
     call getopts(4,command_argument_count(),nperyear,yrbeg,yrend,.true.,0,0)
@@ -60,8 +60,8 @@ program extremeseries
 !
     goto 999
 901 write(0,*) 'extremeseries: expecting nperyearnew, not ',string
-    call abort
+    call exit(-1)
 902 write(0,*) 'extremeseries: expecting value[%|p], not ',string
-    call abort
+    call exit(-1)
 999 continue
 end program

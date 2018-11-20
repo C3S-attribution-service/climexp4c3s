@@ -87,7 +87,7 @@ program roc
         lsame, .true. ,lwrite,area)
     else
         write(0,*) 'roc: unknown parameter ',type
-        call abort
+        call exit(-1)
     endif
     write(0,'(a,f5.3)') 'Area under the ROC curve is ',area
 

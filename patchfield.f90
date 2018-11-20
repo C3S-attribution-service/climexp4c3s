@@ -254,7 +254,7 @@ program patchfield
                     end do
                 else
                    write(0,*) 'merging pentad or decadal time series not ready'
-                   call abort
+                   call exit(-1)
                 end if
 !
 !               copy back to main field

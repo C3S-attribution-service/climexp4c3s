@@ -29,12 +29,12 @@ program filteryearfield
         yearmonth = 'month'
     else
         write(0,*) trim(prog),': error: cannot identify program'
-        call abort
+        call exit(-1)
     end if
     call get_command_argument(1,hilo)
     if ( hilo /= 'hi' .and. hilo /= 'lo' ) then
         write(0,*) 'filterfield: error: say hi or lo, not ',hilo
-        call abort
+        call exit(-1)
     endif
     call get_command_argument(2,filtertype)
     call get_command_argument(3,line)
@@ -62,7 +62,7 @@ program filteryearfield
         if ( nz /= 1 ) then
             write(*,*) 'filteryearfield: error: cannot handle 3D netcdf file yet'
             write(0,*) 'filteryearfield: error: cannot handle 3D netcdf file yet'
-            call abort
+            call exit(-1)
         endif
         call readncfile(ncid,data,nx,ny,nx,ny,nperyear,firstyr &
             ,lastyr,firstyr,firstmo,nt,undef,lwrite,firstyr,lastyr &
@@ -102,7 +102,7 @@ program filteryearfield
                         ,yearmonth,'gaussian',lwrite)
                 else
                     write(0,*) 'filterseries: error: filtertype ',filtertype,' not yet implemented'
-                    call abort
+                    call exit(-1)
                 end if
             
                 do yr=firstyr,lastyr

@@ -174,7 +174,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     if ( j /= ncur ) then
         write(0,*) 'fitgpdcov: error: j != ncur ',j,ncur
         write(*,*) 'fitgpdcov: error: j != ncur ',j,ncur
-        call abort
+        call exit(-1)
     end if
     sig = 0
     call moment(yy,ncur,mean,adev,sd,var,skew,curt)
@@ -325,7 +325,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
                 j = 1 + min(ncur-ndecor,int((ncur-ndecor)*ranf))
                 if ( j < 1 .or. j > ncur ) then
                     write(0,*) 'fitgpdcov: error: j = ',j
-                    call abort
+                    call exit(-1)
                 end if
                 if ( i < n ) then ! the blocks that fit in whole
                     do jj=0,ndecor-1
@@ -1185,7 +1185,7 @@ include 'getopts.inc'
 
     if ( minindx > -1e33 .or. maxindx < 1e33 ) then
         write(0,*) 'gpdcovnorm: boundaries not yet avaiable for fit of GPD(t)'
-        call abort
+        call exit(-1)
     else
         s = 1
     end if
@@ -1325,7 +1325,7 @@ real function gpdcovreturnyear(a,b,xi,alpha,beta,xyear,cov,lchangesign)
                 end do
             else
                 write(0,*) 'gpdcovreturnyear: error: unknown value for assume: ',cassume
-                call abort
+                call exit(-1)
             end if
         end if
         ! approximately... I do not have this information here.

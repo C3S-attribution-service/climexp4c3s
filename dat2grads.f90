@@ -47,7 +47,7 @@ program dat2grads
     i = index(file,'.ctl')
     if ( i == 0 ) then
         write(0,*) 'dat2grads: error: cannot find ''.ctl'' in ',file
-        call abort
+        call exit(-1)
     endif
     file(i:) = '.grd'
     open(3,file=file,status='unknown',form='unformatted', &
@@ -87,7 +87,7 @@ program dat2grads
     else
         write(0,*) 'dat2grads: error: cannot handle nperyear = ', &
         nperyear,' yet'
-        call abort
+        call exit(-1)
     endif
     write(2,'(a,i6,a,i4.4,2a)') 'TDEF ',nperyear*(yr2-yr1+1), &
     ' LINEAR 1JAN',yr1,' ',unit

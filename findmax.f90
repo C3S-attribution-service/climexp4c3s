@@ -112,7 +112,7 @@ subroutine gfield(datfile,ncid,field,nx,xx,ny,yy,nz,zz,nt &
     integer :: rindex
     external rindex
 
-    call getarg(2,line)
+    call get_command_argument(2,line)
     if ( line(1:3) == 'min' ) then
         minmax = -1
     elseif ( line(1:3) == 'max' ) then
@@ -129,7 +129,7 @@ subroutine gfield(datfile,ncid,field,nx,xx,ny,yy,nz,zz,nt &
     else
         goto 901
     endif
-    call getarg(3,line)
+    call get_command_argument(3,line)
     if ( line(1:3) == 'lat' ) then
         latlon = 1
     elseif ( line(1:3) == 'lon' ) then
@@ -141,10 +141,10 @@ subroutine gfield(datfile,ncid,field,nx,xx,ny,yy,nz,zz,nt &
     yr1 = max(yr1,firstyr)
     yr2 = min(yr2,firstyr + (firstmo+nt-2)/nperyear)
 
-!       read field, change absent values to our convention
+!   read field, change absent values to our convention
 
     if ( ensemble ) then
-    !           put the %% back in datfile...
+!       put the %% back in datfile...
         if ( nens2 < 10 ) then
             i = 1
         elseif ( nens2 < 100 ) then
@@ -152,16 +152,13 @@ subroutine gfield(datfile,ncid,field,nx,xx,ny,yy,nz,zz,nt &
         elseif ( nens2 < 1000 ) then
             i = 3
         else
-            write(0,*) &
-            'correlatefield: cannot handle ensembles up to ' &
-            ,nens2,' yet'
+            write(0,*) 'findmax: cannot handle ensembles up to ' ,nens2,' yet'
             call exit(-1)
         endif
         string = '0000000'
         j = rindex(datfile,string(1:i))
         if ( j == 0 ) then
-            write(0,*) 'correlatefield: error: cannot find ' &
-            ,string(1:i),' in ',trim(datfile)
+            write(0,*) 'correlatefield: error: cannot find ',string(1:i),' in ',trim(datfile)
             call exit(-1)
         endif
         do k=j,j+i-1

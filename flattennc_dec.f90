@@ -28,7 +28,7 @@ program flattennc_dec
         ,units(nvarmax)*40,cell_methods*128,ltime*100,lz(3)*20 &
         ,months(12)*3,clwrite*10,lunits*10,metadata(2,100)*2000
     logical :: lwrite,foundreftime,foundleadtime
-    integer :: iargc,julday
+    integer :: julday
     data months &
         /'jan','feb','mar','apr','may','jun' &
         ,'jul','aug','sep','oct','nov','dec'/
@@ -46,8 +46,8 @@ program flattennc_dec
         print *,'usage: flattennc infile1 infile2 ... outfile'
         stop
     endif
-    call get_command_argument(iargc(),outfile)
-    do ifile=1,iargc()-1
+    call get_command_argument(command_argument_count(),outfile)
+    do ifile=1,command_argument_count()-1
         call get_command_argument(ifile,infile)
     
 !       open files
@@ -343,7 +343,7 @@ program flattennc_dec
     write(title,'(aa,i2,a)') trim(title),', reftime ',dy,months(mo)
     do itype=1,4
         if ( itype == 2 ) cycle ! no more yr2
-        call get_command_argument(iargc(),outfile)
+        call get_command_argument(command_argument_count(),outfile)
         i = index(outfile,'.nc')
         if ( i == 0 ) then
             i = len_trim(outfile) + 1

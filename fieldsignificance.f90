@@ -23,7 +23,6 @@ program fieldsignficance
         lvars(nvarmax)*200,svars(nvarmax)*200,units(nvarmax)*100, &
         cell_methods(nvarmax)*128,all*6,metadata(2,100)*2000
     logical :: xrev,yrev,xwrap
-    integer :: iargc
     real :: df,pcut
     common /qcom/ df,pcut
     lwrite = .false. 
@@ -36,7 +35,7 @@ program fieldsignficance
     if ( string == ' ' ) then
         write(0,*) 'usage: fieldsignificance file timestep pcut% ', &
         'lon1 x1 lon2 x2 lat1 y1 lat2 y2'
-        call abort
+        call exit(-1)
     end if
     all = string
     if ( string(1:3) == 'all' ) then
@@ -60,7 +59,7 @@ program fieldsignficance
         ,lvars,svars,units,cell_methods,metadata,lwrite)
     if ( mens1 > 0 ) then
         write(0,*) 'fieldsignficance: cannot handle ensembles',mens1
-        call abort
+        call exit(-1)
     end if
     do ivar=1,nvars
         if ( vars(ivar)(1:4) == 'prob' .or. &
@@ -94,7 +93,7 @@ program fieldsignficance
         write(0,*) 'fieldignificance: error: itime < 0 or itime > nt: ',itime,nt
         call exit(-1)
     end if
-    call getopts(4,iargc(),nperyear,yrbeg,yrend, .true. ,mens1,mens)
+    call getopts(4,command_argument_count(),nperyear,yrbeg,yrend, .true. ,mens1,mens)
     allocate(prob(nx,ny,nz))
     allocate(invprob(nx,ny,nz))
     allocate(corr(nx,ny,nz))
@@ -573,7 +572,7 @@ subroutine getdecor(decor,field,xx,nx,nxx,xwrap,yy,ny,nyy, &
     else
         write(0,*) 'zreadncfile: error: time undefined in ncid ' &
         ,ncid
-        call abort
+        call exit(-1)
     endif
     if ( lwrite ) then
         print *,'readonencfield: startvec = ',(start(i),i=1,k)

@@ -44,7 +44,7 @@ program operate
         lvar = 'inverse of '//lvar
     else
         write(0,'(2a)') 'operate: unknown operation ',oper
-        call abort
+        call exit(-1)
     endif
 
     call printvar(6,var,units,lvar)

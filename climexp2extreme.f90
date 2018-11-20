@@ -74,7 +74,7 @@ subroutine climexp2extreme(data,indx,npermax,fyr,lyr,yr1,yr2,nperyear,npernew, &
 		call setcalendar('proleptic_gregorian')
 	else
 		write(0,*) 'climexp2extreme: error: expecting daily data, not ',nperyear
-		call abort
+		call exit(-1)
 	end if
 	!
 	!	copy input
@@ -142,7 +142,7 @@ subroutine climexp2extreme(data,indx,npermax,fyr,lyr,yr1,yr2,nperyear,npernew, &
 			newunits = 'dy'
 		else
 			write(0,*) 'unknown Tmin index ',trim(climdex)
-			call abort
+			call exit(-1)
 		end if
 
 	else if ( var.eq.'tx' .or. index(var,'max').ne.0 ) then ! maximum temperature
@@ -183,7 +183,7 @@ subroutine climexp2extreme(data,indx,npermax,fyr,lyr,yr1,yr2,nperyear,npernew, &
 			newunits = 'dy'
 		else
 			write(0,*) 'unknown Tmax index ',trim(climdex)
-			call abort
+			call exit(-1)
 		end if
 
 	else if ( var(1:1).eq.'t' ) then ! let's hope it is mean temperature
@@ -201,7 +201,7 @@ subroutine climexp2extreme(data,indx,npermax,fyr,lyr,yr1,yr2,nperyear,npernew, &
 			newunits = 'K dy'
 		else
 			write(0,*) 'unknown Tmean index ',trim(climdex)
-			call abort
+			call exit(-1)
 		end if
 
 	else if ( var(1:2).eq.'rr' .or. var(1:2).eq.'rh' .or. &
@@ -291,13 +291,13 @@ subroutine climexp2extreme(data,indx,npermax,fyr,lyr,yr1,yr2,nperyear,npernew, &
 			end if
 		else
 			write(0,*) 'unknown precip index ',trim(climdex)
-			call abort
+			call exit(-1)
 		end if		
 
 	else
 		write(0,*) 'climexp2extreme: error: cannot recognise variable ', &
 		&	trim(var),' [',trim(units),']'
-		call abort
+		call exit(-1)
 	end if
 	!
 	!	copy output back, note that the numbers are one higher than in the documentation :-)
@@ -326,7 +326,7 @@ subroutine climexp2extreme(data,indx,npermax,fyr,lyr,yr1,yr2,nperyear,npernew, &
 		end do
 	else
 		write(0,*) 'climexp2extreme: error: unknown value for npernew ',npernew
-		call abort
+		call exit(-1)
 	end if
 
 end subroutine climexp2extreme	

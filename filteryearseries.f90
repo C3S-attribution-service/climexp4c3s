@@ -10,7 +10,6 @@ program filteryearseries
     real :: data(npermax,yrbeg:yrend)
     character :: file*1023,line*128,hilo*2,filtertype*12,var*40,units*60
     character :: lvar*120,svar*120,history*50000,metadata(1,100)*2000
-    integer :: iargc
 
     lwrite = .false. 
     if ( command_argument_count() < 4 ) then
@@ -20,7 +19,7 @@ program filteryearseries
     call get_command_argument(1,hilo)
     if ( hilo /= 'hi' .and. hilo /= 'lo' ) then
         write(0,*) 'filterseries: error: say hi or lo, not ',hilo
-        call abort
+        call exit(-1)
     endif
     call get_command_argument(2,filtertype)
     call get_command_argument(3,line)
@@ -32,7 +31,7 @@ program filteryearseries
     call printmetadata(6,file,' ',' ',history,metadata)
     write(6,'(3a,i4,3a)') '# operation :: each calendar month ',hilo, &
         '-pass filtered with a ',nyr,'-yr ',trim(filtertype),' filter'
-    call getopts(5,iargc()-1,nperyear,yrbeg,yrend, .true. ,mens1,mens)
+    call getopts(5,command_argument_count()-1,nperyear,yrbeg,yrend, .true. ,mens1,mens)
     if ( minfac <= 0 ) minfac = 0.75
 
     if ( filtertype == 'running-mean' .or. filtertype(1:3) == 'box' ) then

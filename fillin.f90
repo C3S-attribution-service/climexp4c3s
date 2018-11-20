@@ -59,6 +59,6 @@ program fillin
     901 continue
     write(0,*) 'usage: fillin max file'
     write(0,*) 'interpolates single missing values linearly in time'
-    call abort
+    call exit(-1)
     999 continue
     END PROGRAM

@@ -30,7 +30,7 @@
     var,units, .true. ,lwrite)
     if ( n /= nperyear ) then
         write(0,*) 'error: unequal time scales ',n,nperyear
-        call abort
+        call exit(-1)
     end if
     print '(2a)','# precipitation file ',trim(string)
     if ( type == 1 .or. nperyear > 12 ) then

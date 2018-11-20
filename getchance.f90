@@ -34,7 +34,7 @@ program getchance
         read(string,*) npart
         if ( npart > npmax ) then
             print *,'error: increase npmax = ',npmax,' to ',npart
-            call abort
+            call exit(-1)
         endif
     endif
     if ( command_argument_count() >= 3 ) then

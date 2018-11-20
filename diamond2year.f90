@@ -87,9 +87,9 @@ program diamond2year
     goto 999
 900 print *,'error reading input'
     print *,line
-    call abort
+    call exit(-1)
 901 print *,'error reading x,year,month from '
     print *,line2
-    call abort
+    call exit(-1)
 999 continue
 end program diamond2year

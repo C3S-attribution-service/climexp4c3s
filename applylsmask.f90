@@ -62,6 +62,6 @@ subroutine applylsmask(field,lsmask,nx,ny,nz,nperyear,yr1,yr2,nens1,nens2,lsmask
      enddo
   else
      write(0,*) 'applylsmask: error: donot know what to do for lsmasktype = ',lsmasktype
-     call abort
+     call exit(-1)
   end if
 end subroutine applylsmask

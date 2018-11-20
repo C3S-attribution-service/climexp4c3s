@@ -30,7 +30,7 @@ subroutine getdymo(dy,mo,firstmo,nperyear)
         dy = nint(0.5 + (m-0.5)*366./nperyear)
     endif
     mo = 1
-    400 continue
+400 continue
     if ( .false. .and. lwrite ) print *,'dy,mo = ',dy,mo
     if ( nperyear == 365 .or. nperyear == 73 ) then
         if ( dy > dpm365(mo) ) then
@@ -96,7 +96,7 @@ subroutine invgetdymo(dy,mo,firstmo,nperyear)
     else
         write(0,*) 'invgetdymo: error: cannot yet hndle nperyear = ' &
         ,nperyear
-        call abort
+        call exit(-1)
     end if
 end subroutine invgetdymo
 

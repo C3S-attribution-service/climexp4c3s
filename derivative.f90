@@ -48,7 +48,7 @@ subroutine derivative(ndiff,data,diff,npermax,yrbeg,yrend,nperyear,minfac,lwrite
                                 write(0,*) 'derivative: error: ', &
                                 'can only handle ',nmax, &
                                 '-point derivatives'
-                                call abort
+                                call exit(-1)
                             end if
                             xx(nn) = k
                             yy(nn) = data(m,yp)

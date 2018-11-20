@@ -129,7 +129,7 @@ program autocor
         lagfac = 1
     else
         write(0,*) 'autocor: error: cannot handle ',nperyear,' data points per year yet'
-        call abort
+        call exit(-1)
     end if
     do lag=0,lagmax
         norlag = lagfac*lag

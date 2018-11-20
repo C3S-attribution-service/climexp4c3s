@@ -23,7 +23,7 @@ subroutine getweights(xyz,xx,wx,nx,xwrap,lwrite)
     pi = 4*atan(1d0)
     if ( xyz /= 'x' .and. xwrap ) then
         write(0,*) 'getweights: error: only x can wrap! ',xyz
-        call abort
+        call exit(-1)
     endif
     if ( nx == 1 ) then
         wx(1) = 1

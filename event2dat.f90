@@ -22,7 +22,7 @@ program event2dat
   if ( nperyear.le.1 .or. nperyear.gt.12 ) then
      write(0,*) 'dat2event: can only handle monthly o seasonal data at the moment,'
      write(0,*) '           not nperyear = ', nperyear
-     call abort
+     call exit(-1)
   end if
   allocate(data(nperyear,yrbeg:yrend))
   data = 0
@@ -38,7 +38,7 @@ program event2dat
            write(0,*) 'event2dat: warning: skipping year ',yr
         else if ( mo.lt.1 .or. mo.gt.nperyear ) then
            write(0,*) 'event2dat: error: wrong month ',mo
-           call abort
+           call exit(-1)
         else
            data(mo,yr) = val
         end if

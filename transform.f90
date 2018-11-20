@@ -27,7 +27,7 @@ program transform
     if ( nperyear /= 366 ) then
         write(0,*) 'transform: error: only for daily data'
         write(*,*) 'transform: error: only for daily data'
-        call abort
+        call exit(-1)
     end if
     call tolower(variable)
     call tolower(units)
@@ -35,18 +35,18 @@ program transform
         if ( units /= 'mm/dy' .and. units /= 'mm/day' .and. units /= 'mm/dag' ) then
             write(0,*) 'transform: error: rr units should be mm/dy, not ',trim(units)
             write(*,*) 'transform: error: rr units should be mm/dy, not ',trim(units)
-            call abort
+            call exit(-1)
         end if
     else if ( variable == 'tg' .or. variable == 'tn' .or. variable == 'tx' ) then
         if ( units /= 'celsius' .and. units /= 'c' .and. units /= 'degrees_celsius' ) then
             write(0,*) 'transform: error: rr units should be celsius, not ',trim(units)
             write(*,*) 'transform: error: rr units should be celsius, not ',trim(units)
-            call abort
+            call exit(-1)
         end if
     else
         write(0,*) 'transform: error: can only handle variables rr,tx,tg,tn at he moment, not ',trim(variable)
         write(*,*) 'transform: error: can only handle variables rr,tx,tg,tn at he moment, not ',trim(variable)
-        call abort
+        call exit(-1)
     end if
     ! NOT only the 30 years 1981-2010
     !!!series(:,yrbeg:1980) = 3e33
@@ -60,7 +60,7 @@ program transform
     else
         write(0,*) 'transform: error: unknow value for varibale, expecting ', &
 &           'tg,tn,tx or rr, found ',variable
-        call abort
+        call exit(-1)
     end if
     call shiftseriesyear(newseries,npermax,nperyear,yrbeg,yrend,horizon-1995,lwrite)
     string = scenario
@@ -100,13 +100,13 @@ subroutine get_parameters(infile,variable,horizon,scenario,scaling,region)
     &   ( index('WG',scenario(1:1)).eq.0 .or. index('LH',scenario(2:2)).eq.0 ) ) then
         write(*,*) 'transform: error: expecting scenario __, GL, GH, WL or WH, not ',scenario
         write(0,*) 'transform: error: expecting scenario __, GL, GH, WL or WH, not ',scenario
-        call abort
+        call exit(-1)
     end if
     call get_command_argument(5,region)
     return
     
 901 write(0,*) 'transform: error reading horizon from ',trim(string)
-    call abort
+    call exit(-1)
 end subroutine get_parameters
 
 subroutine read_deltas(variable,horizon,scenario,region,deltas,scaling,lwrite)
@@ -143,7 +143,7 @@ subroutine read_deltas(variable,horizon,scenario,region,deltas,scaling,lwrite)
         else
             write(0,*) 'read_deltas: error: expecting scaling lower|centr|upper, not ',scaling
             write(0,*) 'transform: error: expecting scaling lower|centr|upper, not ',scaling
-            call abort
+            call exit(-1)
         end if
     else
         ndeltas = 5
@@ -181,7 +181,7 @@ subroutine read_deltas(variable,horizon,scenario,region,deltas,scaling,lwrite)
                     mo = index('JANFEBMARAPRMAYJUNJULAUGSEPOCTNOVDEC',line(1:3))
                     if ( mo.eq.0 ) then
                         write(0,*) 'transform: error: cannot recognise month ',line(1:3)
-                        call abort
+                        call exit(-1)
                     end if
                     mo = (mo+2)/3
                     read(line(4:),*) (aa(j),j=1,ndeltas)
@@ -214,7 +214,7 @@ subroutine read_deltas(variable,horizon,scenario,region,deltas,scaling,lwrite)
         if ( .not. foundregion ) then
             write(*,*) 'transform: error: cannot find region ',region
             write(0,*) 'transform: error: cannot find region ',region
-            call abort
+            call exit(-1)
         end if
         if ( lwrite ) print *,'closing file'
         close(1)
@@ -224,12 +224,12 @@ subroutine read_deltas(variable,horizon,scenario,region,deltas,scaling,lwrite)
     if ( horizon.lt.yrs(1) ) then
         write(0,*) 'get_deltas: error: horizon should be equal to or larger than ',yrs(1)
         write(*,*) 'transform: error: horizon should be equal to or larger than ',yrs(1)
-        call abort
+        call exit(-1)
     end if
     if ( horizon.gt.yrs(nyears) ) then
         write(0,*) 'get_deltas: error: horizon should be equal to or smaller than ',yrs(nyears)
         write(*,*) 'transform: error: horizon should be equal to or smaller than ',yrs(nyears)
-        call abort
+        call exit(-1)
     end if
     do iyr=1,nyears-1
         if ( horizon >= yrs(iyr) .and. horizon < yrs(iyr+1) .or. &
@@ -256,11 +256,11 @@ subroutine read_deltas(variable,horizon,scenario,region,deltas,scaling,lwrite)
     return
 
 900 write(0,*) 'read_deltas: error: cannot locate file ',trim(file)
-    call abort
+    call exit(-1)
     
 901 write(0,*) 'read_deltas: error reading frome file ',trim(file)
     write(0,*) 'read_deltas: around line ',trim(line)
-    call abort
+    call exit(-1)
     
 end subroutine read_deltas
 
@@ -335,7 +335,7 @@ subroutine rrtransform(oldseries,npermax,yrbeg,yrend,horizon,deltas,series,lwrit
         read(1,*) mm,ratio(mo)
         if ( mm /= mo ) then
             write(0,*) 'rrtrans: error: mo /= mm ',mo,mm
-            call abort
+            call exit(-1)
         end if
     end do
     
@@ -428,7 +428,7 @@ subroutine rrtransform(oldseries,npermax,yrbeg,yrend,horizon,deltas,series,lwrit
                     nntot(mo) = nntot(mo) + 1
                     if ( nntot(mo) > nmax ) then
                         write(0,*) 'rrtransform: error: incraese nmax ',nmax,nntot(mo),mo
-                        call abort
+                        call exit(-1)
                     end if
                     dyr(1,nntot(mo),mo) = d
                     dyr(2,nntot(mo),mo) = yr
@@ -443,7 +443,7 @@ subroutine rrtransform(oldseries,npermax,yrbeg,yrend,horizon,deltas,series,lwrit
                         nn(mo) = nn(mo) + 1
                         if ( nn(mo) > nmax ) then
                             write(0,*) 'rrtransform: error: incraese nmax ',nmax,nn(mo),mo
-                            call abort
+                            call exit(-1)
                         end if
                         Xw(nn(mo),mo) = X(nntot(mo),mo)
                     end if
@@ -463,7 +463,7 @@ subroutine rrtransform(oldseries,npermax,yrbeg,yrend,horizon,deltas,series,lwrit
                         j = nint((i-0.5+0.0001*(mod(i,2)-0.5))*stap)
                         if ( j.gt.nn(mo) ) then
                             write(0,*) 'transform: error: j>nn(mo) ',j,nn(mo),mo
-                            call abort
+                            call exit(-1)
                         end if
                         tvalues(ntvalues) = Xw(j,mo)
                         tmonths(ntvalues) = mo
@@ -542,11 +542,11 @@ subroutine rrtransform(oldseries,npermax,yrbeg,yrend,horizon,deltas,series,lwrit
         else if ( version == 'v1.2' ) then
             write(0,*) 'rrtransform: error: not yet ready ',version
             write(*,*) 'transform: error: not yet ready ',version
-            call abort    
+            call exit(-1)    
         else
             write(0,*) 'rrtransform: error: unknown version ',version
             write(*,*) 'transform: error: unknown version ',version
-            call abort
+            call exit(-1)
         end if
     end if ! there are months that become drier
     
@@ -773,7 +773,7 @@ subroutine get_quantiles(series,npermax,yrbeg,yrend,mo,Xp)
     if ( n.lt.200 ) then ! totally arbitrary cut-off
         write(0,*) 'transform: error: need at least 200 days with valid data in month ', &
         & mo,' to compute quantiles'
-        call abort
+        call exit(-1)
     end if
     call nrsort(n,a)
     do i=1,5
@@ -830,7 +830,7 @@ subroutine quantile(q,cut,n,a,lwrite)
         x = 1 + cut*(n-1)
     else
         write(0,*) 'quantile: error: type not yet supported: ',type
-        call abort
+        call exit(-1)
     end if
     i = nint(x)
 	if ( lwrite ) print *,'x,i,a(i),a(i+1) = ',x,i,a(max(i,n)),a(min(i-1,1))

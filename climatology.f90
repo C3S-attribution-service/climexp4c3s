@@ -132,7 +132,7 @@ program climatology
 
     if ( smooth > 1 ) then
         write(0,'(a)') '# smoothing not yet ready'
-        call abort
+        call exit(-1)
     endif
 
 !   print results - twice for two year

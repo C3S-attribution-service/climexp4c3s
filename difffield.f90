@@ -199,7 +199,7 @@ program difffield
                      ave2(nx/1,ny/2,(nz+1)/2,1,2)
         else
             write(0,*) '???'
-            call abort
+            call exit(-1)
         end if
         deallocate(field)
 !
@@ -329,7 +329,7 @@ program difffield
     i=0
     if ( nx > nxf .or. ny > nyf ) then
         write(0,*) 'error: ',nxf,nyf,nx,ny
-        call abort
+        call exit(-1)
     endif
     do j=m1,m2
         if ( lwrite ) print *,'writing ',nx*ny*nz,' reals at month ',j,' record ',i+1

@@ -22,7 +22,7 @@ program untransform
             if ( itrans /= 0 ) then
                 write(0,*) 'untransform: error: can only handle'// &
                 ' one transformation at a time'
-                call abort
+                call exit(-1)
             endif
             itrans = i
         endif

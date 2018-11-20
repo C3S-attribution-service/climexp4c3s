@@ -176,7 +176,7 @@ program regionverification
         print *,'firstyr1 = ',firstyr1
         print *,'lastyr1  = ',lastyr1
         print *,'nens2    = ',nens2
-        call abort
+        call exit(-1)
     endif
 
     allocate(field1(nxf,nyf,nperyear,firstyr1:lastyr1,0:nens2))
@@ -464,7 +464,7 @@ program regionverification
         if ( nz1 > 1 .OR. nz2 > 1 ) then
             write(0,*) 'regionverification: error: cannot handle '// &
             'nz>1 yet: ',nz1,nz2
-            call abort
+            call exit(-1)
         else
             nz = 1
             ivars1(1,1) = 0

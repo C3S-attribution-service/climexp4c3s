@@ -15,7 +15,7 @@ program seriesanomal
     allocate(data(npermax,yrbeg:yrend,0:nensmax))
     if ( command_argument_count() < 2 ) then
         print *,'usage: seriesanomal [yr1 yr2] infile outfile'
-        call abort
+        call exit(-1)
     end if
 
     if ( command_argument_count() == 4 ) then

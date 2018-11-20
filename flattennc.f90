@@ -24,7 +24,7 @@
         ,units(nvarmax)*40,cell_methods*128,ltime*100,lz(3)*20 &
         ,months(12)*3,clwrite*10,lunits*10,metadata(2,100)*2000
     logical :: lwrite,foundreftime,foundleadtime
-    integer :: iargc,julday
+    integer :: julday
     data months &
         /'jan','feb','mar','apr','may','jun' &
         ,'jul','aug','sep','oct','nov','dec'/
