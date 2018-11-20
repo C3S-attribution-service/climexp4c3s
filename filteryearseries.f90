@@ -55,6 +55,6 @@ program filteryearseries
 901 write(0,*) 'filteryearseries: expcting an integer, not ',trim(line)
     call exit(-1)
 902 write(0,*) 'filteryearseries: expcting a number, not ',trim(line)
-    call exi(-1)
+    call exit(-1)
 999 continue
 end program filteryearseries
