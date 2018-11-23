@@ -89,6 +89,7 @@ subroutine readsetseriesmeta(data,ids,npermax,yrbeg,yrend,nensmax, &
     file = './data/'//trim(prog)//trim(number)//'.dat'
     inquire(file=trim(file),exist=lexist)
     inquire(file='./bin/'//trim(prog),exist=pexist)
+    if ( lwrite .and. .not.pexist ) print *,'./bin/'//trim(prog)//' does not exist'
 !   the getdutch* , gdcn*, eca* and GHCN get* programs
 !   check themselves whether the file needs to be regenerated
     if ( pexist .and. &
