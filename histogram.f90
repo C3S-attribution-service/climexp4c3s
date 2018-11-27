@@ -149,7 +149,7 @@ program histogram
         end if
     end if
     if ( lchangesign ) then
-        if ( ntype < 3 ) then ! no effect on histogram or QQ plot
+        if ( ntype < 2 ) then ! no effect on histogram or QQ plot
             lchangesign = .false.
         end if
     end if
