@@ -1,0 +1,82 @@
+#  -lnetcdffbased on fortran code download from git clone http://climexp.knmi.nl/Fortran.git
+# SVM_ARCH=bin # mkdir Fortran/bin/ 
+# cp Fortran/Makefile.linux_gfortran_64 Fortran/${SVM_ARCH}/Makefile
+
+### FFLAGS = -Ktrap=fp -g -C
+### FFLAGS = -g -Dlinux -fbounds-check -fbackslash -ffpe-trap=invalid,zero,overflow
+
+# this nc-configuration is from Fidora/KNMI
+###$ nc-config --all
+# --cc        -> gcc
+# --cflags    -> -I/usr/include -I/usr/include/hdf
+# --libs      -> -L/usr/lib64 -lnetcdf
+
+# --has-c++   -> no
+# --cxx       -> 
+
+# --has-c++4  -> no
+# --cxx4      -> 
+
+# --has-fortran-> yes
+# --fc        -> gfortran
+# --fflags    -> -I/usr/include
+# --flibs     -> -lnetcdff
+# --has-f90   -> no
+# --has-f03   -> yes
+
+# --has-dap   -> yes
+# --has-nc2   -> yes
+# --has-nc4   -> yes
+# --has-hdf5  -> yes
+# --has-hdf4  -> yes
+# --has-logging-> no
+# --has-pnetcdf-> no
+# --has-szlib -> 
+
+# --prefix    -> /usr
+# --includedir-> /usr/include
+# --libdir    -> /usr/lib64
+# --version   -> netCDF 4.4.1.1
+
+#
+#change I include...
+#FFLAGS = -O -Dlinux -fbackslash -ffpe-trap=invalid,zero,overflow -I/usr/include
+FFLAGS = -O -Dlinux -fbackslash -ffpe-trap=invalid,zero,overflow -I/usr/include -I/build/include/ -I/build/include/fgsl/ -L/build/lib
+
+EOFFLAGS = $(FFLAGS)
+
+CFLAGS = -O2
+
+# old
+#SYSLIBS = -L/usr/lib -L/usr/lib64/ -lnetcdff -lnetcdf -lhdf5 -llapack -lblas
+
+# docker version
+#SYSLIBS = -L/usr/lib -L/usr/lib/x86_64-linux-gnu/hdf5/serial -lnetcdff -lnetcdf -llapack -lblas -lhdf5_hl -lhdf5 -lpthread -lsz -lz -ldl -lm -lcurl
+SYSLIBS = -L/usr/lib -L/usr/lib/x86_64-linux-gnu/hdf5/serial -lnetcdff -lnetcdf -lhdf5 -llapack -lblas
+
+FC = gfortran
+LD = gfortran
+RANLIB = echo ready with
+
+###LDBIGFLAG = -Wl,-Bstatic
+
+EXTRAOBJS = getppid.o swapbyte.o
+
+# knmi extracted files, to locate online.
+# numerical refrence funct required, download from web or...
+# requires nrf.a
+# mkdir nrf; cd !$
+# from philippe: cp /usr/people/sager/proj/nrf/nrf.tar .
+# from philippe: cp /usr/people/sager/proj/nrf/nrf.mk  .
+# from philippe: cp /usr/people/sager/proj/nrf/nrf.dep .
+# tar -xf nrf.tar        (download source)
+# make -f nrf.mk         (build locally)
+# cp libnr.a Fortran/ce  (add lib to Fortran)
+
+
+# add source file, *.f or *.F
+# annual2shorter.F (missing source file added )
+# patternfield.F   (missing source file added )
+include ../Makefile.common
+
+# available from andrej
