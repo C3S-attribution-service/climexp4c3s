@@ -348,7 +348,6 @@ PROGRAMS	  = scientific2decimal \
 		del_dimension \
 		quantiles_field \
 		quantiles_series \
-		testerfcc \
 		fillin \
 		convertmetadata \
 		fix_undef \
