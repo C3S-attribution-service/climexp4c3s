@@ -252,7 +252,8 @@ LIBRARY		  = $(NUMLIB) climexp.a $(NUMLIB) # once to force earlier compilation o
 
 LIBS		  = $(LIBRARY) $(SYSLIBS)
 
-PROGRAMS	  = scientific2decimal \
+PROGRAMS	  = proccgi \
+		scientific2decimal \
 		lastvalid \
 		makeundef \
 		makeweek \
