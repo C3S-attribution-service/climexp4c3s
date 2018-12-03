@@ -11,10 +11,10 @@ EOFLD = gfortran $(EOFFLAGS)
 RANLIB = echo ready with
 use_gsl=true
 ifeq ($(use_gsl),true)
-    SYSLIBS = -L$(HOME)/lib -L$(HOME)/lib/$(PVM_ARCH) -L/usr/lib/x86_64-linux-gnu/ -L/usr/lib64/atlas -lnetcdff -lnetcdf -lhdf5 -lfgsl -lgsl -llapack
+    SYSLIBS = -L$(HOME)/lib -L$(HOME)/lib/$(PVM_ARCH) -L/usr/lib/x86_64-linux-gnu/ -L/usr/lib64/atlas -lnetcdff -lnetcdf -lfgsl -lgsl -llapack
     NUMLIB = wrappers.a
 else
-    SYSLIBS = -L$(HOME)/lib -L$(HOME)/lib/$(PVM_ARCH) -L/usr/lib/x86_64-linux-gnu/ -L/usr/lib64/atlas -lnetcdff -lnetcdf -lhdf5 -llapack
+    SYSLIBS = -L$(HOME)/lib -L$(HOME)/lib/$(PVM_ARCH) -L/usr/lib/x86_64-linux-gnu/ -L/usr/lib64/atlas -lnetcdff -lnetcdf -llapack
     NUMLIB = adapted.a libnr.a
 endif
 
