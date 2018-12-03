@@ -348,7 +348,6 @@ PROGRAMS	  = scientific2decimal \
 		del_dimension \
 		quantiles_field \
 		quantiles_series \
-		testerfcc \
 		fillin \
 		convertmetadata \
 		fix_undef \
@@ -359,12 +358,10 @@ PROGRAMS	  = scientific2decimal \
 		makesnow \
 		polygon2mask \
 		polygon2box \
-		extremeseries \
 		transform \
 		ecmwf_times \
 		printbigtable \
 		synthesis \
-		testwetbulb \
 		compute_wetbulb \
 		wetbulb_field \
 		outliers \
@@ -460,7 +457,7 @@ describefield:	describefield.o	 $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ describefield.o $(LIBS)
 
 convertmetadata:	convertmetadata.o $(LIBRARY)
-		$(LD) $(FFLAGS) -o $@ convertmetadata.o climexp.a libnr.a $(SYSLIBS)
+		$(LD) $(FFLAGS) -o $@ convertmetadata.o climexp.a $(LIBS)
 
 fix_undef:	fix_undef.o $(LIBRARY)
 		$(LD) $(EOFFLAGS) $(LDBIGFLAG) -o $@ $@.o $(LIBS)
@@ -541,7 +538,7 @@ daily2longer:	daily2longer.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ daily2longer.o $(LIBRARY) $(LIBS)
 
 extremeseries:	extremeseries.o $(LIBRARY)
-		$(LD) $(FFLAGS) -o $@ $@.o $(LIBRARY) $(LIBS)
+		$(LD) $(FFLAGS) -o $@ $@.o adapted_indexNAG.o $(LIBRARY) $(LIBS)
 
 yearly2shorter: yearly2shorter.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ yearly2shorter.o $(LIBRARY) $(LIBS)
