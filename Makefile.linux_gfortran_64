@@ -1,7 +1,8 @@
 # FFLAGS = -Ktrap=fp -g -C
 ###FFLAGS = -g -Dlinux -fbounds-check -fbackslash -ffpe-trap=invalid,zero,overflow
-FFLAGS = -O -fopenmp -Dlinux -fbackslash -ffpe-trap=invalid,zero,overflow
-EOFFLAGS = -O -fopenmp -Dlinux -fbackslash
+###FFLAGS = -O -fopenmp -Dlinux -fbackslash -ffpe-trap=invalid,zero,overflow
+FFLAGS = -O -Dlinux -fbackslash -ffpe-trap=invalid,zero,overflow
+EOFFLAGS = -O -Dlinux -fbackslash
 
 CFLAGS = -O2
 
