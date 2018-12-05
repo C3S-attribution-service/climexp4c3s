@@ -7,7 +7,7 @@ program filteryearseries
     include 'param.inc'
     include 'getopts.inc'
     integer :: i,j,yr,mo,nyr,nperyear,n,mens,mens1
-    real :: data(npermax,yrbeg:yrend)
+    real,allocatable :: data(:,:)
     character :: file*1023,line*128,hilo*2,filtertype*12,var*40,units*60
     character :: lvar*120,svar*120,history*50000,metadata(1,100)*2000
 
@@ -25,6 +25,7 @@ program filteryearseries
     call get_command_argument(3,line)
     read(line,*,err=901) nyr
     call get_command_argument(4,file)
+    allocate(data(npermax,yrbeg:yrend))
     call readseriesmeta(file,data,npermax,yrbeg,yrend,nperyear,var,units,lvar,svar, &
         history,metadata,.false.,lwrite)
     call printvar(6,var,units,lvar)
@@ -45,7 +46,7 @@ program filteryearseries
         call myloess(data,npermax,nperyear,yrbeg,yrend,nyr/2 &
             ,minfac,filtertype,hilo,'year','gaussian',lwrite)
     else
-        write(0,*) 'filterseries: error: filtertype ',filtertype,' not yet implemeneted'
+        write(0,*) 'filterseries: error: filtertype ',filtertype,' not yet implemented'
         call exit(-1)
     endif
 
