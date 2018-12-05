@@ -951,7 +951,7 @@ subroutine printab(lweb)
                 'with &mu;''= &mu;+&alpha;T '// &
                 'and &sigma;'' = &sigma;+&beta;T</td></tr>'
         else
-            write(0,*) 'printpoint: error: unknow value for assume ',cassume
+            write(0,*) 'printab: error: unknow value for assume ',cassume
         end if
     else
         if ( cassume == 'shift' ) then
@@ -961,7 +961,7 @@ subroutine printab(lweb)
         else if ( cassume == 'both' ) then
             print '(a)','a'' = a+alpha*T, b''= b+beta*T'
         else
-            write(0,*) 'fitgaucov: error: unknow value for assume ',cassume
+            write(0,*) 'printab: error: unknow value for assume ',cassume
         end if
     end if
 end subroutine printab
