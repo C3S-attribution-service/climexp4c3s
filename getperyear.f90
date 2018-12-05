@@ -724,7 +724,7 @@ subroutine gettextattall(ncid,varid,name,value,req,lwrite)
     include 'netcdf.inc'
     integer :: ncid,varid
     character :: name*(*),value*(*)
-    character :: string*4095
+    character :: string*100000
     logical :: req,lwrite
     integer :: i,n,status
 
@@ -744,10 +744,13 @@ subroutine gettextattall(ncid,varid,name,value,req,lwrite)
             call stripnonprint(string,lwrite)
             if ( status /= nf_noerr ) call handle_err(status,name)
             value = string
+            if ( len_trim(string) > len(value) ) then
+                value(len(value)-2:len(value)) = '...'
+            end if
         else
 !           I should allocate a longer string and get as much as I can...
             write(0,*) 'gettextattall: warning: attribute ' &
-                ,trim(name),' longer than string ',len(value),n &
+                ,trim(name),' longer than string ',len(string),n &
                 ,', not read'
         end if
     else if ( n > 0 ) then
