@@ -248,7 +248,8 @@ LIBRARY		  = $(NUMLIB) climexp.a $(NUMLIB) # once to force earlier compilation o
 
 LIBS		  = $(LIBRARY) $(SYSLIBS)
 
-PROGRAMS	  = scientific2decimal \
+PROGRAMS	  = proccgi \
+		scientific2decimal \
 		lastvalid \
 		makeundef \
 		makeweek \
@@ -534,7 +535,7 @@ daily2longer:	daily2longer.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ daily2longer.o $(LIBRARY) $(LIBS)
 
 extremeseries:	extremeseries.o $(LIBRARY)
-		$(LD) $(FFLAGS) -o $@ $@.o $(LIBRARY) $(LIBS)
+		$(LD) $(FFLAGS) -o $@ $@.o adapted_indexNAG.o $(LIBRARY) $(LIBS)
 
 yearly2shorter: yearly2shorter.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ yearly2shorter.o $(LIBRARY) $(LIBS)
