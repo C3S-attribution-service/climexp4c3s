@@ -35,8 +35,20 @@ ENV PVM_ARCH build
 WORKDIR /src/climexp/${PVM_ARCH}
 COPY ./Docker/Makefile.docker /src/climexp/${PVM_ARCH}/Makefile
 
+#Set env
 ENV FORTRAN_FLAGS "-I/usr/include -I/build/include/ -I/build/include/fgsl/ -L/build/lib -L/usr/lib64"
+ENV LD_LIBRARY_PATH "/build/lib:$LD_LIBRARY_PATH"
+
+RUN make
 
 CMD bash
 
-#RUN make
+
+
+# docker build -t climexp_numerical .
+# mkdir ./data/
+# wget "http://opendap.knmi.nl/knmi/thredds/fileServer/climate_explorer/nino3.nc" -O ./data/nino3.nc
+# wget "http://opendap.knmi.nl/knmi/thredds/fileServer/climate_explorer/cru_ts3.22.1901.2013.pre.dat.nc" -O ./data/cru_ts3.22.1901.2013.pre.dat.nc
+# docker run -m ./data:/data -it climexp_numerical /src/climexp/build/correlatefield
+# docker run -v `pwd`/data:/data -it climexp_numerical
+# ./correlatefield /data/cru_ts3.22.1901.2013.pre.dat.nc /data/nino3.nc mon 1:12 ave 3 out.nc
