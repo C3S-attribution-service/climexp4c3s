@@ -412,10 +412,8 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     if ( mens > mens1 ) call print_spatial_scale(scross/(nmc*ndecor),ntot/real(mens-mens1+1)/real(ndecor))
     if ( lchangesign ) then
         if ( a < 1e33 ) a = -a
-        if ( ba < 1e33 ) ba = -ba
         do iiens=1,iens
             if ( aa(iiens) < 1e33 ) aa(iiens) = -aa(iiens)
-            if ( baba(iiens) < 1e33 ) baba(iiens) = -baba(iiens)
             do j=1,3
                 if ( aacov(iiens,j) < 1e33 ) aacov(iiens,j) = -aacov(iiens,j)
             end do
