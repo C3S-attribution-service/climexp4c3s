@@ -556,17 +556,17 @@ subroutine write_metadata(ncid,metadata,lwrite)
     logical :: lwrite
     integer :: i,j,status
     real :: array(1)
-    logical :: linstitution
+    logical :: linstitution,illegal
     logical,external :: isnumchar,isalphachar
 !
     linstitution = .false.
     do i=1,100
         if ( len_trim(metadata(1,i)) > 0 ) then
+            illegal = .false.
             do j=1,len_trim(metadata(1,i))
                 if ( .not. ( isnumchar(metadata(1,i)(j:j)) .or. isalphachar(metadata(1,i)(j:j)) .or. &
                         metadata(1,i)(j:j) == '_' .or. metadata(1,i)(j:j) == '-' ) ) then
-                    write(0,*) 'writenc: warning: found illegal character  in metadata(1, ',i,'), char ', &
-                        j,': ',metadata(1,i)(j:j)
+                    illegal = .true.
                     if ( metadata(1,i)(j:j) == char(0) ) then
                         metadata(1,i)(j:j) = ' '
                     else
@@ -574,6 +574,10 @@ subroutine write_metadata(ncid,metadata,lwrite)
                     end if
                 end if
             end do
+            if ( illegal ) then
+                write(0,*) 'writenc: warning: found illegal character  in metadata(1, ',i,'), char ', &
+                    j,': ',trim(metadata(1,i))
+            end if
             if ( metadata(1,i) == 'conventions' .or. metadata(1,i) == 'Conventions' ) cycle
             if ( metadata(1,i) == 'institution' .or. metadata(1,i) == 'Institution' ) then
                 if ( metadata(2,i)(1:10) /= 'KNMI Clima' ) then ! avoid recursion...
