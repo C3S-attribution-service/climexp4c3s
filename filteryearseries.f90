@@ -9,7 +9,7 @@ program filteryearseries
     integer :: i,j,yr,mo,nyr,nperyear,n,mens,mens1
     real,allocatable :: data(:,:)
     character :: file*1023,line*128,hilo*2,filtertype*12,var*40,units*60
-    character :: lvar*120,svar*120,history*50000,metadata(1,100)*2000
+    character :: lvar*120,svar*120,history*50000,metadata(2,100)*2000
 
     lwrite = .false. 
     if ( command_argument_count() < 4 ) then
