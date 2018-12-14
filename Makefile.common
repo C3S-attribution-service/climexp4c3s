@@ -263,6 +263,7 @@ PROGRAMS	  = proccgi \
 		stationlist \
 		verification \
 		correlate \
+		addseries \
 		correlatefield \
 		correlatefieldfield \
 		fieldcorrelate \
@@ -394,14 +395,11 @@ adapted.a:	$(ADAPTED) $(MAKEFILE)
 clean:		
 		rm $(OBJS) $(PROGRAMS) $(LIBRARY) $(NUMLIB)
 
-testprog:	testprog.o $(LIBRARY)
-		$(LD) -g $(LDBIGFLAG) -o $@ testprog.o $(LIBS)
-
-testprog.o: ../testprog.F
-		$(LD) -g -c -o testprog.o ../testprog.F 
-
 correlate:	correlate.o $(LIBRARY)
 		$(LD) $(FFLAGS) $(LDBIGFLAG) -o $@ correlate.o $(LIBS)
+
+addseries:  correlate
+		ln -s correlate addseries
 
 correlatefield: correlatefield.o $(LIBRARY)
 		$(LD) $(FFLAGS) $(LDBIGFLAG) -o $@ correlatefield.o $(LIBS)
