@@ -207,11 +207,11 @@ subroutine getperyear(ncid,varid,tt,nt,firstmo,firstyr,nperyear &
     j = j+1
     if ( ichar(units(j:j)) >= ichar('0') .and. &
          ichar(units(j:j)) <= ichar('9') ) goto 111
-    read(units(i:j-1),'(i4)') firstyr
+    read(units(i:j-1),'(i4)',err=901) firstyr
     if ( lwrite ) print *,'read firstyr=',firstyr
     i = j+1
     j = i
-    112 continue
+112 continue
     j = j+1
     if ( ichar(units(j:j)) >= ichar('0') .and. &
          ichar(units(j:j)) <= ichar('9') ) goto 112
@@ -406,6 +406,9 @@ subroutine getperyear(ncid,varid,tt,nt,firstmo,firstyr,nperyear &
         nt = it
     end if
     if ( lwrite ) print *,'finally nt = ',nt
+    return
+901 write(0,*) 'getperyear: error: could not read firstyr from units(',i,j-1,') = ',units(i:j-1)
+    call exit(-1)
 end subroutine getperyear
 
 subroutine addonevariable(ncid,varid,name,ntvars,nvarmax,ndimvar &
