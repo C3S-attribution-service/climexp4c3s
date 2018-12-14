@@ -70,23 +70,28 @@ subroutine pearsnxxgen(x,y,n,r,prob,z,ax,sxx,ay,syy,sxy,df,lsubmean)
         return
     end if
     dz = (1+dr)/(1-dr)
-    z = dz
-    if ( z > 0 ) then
-        z = log(z)/2
+    if ( dz > 0 ) then
+        dz = log(dz)/2
+        z = dz
     else
         write(0,*) 'pearsnxx: error: arg log<=0: ',z
         write(0,*) '                 r = ',r
         z = 3e33
     end if
-    dt = (1-dr)*(1+dr)
-    if ( df <= 0 ) then
-        write(0,*) 'pearsnxx: error: df<=0: ',df
-        prob = 3e33
-        return
+    if ( df > 100 ) then ! normal distribution
+        dt = abs(dz)*sqrt(df/2)
+        prob = fgsl_sf_erfc(dt)
+    else ! Student's t
+        dt = (1-dr)*(1+dr)
+        if ( df <= 0 ) then
+            write(0,*) 'pearsnxx: error: df<=0: ',df
+            prob = 3e33
+            return
+        end if
+        dt = dr*sqrt(df/dt)
+        arg1 = df/2
+        arg2 = 0.5d0
+        arg3 = df/(df+dt**2)
+        prob = fgsl_sf_beta_inc(arg1,arg2,arg3) ! Wikipedia
     end if
-    dt = dr*sqrt(df/dt)
-    arg1 = df/2
-    arg2 = 0.5d0
-    arg3 = df/(df+dt**2)
-    prob = fgsl_sf_beta_inc(arg1,arg2,arg3) ! Wikipedia
 end subroutine pearsnxxgen
