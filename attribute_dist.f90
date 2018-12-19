@@ -88,7 +88,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
             call print_bootstrap_message(max(1,ndecor),j1,j2)
         end if
     else if ( distribution == 'gpd' .or. distribution == 'gauss' ) then
-        ! in the others lsum inicates teh block maxima length...
+        ! in the others lsum inicates the block maxima length...
         call getj1j2(j1,j2,m1,nperyear,lwrite)
         decor = max(decor,real(lsum)-1)
         if ( j1 == j2 ) then
@@ -915,14 +915,17 @@ subroutine handle_then_now(series,covariate,nperyear,fyr,lyr,j1,j2,yr1a,yr2a,yr2
 
     call find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr1a,cov1,dummy,ensmax,1,lprint,lwrite)
     call find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr2a,cov2,xyear,ensmax,2,lprint,lwrite)
-    call find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr2b,cov3,xyear,ensmax,3,lprint,lwrite)
+    call find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr2b,cov3,dummy,ensmax,3,lprint,lwrite)
 
 end subroutine handle_then_now
 
 subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xyear,ensmax,i12,lprint,lwrite)
     implicit none
-    integer nperyear,fyr,lyr,mens1,mens,j1,j2,yr,ensmax,i12
-    real series(nperyear,fyr:lyr,0:mens),covariate(nperyear,fyr:lyr,0:mens),cov,xyear
+    integer,intent(in) :: nperyear,fyr,lyr,mens1,mens,j1,j2,i12
+    integer,intent(inout) :: yr,ensmax
+    real,intent(in) :: covariate(nperyear,fyr:lyr,0:mens)
+    real,intent(inout) :: series(nperyear,fyr:lyr,0:mens)
+    real,intent(out) :: cov,xyear
     logical lchangesign,lprint,lwrite
     integer i,j,mo,momax,yrmax,iens
     real s
@@ -970,6 +973,11 @@ subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xy
     end if
     if ( i12 == 2 ) then
         if ( abs(xyear) > 1e33 ) then
+            if ( abs(s) > 1e33 ) then ! there was no valid data...
+                write(0,*) 'find_cov: error: cannot find valid data in ',yr,', periods ',j1,j2, &
+                    ', ensemble members ',mens1,mens
+                call exit(-1)
+            end if
             xyear = series(momax,yrmax,ensmax)
             series(momax,yrmax,mens1:mens) = 3e33 ! for GPD we should also make a few values to the sides undef
         else

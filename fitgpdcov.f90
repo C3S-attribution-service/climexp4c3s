@@ -210,7 +210,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         data(:,i) = xx(:,ii(i))
     end do
     restrain = inrestrain
-    llwrite = lwrite
+    llwrite = .false. ! lwrite
     llchangesign = lchangesign
     cassume = assume
 
@@ -411,8 +411,8 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     end do
     if ( mens > mens1 ) call print_spatial_scale(scross/(nmc*ndecor),ntot/real(mens-mens1+1)/real(ndecor))
     if ( lchangesign ) then
+        if ( a < 1e33 ) a = -a
         do iiens=1,iens
-            if ( a < 1e33 ) a = -a
             if ( aa(iiens) < 1e33 ) aa(iiens) = -aa(iiens)
             do j=1,3
                 if ( aacov(iiens,j) < 1e33 ) aacov(iiens,j) = -aacov(iiens,j)
@@ -507,9 +507,6 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
                  beta,beta25,beta975,t,t25,t975,tx,tx25,tx975)
         goto 801 ! deallocate and return
         !!!if ( .not.lwrite ) goto 801 ! deallocate and return
-    end if
-    if ( lchangesign ) then
-        a = -a
     end if
     if ( lweb ) then
         if ( lnone ) then
@@ -628,7 +625,6 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         call plotreturnvalue(ntype,t25(1,1),t975(1,1),j2-j1+1)
         ys(1:ncur) = yy(1:ncur)
         mindata = a
-        !!!write(0,*) '@@@ mindata,yy(ncur) = ',mindata,yy(ncur),ys(ncur)
         call plot_ordered_points(yy,ys,yrs,ncur,ntype,nfit,                 &
             frac,a,b,xi,j1,j2,minindx,mindata,pmindata,                &
             year,xyear,snorm,lchangesign,lwrite,.true.)

@@ -7,10 +7,9 @@ subroutine pearsncross(x,y,n,r,prob,z,ax,sxx,ay,syy,sxy,df,ncrossvalidate)
     integer :: n,ncrossvalidate
     real :: x(n),y(n),r,prob,z,ax,sxx,ay,syy,sxy,df
     integer :: i,j,m
-    real :: s,t,xt,yt,betai,arg3
-    integer,save :: ierr,nerr
-    data ierr /0/
-    data nerr /1/
+    real :: s,t,xt,yt,arg3
+    integer,save :: ierr=0,nerr=1
+    real,external :: erfcc,betai
 
     ax = sum(x)/n
     ay = sum(y)/n
@@ -74,34 +73,39 @@ subroutine pearsncross(x,y,n,r,prob,z,ax,sxx,ay,syy,sxy,df,ncrossvalidate)
         prob = 3e33
         return
     end if
-    t = (1-r)*(1+r)
-    if ( .not. df > 0 ) then
-        ierr = ierr + 1
-        if ( ierr >= nerr ) then
-            nerr = 2*nerr
-            write(*,*) 'pearsncross: df<=0: ',df,ierr
-            write(0,*) 'pearsncross: df<=0: ',df,ierr
-        end if
-        prob = 3e33
-        return
-    end if
-    if ( t > 0 ) then
-        t = r*sqrt(df/t)
+    if ( df > 100 ) then ! use Numerical Recipes (blue) 14.5.2
+        t = abs(z)*sqrt(df/2)
+        prob = erfcc(t)
     else
-        write(0,*) 'pearsnx: error: arg sqrt<=0: ',t
-        write(0,*) '                r = ',r
-        t = 3e33
-    endif
-    arg3 = df/(df+t**2)
-    if ( .not. (arg3 >= 0. .and. arg3 <= 1.) ) then
-        print *,'pearsnx: error: arg betai = ',df/(df+t**2)
-        print *,'                df = ',df
-        print *,'                r  = ',r
-        print *,'                t  = ',t
-        do j=1,n
-            print *,j,x(j),x(j)-ax,y(j),y(j)-ay
-        enddo
-        return
+        t = (1-r)*(1+r)
+        if ( .not. df > 0 ) then
+            ierr = ierr + 1
+            if ( ierr >= nerr ) then
+                nerr = 2*nerr
+                write(*,*) 'pearsncross: df<=0: ',df,ierr
+                write(0,*) 'pearsncross: df<=0: ',df,ierr
+            end if
+            prob = 3e33
+            return
+        end if
+        if ( t > 0 ) then
+            t = r*sqrt(df/t)
+        else
+            write(0,*) 'pearsnx: error: arg sqrt<=0: ',t
+            write(0,*) '                r = ',r
+            t = 3e33
+        endif
+        arg3 = df/(df+t**2)
+        if ( .not. (arg3 >= 0. .and. arg3 <= 1.) ) then
+            print *,'pearsnx: error: arg betai = ',df/(df+t**2)
+            print *,'                df = ',df
+            print *,'                r  = ',r
+            print *,'                t  = ',t
+            do j=1,n
+                print *,j,x(j),x(j)-ax,y(j),y(j)-ay
+            enddo
+            return
+        end if
+        prob = betai(df/2,0.5,arg3)
     end if
-    prob = betai(df/2,0.5,arg3)
 end subroutine pearsncross

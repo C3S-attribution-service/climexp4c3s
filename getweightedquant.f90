@@ -21,6 +21,10 @@ subroutine getweightedquant(point,nnens,nens,nmod,quant,lwrite)
     do iens=1,nens
         if ( point(iens) < 1e33 .or. .not. lskipundefined ) then
             n = n + 1
+            if ( n > 1024 ) then
+                write(0,*) 'getweightedquant: error: array too small ',1024
+                call exit(-1)
+            end if
             aa(n) = point(iens)
             if ( nnens(iens) /= 0 ) then
                 ww(n) = 1./nnens(iens)
