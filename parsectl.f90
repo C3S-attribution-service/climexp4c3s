@@ -68,15 +68,15 @@ subroutine parsectl(file,datfile,nxmax,nx,xx,nymax,ny,yy,nzmax &
         endif
         if ( lwrite ) print '(2a)','parsectl: found dset ',trim(datfile)
         foundit(0) = .true. 
-    !       title
+!       title
     elseif ( string(1:5) == 'TITLE' .or. string(1:5) == 'title' ) then
         title = string(7:)
         if ( lwrite ) print '(2a)','parsectl: found title ',trim(title)
-    !       undef
+!       undef
     elseif ( string(1:5) == 'UNDEF' .or. string(1:5) == 'undef' ) then
         read(string(7:),*) undef
         if ( lwrite ) print '(a,g10.2)','parsectl: found undef ',undef
-    !       options
+!       options
     elseif ( string(1:6) == 'OPTION' .or. string(1:6) == 'option' ) then
         i = index(string,'XREV') + index(string,'xrev')
         if ( i /= 0 ) xrev = .true. 
