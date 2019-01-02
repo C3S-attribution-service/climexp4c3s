@@ -160,7 +160,7 @@ HandleString (char *input)
   while (*p2) {
     switch (*p2) {
     /* GJvO: to prevent XSS, skip over all HTML control characters */
-    case '>': case '<': case '&': case '"': case '|': case '`': case '{': case '}':
+    case '>': case '<': case '&': case '"': case '|': case '`': case '{': case '}': case '=':
       break;
     /* GJvO: safer to also delete shell control characters */
     /* escape other shell control charachters */
