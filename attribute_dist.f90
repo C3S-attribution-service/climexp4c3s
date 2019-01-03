@@ -223,7 +223,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         crosscorr(mens1,mens1) = 1
     end if
 
-    if ( .not. lset ) write(0,*) 'Fitting...<p>'
+    if ( lprint .and. .not. lset ) write(0,*) 'Fitting...<p>'
     lboot = .true.
     if ( distribution == 'gev' ) then
         ntype = 2 ! Gumbel plot
