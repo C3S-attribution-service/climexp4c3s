@@ -270,3 +270,20 @@ subroutine coarsen_geospatial_metadata(metadata,avex,avey)
     enddo
                 
 end subroutine coarsen_geospatial_metadata
+
+subroutine add_metadata(name,value,metadata)
+
+!   add name,value pair to metadata
+
+    implicit none
+    character :: name*(*),value*(*),metadata(2,100)*(*)
+    integer i
+    
+    do i=1,100
+        if ( metadata(1,i) == ' ' ) exit
+    end do
+    if ( i > 100 ) return ! not important enough to crash out
+    metadata(1,i) = name
+    metadata(2,i) = value
+
+end subroutine add_metadata

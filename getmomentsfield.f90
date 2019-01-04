@@ -19,7 +19,7 @@ program getmomentsfield
      &       status,nperyear,mens,mens1,years(nyears),iyear
         integer jx,jy,jz,i,j,jj,j1,j2,k,m,n,month,yr,imoment,ldir, &
      &       iens,yrstart,yrstop,f,irec,year,ntvarid,itimeaxis(ntmax), &
-     &       itype
+     &       itype,iyeartype
         logical lexist
         real xx(nxmax),yy(nymax),zz(nzmax),undef,xxls(nxmax),yyls(nymax) &
      &       ,a,b,xi,t(10),t25(10),t975(10),tx,tx1,tx25,tx975,sx,sy,s,xtreme
@@ -71,6 +71,15 @@ program getmomentsfield
                 write(0,*) 'getomomentsfield: error: cannot determine ', &
      &               'length of period'
                 call exit(-1)
+            end if
+            call add_metadata('method','getmomentsfield: mean was taken over a circle',metadata)
+            iyeartype = 1 ! the default year is defined Jan-Dec
+            i = index(history,'daily2longer')
+            if ( i > 0 ) then
+                ! search for the second space after the command
+                i = i + index(history(i:),' ')
+                i = i + index(history(i:),' ')
+                if ( history(i:i+1) == '-1' ) iyeartype = -1 ! the year was defined from July to June
             end if
         end if
 !       process arguments
@@ -509,6 +518,7 @@ program getmomentsfield
                             s = itype*atan2(sy,sx)/(8*atan(1.))
                             if ( lwrite ) print *,sx/n,sy/n,s
                             if ( s.lt.0 ) s = s + itype
+                            if ( iyeartype == -1 .and. s < itype/2 ) s = s + itype
                             res(jx,jy,jz,m,1) = s
                         else if ( imoment.eq.-1 ) then
 !
