@@ -5,8 +5,8 @@ program lastvalid
     implicit none
     include 'param.inc'
     integer :: yr,mo,nperyear
-    real :: data(npermax,yrbeg:yrend),undef
-    character file*255,var*60,units*60
+    real,allocatable :: data(:,:)
+    character file*1023,var*60,units*60
             
     if ( command_argument_count() /= 1 ) then
         write(0,*) 'usage: lastvalid series.dat'
@@ -14,6 +14,7 @@ program lastvalid
     end if
 
     call get_command_argument(1,file)
+    allocate(data(npermax,yrbeg:yrend))
     call readseries(file,data,npermax,yrbeg,yrend,nperyear,var,units,.false.,.false.)
     do yr=yrend,yrbeg,-1
         do mo=nperyear,1,-1
