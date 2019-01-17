@@ -5,7 +5,7 @@ program describefield
 
     implicit none
     include 'netcdf.inc'
-    integer,parameter :: nxmax=3600,nymax=1800,nzmax=95, &
+    integer,parameter :: nxmax=7200,nymax=3600,nzmax=95, &
         yrbeg=1700,yrend=2300,nvmax=1,npermax=73, &
         ndata=npermax*(yrend-yrbeg+1),nensmax=750,ntmax=2000000
     integer :: i,n,nx,ny,nz,nt,nperyear,firstyr,firstmo,nvars,ivars(2 &
