@@ -9,11 +9,9 @@ program getmomentsfield
         include 'params.h'
         include 'netcdf.inc'
         include 'getopts.inc'
-        include 'recfac.inc'
-        real absent
-        parameter (absent=3e33)
-        integer nvarmax,ntmax,nyears
-        parameter(nvarmax=14,ntmax=13,nyears=1000)
+        integer,parameter :: recfa4=4,recfac=4
+        real,parameter :: absent=3e33
+        integer,parameter :: nvarmax=14,ntmax=13,nyears=1000
         integer nx,ny,nz,nt,firstyr,lastyr,firstmo,nvars, &
      &       ivars(2,nvarmax),jvars(6,nvarmax),ncid,endian, &
      &       status,nperyear,mens,mens1,years(nyears),iyear
