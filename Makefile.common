@@ -440,7 +440,7 @@ findmax:	findmax.o  $(LIBRARY)
 		$(LD) $(FFLAGS) $(LDBIGFLAG) -o $@ findmax.o $(LIBS)
 
 eof.o:		../src/eof.f90
-		$(FC) $(EOFFLAGS) -c ../eof.f90
+		$(FC) $(EOFFLAGS) -c ../src/eof.f90
 
 eof:		eof.o  $(LIBRARY)
 		$(EOFLD) $(EOFFLAGS) -o $@ eof.o $(LIBS)
