@@ -35,8 +35,7 @@ ADAPTED = adapted_amoeba.o \
 		adapted_period.o \
 		adapted_sort8.o \
 		adapted_zbrent.o \
-		adapted_brent.o \
-		adapted_indexNAG.o
+		adapted_brent.o
 
 WRAPPERS = amoeba.o \
 		betai.o \
@@ -232,8 +231,6 @@ OBJS =	makeabsent.o \
 		calcvDTR.o \
 		calcMIN.o \
 		calcMAX.o \
-		calcFreqDistr.o \
-		calcFreqDistrRR.o \
 		calcCSDI.o \
 		calcWSDI.o \
 		calcTp10.o \
@@ -241,7 +238,6 @@ OBJS =	makeabsent.o \
 		calcRXXp.o \
 		calcRXXpTOT.o \
 		indexSupport.o \
-		climexp2extreme.o \
 		isnan.o \
 		legzo.o \
 		nperyear2string.o \
@@ -372,8 +368,8 @@ PROGRAMS	  = proccgi \
 		diff_hist_nat \
 		cumul
 
-SHLIBS =	rkillfile.so \
-			rkeepalive.so
+# SHLIBS =	rkillfile.so \
+# 			rkeepalive.so
 
 all:		$(PROGRAMS) $(SHLIBS) sstoi2dat
 
@@ -794,11 +790,11 @@ RPS:		RPS.o
 Briar:		Briar.o
 		$(CC) $(CFLAGS) -o $@ $@.o -L/sw/lib -L/usr/local/free/lib -lnetcdf
 
-rkillfile.so:	rkillfile.f
-		R CMD SHLIB ../rkillfile.f
-
-rkeepalive.so:	rkeepalive.f
-		R CMD SHLIB ../rkeepalive.f
+# rkillfile.so:	rkillfile.f
+# 		R CMD SHLIB ../rkillfile.f
+# 
+# rkeepalive.so:	rkeepalive.f
+# 		R CMD SHLIB ../rkeepalive.f
 
 climexp2extreme.o:	climexp2extreme.f90 extreme.h
 
