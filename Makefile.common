@@ -5,7 +5,7 @@
 
 CPPFLAGS = -I/sw/include -I/usr/local/free/include
 
-VPATH		  = ..
+VPATH		  = ../src
 
 MAKEFILE	  = Makefile ../Makefile.common
 
@@ -439,7 +439,7 @@ get_depth:	get_depth.o	 $(LIBRARY)
 findmax:	findmax.o  $(LIBRARY)
 		$(LD) $(FFLAGS) $(LDBIGFLAG) -o $@ findmax.o $(LIBS)
 
-eof.o:		../eof.f90
+eof.o:		../src/eof.f90
 		$(FC) $(EOFFLAGS) -c ../eof.f90
 
 eof:		eof.o  $(LIBRARY)
