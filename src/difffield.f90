@@ -5,9 +5,9 @@ program difffield
     use lsdata
     implicit none
     include 'params.h'
-    include 'recfac.inc'
     include 'getopts.inc'
     include 'netcdf.inc'
+    integer,parameter :: recfa4=4
     integer ifield,nperyear,nperyear1,iens,mens1,mens,i,j,k,l,mo,month,n,jx,jy     &
      &       ,jz,nx1,ny1,nz1,nx2,ny2,nz2,nxf,nyf,nzf,j1,j2,startopts,fyr,lyr
     integer nx,ny,nz,nt,firstyr,firstmo,lastyr,nvars,  &
