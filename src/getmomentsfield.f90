@@ -558,10 +558,13 @@ program getmomentsfield
                                         do i=1,n
                                             ddata(i) = -ddata(i)
                                         end do
+                                        if ( xyear < 1e33 ) then
+                                            xyear = -xyear
+                                        end if
                                         call fitgau(ddata,n, &
      &                                       -xmom(1),xmom(2),a,b, &
      &                                       minindx,maxindx,3,j1,j2, &
-     &                                       year,-xyear,t,t25,t975, &
+     &                                       year,xyear,t,t25,t975, &
      &                                       tx,tx25,tx975,confidenceinterval, &
      &                                       .false.,.false.,lweb,.true.,lwrite)
                                     end if
@@ -581,7 +584,9 @@ program getmomentsfield
                                 do i=1,n
                                     ddata(i) = -ddata(i)
                                 end do
-                                xyear = -xyear
+                                if ( xyear < 1e33 ) then
+                                    xyear = -xyear
+                                end if
                             end if
                             if ( pmindata.le.0 .or. pmindata.ge.100 ) &
      &                           then
@@ -618,7 +623,9 @@ program getmomentsfield
                                 do i=1,n
                                     ddata(i) = -ddata(i)
                                 end do
-                                xyear = -xyear
+                                if ( xyear < 1e33 ) then
+                                    xyear = -xyear
+                                end if
                             end if
                             call moment(ddata,n,xmom(1),xmom(5),xmom(2), &
      &                          var,xmom(3),xmom(4))
@@ -652,7 +659,9 @@ program getmomentsfield
                                     do i=1,n
                                         ddata(i) = -ddata(i)
                                     end do
-                                    xyear = -xyear
+                                    if ( xyear < 1e33 ) then
+                                        xyear = -xyear
+                                    end if
                                 end if
                                 call nrsort(n,ddata)
                                 do i=1,n
