@@ -11,15 +11,16 @@ subroutine getautocor1(x,y,n,a1,a2,lwrite)
     real :: sig(1),mean1,var1,a,b,siga,sigb,chi2,q
     real,allocatable :: res(:)
 
+    a1 = 3e33
+    a2 = 3e33
     if ( n <= 2 ) then
-        a1 = 3e33
-        a2 = 3e33
         return
     end if
 !   first compute residuals to the fit (which means we'll be fitting yet another time -
 !   computers are fast these days)
     allocate(res(n))
     call fit(x,y,n,sig,0,a,b,siga,sigb,chi2,q)
+    if ( a > 1e33 .or. b > 1e33 ) return
     do i=1,n
         res(i) = y(i) - (a+b*x(i))
     end do
