@@ -13,24 +13,24 @@ subroutine fit(xx,yy,ndata,sig,mwt,a,b,siga,sigb,chi2,q)
     real(fgsl_double) :: dc0,dc1,dcov00,dcov01,dcov11,dsumsq,da,db,dq
     real(fgsl_double), allocatable :: dxx(:),dyy(:),dww(:)
 !
-!       special cases cause crashes later on... (Numericakl recipes never checks)
+!   special cases cause crashes later on... (Numerical recipes never checks) (nor does GSL)
 !
+    a = 3e33
+    b = 3e33
+    siga = 3e33
+    sigb = 3e33
+    chi2 = 0
+    q = 3e33
     if ( ndata == 0 ) then
-        a = 3e33
-        b = 3e33
-        siga = 3e33
-        sigb = 3e33
-        chi2 = 0
-        q = 3e33
         return
     end if
     if ( ndata == 1 ) then
         a = yy(1)
         b = 0
-        siga = 3e33
-        sigb = 3e33
         chi2 = 0
-        q = 3e33
+        return
+    end if
+    if ( sum(xx**2) == 0 ) then
         return
     end if
     
