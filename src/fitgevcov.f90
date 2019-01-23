@@ -101,7 +101,7 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
         endif
     endif
 !
-!       compute first-guess parameters
+!   compute first-guess parameters
 !
     allocate(yy(ntot))
     allocate(ys(ntot))
@@ -117,13 +117,8 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
     end do
     sig = 0
     call moment(yy,ntot,mean,adev,sd,var,skew,curt)
-    call fit(zz,yy,ntot,sig,0,aaa,alpha,siga,dalpha,chi2,q)
-    if ( lwrite ) then
-        print *,'fitgevcov: computed initialisation values:'
-        print *,'mean,sd,alpha,dalpha = ',mean,sd,alpha,dalpha
-    end if
 !
-!       ill-defined case
+!   ill-defined case
 !
     if ( sd == 0 ) then
         a3 = 3e33
@@ -135,6 +130,16 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
         tx3 = 3e33
         return
     endif
+
+!   initialisation values
+
+    if ( .not.lnone ) then
+        call fit(zz,yy,ntot,sig,0,aaa,alpha,siga,dalpha,chi2,q)
+        if ( lwrite ) then
+            print *,'fitgevcov: computed initialisation values:'
+            print *,'mean,sd,alpha,dalpha = ',mean,sd,alpha,dalpha
+        end if
+    end if
 !
 !   copy to common for routine llgevcov
 !
