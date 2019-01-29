@@ -80,7 +80,7 @@ program difffield
                 m1 = 1
             endif
         endif
-        lastyr = firstyr + (nt+firstmo-2)/nperyear
+        call getlastyr(firstyr,firstmo,nt,nperyear,lastyr)
         if ( ifield == 1 ) then
             yr1 = max(yr1,firstyr)
             yr2 = min(yr2,lastyr)

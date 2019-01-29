@@ -68,7 +68,7 @@ subroutine readncseriesmeta(file,data,npermx,nperyear,yr1,yr2,ncid,var,units,lva
         write(0,*) 'readncseries: error: found z-dependent variable, found ',nz
         call exit(-1)
     end if
-    lastyr = firstyr + (nt+firstmo-2)/nperyear
+    call getlastyr(firstyr,firstmo,nt,nperyear,lastyr)
     allocate(ddata(1,1,nperyear,firstyr:lastyr))
     call readncfile(ncid,ddata,1,1,nx,ny,nperyear,firstyr,lastyr, &
         firstyr,firstmo,nt,undef,lwrite, &
@@ -163,7 +163,7 @@ subroutine readncseriesensmeta(file,data,npermx,nperyear,yr1,yr2,nensmx,mens1,me
         write(0,*) 'readncseriesensmeta: error: found z-dependent variable, found ',nz
         call exit(-1)
     end if
-    lastyr = firstyr + (nt+firstmo-2)/nperyear
+    call getlastyr(firstyr,firstmo,nt,nperyear,lastyr)
     allocate(ddata(1,1,nperyear,firstyr:lastyr,0:mens))
     if ( lwrite ) print *,'calling readncfileens'
     call readncfileens(ncid,ddata,1,1,1,nx,ny,nz,nperyear,firstyr,lastyr,mens, &

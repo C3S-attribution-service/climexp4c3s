@@ -38,7 +38,7 @@ subroutine readgridpointsmeta(data,ids,npermax,yrbeg,yrend,nensmax, &
         ,xx,nymax,ny,yy,1,nz,zz,lz,nt,nperyear,firstyr,firstmo  &
         ,ltime,undef,endian,title,history,1,nvars,vars,ivars    &
         ,lvars,svars,units,cell_methods,metadata,lwrite)
-    lastyr = firstyr + (firstmo+nt-2)/nperyear
+    call getlastyr(firstyr,firstmo,nt,nperyear,lastyr)
     mens1 = max(nens1,nens1)
     mens = min(mens,nens2)
     allocate(field(nx,ny,nz,nperyear,firstyr:lastyr,0:mens))

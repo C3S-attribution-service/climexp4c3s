@@ -88,7 +88,7 @@ program extractfield
             ,nvars,vars,jvars,lvars,units,cell_methods,metadata)
     endif
 
-    lastyr = firstyr + (nt+firstmo-2)/nperyear
+    call getlastyr(firstyr,firstmo,nt,nperyear,lastyr)
     call getopts(2,command_argument_count(),nperyear,firstyr,lastyr,.true.,mens1,mens)
     if ( lag1 /= 0 .or. lag2 /= 0 ) print *,'ignoring lags'
     if ( .not. plot ) write(0,*) 'extractfield: specify output file with ''plot'''

@@ -18,7 +18,7 @@ program svd
         ncid2,nx2,ny2,nz2,nt2,nperyear2,firstyr2,firstmo2,nvars2, &
         ivars2(6,1),endian2,mens12,mens2,nxf2,nyf2,nzf2, &
         nens21,nens22,nxymax2, &
-        status,mens,firstyr,firstmo,nperyear,nt,lastyr, &
+        status,mens,firstyr,firstmo,nperyear,nt,lastyr,lastyr1,lastyr2, &
         i1,j1,n1,nn1,jx1,jy1,jz1,x11,y11,z11,x12,y12,z12, &
         i2,j2,n2,nn2,jx2,jy2,jz2,x21,y21,z21,x22,y22,z22
     integer,allocatable :: ijk1(:,:),ijk2(:,:)
@@ -127,8 +127,9 @@ program svd
         call exit(-1)
     end if
     nperyear = nperyear1
-    lastyr = min(firstyr1 + (nt1-1)/nperyear,firstyr2 + (nt2-1) &
-    /nperyear)
+    call getlastyr(firstyr1,firstmo1,nt1,nperyear1,lastyr)
+    call getlastyr(firstyr2,firstmo2,nt2,nperyear2,lastyr2)
+    lastyr = min(lastyr,lastyr2)
 
 !       save time on the initialization - but not too much.
     nt = nperyear*(lastyr-firstyr+1)

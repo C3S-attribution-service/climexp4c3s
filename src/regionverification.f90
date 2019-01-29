@@ -17,7 +17,7 @@ program regionverification
     integer :: ncid1,ncid2,nx1,ny1,nz1,nt1,nper1,firstyr1,f1,firstmo1 &
         ,fm1,nx2,ny2,nz2,nt2,nper2,firstyr2,firstmo2,nvars &
         ,jvars1(6,nvmax),jvars2(6,nvmax),endian1,endian2,status &
-        ,nxf,nyf,nperyear,firstyr,lastyr,lastyr1,mens1,mens,nmodel1 &
+        ,nxf,nyf,nperyear,firstyr,lastyr,lastyr1,lastyr2,mens1,mens,nmodel1 &
         ,nmodel2,iens,jens,kens,nn,ntmax,month,yr1s,yr2s,it,mineen &
         ,yrstart,yrstop,multimodel(0:nmodelmax),nmodel
     integer, allocatable :: itimeaxis(:)
@@ -125,14 +125,15 @@ program regionverification
         nyf = max(ny1,ny2)
         firstyr = max(firstyr1,firstyr2)
         nperyear = max(nper1,nper2)
-        lastyr1 = firstyr1 + (nt1+firstmo1-2)/nperyear
-        lastyr = min(lastyr1,firstyr2 + (nt2+firstmo2-2)/nperyear)
+        call getlastyr(firstyr1,firstmo1,nt1,nperyear,lastyr1)
+        call getlastyr(firstyr2,firstmo2,nt2,nperyear,lastyr2)
+        lastyr = min(lastyr1,lastyr2)
     else
         nxf = nx1
         nyf = ny1
         firstyr = firstyr1
         nperyear = nper1
-        lastyr1 = firstyr1 + (nt1+firstmo1-2)/nperyear
+        call getlastyr(firstyr1,firstmo1,nt1,nperyear,lastyr1)
         lastyr = lastyr1
     endif
     nt = nperyear*(lastyr-firstyr+1)

@@ -70,7 +70,7 @@ program get_depth
             write(0,*) 'located ',mens+1,' ensemble members<br>'
         end if
     end if
-    lastyr = firstyr + (firstmo+nt-2)/nperyear
+    call getlastyr(firstyr,firstmo,nt,nperyear,lastyr)
 !   process arguments
     if ( ensemble ) write(0,*) 'Using ensemble members ',nens1,' to ',nens2,'<br>'
     call get_command_argument(1,infile)

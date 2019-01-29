@@ -78,7 +78,7 @@ program correlatefield
         ,ltime,undef,endian,title,history,nvarmax,nvars,vars,ivars &
         ,lvars,svars,units,cell_methods,metadata,lwrite)
     iarg = 2
-    lastyr = firstyr + (firstmo+nt-2)/nperyear
+    call getlastyr(firstyr,firstmo,nt,nperyear,lastyr)
     call add_varnames_metadata(vars(1),lvars(1),svars(1),metadata,'field_variable')
 !
 !   process arguments

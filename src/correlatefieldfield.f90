@@ -17,8 +17,8 @@ program correlatefieldfield
     integer :: ncid1,ncid2,nx1,ny1,nz1,nt1,nper1,firstyr1,firstmo1, &
         nx2,ny2,nz2,nt2,nper2,firstyr2,firstmo2,nvars1,ivars1(6,1) &
         ,nvars2,ivars2(6,1),endian1,endian2,status,nxf,nyf,nzf &
-        ,nperyear1,nperyear2,nperyear,firstyr,lastyr,mens11,mens1 &
-        ,mens12,mens2,mens,imens(0:1)
+        ,nperyear1,nperyear2,nperyear,firstyr,lastyr,lastyr1,lastyr2 &
+        ,mens11,mens1,mens12,mens2,mens,imens(0:1)
     integer :: i,j,jj,k,n,lag,jx,jy,jz,mo,j1,j2,m,ii,l,yr,if,jm,jp,im &
         ,ip,nt,nrec,nvars,ivars(2,9),ldir,nx,ny,nz,ncid &
         ,ntvarid,itimeaxis(ntmax),iens,yrstart,yrstop &
@@ -90,7 +90,7 @@ program correlatefieldfield
         nzf = nz1
         firstyr = firstyr1
         nperyear = nperyear1
-        lastyr = firstyr1 + (nt1-1)/nperyear1
+        call getlastyr(firstyr1,firstmo1,nt1,nperyear,lastyr)
         mens12 = mens11
         mens2 = mens1
     else
@@ -112,8 +112,9 @@ program correlatefieldfield
             call exit(-1)
         end if
         nperyear = nperyear1
-        lastyr = min(firstyr1 + (nt1-1)/nperyear1,firstyr2 + (nt2-1) &
-        /nperyear2)
+        call getlastyr(firstyr1,firstmo1,nt1,nperyear1,lastyr1)
+        call getlastyr(firstyr2,firstmo2,nt2,nperyear2,lastyr2)
+        lastyr = min(lastyr1,lastyr2)
     end if
 
 !   save time on the initialization - but not too much.

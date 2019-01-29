@@ -54,7 +54,7 @@ program getmomentsfield
      &       ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo &
      &       ,ltime,undef,endian,title,history,nvarmax,nvars,vars,jvars &
      &       ,lvars,svars,units,cell_methods,metadata,lwrite)
-        lastyr = firstyr + (firstmo+nt-2)/nperyear
+        call getlastyr(firstyr,firstmo,nt,nperyear,lastyr)
 !       co-ordinate with adjustunits, adjustvar
 !       this catches the time of year of min, max occurrence
         itype = 0

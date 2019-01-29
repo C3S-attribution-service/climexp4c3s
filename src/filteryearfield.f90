@@ -45,12 +45,7 @@ program filteryearfield
         ,ltime,undef,endian,title,history,1,nvars,vars,ivars &
         ,lvars,svars,units,cell_methods,metadata,lwrite)
     call getopts(5,command_argument_count()-1,nperyear,yrbeg,yrend,.true.,mens1,mens)
-    if ( nperyear /= 366 ) then
-        lastyr = firstyr + (nt+firstmo-2)/nperyear
-    else
-        ! should be updated to an accurate coputation...
-        lastyr = firstyr + int((nt+firstmo-2)/365.25)
-    end if
+    call getlastyr(firstyr,firstmo,nt,nperyear,lastyr)
     allocate(data(nx,ny,nz,nperyear,firstyr:lastyr))
     allocate(fxy(nperyear,firstyr:lastyr))
     call keepalive(0,1)

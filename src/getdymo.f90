@@ -131,3 +131,19 @@ subroutine addleap(nt,firstyr,firstmo,nperyear,nnt)
         end if
     end do
 end subroutine addleap
+
+subroutine getlastyr(firstyr,firstmo,nt,nperyear,lastyr)
+!
+!   compute the last year with data from the firstyr, firstmo (=perdio) and number of time steps nt
+!
+    implicit none
+    integer,intent(in) :: firstyr,firstmo,nt,nperyear
+    integer,intent(out) :: lastyr
+    integer nday
+    nday = nint(nperyear/366.)
+    if ( nperyear /= 366*nday ) then
+        lastyr = firstyr + (nt+firstmo-2)/nperyear
+    else ! approximation...
+        lastyr = firstyr + int((nt+firstmo-2)/(nday*365.24))
+    end if
+end subroutine getlastyr

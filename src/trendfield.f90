@@ -48,7 +48,7 @@ program trendfield
         ,xx,nymax,ny,yy,nzmax,nz,zz,lz,nt,nperyear,firstyr,firstmo &
         ,ltime,undef,endian,title,history,nvarmax,nvars,vars,ivars &
         ,lvars,svars,units,cell_methods,metadata,lwrite)
-    lastyr = firstyr + (firstmo+nt-2)/nperyear
+    call getlastyr(firstyr,firstmo,nt,nperyear,lastyr)
     if ( index(infile,'%') > 0 .or. &
     index(infile,'++') > 0 ) then
         write(0,*) 'Using ensemble members ',mens1,' to ',mens &

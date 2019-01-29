@@ -120,7 +120,7 @@ program statmodel
 
 !   process other options
 
-    lastyr = firstyr + (nt+firstmo-2)/nperyear
+    call getlastyr(firstyr,firstmo,nt,nperyear,lastyr)
     call get_command_argument(2,string)
     if ( string(1:3) /= 'ana' ) goto 901
     call get_command_argument(3,string)

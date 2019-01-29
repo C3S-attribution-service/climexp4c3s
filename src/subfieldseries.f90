@@ -34,7 +34,7 @@ program subfieldseries
         ,ltime,undef,endian,title,history,1,nvars,vars,ivars1 &
         ,lvars,svars,units,cell_methods,metadata,lwrite)
 
-    lastyr = firstyr + (firstmo+nt-2)/nper1
+    call getlastyr(firstyr,firstmo,nt,nper1,lastyr)
     if ( lwrite ) print *,'allocating field ',nx,ny,nper1,firstyr,lastyr
     allocate(field(nx,ny,nper1,firstyr:lastyr))
 

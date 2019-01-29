@@ -99,15 +99,8 @@ program get_index
     endif
     ! until I get a new server...
 !   range of years
-    if ( nperyear == 366 ) then
-        lastyr = firstyr + int((firstmo+nt-2)/365.24)
-        if ( lwrite ) print *,'lastyr: ',lastyr,' = ', firstyr, &
-        ' + (',firstmo,'+',nt,'-2)/',365.24
-    else
-        lastyr = firstyr + (firstmo+nt-2)/nperyear
-        if ( lwrite ) print *,'lastyr: ',lastyr,' = ', firstyr, &
-        ' + (',firstmo,'+',nt,'-2)/',nperyear
-    end if
+
+    call getlastyr(firstyr,firstmo,nt,nperyear,lastyr)
 
 !   allocate arrays
 

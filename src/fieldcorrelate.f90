@@ -10,7 +10,7 @@ program fieldcorrelate
     integer :: j,n,ncid1,ncid2,nx1,ny1,nz1,nt1,nper1,firstyr1,firstmo1, &
         nx2,ny2,nz2,nt2,nper2,firstyr2,firstmo2,nvars,ivars1(2,1), &
         ivars2(2,1),jvars1(6,nvmax),jvars2(6,nvmax),endian1, &
-        endian2,status,nxf,nyf,nperyear,firstyr,lastyr
+        endian2,status,nxf,nyf,nperyear,firstyr,lastyr,lastyr1,lastyr2
     real ::  xx1(nxmax),yy1(nymax),zz1(nzmax), &
         xx2(nxmax),yy2(nymax),zz2(nzmax),u1,u2
     real,allocatable :: field1(:,:,:,:),field2(:,:,:,:)
@@ -71,8 +71,9 @@ program fieldcorrelate
     nyf = max(ny1,ny2)
     firstyr = max(firstyr1,firstyr2)
     nperyear = max(nper1,nper2)
-    lastyr = min(firstyr1 + (nt1-1)/nperyear,firstyr2 + (nt2-1) &
-    /nperyear)
+    call getlastyr(firstyr1,firstmo1,nt1,nperyear,lastyr1)
+    call getlastyr(firstyr2,firstmo2,nt2,nperyear,lastyr2)
+    lastyr = min(lastyr1,lastyr2)
     if ( nper1 /= nper2 ) then
         write(0,*) 'correlatefield: error: cannot handle different time scales yet',nper1,nper2
         write(*,*) 'correlatefield: error: cannot handle different time scales yet',nper1,nper2
@@ -137,7 +138,6 @@ subroutine cfieldfield(nxf,nyf,nperyear,firstyr, &
     endif
 
 !   save time on the initialization - but not too much.
-    lastyr = min(firstyr1 + (nt1-1)/nperyear,firstyr2 + (nt2-1)/nperyear)
     nt = nperyear*(lastyr-firstyr+1)
     n = command_argument_count()
     call get_command_argument(3,output)

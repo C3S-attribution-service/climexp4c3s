@@ -34,7 +34,7 @@ program averagefieldspace
         ,ltime,undef,endian,title,history,1,nvars,vars,ivars &
         ,lvars,svars,units,cell_methods,metadata,lwrite)
 !   range of years
-    lastyr = firstyr + (firstmo+nt-2)/nperyear
+    call getlastyr(firstyr,firstmo,nt,nperyear,lastyr)
 
 !   allocate field
 

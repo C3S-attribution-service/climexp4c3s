@@ -72,11 +72,7 @@ program daily2longerfield
         write(*,*) 'daily2longefield: error: cannot handle 3D fields yet'
         call exit(-1)
     endif
-    if ( nperyear /= 366 ) then
-        lastyr = firstyr + (nt+firstmo-2)/nperyear
-    else
-        lastyr = firstyr + int((nt+firstmo-2)/365.25)
-    end if
+    call getlastyr(firstyr,firstmo,nt,nperyear,lastyr)
     if ( lwrite ) then
         print *,'daily2longerfield: allocating oldfield'
         print *,'nx,ny,nperyear,firstyr,lastyr = ',nx,ny,nperyear,firstyr,lastyr

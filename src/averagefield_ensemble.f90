@@ -74,7 +74,7 @@ program average_field_ensemble
         mens1 = nens1
         write(0,*) 'located ',nens2-nens1+1,' ensemble members<br>'
     endif
-    lastyr = firstyr + (nt+firstmo-2)/nperyear
+    call getlastyr(firstyr,firstmo,nt,nperyear,lastyr)
     if ( lwrite ) then
         print *,'allocating field(',nx,ny,nz,nperyear,firstyr,lastyr,mens,')'
     end if

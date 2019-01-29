@@ -53,7 +53,7 @@ program fieldclim
     end if
     yrbegin = firstyr
 !   range of years
-    lastyr = firstyr + (firstmo+nt-2)/nperyear
+    call getlastyr(firstyr,firstmo,nt,nperyear,lastyr)
 !
 !   other options
 !

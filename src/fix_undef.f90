@@ -39,7 +39,7 @@ program fix_undef
         write(0,*) 'fix_undef: cannot handle ensembles'
         call exit(-1)
     end if
-    lastyr = firstyr + (firstmo+nt-2)/nperyear
+    call getlastyr(firstyr,firstmo,nt,nperyear,lastyr)
     call getopts(2,command_argument_count()-1,nperyear,yrbeg,yrend,.false.,mens1,mens)
     yr1 = firstyr
     yr2 = lastyr

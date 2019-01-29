@@ -62,7 +62,7 @@ program geowind
             ,nz,zz,nt,nperyear,firstyr,firstmo,undef,title,1 &
             ,nvars,vars,jvars,lvars,units)
     endif
-    lastyr = firstyr + (nt+firstmo-2)/nperyear
+    call getlastyr(firstyr,firstmo,nt,nperyear,lastyr)
     if ( lwrite) print *,'allocating fields(',nx,ny,nperyear,firstyr,lastyr,')'
     allocate(slp(nx,ny,nperyear,firstyr:lastyr))
 

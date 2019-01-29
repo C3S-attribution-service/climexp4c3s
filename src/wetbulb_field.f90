@@ -83,7 +83,7 @@ program wetbulb_field
         call exit(-1)
     end if
     
-    lastyr = firstyr + (firstmo+nt-2)/nperyear
+    call getlastyr(firstyr,firstmo,nt,nperyear,lastyr)
     
     allocate(tmax(nx,ny,nperyear,firstyr:lastyr),pres(nx,ny,nperyear,firstyr:lastyr))
     allocate(tdew(nx,ny,nperyear,firstyr:lastyr),twet(nx,ny,nperyear,firstyr:lastyr))

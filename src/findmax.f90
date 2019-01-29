@@ -74,7 +74,7 @@ program findmax
             write(0,*) 'located ',mens+1,' ensemble members<br>'
         endif
     endif
-    lastyr = firstyr + (firstmo+nt-2)/nperyear
+    call getlastyr(firstyr,firstmo,nt,nperyear,lastyr)
 !   process arguments
     call getopts(4,n,nperyear,yrbeg,yrend, .true. ,mens1,mens)
     if ( ensemble ) write(0,*) 'Using ensemble members ',nens1,' to ',nens2,'<br>'
