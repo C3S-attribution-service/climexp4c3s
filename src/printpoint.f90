@@ -205,6 +205,7 @@ subroutine printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,yr2b,lweb
             call val_or_inf(atx25(i),tx25(i),lweb)
             call val_or_inf(atx975(i),tx975(i),lweb)
             call val_or_inf(ainvtx(i),1/tx(i),lweb)
+            if ( tx25(i) == 0 ) tx25(i) = 1e-20
             call val_or_inf(ainvtx25(i),1/tx25(i),lweb)
             call val_or_inf(ainvtx975(i),1/tx975(i),lweb)
         end do
@@ -787,6 +788,10 @@ subroutine plot_tx_cdfs(txtx,nmc,nens,ntype,j1,j2)
     else
         write(0,*) 'plot_tx_cdfs: error: unknown value for ntype ',ntype
         call exit(-1)
+    end if
+    if ( nens > nmc ) then
+        write(0,*) 'plot_tx_cdfs: internal error: nens>nmc ',nens,nmc
+        nens = nmc
     end if
     do iens=1,nens
         do j=1,4
