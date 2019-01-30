@@ -34,7 +34,7 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
     character assume*(*),idmax*(*)
     logical lweb,lchangesign,lboot,lprint,dump,plot,lwrite
 !
-    integer i,j,k,l,n,nx,iter,iens,iiens,nfit,year,yr,nj
+    integer i,j,k,l,n,nx,iter,iens,jens,iiens,nfit,year,yr,nj
     integer,allocatable :: yrs(:)
     real x,a,b,ba,xi,alpha,beta,t(10,4),t25(10,4),t975(10,4),           &
  &       tx(4),tx25(4),tx975(4),aa(nmc),bb(nmc),baba(nmc),xixi(nmc),    &
@@ -332,9 +332,9 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
                 if ( t(j,i) < 1e30 ) then
                     t(j,i) = -t(j,i)
                 end if
-                do iens = 1,nmc
-                    if ( tt(iens,j,i) < 1e33 ) then
-                        tt(iens,j,i) = -tt(iens,j,i)
+                do jens = 1,nmc
+                    if ( tt(jens,j,i) < 1e33 ) then
+                        tt(jens,j,i) = -tt(jens,j,i)
                     end if
                 end do
             end do
