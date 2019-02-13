@@ -164,9 +164,10 @@ HandleString (char *input)
       break;
     /* GJvO: safer to also delete shell control characters */
     /* escape other shell control charachters */
-    case '\\': case '$': case ';':
+    case '$': case ';':
       break; /* used to be: putc ('\\', stdout); */
     default:
+      if ( *p2 == '[' || *p2 == ']' ) putc ('\\',  stdout);
       putc (*p2,  stdout);
       break;
     }
