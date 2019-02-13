@@ -79,7 +79,7 @@ subroutine readensseriesmeta(file,data,npermax,yrbeg,yrend,nensmax &
         end do
         if ( mens < 0 ) then
             write(0,*) 'readensseries: error: could not find ensemble ' &
-                ,trim(file),trim(ensfile)
+                ,trim(file),' with member ',trim(ensfile)
             call exit(-1)
         end if
         do iens=mens1,mens

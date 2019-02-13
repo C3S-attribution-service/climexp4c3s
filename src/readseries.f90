@@ -45,7 +45,7 @@ subroutine readseriesmeta(infile,data,npermax,yrbeg,yrend,nperyear, &
         iarray2(13),iret1,iret2
     logical :: lagain,lexist
     real*8 :: x,y,x1,y1,val12(366)
-    character file*50000,ncfile*1023,line*10000
+    character :: file*1023,ncfile*1023,line*10000
     integer :: getnumwords,monthinline
     save dpm,dpm0
     data dpm0 /31,29,31,30,31,30,31,31,30,31,30,31/
@@ -72,7 +72,7 @@ subroutine readseriesmeta(infile,data,npermax,yrbeg,yrend,nperyear, &
             ncfile = file(:i-1)//'.nc'
             inquire(file=trim(ncfile),exist=lexist)
             if ( lexist ) then
-            ! check that it is not older than the ascii file
+                ! check that it is not older than the ascii file
                 call mystat(trim(infile),iarray1,iret1)
                 call mystat(trim(ncfile),iarray2,iret2)
                 if ( iret1 == 0 .and. iret2 == 0 ) then
@@ -118,7 +118,7 @@ subroutine readseriesmeta(infile,data,npermax,yrbeg,yrend,nperyear, &
         if ( unit /= 5 ) close(unit)
         return
     end if
-!       first look for explicit months
+!   first look for explicit months
     imonth = monthinline(line)
     nperyear = getnumwords(line) - 1
     if ( nperyear == 2 ) then
@@ -180,8 +180,7 @@ subroutine readseriesmeta(infile,data,npermax,yrbeg,yrend,nperyear, &
         close(unit)
     end if
     if ( lstandardunits ) then
-        call makestandardseries(data,npermax,yrbeg,yrend,nperyear &
-            ,var,units,lwrite)
+        call makestandardseries(data,npermax,yrbeg,yrend,nperyear,var,units,lwrite)
     end if
     return
 902 print *,'readseries: error opening ',trim(file)
@@ -210,7 +209,8 @@ subroutine readseriesheader(var,units,lvar,svar,history,metadata,line,unit,lwrit
     read(unit,'(a)',err=903,end=900) line
     if ( lwrite ) print *,'readseriesheader: processing line ',trim(line)
 !   the Mac sometimes gets confused and puts something else before the '#'
-    if ( line(1:1) == '#' .or. line(2:2) == '#' .or. line == ' ' ) then
+    if ( line(1:1) == '#' .or. line(2:2) == '#' .or. line == ' ' .or. &
+         index(line,'error') > 0 ) then
 !       do not count lines, but look for '#'
         if ( lwrite ) print *,'found new-style #-comments'
         iline = -1
@@ -442,8 +442,7 @@ subroutine readdymoyrval(data,npermax,yrbeg,yrend,nperyear,line &
     call exit(-1)
 end subroutine readdymoyrval
 
-subroutine readyrval(data,npermax,yrbeg,yrend,nperyear,line,unit &
-    ,lwrite)
+subroutine readyrval(data,npermax,yrbeg,yrend,nperyear,line,unit,lwrite)
 
 !       format is year val(1) val(2) ...val(nperyear) (nperyear >= 4)
 
@@ -459,10 +458,9 @@ subroutine readyrval(data,npermax,yrbeg,yrend,nperyear,line,unit &
     data lfirst / .true. /
 
     if ( lwrite ) then
-        print *,'readyrval: reading data as '// &
-        'yyyy val1 val2 ... valN (N>3)'
+        print *,'readyrval: reading data as yyyy val1 val2 ... valN (N>3)'
         print *,'readyrval: npermax,yrbeg,yrend,nperyear = ',npermax &
-        ,yrbeg,yrend,nperyear
+            ,yrbeg,yrend,nperyear
     end if
     allocate(val12(npermax))
     read(line,*,err=904,end=300) year,(val12(j),j=1,nperyear)
@@ -482,7 +480,8 @@ subroutine readyrval(data,npermax,yrbeg,yrend,nperyear,line,unit &
     end if
 200 continue
     read(unit,'(a)',err=300,end=300) line
-    if ( line == ' ' .or. line(1:1) == '#' .or. line(2:2) == '#') then
+    if ( line == ' ' .or. line(1:1) == '#' .or. line(2:2) == '#' .or. &
+         index(line,'error') > 0 ) then
         goto 200
     end if
     read(line,*,err=300,end=300) year,(val12(j),j=1,nperyear)
@@ -492,8 +491,7 @@ subroutine readyrval(data,npermax,yrbeg,yrend,nperyear,line,unit &
     return
 904 print *,'readyrval: error reading data of line'
     print '(a)',trim(line)
-    print '(a,i4,1000g14.6)','last data read ',year,(val12(j),j=1 &
-    ,nperyear)
+    print '(a,i4,1000g14.6)','last data read ',year,(val12(j),j=1,nperyear)
     call exit(-1)
 end subroutine readyrval
 
