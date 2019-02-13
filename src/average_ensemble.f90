@@ -4,19 +4,19 @@ program average_ensemble
 !
     implicit none
     include 'param.inc'
-    integer mensmax
-    parameter(mensmax=1999)
-    integer i,mo,yr,iens,mens1,mens,nperyear,iarg,nens1,nens2
-    integer fyr,lyr,nmissing(yrbeg:yrend),nnn(yrbeg:yrend),n0missing,n0,nlength(10)
+    integer,parameter :: mensmax=3999
+    integer :: i,mo,yr,iens,mens1,mens,nperyear,iarg,nens1,nens2
+    integer :: fyr,lyr,nmissing(yrbeg:yrend),nnn(yrbeg:yrend),n0missing,n0,nlength(10)
     integer,allocatable :: nn(:,:)
     real,allocatable :: data(:,:,:),mean(:,:)
-    logical lstandardunits,lset,lwrite
-    character file*255,var*20,units*20,string*80,oper*3,ids(0:mensmax)*30,command*500
+    logical :: lstandardunits,lset,lwrite
+    character :: file*1023,var*40,units*120,string*80,oper*3,ids(0:mensmax)*30,command*500
+    character :: lvar*120,svar*120,history*50000,metadata(2,100)*2000
     integer,external :: leap
 
     if ( command_argument_count().lt.2 ) then
         print *,'usage: average_ensemble ensfile|(file setfile) [ens n1 n2] '// &
- &           '[mean|min|max|num] [debug] [dummy]'
+            '[mean|min|max|num] [debug] [dummy]'
         call exit(-1)
     endif
 
@@ -70,11 +70,11 @@ program average_ensemble
         end if
     end do
     if ( lset ) then
-        call readsetseries(data,ids,npermax,yrbeg,yrend,mensmax    &
- &           ,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
+        call readsetseriesmeta(data,ids,npermax,yrbeg,yrend,mensmax    &
+            ,nperyear,mens1,mens,var,units,lvar,svar,history,metadata,lstandardunits,lwrite)
     else
-        call readensseries(file,data,npermax,yrbeg,yrend,mensmax   &
- &           ,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
+        call readensseriesmeta(trim(file),data,npermax,yrbeg,yrend,mensmax   &
+            ,nperyear,mens1,mens,var,units,lvar,svar,history,metadata,lstandardunits,lwrite)
     end if
     nens1 = max(nens1,mens1)
     nens2 = min(nens2,mens)
@@ -167,26 +167,16 @@ program average_ensemble
             end if
         end do
     end if
-    command = '#'
-    do i=0,command_argument_count()
-        call get_command_argument(i,string)
-        command = trim(command)//' '//trim(string(1+index(string,'/',.true.):))
-    end do
-    print '(a)',trim(command)
     print '(4a)','# ensemble ',oper,' of file ',trim(file)
     print '(a,i3,a,i3)','# using members ',nens1,' to ',nens2
     if ( oper.eq.'num' ) then
         print '(a)','# N [1] number of series with valid data'
     else if ( oper.eq.'mis' ) then
         print '(a)','# miss [1] fraction with invalid data'
-    else if ( .not.lset ) then
-        call filloutens(file,mens1)
-        call copyheader(file,6)
     else
-        ! this information is lost by the time I get here...
-        print '(10a)','# ',trim(var),' [',trim(units),'] ',    &
- &           trim(oper),' of ',trim(var)
+        call printvar(6,var,units,lvar)
+        call printmetadata(6,file," "," ",history,metadata)
     end if
     call printdatfile(6,mean,npermax,nperyear,yrbeg,yrend)
 
-end program
+end program average_ensemble
