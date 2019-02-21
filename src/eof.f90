@@ -29,7 +29,7 @@ program eof
     character title*255,vars(neofmax)*60,lvars(neofmax)*200, &
         units(neofmax)*20,lsmasktype*4,outfile*255,infile*255, &
         datfile*255,line*255,yesno*1,dir*255,string*20, &
-        fieldtitle*255,lvar*200,unit*80,cell_methods(nvarmax)*100, &
+        fieldtitle*255,lvar*200,unit*80,cell_methods(neofmax)*100, &
         history*50000,ltime*120,lz(3)*20,svars(neofmax)*80, &
         metadata(2,100)*2000,FORM_field*250
     logical :: lexist,xrev,yrev,xwrap
@@ -432,6 +432,7 @@ program eof
         else
             units(i) = unit
         end if
+        if ( i > 1 ) cell_methods(i) = cell_methods(1)
     end do
     call getenv(FORM_field,FORM_field)
 !   adjust x axis to what it was before we started playing
