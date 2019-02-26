@@ -143,6 +143,10 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     end if
     
     if ( lwrite ) print *,'attribute_dist: calling handle_then_now'
+    if ( mens < 0 ) then
+        write(0,*) 'attribute_dist: internal error: mens = ',mens
+        call exit(-1)
+    end if
     call handle_then_now(yrseries,yrcovariate,npernew,fyr,lyr,j1,j2,yr1a,yr2a,yr2b,mens1,mens, &
         & xyear,ensmax,cov1,cov2,cov3,lprint,lwrite)
     if ( cov1 > 1e33 .or. cov2 > 1e33 ) then
@@ -215,7 +219,11 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
                     zzz(j) = xxx(1,j,jens)
                 end do
                 df = ntot
-                call pearsnxx(yyy,zzz,ntot,crosscorr(iens,jens),prob,z,ax,sxx,ay,syy,sxy,df)
+                if ( df < 4 ) then
+                    crosscorr(iens,jens) = 3e33
+                else
+                    call pearsnxx(yyy,zzz,ntot,crosscorr(iens,jens),prob,z,ax,sxx,ay,syy,sxy,df)
+                end if
                 crosscorr(jens,iens) = crosscorr(iens,jens)
             end do
         end do
@@ -930,26 +938,28 @@ subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xy
     integer i,j,mo,momax,yrmax,iens
     real s
 
+    if ( mens < 0 ) then
+        write(0,*) 'find_cov: internal error: mens < 0 ',mens
+        call exit(-1)
+    end if
     cov = 3e33
     if ( yr == -9999 ) return
     ensmax = -1
-    if ( yr /= 9999 ) then
-        s = -3e33
-        do iens=mens1,mens
-            do mo=j1,j2
-                j = mo
-                call normon(j,yr,i,nperyear)
-                if ( i >= fyr .and. i <= lyr ) then
-                    if ( series(j,i,iens) < 1e33 .and. series(j,i,iens) > s ) then
-                        s = series(j,i,iens)
-                        momax = j
-                        yrmax = i
-                        ensmax = iens
-                    end if
+    s = -3e33
+    do iens=mens1,mens
+        do mo=j1,j2
+            j = mo
+            call normon(j,yr,i,nperyear)
+            if ( i >= fyr .and. i <= lyr ) then
+                if ( series(j,i,iens) < 1e33 .and. series(j,i,iens) > s ) then
+                    s = series(j,i,iens)
+                    momax = j
+                    yrmax = i
+                    ensmax = iens
                 end if
-            end do
+            end if
         end do
-    end if
+    end do
     if ( abs(s) > 1e33 ) then
         momax = 1
         yrmax = yr
