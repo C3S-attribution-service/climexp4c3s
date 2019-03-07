@@ -57,6 +57,7 @@ program synthesis
         write(0,*) 'synthesis: third argument should be [un]weighted, not ',trim(line)
         call exit(-1)
     end if
+    lwrite = .false.
     llog = .false.
     lperc = .false.
     lflip = .false.
