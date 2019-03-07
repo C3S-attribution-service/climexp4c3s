@@ -288,7 +288,7 @@ program synthesis
         if ( llog ) then
             print '(a,g12.3)','# representation uncertainty (2&sigma;) factor ',exp(sig_obs)
         else if ( lperc ) then
-            print '(a,g12.3)','# representation uncertainty (2&sigma;) ',100*(-1+exp(sig_obs)),'%'
+            print '(a,g12.3,a)','# representation uncertainty (2&sigma;) ',100*(-1+exp(sig_obs)),'%'
         else
             print '(a,g12.3)','# representation uncertainty (2&sigma;) ',sig_obs
         end if
@@ -397,7 +397,7 @@ program synthesis
         if ( llog ) then
             print '(a,g12.3)','# model uncertainty (2&sigma;) factor ',exp(sig_mod)
         else if ( lperc ) then
-            print '(a,g12.3)','# model uncertainty (2&sigma;) ',100*(-1+exp(sig_mod)),'%'
+            print '(a,g12.3,a)','# model uncertainty (2&sigma;) ',100*(-1+exp(sig_mod)),'%'
         else
             print '(a,g12.3)','# model uncertainty (2&sigma;) ',sig_mod
         end if
