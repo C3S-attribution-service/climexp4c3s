@@ -351,17 +351,22 @@ program synthesis
         call exit(-1)
     end if
     if ( lweighted ) then
+        ! weighted mean coloured
         w1 = 1/(obs(3)-obs(2))**2
         w2 = 1/(mod(3)-mod(2))**2
         syn(1) = (w1*obs(1) + w2*mod(1))/(w1+w2)
         syn(2) = syn(1) - sqrt( (w1*(obs(1)-obs(2)))**2 + (w2*(mod(1)-mod(2)))**2 )/(w1+w2)
         syn(3) = syn(1) + sqrt( (w1*(obs(3)-obs(1)))**2 + (w2*(mod(3)-mod(1)))**2 )/(w1+w2)
+        ! unweighted mean of observations and models box
+        s1 = (obs(1) + mod(1))/2
+        syn(4) = s1 - sqrt( (obs(1)-obs(2))**2 + (mod(1)-mod(2))**2 )/2
+        syn(5) = s1 + sqrt( (obs(3)-obs(1))**2 + (mod(3)-mod(1))**2 )/2
     else
         call getsynmean(lweighted,data,n,0,sig_mod)
         syn(1:3) = data(1:3,n+1)
+        syn(4) = syn(2)
+        syn(5) = syn(3)
     end if
-    syn(4) = syn(2)
-    syn(5) = syn(3)
     if ( lwrite ) print *,'found synthesised estimate ',syn
 !
 !   transform back
