@@ -366,7 +366,8 @@ PROGRAMS	  = proccgi \
 		count_missing \
 		setundef \
 		diff_hist_nat \
-		cumul
+		cumul \
+		select_min_years
 
 # SHLIBS =	rkillfile.so \
 # 			rkeepalive.so
@@ -771,6 +772,9 @@ diff_hist_nat:	diff_hist_nat.o
 
 cumul:	cumul.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
+
+select_min_years:	select_min_years.o
+		$(LD) $(FFLAGS) -o $@ $@.o
 
 roc:		roc.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
