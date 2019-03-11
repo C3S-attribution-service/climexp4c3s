@@ -57,7 +57,6 @@ program synthesis
         write(0,*) 'synthesis: third argument should be [un]weighted, not ',trim(line)
         call exit(-1)
     end if
-    lwrite = .false.
     llog = .false.
     lperc = .false.
     lflip = .false.
@@ -266,42 +265,33 @@ program synthesis
     end do
 
 !   representation error from scatter of mean
-    if ( nobs > 1 .and. lweighted ) then
+    if ( nobs > 1 ) then
         s2 = 0
         do i=1,nobs
             s2 = s2 + (data(2,i)-obs(1))**2
         end do
         sig_obs = sqrt(s2/(nobs-1))
-        obs(2) = obs(1) - sqrt( (obs(1)-obs(2))**2 + sig_obs**2 )
-        obs(3) = obs(1) + sqrt( (obs(3)-obs(1))**2 + sig_obs**2 )
+        obs(2) = obs(1) - sqrt( (obs(1)-obs(2))**2 + 4*sig_obs**2 )
+        obs(3) = obs(1) + sqrt( (obs(3)-obs(1))**2 + 4*sig_obs**2 )
     else
         sig_obs = 0 ! cannot estimate it from one point...
+        obs(2) = data(2,1)
+        obs(3) = data(3,1)
     end if
     do i=1,nobs
-        data(4,i) = data(1,i) - sqrt( (data(1,i)-data(2,i))**2 + sig_obs**2 )
-        data(5,i) = data(1,i) + sqrt( (data(3,i)-data(1,i))**2 + sig_obs**2 )
+        data(4,i) = data(1,i) - sqrt( (data(1,i)-data(2,i))**2 + 4*sig_obs**2 )
+        data(5,i) = data(1,i) + sqrt( (data(3,i)-data(1,i))**2 + 4*sig_obs**2 )
     end do
     obs(4) = obs(2)
     obs(5) = obs(3)
     if ( lwrite ) print *,'found combined observational estimate ',obs
-    if ( sig_obs > 0 ) then
-        if ( llog ) then
-            print '(a,g12.3)','# representation uncertainty (2&sigma;) factor ',exp(sig_obs)
-        else if ( lperc ) then
-            print '(a,g12.3,a)','# representation uncertainty (2&sigma;) ',100*(-1+exp(sig_obs)),'%'
-        else
-            print '(a,g12.3)','# representation uncertainty (2&sigma;) ',sig_obs
-        end if
-    end if
- !
+!
 !   compute mean & uncertainties of models
 !
     call getsynmean(lweighted,data,n,nobs,sig_mod)
     if ( lwrite ) print *,'first guess of model mean is ',data(:,n+1)
     call getsynchi2(data,n,nobs,sig_mod,chi2)
-    if ( lweighted ) then
-        print '(a,g14.4)','# model chi2/dof = ',chi2/(n-1)
-    end if
+    print '(a,g14.4)','# chi2/dof = ',chi2/(n-1)
     if ( .not.lnoave .and. chi2/(n-1) > 1 .and. sig_mod < 0 ) then
         ! compute sig_mod to make chi2/dof = 1
         syn_n = n ! copy to common as I am a F77 programmer and do not feel comfortable with f90 global variables
@@ -325,18 +315,18 @@ program synthesis
         end do
         if ( lwrite ) print *,'bracketed sig_mod by ',s1,s2,', calling Brent'
         sig_mod = zbrent(syn_func,s1,s2,1e-4)
+        print '(a,f4.2,a)','# assumed a common model uncertainty of ',sig_mod,' to bring chi2/dof to one.'
         !!!write(names(n)(len_trim(names(n))+1:),'(a,f4.2)') ' added ',sig_mod
         ! copy results back
         mod(1:3) = syn_data(1:3,n+1)
     else
-        sig_mod = 0
         mod(1:3) = data(1:3,n+1)
     end if
     mod(4) = mod(2)
     mod(5) = mod(3)
     do i=nobs+1,n
-        data(4,i) = data(1,i) - sqrt( (data(1,i)-data(2,i))**2 + sig_mod**2 )
-        data(5,i) = data(1,i) + sqrt( (data(3,i)-data(1,i))**2 + sig_mod**2 )
+        data(4,i) = data(1,i) - sqrt( (data(1,i)-data(2,i))**2 + 4*sig_mod**2 )
+        data(5,i) = data(1,i) + sqrt( (data(3,i)-data(1,i))**2 + 4*sig_mod**2 )
     end do
     if ( lwrite ) print *,'found combined model estimate ',mod
 !
@@ -350,23 +340,13 @@ program synthesis
         write(0,*) 'synthesis: internal error: mod = ',mod
         call exit(-1)
     end if
-    if ( lweighted ) then
-        ! weighted mean coloured
-        w1 = 1/(obs(3)-obs(2))**2
-        w2 = 1/(mod(3)-mod(2))**2
-        syn(1) = (w1*obs(1) + w2*mod(1))/(w1+w2)
-        syn(2) = syn(1) - sqrt( (w1*(obs(1)-obs(2)))**2 + (w2*(mod(1)-mod(2)))**2 )/(w1+w2)
-        syn(3) = syn(1) + sqrt( (w1*(obs(3)-obs(1)))**2 + (w2*(mod(3)-mod(1)))**2 )/(w1+w2)
-        ! unweighted mean of observations and models box
-        s1 = (obs(1) + mod(1))/2
-        syn(4) = s1 - sqrt( (obs(1)-obs(2))**2 + (mod(1)-mod(2))**2 )/2
-        syn(5) = s1 + sqrt( (obs(3)-obs(1))**2 + (mod(3)-mod(1))**2 )/2
-    else
-        call getsynmean(lweighted,data,n,0,sig_mod)
-        syn(1:3) = data(1:3,n+1)
-        syn(4) = syn(2)
-        syn(5) = syn(3)
-    end if
+    w1 = 1/(obs(3)-obs(2))**2
+    w2 = 1/(mod(3)-mod(2))**2
+    syn(1) = (w1*obs(1) + w2*mod(1))/(w1+w2)
+    syn(2) = syn(1) - sqrt( (w1*(obs(1)-obs(2)))**2 + w2*(mod(1)-mod(2))**2 )/(w1+w2)
+    syn(3) = syn(1) + sqrt( (w1*(obs(3)-obs(1)))**2 + w2*(mod(3)-mod(1))**2 )/(w1+w2)
+    syn(4) = syn(2)
+    syn(5) = syn(3)
     if ( lwrite ) print *,'found synthesised estimate ',syn
 !
 !   transform back
@@ -398,32 +378,22 @@ program synthesis
 !
 !   output
 !
-   if ( sig_mod > 0 ) then
-        if ( llog ) then
-            print '(a,g12.3)','# model uncertainty (2&sigma;) factor ',exp(sig_mod)
-        else if ( lperc ) then
-            print '(a,g12.3,a)','# model uncertainty (2&sigma;) ',100*(-1+exp(sig_mod)),'%'
-        else
-            print '(a,g12.3)','# model uncertainty (2&sigma;) ',sig_mod
-        end if
-    else if ( lweighted ) then
-        print '(a,g12.3)','# model uncertainty is neglected'
+    if ( sig_obs > 0 ) then
+        print '(a,g12.3)','# representation uncertainty (1&sigma;) ',sig_obs
+    end if
+    if ( sig_mod > 0 ) then
+        print '(a,g12.3)','# model uncertainty (1&sigma;) ',sig_mod
     end if
     do i=1,nobs
-        call printsynline(yr1,yr2,data(1,i),3,names(i))
-    end do
-    if ( .not. lnoave .and. nobs > 1 ) call printsynline(yr1,yr2,obs,3,'observations')
-    do i=nobs+1,n
         call printsynline(yr1,yr2,data(1,i),1,names(i))
     end do
+    if ( .not. lnoave .and. nobs > 1 ) call printsynline(yr1,yr2,obs,2,'observations')
+    do i=nobs+1,n
+        call printsynline(yr1,yr2,data(1,i),3,names(i))
+    end do
     if ( .not. lnoave ) then
-        call printsynline(yr1,yr2,mod,1,'models')
-        if ( lweighted ) then
-            call printsynline(yr1,yr2,syn,4,'synthesis')
-            !!!call printsynline(yr1,yr2,syn,4,'{/:Bold synthesis}')
-        else
-            call printsynline(yr1,yr2,syn,4,'average')
-        end if
+        call printsynline(yr1,yr2,mod,4,'models')
+        call printsynline(yr1,yr2,syn,5,'average')
     end if
 !
 !   error messages, ye olde Fortran way
@@ -474,7 +444,7 @@ subroutine getsynmean(lweighted,data,n,nobs,sig_mod)
                 call exit(-1)
             end if
             if ( sig_mod > 0 ) then
-                w = 1/((data(3,i) - data(2,i))**2 + sig_mod**2)
+                w = 1/((data(3,i) - data(2,i))**2 + 4*sig_mod**2)
             else
                 w = 1/(data(3,i) - data(2,i))**2
             end if
@@ -485,7 +455,7 @@ subroutine getsynmean(lweighted,data,n,nobs,sig_mod)
         s1 = s1 + w*data(1,i)
         do j=2,3
             if ( sig_mod > 0 ) then
-                ss2(j) = ss2(j) + w**2*((data(1,i)-data(j,i))**2 + sig_mod**2)
+                ss2(j) = ss2(j) + w**2*((data(1,i)-data(j,i))**2 + 4*sig_mod**2)
             else
                 ss2(j) = ss2(j) + (w*(data(1,i)-data(j,i)))**2
             end if
@@ -504,21 +474,16 @@ subroutine getsynchi2(data,n,nobs,sig_mod,chi2)
 !
 !   compute chi2
 !
-    implicit none
-    integer,intent(in) :: n,nobs
-    real,intent(in) :: data(5,n+1)
-    real,intent(out) :: sig_mod,chi2
-    integer :: i
-    real :: s1
-
+    integer,intent(in) :: n
+    real,intent(in) :: data(5,n)
+    real,intent(out) :: chi2
     chi2 = 0
-    s1 = data(1,n+1)
     do i=nobs+1,n
         if ( sig_mod > 0 ) then
             if ( data(1,i) > s1 ) then
-                chi2 = chi2 + (data(1,i)-s1)**2/((data(1,i)-data(2,i))**2 + sig_mod**2)
+                chi2 = chi2 + (data(1,i)-s1)**2/((data(1,i)-data(2,i))**2 + 4*sig_mod**2)
             else
-                chi2 = chi2 + (s1-data(1,i))**2/((data(3,i)-data(1,i))**2 + sig_mod**2)
+                chi2 = chi2 + (s1-data(1,i))**2/((data(3,i)-data(1,i))**2 + 4*sig_mod**2)
             end if
         else
             if ( data(1,i) > s1 ) then
