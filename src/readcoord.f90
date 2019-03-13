@@ -6,13 +6,27 @@ subroutine readcoord(unit,lon,lat,elev)
     implicit none
     integer :: unit
     real :: lon,lat,elev
-    integer :: i,j
+    integer :: i
     character(80) :: line
 
 200 continue
     read(unit,'(a)',end=800,err=800) line
     i = index(line,'oordinates:')
     if ( i == 0 ) goto 200
+    call parsecoord(line,lat,lon,elev)
+    return
+800 continue
+    lon = 3e33
+    lat = 3e33
+    return
+end subroutine readcoord
+
+subroutine parsecoord(line,lat,lon,elev)
+    implicit none
+    real,intent(out) :: lat,lon,elev
+    character,intent(in) :: line*(*)
+    integer i,j
+    i = index(line,'oordinates:')
     i = i+11
     j = index(line,'N')-1
     read(line(i:j),*) lat
@@ -26,12 +40,7 @@ subroutine readcoord(unit,lon,lat,elev)
     else
         read(line(i:j),*) elev
     endif
-    return
-800 continue
-    lon = 3e33
-    lat = 3e33
-    return
-end subroutine readcoord
+end subroutine parsecoord
 
 subroutine readcodename(line,code,name,lwrite)
 
