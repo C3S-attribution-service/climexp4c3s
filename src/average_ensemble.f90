@@ -78,6 +78,10 @@ program average_ensemble
     end if
     nens1 = max(nens1,mens1)
     nens2 = min(nens2,mens)
+    if ( nperyear < 1 .or. nperyear > 24*366 ) then
+        write(0,*) 'average_ensemble: cannot handle nperyear = ',nperyear
+        call exit(-1)
+    end if
 
     nn(1:nperyear,yrbeg:yrend) = 0
     if ( oper.eq.'mea' .or. oper.eq.'num' ) then
