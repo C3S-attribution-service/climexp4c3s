@@ -334,7 +334,8 @@
              prog(1:3) == 'eca' .or. prog(1:4) == 'beca' .or. &
              prog(1:7) == 'getprcp' .or. prog(1:7) == 'gettemp' .or. &
              prog(1:6) == 'getmin' .or. prog(1:6) == 'getmax' .or. &
-             prog(1:6) == 'getslp' .or. prog(1:9) == 'getfrench' ) then
+             prog(1:6) == 'getslp' .or. prog(1:9) == 'getfrench' .or. &
+             prog(1:10) == 'getaustria' ) then
             write(command,'(6a)') trim(dir)//'bin/',trim(prog), &
                 ' ',trim(code),' ',trim(datfile)//'.'//pid
         else
