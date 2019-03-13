@@ -774,7 +774,7 @@ cumul:	cumul.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
 
 select_min_years:	select_min_years.o
-		$(LD) $(FFLAGS) -o $@ $@.o
+		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
 
 roc:		roc.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
