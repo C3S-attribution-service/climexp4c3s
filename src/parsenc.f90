@@ -143,7 +143,7 @@ subroutine ensparsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
             name(1:4) == 'time' .or. name(1:4) == 'TIME' .or. &
             name == 'T' .or. name == 't' .or. name == 'T1' .or. &
             (name(1:2) == 't_' .and. name /= 't_ref') .or. &
-            name == 'Time'  .or. name == 'Tims' )) then
+            name == 'Time'  .or. name == 'Tims' .or. name == 'day' )) then
             foundtime = .true. 
 !           (it could have been a timeseries)
             if ( lwrite ) print *,'parsenc: found time axis'
@@ -159,8 +159,7 @@ subroutine ensparsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
                 if ( it /= 0 .and. dimids(i) == it .and. &
                 index(name,'bounds') == 0 ) then
                     n = n+1
-                    if ( lwrite ) print * &
-                    ,'parsenc: time-varying variable ',varid
+                    if ( lwrite ) print *,'parsenc: time-varying variable ',varid
                 end if
             end do
             if ( lwrite ) then

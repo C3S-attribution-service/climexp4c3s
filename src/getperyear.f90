@@ -963,28 +963,22 @@ subroutine getdims(ncid,ndims,ix,nx,nxmax,iy,ny,nymax,iz,nz &
         call tolower(name)
         if ( index(name,'_bnd') /= 0 .or. &
         index(name,'bounds') /= 0 ) then
-            if ( lwrite ) print * &
-            ,'getdims: disregarding boundary ' &
-            ,trim(name)
+            if ( lwrite ) print *,'getdims: disregarding boundary ',trim(name)
             cycle
         endif
         l = len_trim(name)
         if ( name(1:3) == 'tim' .or. name == 't' .or. name == 't1' &
-         .or. name(1:2) == 't_' ) then
+            .or. name(1:2) == 't_' .or. name == 'day' ) then
             if ( lwrite ) print *,'getdims: found time'
             nt = len
             it = dimid
             if ( nt > ntmax ) then
-                write(0,*) 'getdims: error: increase ntmax from ' &
-                ,ntmax,' to at least ',nt
-                write(*,*) 'getdims: error: increase ntmax from ' &
-                ,ntmax,' to at least ',nt
+                write(0,*) 'getdims: error: increase ntmax from ',ntmax,' to at least ',nt
+                write(*,*) 'getdims: error: increase ntmax from ',ntmax,' to at least ',nt
                 call exit(-1)
             endif
-        elseif ( name == 'x' .or. name(1:2) == 'x_' .or. &
-            name(1:3) == 'lon' &
-             .and. name(max(1,l-4):l) /= 'edges' .or. &
-            name(1:4) == 'xdim' ) then
+        elseif ( name == 'x' .or. name(1:2) == 'x_' .or. name(1:3) == 'lon' &
+                .and. name(max(1,l-4):l) /= 'edges' .or. name(1:4) == 'xdim' ) then
             if ( nx == 1 ) then
                 if ( lwrite ) print *,'getdims: found lon'
                 nx = len
@@ -999,10 +993,8 @@ subroutine getdims(ncid,ndims,ix,nx,nxmax,iy,ny,nymax,iz,nz &
                     write(0,*) 'getdims: ignoring duplicate lon'
                 end if
             endif
-        elseif ( name == 'y' .or. name(1:2) == 'y_' .or. &
-            name(1:3) == 'lat' &
-             .and. name(max(1,l-4):l) /= 'edges' .or. &
-            name(1:4) == 'ydim') then
+        elseif ( name == 'y' .or. name(1:2) == 'y_' .or. name(1:3) == 'lat' &
+                .and. name(max(1,l-4):l) /= 'edges' .or. name(1:4) == 'ydim') then
             if ( ny == 1 ) then
                 if ( lwrite ) print *,'getdims: found lat'
                 ny = len
