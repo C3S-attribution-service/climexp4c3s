@@ -34,7 +34,7 @@ program daily2longerfield
     if ( command_argument_count() < 4 ) then
         print *,'usage: daily2longerfield infield nperyearnew '// &
             'mean|sd|var|sum|abo|bel|min|max|num|mintime|maxtime'// &
-            '|firsttime|lasttime|con [<> val[%|p]] outfield.ctl'
+            '|firsttime|lasttime|con [<> val[%|p]] [ave|sum N] outfield.ctl'
         print *,'(more options will come as requested)'
         stop
     end if
@@ -253,8 +253,7 @@ program daily2longerfield
                     end do
                 end do
                 call fillmissingdata(fxy,lvalid1,refs,nperyear, &
-                firstyr,lastyr,nperyear,add_option, .false. , &
-                lwrite)
+                    firstyr,lastyr,nperyear,add_option, .false. ,lwrite)
                 do mo=1,nperyear
                     do yr=yr1,yr2
                         lvalid(i,j,mo,yr) = lvalid1(mo,yr)
