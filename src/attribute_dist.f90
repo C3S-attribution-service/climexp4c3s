@@ -260,7 +260,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     &       ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2,cov3,offset &
     &       ,t,tx,assume,confidenceinterval,ndecor,lboot,lprint,dump,plot,lwrite)
     else if  ( distribution == 'gauss' ) then
-        ntype = 4 ! sqrtlog plot
+        ntype = 3 ! log plot (sqrtlog gives straight lines, but this makes it easier to compare with other plots)
         xi = 0
         if ( lwrite ) print *,'attribute_dist: calling fitgaucov'
         call fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
