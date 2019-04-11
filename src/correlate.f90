@@ -23,8 +23,8 @@
         ,ndup(0:npermax),ndum(0:npermax),validens(nensmax), &
         imens1(0:indxmx),imens(0:indxmx),yr1s,yr2s,nunequal &
         ,iunequal,mo,nfac(indxmx),yrstart,yrstop,mdata,nx,ny,nz,nt &
-        ,nvars,nu,yrbg,yred,nensmx,iindex,lastmeta
-    integer,allocatable :: yrmo(:,:)
+        ,nvars,nu,yrbg,yred,nensmx,iindex,lastmeta,init
+    integer,allocatable :: yrmo(:,:),iarray(:)
     real,allocatable :: data(:,:,:),indx(:,:,:,:), &
         mcdata(:,:,:),mcindx(:,:,:,:), &
         ddata(:),dddata(:),dindx(:),aa(:),bb(:), &
@@ -98,8 +98,9 @@
     allocate(dddata(mdata))
     allocate(dindx(mdata))
     allocate(lfirst(mdata))
-    if ( lwrite ) print *,'allocating ',mdata*2,' reals'
-    allocate(yrmo(2,mdata))
+    allocate(iarray(mdata))
+    if ( lwrite ) print *,'allocating ',mdata*3,' reals'
+    allocate(yrmo(3,mdata))
 
 !   init
 
@@ -1074,7 +1075,39 @@
                 write(line,'(a,i2,a)') '(',n+1,'g14.6,i5,i4,i5,i4)'
                 if ( lrank ) then
 !                   replace values by their quantile in the PDF
-                    print '(a)','# TODO: replace values by quantiles'
+                    init = 0
+                    do k=1,indxuse
+                        if ( lincl(k) ) then
+                            call filllinarray(dindx,ddata,lfirst,dddata,mdata,n &
+                                ,j1,j2,lag,k,nperyear,imens,indxmx,indx,data &
+                                ,nperyear,yrbg,yred,nensmx,yrstart,yrstop,yrmo)
+                            if ( init == 0 ) then
+                                ! data
+                                call ffsort(ddata,iarray,n)
+                                do i=1,n
+                                    yr = yrmo(1,iarray(i))
+                                    mo = yrmo(2,iarray(i))
+                                    iens = yrmo(3,iarray(i))
+                                    data(mo,yr,iens) = i
+                                end do
+                                init = 1
+                            end if
+                            ! index
+                            call ffsort(dindx,iarray,n)
+                            do i=1,n
+                                yr = yrmo(1,iarray(i))
+                                mo = yrmo(2,iarray(i))
+                                m = mo - lag
+                                call normon(m,yr,ii,nperyear)
+                                if ( imens(k) > 0 ) then
+                                    iens = yrmo(3,i)
+                                    indx(m,ii,iens,k) = i
+                                else
+                                    indx(m,ii,0,k) = i
+                                end if
+                            end do
+                        end if
+                    end do
                 end if
                 do iens=nens1,nens2
                     if ( nens2 > nens1 ) then
@@ -1089,10 +1122,10 @@
                                 j = jj
                             endif
                             call normon(j,yr,i,nperyear)
-                            if ( i < yr1 .or. i > yr2 ) goto 810
+                            if ( i < yr1 .or. i > yr2 ) cycle
                             m = j-lag
                             call normon(m,i,ii,nperyear)
-                            if ( ii < yrbg .or. ii > yred ) goto 810
+                            if ( ii < yrbg .or. ii > yred ) cycle
                             n = 0
                             do k=1,indxuse
                                 if ( lincl(k) ) then
@@ -1129,7 +1162,6 @@
                                 (maxdata >= mindata) ) ) ) then
                                 write(10,line) (ss(k),k=1,n),i,j,ii,m
                             endif
-                        810 continue
                         enddo ! month
                     enddo   ! year
                 enddo       ! ensemble

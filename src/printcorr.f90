@@ -7,7 +7,7 @@ subroutine printcorr(dindx,ddata,lfirst,dddata,yrmo,n,n0,j1,j2 &
     implicit none
     include 'param.inc'
     include 'getopts.inc'
-    integer :: n,n0,month,nperyear,lag,j1,j2,yrmo(2,n)
+    integer :: n,n0,month,nperyear,lag,j1,j2,yrmo(3,n)
     real :: dindx(n),ddata(n),dddata(n),result,dresult(-2:2),prob
     logical :: lfirst(n)
     character*(*) :: string
@@ -17,8 +17,8 @@ subroutine printcorr(dindx,ddata,lfirst,dddata,yrmo,n,n0,j1,j2 &
     integer :: ncont(0:3,0:3)
     real :: zd,pt,adat1,avar1,adat2,avar2,d,rmse,mae,a1,a2
     real :: chi2,xn,x(ndata),sig(ndata),u(ndata,2),v(2,2),w(2),da(2,2),aa(ndata),bb(ndata)
-    real :: df,sum,a(2),w1(ndata),w2(ndata),q,r,z,adata,sxx,aindx,syy,sxy,probd,bias,xneff,chieff
-    real,allocatable :: bb1(:,:),wdata(:),windx(:)
+    real :: df,sum,a(2),q,r,z,adata,sxx,aindx,syy,sxy,probd,bias,xneff,chieff
+    real,allocatable :: bb1(:,:),wdata(:),windx(:),w1(:),w2(:)
     real :: gammq
     external gammq,findx
 
@@ -241,13 +241,13 @@ subroutine printcorr(dindx,ddata,lfirst,dddata,yrmo,n,n0,j1,j2 &
             else
                 df = (n-n0-2)
             end if
+            allocate(w1(ndata),w2(ndata))
             if ( lrank ) then
 !               NumRec
                 if ( j1 /= j2 ) then
                     sum = max(lsum,lsum2) + decor
                 else
-                    sum = 1 + (max(lsum,lsum2)-1) &
-                    /nperyear + decor/nperyear
+                    sum = 1 + (max(lsum,lsum2)-1)/nperyear + decor/nperyear
                 end if
                 call spearx(ddata,dindx,n,w1,w2,d,zd,probd,r,prob &
                     ,sum,adata,sxx,aindx,syy)
@@ -339,6 +339,7 @@ subroutine printcorr(dindx,ddata,lfirst,dddata,yrmo,n,n0,j1,j2 &
                     end if
                 end if
             end if
+            deallocate(w1,w2)
         else
             if ( lprint ) then
                 print *,'printcorr: not enough data for correlation ',n,max(minnum,2)

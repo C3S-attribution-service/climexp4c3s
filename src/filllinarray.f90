@@ -7,7 +7,7 @@ subroutine filllinarray(dindx,ddata,lfirst,dddata,ndata,n,j1,j2 &
     implicit none
     include 'getopts.inc'
     integer :: ndata,n,j1,j2,lag,k,nperyear,npermax,yrbeg,yrend,nensmax &
-    ,indxmx,yrstart,yrstop,yrmo(2,ndata)
+    ,indxmx,yrstart,yrstop,yrmo(3,ndata)
     integer :: imens(0:indxmx)
     real :: dindx(ndata),ddata(ndata),dddata(ndata)
     logical :: lfirst(ndata)
@@ -103,6 +103,7 @@ subroutine filllinarray(dindx,ddata,lfirst,dddata,ndata,n,j1,j2 &
                     if ( yrstop /= -999 ) then
                         yrmo(1,n) = i
                         yrmo(2,n) = j
+                        yrmo(3,n) = iens
                         yrstart = min(yrstart,i,ii)
                         yrstop  = max(yrstop,i,ii)
                     end if

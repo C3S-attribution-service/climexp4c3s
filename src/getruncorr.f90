@@ -21,7 +21,7 @@ subroutine getruncorr(dindx,ddata,lfirst,dddata,ndata,j1,j2 &
     character*(*) string
 
     integer :: yr1s,yr2s,yr1d,yr2d,yr1i,yr2i,n,yr,yrp,m,iiens,iens,jens,i
-    integer :: yrmo(2,1)       ! dummy argument, not used
+    integer :: yrmo(3,1)       ! dummy argument, not used
     real :: result,dresult(-2:2),prob,zmin,zmax,z
     logical :: lblank,llwrite
     integer :: init,iu
