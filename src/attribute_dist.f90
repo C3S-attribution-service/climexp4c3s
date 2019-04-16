@@ -88,7 +88,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
             call print_bootstrap_message(max(1,ndecor),j1,j2)
         end if
     else if ( distribution == 'gpd' .or. distribution == 'gauss' ) then
-        ! in the others lsum inicates the block maxima length...
+        ! in the others lsum indicates the block maxima length...
         call getj1j2(j1,j2,m1,nperyear,lwrite)
         decor = max(decor,real(lsum)-1)
         if ( j1 == j2 ) then
@@ -912,7 +912,7 @@ subroutine handle_then_now(series,covariate,nperyear,fyr,lyr,j1,j2,yr1a,yr2a,yr2
     &   mens1,mens,xyear,ensmax,cov1,cov2,cov3,lprint,lwrite)
 
     ! handle the conversion from "then" (yr1a) and "now" (yr2a) to the variables
-    ! fitgevcov expects (xyear,idmax,cov1,cov2), sets series to undef at "now".
+    ! fitgevcov expects (xyear,idmax,cov1,cov2), sets series to undef at "now" if xyear is not set.
     
     implicit none
     integer nperyear,fyr,lyr,j1,j2,yr1a,yr2a,yr2b,mens1,mens,ensmax
@@ -965,12 +965,17 @@ subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xy
         yrmax = yr
         ensmax = mens1
         if ( yrmax < fyr .or. yrmax > lyr ) then
-            if ( lprint ) then
+            if ( lprint .and. yr /= 9999 ) then
                 write(0,*) 'find_cov: error: yr ',yr,' outside range of data<br>'
+                call exit(-1)
             end if
         end if
     end if
-    cov = covariate(momax,yrmax,ensmax)
+    if ( yr == 9999 ) then
+        cov = 0
+    else
+        cov = covariate(momax,yrmax,ensmax)
+    end if
     if ( cov > 1e33 ) then
         if ( lprint ) then
             write(0,*) '<p>find_cov: error: no valid value in covariate(', &
@@ -1005,10 +1010,9 @@ subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xy
 end subroutine find_cov
 
 subroutine subtract_constant(covariate,series,nperyear,fyr,lyr,mens1,mens,cov1,cov2,cov3,offset,lwrite)
-
-    ! subtract a constant from the covariate series and the reference points
-    ! to keep numbers small
-    
+!
+!   subtract a constant from the covariate series and the reference points to keep numbers small
+!
     implicit none
     integer nperyear,fyr,lyr,mens1,mens
     real covariate(nperyear,fyr:lyr,0:mens),series(nperyear,fyr:lyr,0:mens)
