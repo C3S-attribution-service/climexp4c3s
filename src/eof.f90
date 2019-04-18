@@ -749,6 +749,12 @@ program eof
 !   finito
 
     call savestartstop(yrstart,yrstop)
+    write(string,'(i19)') getpid()
+    write(line,'(4a)') dir(1:len_trim(dir)),'./kill_stillcomputing.cgi ',trim(string)
+    call mysystem(line,retval)
+    if ( retval /= 0 ) then
+        write(0,*) 'eof: error: ',trim(line),' failed: ',retval
+    end if
     print '(a,f8.2)','finished, time: ',etime(tarray)
 
 !	error messages
