@@ -328,23 +328,26 @@ subroutine day2period( &
             j = mo
             call normon(j,yr,i,nperyear)
             if ( yrbeg == 0 .and. yrend == 0 ) i = yr
-            if ( i < yrbeg .or. i > yrend ) cycle
+            if ( i < yrbeg .or. i > yrend ) then
+                if ( lwrite ) print *,'skipping because yr out of range',i,yrbeg,yrend
+                cycle
+            end if
 !           skip Feb 29
             nn = nperyear/366
-            if ( 366*nn == nperyear .and. j == 60*nn .and. &
-            olddata(j,i) > 1e33 ) then
+            if ( 366*nn == nperyear .and. j == 60*nn .and. olddata(j,i) > 1e33 ) then
                 offset = offset - 1
+                if ( lwrite ) print *,'skipping feb 29'
                 cycle
             end if
 !           but generate an "invalid" for any other invalid data
 !           [this may be relaxed later...]
             if ( olddata(j,i) > 1e33 ) then
-            !**                 newdata(jnew,i) = 3e33
+!**               newdata(jnew,i) = 3e33
+                if ( lwrite ) print *,'skipping because olddata undefined',j,i
                 cycle
             endif
 !           This test should be exactly the same as in daily2longer
-            if ( ( oper == 'mea' .or. oper == 'sum' ) &
-                    .and. lgt == ' ' ) then
+            if ( ( oper == 'mea' .or. oper == 'sum' ) .and. lgt == ' ' ) then
                 ! these measures have been filled in, only consider real data
                 if ( lvalid(j,i) ) ntot = ntot + 1
             else
@@ -353,8 +356,8 @@ subroutine day2period( &
             end if
             if ( lfirst == 9999 ) lfirst = mo-j1
             if ( lgt == ' ' .or. &
-            lgt == '<' .and. olddata(j,i) < cut(j) .or. &
-            lgt == '>' .and. olddata(j,i) > cut(j) ) then
+                 lgt == '<' .and. olddata(j,i) < cut(j) .or. &
+                 lgt == '>' .and. olddata(j,i) > cut(j) ) then
                 n = n + 1
                 if ( oper == 'fti' ) then
                     if ( st == 3e33 ) st = mo - 0.5 + offset
@@ -397,11 +400,9 @@ subroutine day2period( &
                 if ( lwrite ) print *,j,olddata(j,i),lgt,cut(j)
             endif
         enddo
-        if ( lwrite .and. lfirst < 9999 ) then
-            write(*,*) yr,'lfirst,minfac*(j2-j1+1) = ', &
-            lfirst,minfac*(j2-j1+1)
-            write(*,*) yr,'ntot,minfac*nperyear/nperyearnew = ', &
-            ntot,minfac*nperyear/nperyearnew
+        if ( .true. .and. yr == 1960 .or. lwrite .and. lfirst < 9999 ) then
+            write(*,*) yr,'lfirst,minfac*(j2-j1+1) = ',lfirst,minfac*(j2-j1+1)
+            write(*,*) yr,'ntot,minfac*nperyear/nperyearnew = ',ntot,minfac*nperyear/nperyearnew
         end if
         if ( lfirst > minfac*(j2-j1+1) .or. &
                 ntot < minfac*nperyear/nperyearnew ) then
