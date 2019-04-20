@@ -687,7 +687,7 @@ subroutine readyrfracval(data,npermax,yrbeg,yrend,nperyear,line,unit,infile,lwri
         nperyear1 = nint(1/(x1-x))
         call adjustnperyear(nperyear1,lwrite)
     else
-        nn = min(1,nint(nperyear/366.))
+        nn = max(1,nint(nperyear/366.))
         read(line,*,err=904,end=500) ymdh,y1
         call yyyymmddhh(line,ymdh,year1,month1,day1,hour1)
         if ( day1 > dpm(month1) .or. &
