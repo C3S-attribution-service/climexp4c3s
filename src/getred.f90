@@ -160,7 +160,7 @@ subroutine getred(alpha,j1,j2,lag,k,nperyear,imens,indxmx,indx &
                 else
                     res = 3e33
                 endif
-                if ( res < 1e33 .and. res0 < 1e33 ) then
+                if ( abs(res) < 1e33 .and. abs(res0) < 1e33 ) then
                     n = n+1
                     s1a = s1a + res0
                     s1b = s1b + res
