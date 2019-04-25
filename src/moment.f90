@@ -38,7 +38,7 @@ subroutine moment(data,n,ave,adev,sdev,var,skew,curt)
     sdev = dsdev
     dadev = fgsl_stats_absdev_m(ddata,1_fgsl_size_t,dim,dave)
     adev = dadev
-    if ( n < 3 ) return
+    if ( n < 3 .or. dsdev == 0 ) return
     dskew = fgsl_stats_skew_m_sd(ddata,1_fgsl_size_t,dim,dave,dsdev)
     skew = dskew
     if ( n < 4 ) return
