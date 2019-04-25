@@ -490,16 +490,15 @@ subroutine getsynmean(lweighted,data,n,nobs,sig_mod)
         w1 = w1 + w
         s1 = s1 + w*data(1,i)
         do j=2,3
-            if ( sig_mod > 0 ) then
-                ss2(j) = ss2(j) + w**2*((data(1,i)-data(j,i))**2 + sig_mod**2)
-            else
-                ss2(j) = ss2(j) + (w*(data(1,i)-data(j,i)))**2
-            end if
+            ss2(j) = ss2(j) + (w*(data(1,i)-data(j,i)))**2
         end do
     end do
     s1 = s1/w1
     do j=2,3
         ss2(j) = sqrt(ss2(j))/w1
+        if ( sig_mod > 0 ) then
+            ss2(j) = sqrt(ss2(j)**2 + sig_mod**2)
+        end if
     end do
     data(1,n+1) = s1
     data(2,n+1) = s1 - ss2(2)
