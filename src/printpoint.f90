@@ -242,12 +242,12 @@ subroutine printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,yr2b,lweb
                         ,yr2a,'</td><td>',ainvtx(2), &
                         '</td><td>',ainvtx975(2),' ... ',ainvtx25(2),'</td></tr>'
                     print '(8a)' &
-                            ,'# <tr><td><!--atra-->risk ratio</td><td>&nbsp;', &
+                            ,'# <tr><td><!--atra-->probability ratio</td><td>&nbsp;', &
                             '</td><td>',atx(3),'</td><td>',atx25(3), &
                             ' ... ',atx975(3),'</td></tr>'
                     if ( tx(3) < 1 ) then
                         print '(8a)' &
-                            ,'# <tr><td>inverse risk ratio</td><td>&nbsp;', &
+                            ,'# <tr><td>inverse probability ratio</td><td>&nbsp;', &
                             '</td><td>',ainvtx(3),'</td><td>',ainvtx975(3), &
                             ' ... ',ainvtx25(3),'</td></tr>'
                     end if
@@ -320,7 +320,7 @@ subroutine printcovpvalue(txtx,nmc,nens,lweb,plot)
     call invgetcut(p,one,nens,txtx(1,3))
     if ( p > 0.5 ) p = 1-p
     if ( lweb ) then
-        print '(2a,f7.4,2a)','# <tr><td><i>p</i>-value risk ratio (one-sided)', &
+        print '(2a,f7.4,2a)','# <tr><td><i>p</i>-value probability ratio (one-sided)', &
             '</td><td>&#8800; 1</td><td>',p,'</td><td>&nbsp;</td>', &
             '</tr>'
     else
