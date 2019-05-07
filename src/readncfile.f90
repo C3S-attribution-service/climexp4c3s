@@ -368,7 +368,8 @@ subroutine readncfile(ncid,field,nxf,nyf,nx,ny,nperyear &
 
 !   yes, Virginia, there are netcdf files in the wild that encoded undefs by NaNs...
 !   Pity, these loops eat a lot of time.
-
+!   Made sure these do not occur in the Climate Explorer to save a lot of processing time.
+    if ( .false. ) then
     n = 0
 !$omp parallel do private(i,j,jy,jx)
     do i=max(yr1,yrbeg),min(yr2,yrend)
@@ -389,6 +390,7 @@ subroutine readncfile(ncid,field,nxf,nyf,nx,ny,nperyear &
         end do
     end do
 !$omp end parallel do
+    end if
 
 !   change other undef conventions to ours
 
