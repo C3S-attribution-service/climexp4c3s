@@ -270,7 +270,7 @@ program synthesis
     if ( nobs > 1 .and. lweighted ) then
         s2 = 0
         do i=1,nobs
-            s2 = s2 + (data(2,i)-obs(1))**2
+            s2 = s2 + (data(1,i)-obs(1))**2
         end do
         sig_obs = sqrt(s2/(nobs-1))
         obs(2) = obs(1) - sqrt( (obs(1)-obs(2))**2 + sig_obs**2 )
