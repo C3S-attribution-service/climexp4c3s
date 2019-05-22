@@ -8,6 +8,7 @@ subroutine fit(xx,yy,ndata,sig,mwt,a,b,siga,sigb,chi2,q)
     integer,intent(in) :: ndata,mwt
     real,intent(in) :: xx(ndata),yy(ndata),sig(ndata)
     real,intent(out) :: a,b,siga,sigb,chi2,q
+    integer :: i
     integer(fgsl_size_t) :: dim
     integer(fgsl_int) :: iret
     real(fgsl_double) :: dc0,dc1,dcov00,dcov01,dcov11,dsumsq,da,db,dq
@@ -47,7 +48,9 @@ subroutine fit(xx,yy,ndata,sig,mwt,a,b,siga,sigb,chi2,q)
         chi2 = 0
         return
     end if
-    if ( sum(xx**2) == 0 ) then
+    if ( all(xx == xx(1)) ) then ! GSL crashes on this
+        a = 3e33
+        b = sum(yy)/ndata
         return
     end if
     
