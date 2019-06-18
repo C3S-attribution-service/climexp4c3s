@@ -303,7 +303,7 @@ program synthesis
     if ( lweighted ) then
         print '(a,g14.4)','# model chi2/dof = ',chi2/(n-1)
     end if
-    if ( .not.lnoave .and. chi2/(n-1) > 1 .and. sig_mod < 0 ) then
+    if ( lweighted .and. .not.lnoave .and. chi2/(n-1) > 1 .and. sig_mod < 0 ) then
         ! compute sig_mod to make chi2/dof = 1
         syn_n = n ! copy to common as I am a F77 programmer and do not feel comfortable with f90 global variables
         syn_nobs = nobs
