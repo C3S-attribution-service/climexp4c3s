@@ -749,7 +749,7 @@
             if ( i-1 > 0 ) then
                 print '(a,i5,a,i5,a,f7.2,a,f6.2,a)','There are ',i-1,'/' &
                     ,nsigns,' (',100*(i-1)/real(n) &
-                    ,'%) stations with P < ',100*psigns(isign),'%<br>'
+                    ,'%) stations with <i>p</i>&lt;',100*psigns(isign),'%<br>'
                 else
                     print '(a,f6.2,a)','No significant trends at <i>p</i>&lt;',100*psigns(isign),'%<br>'
                     exit
