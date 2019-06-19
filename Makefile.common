@@ -237,7 +237,10 @@ OBJS =	makeabsent.o \
 		calcTp90.o \
 		calcRXXp.o \
 		calcRXXpTOT.o \
+		calcFreqDistr.o \
+		calcFreqDistrRR.o \
 		indexSupport.o \
+		climexp2extreme.o \
 		isnan.o \
 		legzo.o \
 		nperyear2string.o \
