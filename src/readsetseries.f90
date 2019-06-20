@@ -150,7 +150,8 @@ subroutine readsetseriesmeta(data,ids,npermax,yrbeg,yrend,nensmax, &
         nperyear = m
     else
         if ( m /= nperyear ) then
-            write(0,*) 'readsetseries: error: different time scales',m,nperyear
+            write(0,*) 'readsetseries: error: different time scales',m,nperyear, &
+                ' in file ',trim(file)
             call exit(-1)
         endif
     endif
