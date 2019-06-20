@@ -806,6 +806,6 @@ Briar:		Briar.o
 climexp2extreme.o:	climexp2extreme.f90 extreme.h
 
 extreme.h:	comgeneral.h
-		grep 'yrbeg' ../comgeneral.h > ../$@
-		grep 'nseason' ../comgeneral.h >> ../$@
+		grep 'yrbeg' ../comgeneral.h > ../src/$@
+		grep 'nseason' ../comgeneral.h >> ../src/$@
 
