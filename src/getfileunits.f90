@@ -98,10 +98,10 @@ subroutine getfileunits(file,nx,ny,nz,nt,nperyear,nvarmax,nvars &
         100 continue
             close(iu)
             if ( lwrite ) print *,'calling readseries with '// &
-                'mpermax,yrbeg,yrend,lwrite = ',mpermax,yrbeg,yrend &
-                ,lwrite
+                'mpermax,yrbeg,yrend,lwrite = ',mpermax,yrbeg,yrend,lwrite
             call readseriesmeta(file,data,mpermax,yrbeg,yrend, &
                 nperyear,var,newunits(1),lvar,svar,history,metadata,.true.,lwrite)
+            ! this is not exact for daily data with leap years
             do firstyr=yrbeg,yrend
                 do firstmo=1,nperyear
                     if ( data(firstmo,firstyr) < 1e33 ) goto 110
@@ -109,13 +109,13 @@ subroutine getfileunits(file,nx,ny,nz,nt,nperyear,nvarmax,nvars &
             enddo
             nt = 0
             goto 999
-            110 continue
+        110 continue
             do lastyr=yrend,yrbeg,-1
                 do lastmo=nperyear,1,-1
                     if ( data(lastmo,lastyr) < 1e33 ) goto 120
                 enddo
             enddo
-            120 continue
+        120 continue
             nt = 1 + (lastyr-firstyr)*nperyear - firstmo + lastmo
         endif
     else

@@ -690,6 +690,7 @@ subroutine readyrfracval(data,npermax,yrbeg,yrend,nperyear,line,unit,infile,lwri
         nn = max(1,nint(nperyear/366.))
         read(line,*,err=904,end=500) ymdh,y1
         call yyyymmddhh(line,ymdh,year1,month1,day1,hour1)
+        if ( lwrite ) print *,'read and interpreted ',year1,month1,day1,hour1,y1        
         if ( day1 > dpm(month1) .or. &
              nperyear/nn /= 360 .and. day1 > 28 .and. month1 == 2 .and. leap(year1) == 1 ) then
             if ( month1 == 2 .and. data(1+nn*30,year1) > 1e33 ) then
@@ -720,7 +721,8 @@ subroutine readyrfracval(data,npermax,yrbeg,yrend,nperyear,line,unit,infile,lwri
                 ,month,year,hour1,day1,month1,year1
             goto 460
         end if
-        nperyear1 = nint((24*real(nperyear)/nn)/(24*(jul1-jul) + (hour1-hour)))
+        nperyear1 = nint((24.*360)/(24.*(jul1-jul) + (hour1-hour)))
+        if ( lwrite ) print *,'nperyear1 = ',nperyear1
         if ( nperyear1 > nperyear ) then
             if ( lwrite .and. nperyear1 /= nperyear ) then
                 print *,'nperyear1 = ',nperyear1
