@@ -805,15 +805,16 @@ subroutine getglobalatts(ncid,metadata,lwrite)
 !   key,value pairs in metadata. Only 100 for the time being, the way CF is
 !   developing I'll soon need more.
 
+    implicit none
     include 'netcdf.inc'
     integer ::ncid
     logical :: lwrite
     character :: metadata(2,100)*(*)
-    integer :: i,j,xtype,ll,status,iarray(100)
+    integer :: i,j,n,xtype,ll,status,iarray(100)
     integer*1 :: sarray(100)
     real :: farray(100)
     logical :: lskip
-    character name*100,string*100000
+    character :: name*100,string*100000
     
     n = 0
     metadata = ' '
