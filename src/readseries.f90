@@ -210,24 +210,14 @@ subroutine readseriesheader(var,units,lvar,svar,history,metadata,line,unit,lwrit
     history = ' '
     metadata = ' '
     n = 0
-    iline = 0
 100 continue
     read(unit,'(a)',err=903,end=900) line
     if ( lwrite ) print *,'readseriesheader: processing line ',trim(line)
 !   the Mac sometimes gets confused and puts something else before the '#'
-    if ( line(1:1) == '#' .or. line(2:2) == '#' .or. line == ' ' .or. &
-         index(line,'error') > 0 ) then
-!       do not count lines, but look for '#'
-        if ( lwrite ) print *,'found new-style #-comments'
-        iline = -1
-    else if ( iline == -1 ) then
-        if ( lwrite ) print *,'end of #-comments - return'
+    if ( line(1:1) /= '#' .and. line(2:2) /= '#' .and. line /= ' ' .and. &
+         index(line,'error') == 0 ) then
+        if ( lwrite ) print *,'First line with data ',trim(line)
         return
-    else if ( onlynumbers(line) ) then
-        if ( lwrite ) print *,'line with only numbers - return'
-        return
-    else
-        iline = iline + 1
     end if
 
 !   metadata (my convention)
@@ -250,7 +240,7 @@ subroutine readseriesheader(var,units,lvar,svar,history,metadata,line,unit,lwrit
         end if
         go to 100
     end if
-    
+
 !   var, units, lvar
 
     j = index(line,'[')
@@ -303,9 +293,7 @@ subroutine readseriesheader(var,units,lvar,svar,history,metadata,line,unit,lwrit
             print *,'found lvar  =',trim(lvar)
         end if
     end if
-    if ( iline < 5 ) goto 100
-    read(unit,'(a)') line
-    if ( lwrite ) print *,'First line with data ',trim(line)
+    goto 100
     return
 900 line = ' '
     return
