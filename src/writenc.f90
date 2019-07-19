@@ -554,12 +554,14 @@ subroutine write_metadata(ncid,metadata,lwrite)
     integer :: ncid
     character :: metadata(2,100)*(*)
     logical :: lwrite
-    integer :: i,j,status
+    integer :: i,j,status,ii,iscripturl
     real :: array(1)
     logical :: linstitution,illegal
+    character :: scripturl*2000,string*20
     logical,external :: isnumchar,isalphachar
 !
     linstitution = .false.
+    iscripturl = 0
     do i=1,100
         if ( len_trim(metadata(1,i)) > 0 ) then
             illegal = .false.
@@ -598,11 +600,26 @@ subroutine write_metadata(ncid,metadata,lwrite)
                     len_trim(metadata(2,i)),trim(metadata(2,i)))
             end if
             if ( status /= nf_noerr ) call handle_err(status,'put att '//trim(metadata(1,i)))
+            if ( metadata(1,i)(1:9) == 'scripturl' .and. &
+                 isnumchar(metadata(1,i)(10:10)) .and. isnumchar(metadata(1,i)(11:11)) ) then
+                read(metadata(1,i)(10:11),*) ii
+                iscripturl = max(iscripturl,ii)
+            end if
         end if
     end do
     if ( .not.linstitution ) then
         status = nf_put_att_text(ncid,nf_global,'institution',21,'KNMI Climate Explorer')
         if ( status /= nf_noerr ) call handle_err(status,'put att institution')
+    end if
+
+!   add scripturl of this call
+
+    call getenv('SCRIPTURL',scripturl)
+    if ( scripturl /= ' ' ) then
+        iscripturl = iscripturl + 1
+        write(string,'(a,i2.2)') 'scripturl',iscripturl
+        status = nf_put_att_text(ncid,nf_global,trim(string),len_trim(scripturl),trim(scripturl))
+        if ( status /= nf_noerr ) call handle_err(status,'put att scripturl')
     end if
 end subroutine
 
