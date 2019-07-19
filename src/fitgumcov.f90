@@ -55,7 +55,7 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
     real llgumbelcov,gevcovreturnlevel,gevcovreturnyear
     external llgumbelcov,gevcovreturnlevel,gevcovreturnyear
 !
-!       estimate number of bootstrap samples needed, demand at least 25 above threshold
+!   estimate number of bootstrap samples needed, demand at least 25 above threshold
 !
     nmc = max(1000,nint(25*2/(1-confidenceinterval/100)))
     allocate(yrs(0:nmax))
@@ -67,6 +67,7 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
     else
         lnone = .false.
     end if
+    restrain = 0 ! no shape parameter
 
     if ( lwrite ) print *,'fitgumcov: calling fill_linear_array'
     call fill_linear_array(yrseries,yrcovariate,npernew,j1,j2,   &
@@ -380,7 +381,7 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
             print '(a)','# <tr><td colspan="4">Fitted to Gumbel '//       &
                 'distribution P(x) = exp(-exp(-(x-&mu;'')/&sigma;''))'   &
                 //'</td></tr>'
-            call printab(lweb)
+            call printab(restrain,lnone,lweb)
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'//  &
                 '&mu;:</td><td>',a,'</td><td>',a25,'...',a975,'</td></tr>'
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'//  &
@@ -408,7 +409,7 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
                 '# b/a = ',ba,' \\pm ',(ba975-ba25)/2
         else
             print '(a)','# P(x) = exp(-exp(-(x-a'')/b''))'
-            call printab(lweb)
+            call printab(restrain,lnone,lweb)
             call getabfromcov(a,b,alpha,beta,cov1,aaa,bbb)
             call getabfromcov(a25,b25,alpha,beta,cov1,aa25,bb25)
             call getabfromcov(a975,b975,alpha,beta,cov1,aa975,bb975)

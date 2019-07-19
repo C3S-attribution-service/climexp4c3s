@@ -514,6 +514,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         if ( lnone ) then
             print '(a)','# <tr><td colspan="4">Fitted to GPD '// &
                      'distribution H(x+&mu;) = 1 - (1+&xi;*x/&sigma;)^(-1/&xi;)</td></tr>'
+            call printab(restrain,lnone,lweb)
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
                      '&mu;:</td><td>',a,'</td><td>',a25,'...',a975,'</td></tr>'
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'// &
@@ -527,7 +528,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         else
             print '(a)','# <tr><td colspan="4">Fitted to GPD '// &
                      'distribution H(x+&mu;'') = 1 - (1+&xi;*x/&sigma;'')^(-1/&xi;)</td></tr>'
-            call printab(lweb)
+            call printab(restrain,lnone,lweb)
             call getabfromcov(a,b,alpha,beta,cov1,aaa,bbb)
             call getabfromcov(a25,b25,alpha,beta,cov1,aa25,bb25)
             call getabfromcov(a975,b975,alpha,beta,cov1,aa975,bb975)
@@ -563,15 +564,16 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     else
         print '(a,i5,a)','# Fitted to GPD distribution in ',iter,' iterations'
         if ( lnone ) then
-            print '(a)','# H(x+a) = 1-(1+xi*x/b)**(-1/xi) with'
+            print '(a)','# H(x+a) = 1-(1+xi*x/b)**(-1/xi)'
+            call printab(restrain,lnone,lweb)
             print '(a,f16.3,a,f16.3,a,f16.3)','# a = ',a,' \\pm ',(a975-a25)/2
             print '(a,f16.3,a,f16.3,a,f16.3)','# b = ',b,' \\pm ',(b975-b25)/2
             if ( assume == 'scale' ) print '(a,f16.3,a,f16.3,a,f16.3)', &
                 '# b/a = ',ba,' \\pm ',(ba975-ba25)/2
             print '(a,f16.3,a,f16.3,a,f16.3)','# xi  = ',xi,' \\pm ',(xi975-xi25)/2
         else
-            print '(a)','# H(x+a'') = 1-(1+xi*x/b'')**(-1/xi) with'
-            call printab(lweb)
+            print '(a)','# H(x+a'') = 1-(1+xi*x/b'')**(-1/xi)'
+            call printab(restrain,lnone,lweb)
             call getabfromcov(a,b,alpha,beta,cov1,aaa,bbb)
             call getabfromcov(a25,b25,alpha,beta,cov1,aa25,bb25)
             call getabfromcov(a975,b975,alpha,beta,cov1,aa975,bb975)

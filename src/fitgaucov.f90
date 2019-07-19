@@ -51,6 +51,7 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
     else
         lnone = .false.
     end if
+    restrain = 0 ! no shape parameter
 
     if ( lwrite ) print *,'fitgaucov: calling fill_linear_array'
     call fill_linear_array(yrseries,yrcovariate,npernew,j1,j2, &
@@ -378,7 +379,7 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
             print '(a)','# <tr><td colspan="4">Fitted to normal '// &
                 'distribution P(x) = exp(-(x-&mu;'')&sup2;'// &
                 '/(2&sigma;''&sup2;))/(&sigma;''&radic;(2&pi;))</td></tr>'
-            call printab(lweb)
+            call printab(restrain,lnone,lweb)
             call getabfromcov(a,b,alpha,beta,cov1,aaa,bbb)
             call getabfromcov(a25,b25,alpha,beta,cov1,aa25,bb25)
             call getabfromcov(a975,b975,alpha,beta,cov1,aa975,bb975)
@@ -420,7 +421,7 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
                 '# b/a = ',ba,' \\pm ',(ba975-ba25)/2
         else
             print '(a)','# p(x) = exp(-(x-a'')^2/(2*b''^2))/(b''*sqrt(2*pi)) with'
-            call printab(lweb)
+            call printab(restrain,lnone,lweb)
             call getabfromcov(a,b,alpha,beta,cov1,aaa,bbb)
             call getabfromcov(a25,b25,alpha,beta,cov1,aa25,bb25)
             call getabfromcov(a975,b975,alpha,beta,cov1,aa975,bb975)

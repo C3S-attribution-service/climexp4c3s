@@ -936,35 +936,53 @@ subroutine getabfromcov(a,b,alpha,beta,cov,aa,bb)
 end subroutine getabfromcov
 
 
-subroutine printab(lweb)
+subroutine printab(restrain,lnone,lweb)
     implicit none
-    logical :: lweb
+    real,intent(in) :: restrain
+    logical,intent(in) :: lnone,lweb
+    character :: string*80
     character cassume*5
     common /fitdata4/ cassume
 
+    string = ' '
+    if ( restrain /= 0 ) then 
+        if ( lweb ) then
+            write(string,'(a,f4.1)') ' and a Gaussian penalty on &xi; of width ',restrain/2
+        else
+            write(string,'(a,f4.1)') ' and a Gaussian penalty on xi of width ',restrain/2
+        end if
+    end if
     if ( lweb ) then
-        if ( cassume == 'shift' ) then
+        if ( lnone ) then
+            if ( string /= ' ' ) then
+                print '(a)','# <tr><td colspan="4">'//trim(string)//'</td></tr>'
+            endif
+        else if ( cassume == 'shift' ) then
             print '(a)','# <tr><td colspan="4">'// &
                 'with &mu;''= &mu;+&alpha;T '// &
-            '   and &sigma;'' = &sigma;</td></tr>'
+            '   and &sigma;'' = &sigma;'//trim(string)//'</td></tr>'
         else if ( cassume == 'scale' ) then
             print '(a)','# <tr><td colspan="4">'// &
                 'with &mu;'' = &mu; exp(&alpha;T/&mu;) and '// &
-                '&sigma;'' = &sigma; exp(&alpha;T/&mu;)</td></tr>'
+                '&sigma;'' = &sigma; exp(&alpha;T/&mu;)'//trim(string)//'</td></tr>'
         else if ( cassume == 'both' ) then
             print '(a)','# <tr><td colspan="4">'// &
                 'with &mu;''= &mu;+&alpha;T '// &
-                'and &sigma;'' = &sigma;+&beta;T</td></tr>'
+                'and &sigma;'' = &sigma;+&beta;T'//trim(string)//'</td></tr>'
         else
             write(0,*) 'printab: error: unknow value for assume ',cassume
         end if
     else
-        if ( cassume == 'shift' ) then
-            print '(a)','a'' = a+alpha*T, b''= b'
+        if ( lnone ) then
+            if ( string /= ' ' ) then
+                print '(a)',trim(string)
+            end if
+        else if ( cassume == 'shift' ) then
+            print '(a)','a'' = a+alpha*T, b''= b'//trim(string)
         else if ( cassume == 'scale' ) then
-            print '(a)','a'' = a*exp(alpha*T/a), b''= b*a''/a'
+            print '(a)','a'' = a*exp(alpha*T/a), b''= b*a''/a'//trim(string)
         else if ( cassume == 'both' ) then
-            print '(a)','a'' = a+alpha*T, b''= b+beta*T'
+            print '(a)','a'' = a+alpha*T, b''= b+beta*T'//trim(string)
         else
             write(0,*) 'printab: error: unknow value for assume ',cassume
         end if

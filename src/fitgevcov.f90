@@ -407,6 +407,7 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
             print '(a)','# <tr><td colspan="4">Fitted to GEV '//            &
                  'distribution P(x) = exp(-(1+&xi;(x-&mu;)'//             &
                      '/&sigma;)^(-1/&xi;))</td></tr>'
+            call printab(restrain,lnone,lweb)
             print '(a,f16.3,a,f16.3,a,f16.3,a)','# <tr><td colspan=2>'//         &
                  '&mu;:</td><td>',a,'</td><td>',       &
                  a25,'...',a975,'</td></tr>'
@@ -424,7 +425,7 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
             print '(a)','# <tr><td colspan="4">Fitted to GEV '//            &
                  'distribution P(x) = exp(-(1+&xi;(x-&mu;'')'//             &
                      '/&sigma;'')^(-1/&xi;))</td></tr>'
-            call printab(lweb)
+            call printab(restrain,lnone,lweb)
             call getabfromcov(a,b,alpha,beta,cov1,aaa,bbb)
             call getabfromcov(a25,b25,alpha,beta,cov1,aa25,bb25)
             call getabfromcov(a975,b975,alpha,beta,cov1,aa975,bb975)
@@ -462,12 +463,13 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
     else
         print '(a,i5,a)','# Fitted to GEV distribution in ',iter,' iterations'
         if ( lnone ) then
-            print '(a)','# P(x) = exp(-(1+xi*(x-a/b)**(-1/xi)) with'
+            print '(a)','# P(x) = exp(-(1+xi*(x-a/b)**(-1/xi))'
+            call printab(restrain,lnone,lweb)
             print '(a,f16.3,a,f16.3,a,f16.3)','# a = ',a,' \\pm ',(a975-a25)/2
             print '(a,f16.3,a,f16.3,a,f16.3)','# b = ',b,' \\pm ',(b975-b25)/2
         else
             print '(a)','# P(x) = exp(-(1+xi*(x-a''/b'')**(-1/xi)) with'
-            call printab(lweb)
+            call printab(restrain,lnone,lweb)
             call getabfromcov(a,b,alpha,beta,cov1,aaa,bbb)
             call getabfromcov(a25,b25,alpha,beta,cov1,aa25,bb25)
             call getabfromcov(a975,b975,alpha,beta,cov1,aa975,bb975)
