@@ -12,6 +12,7 @@ program plotdaily
     real,allocatable :: data(:,:),mean(:)
     logical :: cdf
     character :: file*255,var*20,units*20,string*80,enddate*20
+    character :: lvar*120,svar*120,history*50000,metadata(2,100)*2000
     integer,external :: leap
     
     if ( command_argument_count() < 3 ) then
@@ -26,7 +27,8 @@ program plotdaily
     allocate(data(npermax,yrbeg:yrend))
     lstandardunits = .true.
     lwrite = .false.
-    call readseries(file,data,npermax,yrbeg,yrend,nperyear,var,units,lstandardunits,lwrite)
+    call readseriesmeta(file,data,npermax,yrbeg,yrend,nperyear,var,units, &
+        lvar,svar,history,metadata,lstandardunits,lwrite)
     mens1 = 0
     mens = 0
     n = 4
@@ -65,7 +67,8 @@ program plotdaily
     end if
 
     print '(a,i5,2a)','# last ',nday,' of data in file ',trim(file)
-    call copyheader(file,6)
+    call printvar(6,var,units,lvar)
+    call printmetadata(6,file,' ',' ',history,metadata)
     if ( cdf ) then
         cumdata = 0
         cummean = 0
