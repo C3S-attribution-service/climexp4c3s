@@ -81,7 +81,7 @@ subroutine printmetadata(lun,file,FORM_field,title,history,metadata)
         end do
         if ( i > 100 ) then
             iscripturl = iscripturl + 1
-            write(lun,'(a,i2.2,2a)') 'scripturl',iscripturl,' :: ',scripturl
+            write(lun,'(a,i2.2,2a)') '# scripturl',iscripturl,' :: ',scripturl
         end if
     end if
     if ( .not.linstitution ) then
