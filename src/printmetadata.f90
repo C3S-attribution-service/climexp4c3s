@@ -77,11 +77,11 @@ subroutine printmetadata(lun,file,FORM_field,title,history,metadata)
     call getenv('SCRIPTURL',scripturl)
     if ( scripturl /= ' ' ) then
         do i=1,100
-            if ( metadata(2,i) == scripturl ) exit
+            if ( trim(metadata(2,i)) == trim(scripturl) ) exit
         end do
         if ( i > 100 ) then
             iscripturl = iscripturl + 1
-            write(lun,'(a,i2.2,2a)') '# scripturl',iscripturl,' :: ',scripturl
+            write(lun,'(a,i2.2,2a)') '# scripturl',iscripturl,' :: ',trim(scripturl)
         end if
     end if
     if ( .not.linstitution ) then
