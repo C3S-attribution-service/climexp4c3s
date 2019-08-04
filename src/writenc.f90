@@ -616,10 +616,16 @@ subroutine write_metadata(ncid,metadata,lwrite)
 
     call getenv('SCRIPTURL',scripturl)
     if ( scripturl /= ' ' ) then
-        iscripturl = iscripturl + 1
-        write(string,'(a,i2.2)') 'scripturl',iscripturl
-        status = nf_put_att_text(ncid,nf_global,trim(string),len_trim(scripturl),trim(scripturl))
-        if ( status /= nf_noerr ) call handle_err(status,'put att scripturl')
+        ! avoid duplicates
+        do i=1,100
+            if ( trim(metadata(2,i)) == trim(scripturl) ) exit
+        end do
+        if ( i > 100 ) then
+            iscripturl = iscripturl + 1
+            write(string,'(a,i2.2)') 'scripturl',iscripturl
+            status = nf_put_att_text(ncid,nf_global,trim(string),len_trim(scripturl),trim(scripturl))
+            if ( status /= nf_noerr ) call handle_err(status,'put att scripturl')
+        end if
     end if
 end subroutine
 
