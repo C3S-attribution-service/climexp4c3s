@@ -33,6 +33,8 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
     normalization = 1
     biasmul = 1
     biasadd = 0
+    lincludelast = .false.
+    biasrt = -3e33
     add_option = 0
     lks = .FALSE. 
     lconting = .FALSE. 
@@ -892,6 +894,14 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
             call get_command_argument(i+1,line)
             read(line,*,err=929) biasadd
             if ( lout ) print '(a)','# used additive bias correction ',biasadd
+        elseif ( line(1:7) == 'biasrt' ) then
+            lskip = 1
+            call get_command_argument(i+1,line)
+            read(line,*,err=929) biasrt
+            if ( lout ) print '(a)','# evaluate model for return time ',biasrt
+        elseif ( line(1:11) == 'includelast' ) then
+            lincludelast = .true.
+            if ( lout ) print '(a)','# in,cude event itself in fit'
         elseif ( line(1:6) == 'normal' ) then
             lskip = 1
             call get_command_argument(i+1,line)

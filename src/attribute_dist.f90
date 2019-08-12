@@ -21,6 +21,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         xxx(:,:,:),yyy(:),zzz(:),sig(:)
     logical :: lboot,lprint,subtract_offset,lset,lopen
     character :: operation*4,file*1024,idmax*30,string*20
+    real,external :: gevcovreturnlevel,gpdcovreturnlevel,gaucovreturnlevel
     data init /0/
 
     call getenv('TYPE',string)
@@ -147,8 +148,16 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         write(0,*) 'attribute_dist: internal error: mens = ',mens
         call exit(-1)
     end if
+    if ( biasrt > 0 ) then
+        if ( xyear < 1e33 ) then
+            write(0,*) 'attribute_dist: specify either a value or a return time to evaluate the data at.'
+            write(*,*) 'attribute_dist: specify either a value or a return time to evaluate the data at.'
+            call exit(-1)
+        end if
+        lincludelast = .true.
+    end if
     call handle_then_now(yrseries,yrcovariate,npernew,fyr,lyr,j1,j2,yr1a,yr2a,yr2b,mens1,mens, &
-        & xyear,ensmax,cov1,cov2,cov3,lprint,lwrite)
+        & xyear,ensmax,cov1,cov2,cov3,lincludelast,lprint,lwrite)
     if ( cov1 > 1e33 .or. cov2 > 1e33 ) then
         if ( lwrite ) print *,'giving up, cov1,cov2 = ',cov1,cov2
         return
@@ -236,6 +245,16 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     if ( distribution == 'gev' ) then
         ntype = 2 ! Gumbel plot
         if ( lwrite ) print *,'attribute_dist: calling fitgevcov',j1,j2
+        if ( abs(biasrt) < 1e33 ) then
+            ! first call to get fit parametrs for a random, plausible value of xyear
+            call fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
+                ,crosscorr,a,b,xi,alpha,beta,j1,j2,nens1,nens2 &
+                ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2,cov3,offset &
+                ,t,tx,restrain,assume,confidenceinterval,ndecor,.false.,.false.,.false.,.false.,lwrite)
+            ! now compute xyear one based on biasrt in the current climate (cov2)
+            xyear = gevcovreturnlevel(a,b,xi,alpha,beta,log10(biasrt),cov2)
+            print '(a,f10.1,a,g12.4)','# evaluated for a return period of ',biasrt,' yr, corresponding to a value of ',xyear
+        end if
         call fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
     &       ,crosscorr,a,b,xi,alpha,beta,j1,j2,nens1,nens2 &
     &       ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2,cov3,offset &
@@ -246,6 +265,17 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         !!!lboot = .false.
         !!!lwrite = .true.
         if ( lwrite ) print *,'attribute_dist: calling fitgpdcov'
+        if ( abs(biasrt) < 1e33 ) then
+            ! first call to get fit parametrs for a random, plausible value of xyear
+            call fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
+                ,crosscorr,a,b,xi,alpha,beta,j1,j2,nens1,nens2 &
+                ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2,cov3,offset &
+                ,t,tx,pmindata,restrain,assume,confidenceinterval,ndecor,.false. &
+                ,.false.,.false.,.false.,lwrite)
+            ! now compute xyear one based on biasrt in the current climate (cov2)
+            xyear = gpdcovreturnlevel(a,b,xi,alpha,beta,log10(biasrt),cov2)
+            print '(a,f10.1,a,g12.4)','# evaluated for a return period of ',biasrt,' yr, corresponding to a value of ',xyear    
+        end if
         call fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
     &       ,crosscorr,a,b,xi,alpha,beta,j1,j2,nens1,nens2 &
     &       ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2,cov3,offset &
@@ -255,6 +285,17 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         ntype = 2 ! Gumbel plot
         xi = 0
         if ( lwrite ) print *,'attribute_dist: calling fitgumcov'
+        if ( abs(biasrt) < 1e33 ) then
+            ! first call to get fit parametrs for a random, plausible value of xyear
+            call fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
+                ,crosscorr,a,b,alpha,beta,j1,j2,nens1,nens2 &
+                ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2,cov3,offset &
+                ,t,tx,assume,confidenceinterval,ndecor,.false.,.false.,.false.,.false.,lwrite)
+            ! now compute xyear one based on biasrt in the current climate (cov2)
+            if ( xi(1) /= 0 ) write(0,*) 'attribute_dist: error: xi /= in Gumbel fit ',xi
+            xyear = gevcovreturnlevel(a,b,xi,alpha,beta,log10(biasrt),cov2)
+            print '(a,f10.1,a,g12.4)','# evaluated for a return period of ',biasrt,' yr, corresponding to a value of ',xyear    
+        end if
         call fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
     &       ,crosscorr,a,b,alpha,beta,j1,j2,nens1,nens2 &
     &       ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2,cov3,offset &
@@ -263,6 +304,15 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         ntype = 3 ! log plot (sqrtlog gives straight lines, but this makes it easier to compare with other plots)
         xi = 0
         if ( lwrite ) print *,'attribute_dist: calling fitgaucov'
+        if ( abs(biasrt) < 1e33 ) then
+            ! first call to get fit parametrs for a random, plausible value of xyear
+            call fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
+                ,crosscorr,a,b,alpha,beta,j1,j2,nens1,nens2 &
+                ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2,cov3,offset &
+                ,t,tx,assume,confidenceinterval,ndecor,.false.,.false.,.false.,.false.,lwrite)
+            xyear = gaucovreturnlevel(a,b,xi,alpha,beta,log10(biasrt),cov2)
+            print '(a,f10.1,a,g12.4)','# evaluated for a return period of ',biasrt,' yr, corresponding to a value of ',xyear    
+        end if
         call fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
     &       ,crosscorr,a,b,alpha,beta,j1,j2,nens1,nens2 &
     &       ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2,cov3,offset &
@@ -909,7 +959,7 @@ subroutine print_spatial_scale(scross,years)
 end subroutine print_spatial_scale
 
 subroutine handle_then_now(series,covariate,nperyear,fyr,lyr,j1,j2,yr1a,yr2a,yr2b, &
-    &   mens1,mens,xyear,ensmax,cov1,cov2,cov3,lprint,lwrite)
+    &   mens1,mens,xyear,ensmax,cov1,cov2,cov3,lincludelast,lprint,lwrite)
 
     ! handle the conversion from "then" (yr1a) and "now" (yr2a) to the variables
     ! fitgevcov expects (xyear,idmax,cov1,cov2), sets series to undef at "now" if xyear is not set.
@@ -917,24 +967,25 @@ subroutine handle_then_now(series,covariate,nperyear,fyr,lyr,j1,j2,yr1a,yr2a,yr2
     implicit none
     integer nperyear,fyr,lyr,j1,j2,yr1a,yr2a,yr2b,mens1,mens,ensmax
     real series(nperyear,fyr:lyr,0:mens),covariate(nperyear,fyr:lyr,0:mens)
-    real xyear,cov1,cov2,cov3
-    logical lprint,lwrite
+    real,intent(inout) :: xyear
+    real,intent(out) :: cov1,cov2,cov3
+    logical,intent(in) :: lincludelast,lprint,lwrite
     real dummy
 
-    call find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr1a,cov1,dummy,ensmax,1,lprint,lwrite)
-    call find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr2a,cov2,xyear,ensmax,2,lprint,lwrite)
-    call find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr2b,cov3,dummy,ensmax,3,lprint,lwrite)
+    call find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr1a,cov1,dummy,ensmax,1,lincludelast,lprint,lwrite)
+    call find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr2a,cov2,xyear,ensmax,2,lincludelast,lprint,lwrite)
+    call find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr2b,cov3,dummy,ensmax,3,lincludelast,lprint,lwrite)
 
 end subroutine handle_then_now
 
-subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xyear,ensmax,i12,lprint,lwrite)
+subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xyear,ensmax,i12,lincludelast,lprint,lwrite)
     implicit none
     integer,intent(in) :: nperyear,fyr,lyr,mens1,mens,j1,j2,i12
     integer,intent(inout) :: yr,ensmax
     real,intent(in) :: covariate(nperyear,fyr:lyr,0:mens)
     real,intent(inout) :: series(nperyear,fyr:lyr,0:mens)
     real,intent(out) :: cov,xyear
-    logical lchangesign,lprint,lwrite
+    logical,intent(in) :: lincludelast,lprint,lwrite
     integer i,j,mo,momax,yrmax,iens
     real s
 
@@ -994,7 +1045,9 @@ subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xy
                 call exit(-1)
             end if
             xyear = series(momax,yrmax,ensmax)
-            series(momax,yrmax,mens1:mens) = 3e33 ! for GPD we should also make a few values to the sides undef
+            if ( .not.lincludelast ) then
+                series(momax,yrmax,mens1:mens) = 3e33 ! for GPD we should also make a few values to the sides undef
+            end if
         else
             ensmax = -1 ! xyear was given by user, note that there is no need to set the series to undef in this case
         end if

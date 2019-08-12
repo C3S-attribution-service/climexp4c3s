@@ -112,7 +112,7 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
         cmin = min(cmin,xx(2,i))
         cmax = max(cmax,xx(2,i))
     end do
-    call write_obscov(xx,yrs,ntot,-3e33,cov2,xyear,year,offset,lchangesign)
+    if ( dump ) call write_obscov(xx,yrs,ntot,-3e33,cov2,xyear,year,offset,lchangesign)
 
     sig = 0
     call moment(yy,ntot,mean,adev,sd,var,skew,curt)
@@ -174,7 +174,7 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
         call getabfromcov(a,b,alpha,beta,cov3,aaa,bbb)
         acov(1,3) = aaa
     end if
-    call write_threshold(cmin,cmax,a,b,xi,alpha,beta,offset,lchangesign,gevcovreturnlevel)
+    if ( dump ) call write_threshold(cmin,cmax,a,b,xi,alpha,beta,offset,lchangesign,gevcovreturnlevel)
 !
 !   bootstrap to find error estimates
 !

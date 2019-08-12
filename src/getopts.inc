@@ -1,7 +1,8 @@
         real decor,kscut,minfac,minindx,maxindx,mindata,maxdata,         &
      &      pminindx,pmaxindx,pmindata,pmaxdata,lon1,lon2,lat1,lat2,     &
      &      lev1,lev2,altlon1,altlon2,altlat1,altlat2,altlev1,altlev2,   &
-     &      confidenceinterval,restrain,minfacsum,xyear,biasadd,biasmul
+     &      confidenceinterval,restrain,minfacsum,xyear,biasadd,biasmul, &
+     &      biasrt
         integer lag1,lag2,m1,m2,yr1,yr2,yr1a,yr2a,yr1b,yr2b,lsum,        &
      &      lsum2,lsel,                                                  &
      &      ndiff,ndiff2,indxuse,avex,avey,nfittime,minnum,intertype,    &
@@ -14,7 +15,7 @@
      &      twothirdscale,leads,                                         &
      &      logfield,sqrtfield,lfitnoise,lrandom,lrmse,lchangesign,      &
      &      lmakeensfull,lweb,lstandardunits,lallobs,lstartstop,         &
-     &      lnomissing,lensanom,lnooverlap,lmae
+     &      lnomissing,lensanom,lnooverlap,lmae,lincludelast
         character oper*1,strindx(19)*20,plotfile*255,                    &
      &      indexfiles(10:19)*255,plotrunfile*255,corrmonths*8,          &
      &      namestring*80,bbfile*255
@@ -34,6 +35,7 @@
      &      logfield,sqrtfield,lfitnoise,lrandom,lrmse,                  &
      &      lchangesign,lmakeensfull,lweb,lstandardunits,lallobs,        &
      &      lstartstop,lnomissing,lensanom,lnooverlap,ncrossvalidate,    &
-     &      day0,minfacsum,lmae,xyear,add_option,biasadd,biasmul
+     &      day0,minfacsum,lmae,lincludelast,xyear,add_option,biasadd,   &
+     &      biasmul,biasrt
         common /cc_getopts/ oper,strindx,plotfile,indexfiles,            &
      &      plotrunfile,corrmonths,namestring,bbfile

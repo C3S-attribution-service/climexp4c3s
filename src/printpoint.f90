@@ -1089,7 +1089,7 @@ subroutine write_obscov(xx,yrs,ntot,xmin,cov2,xyear,year,offset,lchangesign)
             write(15,'(g20.6,a,i11)') cov2+offset,'-999.900',0
         end if
     end if
-    end subroutine write_obscov
+end subroutine write_obscov
 
 
 subroutine write_threshold(cmin,cmax,a,b,xi,alpha,beta,offset,lchangesign,covreturnlevel)

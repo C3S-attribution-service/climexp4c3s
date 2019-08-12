@@ -101,7 +101,7 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
         cmin = min(cmin,xx(2,i))
         cmax = max(cmax,xx(2,i))
     end do
-    call write_obscov(xx,yrs,ntot,-3e33,cov2,xyear,year,offset,lchangesign)
+    if ( dump ) call write_obscov(xx,yrs,ntot,-3e33,cov2,xyear,year,offset,lchangesign)
 !
     sig = 0
     call moment(yy,ntot,mean,adev,sd,var,skew,curt)
@@ -165,7 +165,7 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
         call getabfromcov(a,b,alpha,beta,cov3,aaa,bbb)
         acov(1,3) = aaa
     end if
-    call write_threshold(cmin,cmax,a,b,xi,alpha,beta,offset,lchangesign,gaucovreturnlevel)
+    if ( dump ) call write_threshold(cmin,cmax,a,b,xi,alpha,beta,offset,lchangesign,gaucovreturnlevel)
 !
 !   Bootstrap for error estimate
 !
@@ -449,7 +449,7 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
         call plot_tx_cdfs(txtx,nmc,nmc,ntype,j1,j1)
     end if
     if ( plot ) write(11,'(3g20.4,a)') alpha,alpha25,alpha975,' alpha'
-    call write_dthreshold(cov1,cov2,cov3,acov,offset,lchangesign)
+    if ( dump ) call write_dthreshold(cov1,cov2,cov3,acov,offset,lchangesign)
 
     ! no cuts
     mindata = -2e33

@@ -154,7 +154,7 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
 !
 !   dump (covariate,observation) pairs to plotfile on unit 15
 !
-    call write_obscov(xx,yrs,ntot,-3e33,cov2,xyear,year,offset,lchangesign)
+    if ( dump ) call write_obscov(xx,yrs,ntot,-3e33,cov2,xyear,year,offset,lchangesign)
 !
 !   first-guess estaimtes of the parameters
 !
@@ -194,7 +194,7 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
         call getabfromcov(a,b,alpha,beta,cov3,aaa,bbb)
         acov(1,3) = aaa
     end if
-    call write_threshold(cmin,cmax,a,b,xi,alpha,beta,offset,lchangesign,gevcovreturnlevel)
+    if ( dump ) call write_threshold(cmin,cmax,a,b,xi,alpha,beta,offset,lchangesign,gevcovreturnlevel)
 !
 !   bootstrap to find error estimates
 !
@@ -500,7 +500,7 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
         call plot_tx_cdfs(txtx,nmc,iens,ntype,j1,j2)
     end if
     if ( plot ) write(11,'(3g20.4,a)') alpha,alpha25,alpha975,' alpha'
-    call write_dthreshold(cov1,cov2,cov3,acov,offset,lchangesign)
+    if ( dump ) call write_dthreshold(cov1,cov2,cov3,acov,offset,lchangesign)
 
     ! no cuts
     mindata = -2e33
