@@ -20,6 +20,11 @@ subroutine enssubtractmean(data,npermax,nperyear,yrbeg,yrend,nens1,nens2,yr1,yr2
 
     if ( lwrite ) call printdat('subtractmean: before',data,npermax,nperyear,yrbeg,yrend)
     if ( nperyear == 1 ) return
+    if ( j2 > nperyear ) then
+        write(0,*) 'subtractmean: error: cannot handle months wrapping after december',j1,j2,nperyear
+        write(*,*) 'subtractmean: error: cannot handle months wrapping after december',j1,j2,nperyear
+        call exit(-1)
+    end if
     do j=j1,j2
         do iens=nens1,nens2
             do firstyr=yr1,yr2

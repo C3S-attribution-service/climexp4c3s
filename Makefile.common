@@ -473,9 +473,6 @@ patternfield:	patternfield.o	$(LIBRARY)
 daily2longerfield:	daily2longerfield.o	 $(LIBRARY)
 		$(LD) $(FFLAGS) $(LDBIGFLAG) -o $@ $@.o $(LIBS)
 
-variate:	variations.o $(LIBRARY)
-		$(LD) $(FFLAGS) -o $@ variations.o $(LIBS)
-
 autocor:	autocor.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
 

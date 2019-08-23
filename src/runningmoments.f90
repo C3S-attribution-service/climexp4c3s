@@ -6,7 +6,7 @@ program runningmoments
     include 'param.inc'
     include 'getopts.inc'
     integer,parameter :: nboot=799
-    integer :: i,ii,j,nperyear,imom,iens,mens1,mens,n,yr,j1,j2,mboot &
+    integer :: i,ii,j,jj,nperyear,imom,iens,mens1,mens,n,yr,j1,j2,mboot &
         ,yrmin,yrmax,iboot,iran,yr1s,yr2s,ndatens
     real,allocatable :: data(:,:,:),xx(:),yy(:)
     real :: result(0:nboot),rmin(0:nboot),rmax(0:nboot),rdif(0:nboot) &
@@ -127,7 +127,8 @@ program runningmoments
     allocate(yy(ndatens))
     do iens=nens1,nens2
         do i=yr1-1,yr2+1
-            do j=j1,j2
+            do jj=j1,j2
+                j = jj
                 call normon(j,i,ii,nperyear)
                 if ( ii < yr1 .or. ii > yr2 ) goto 600
                 if ( data(j,ii,iens) < 1e33 ) then
@@ -202,7 +203,8 @@ program runningmoments
             yr1s = max(yr1,yr)
             yr2s = min(yr2,yr+nyrwindow-1)
             do i=yr1s-1,yr2s
-                do j=j1,j2
+                do jj=j1,j2
+                    j = jj
                     call normon(j,i,ii,nperyear)
                     if ( ii < yr1s .or. ii > yr2s ) goto 700
                     if ( data(j,ii,iens) < 1e33 ) then
@@ -264,7 +266,8 @@ program runningmoments
                 yr1s = max(yr1,yr)
                 yr2s = min(yr2,yr+nyrwindow-1)
                 do i=yr1s-1,yr2s
-                    do j=j1,j2
+                    do jj=j1,j2
+                        j = jj
                         call normon(j,i,ii,nperyear)
                         if ( ii < yr1s .or. ii > yr2s ) goto 850
                         if ( data(j,ii,iens) < 1e33 ) then

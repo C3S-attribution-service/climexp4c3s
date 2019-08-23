@@ -22,6 +22,11 @@ subroutine getenscutoff(cut,pcut,dat,npermax,nperyear,yrbeg &
 10  continue
     allocate(a(nmax))
     n = 0
+    if ( j2 > nperyear ) then
+        write(0,*) 'getenscutoff: error: cannot handle years wrapping: 'j1,j2,nperyear
+        write(*,*) 'getenscutoff: error: cannot handle years wrapping: 'j1,j2,nperyear
+        call exit(-1)
+    end if
     do iens=nens1,nens2
         do i=yr1,yr2
             do j=j1,j2
