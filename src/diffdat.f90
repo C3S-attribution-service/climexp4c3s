@@ -37,7 +37,7 @@ program diffdat
         print '(3a)','# difference with previous data point of ',trim(file)
     else
         print '(2a)','# centered derivative of ',trim(file)
-        if ( n > 3 ) print '(a,i3,a)','using linear regression over ',n,' data points'
+        if ( n > 3 ) print '(a,i3,a)','# using linear regression over ',n,' data points'
     end if
     var = 'd_'//trim(var)//'_dt'
     lvar = 'time derivative of '//lvar
