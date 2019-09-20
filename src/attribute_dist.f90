@@ -274,8 +274,11 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
                 ,t,tx,pmindata,restrain,assume,confidenceinterval,ndecor,.false. &
                 ,.false.,.false.,.false.,lwrite)
             ! now compute xyear one based on biasrt in the current climate (cov2)
+            if ( lchangesign ) then ! other convention, should be fixed
+                a = -a
+                alpha = -alpha
+            end if
             xyear = gpdcovreturnlevel(a,b,xi,alpha,beta,log10(biasrt),cov2)
-            if ( lchangesign ) xyear = -xyear
             print '(a,f10.1,a,g12.4)','# evaluated for a return period of ',biasrt,' yr, corresponding to a value of ',xyear    
         end if
         call fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
@@ -314,7 +317,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
                 ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2,cov3,offset &
                 ,t,tx,assume,confidenceinterval,ndecor,.false.,.false.,.false.,.false.,lwrite)
             print *,'# fitgaucov returns a,b,xi,alpha = ',a,b,xi,alpha
-            if ( lchangesign ) then ! otehr convention, should be fixed
+            if ( lchangesign ) then ! other convention, should be fixed
                 a = -a
                 alpha = -alpha
             end if
