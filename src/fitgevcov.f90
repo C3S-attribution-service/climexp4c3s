@@ -902,7 +902,7 @@ real function llgevcov(p)
     llgevcov = -llgevcov
 !
 999 continue
-    if ( llwrite ) print *,'a,b,xi,alpha,llgevcov = ',p(1),p(2),p(3),p(4),llgevcov
+    if ( llwrite .and. .false. ) print *,'a,b,xi,alpha,llgevcov = ',p(1),p(2),p(3),p(4),llgevcov
 end function llgevcov
 
 subroutine gevcovnorm(a,b,xi,alpha,beta,s)
