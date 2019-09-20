@@ -898,7 +898,7 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
             lskip = 1
             call get_command_argument(i+1,line)
             read(line,*,err=929) biasrt
-            if ( lout ) print '(a)','# evaluate model for return time ',biasrt
+            if ( lout ) print '(a,f10.1)','# evaluate model for return time ',biasrt
         elseif ( line(1:11) == 'includelast' ) then
             lincludelast = .true.
             if ( lout ) print '(a)','# in,cude event itself in fit'
