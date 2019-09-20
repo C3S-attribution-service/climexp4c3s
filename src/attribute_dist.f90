@@ -253,7 +253,9 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
                 ,t,tx,restrain,assume,confidenceinterval,ndecor,.false.,.false.,.false.,.false.,lwrite)
             ! now compute xyear one based on biasrt in the current climate (cov2)
             xyear = gevcovreturnlevel(a,b,xi,alpha,beta,log10(biasrt),cov2)
-            if ( lchangesign ) xyear = -xyear
+            if ( lchangesign ) then
+                if ( xyear < 1e33 ) xyear = -xyear
+            end if
             print '(a,f10.1,a,g12.4)','# Evaluated for a return period of ',biasrt,' yr, corresponding to a value of ',xyear
         end if
         call fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
@@ -275,8 +277,9 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
                 ,.false.,.false.,.false.,lwrite)
             ! now compute xyear one based on biasrt in the current climate (cov2)
             if ( lchangesign ) then ! other convention, should be fixed
-                a = -a
-                alpha = -alpha
+                if ( a(1) < 1e33 ) a(1) = -a(1)
+                if ( alpha(1) < 1e33 ) alpha(1) = -alpha(1)
+                if ( beta(1) < 1e33 ) beta(1) = -beta(1)
             end if
             xyear = gpdcovreturnlevel(a,b,xi,alpha,beta,log10(biasrt),cov2)
             print '(a,f10.1,a,g12.4)','# evaluated for a return period of ',biasrt,' yr, corresponding to a value of ',xyear    
@@ -299,7 +302,9 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
             ! now compute xyear one based on biasrt in the current climate (cov2)
             if ( xi(1) /= 0 ) write(0,*) 'attribute_dist: error: xi /= in Gumbel fit ',xi
             xyear = gevcovreturnlevel(a,b,xi,alpha,beta,log10(biasrt),cov2)
-            if ( lchangesign ) xyear = -xyear
+            if ( lchangesign ) then
+                if ( xyear < 1e33 ) xyear = -xyear
+            end if
             print '(a,f10.1,a,g12.4)','# evaluated for a return period of ',biasrt,' yr, corresponding to a value of ',xyear    
         end if
         call fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
@@ -318,8 +323,9 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
                 ,t,tx,assume,confidenceinterval,ndecor,.false.,.false.,.false.,.false.,lwrite)
             print *,'# fitgaucov returns a,b,xi,alpha = ',a,b,xi,alpha
             if ( lchangesign ) then ! other convention, should be fixed
-                a = -a
-                alpha = -alpha
+                if ( a(1) < 1e33 ) a(1) = -a(1)
+                if ( alpha(1) < 1e33 ) alpha(1) = -alpha(1)
+                if ( beta(1) < 1e33 ) beta(1) = -beta(1)
             end if
             xyear = gaucovreturnlevel(a,b,xi,alpha,beta,log10(biasrt),cov2)
             print '(a,f10.1,a,g12.4)','# evaluated for a return period of ',biasrt,' yr, corresponding to a value of ',xyear    
