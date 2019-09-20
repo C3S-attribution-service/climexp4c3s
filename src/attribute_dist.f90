@@ -253,8 +253,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
                 ,t,tx,restrain,assume,confidenceinterval,ndecor,.false.,.false.,.false.,.false.,lwrite)
             ! now compute xyear one based on biasrt in the current climate (cov2)
             xyear = gevcovreturnlevel(a,b,xi,alpha,beta,log10(biasrt),cov2)
-            print '(a,f10.1,a,g12.4)','# evaluated for a return period of ',biasrt,' yr, corresponding to a value of ',xyear
-            write(0,*) 'evaluated for a return period of ',biasrt,' yr, corresponding to a value of ',xyear,'<p>'
+            print '(a,f10.1,a,g12.4)','# Evaluated for a return period of ',biasrt,' yr, corresponding to a value of ',xyear
             if ( lchangesign ) xyear = -xyear
         end if
         call fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
