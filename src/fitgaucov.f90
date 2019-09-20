@@ -711,12 +711,14 @@ real function gaucovreturnlevel(a,b,xi,alpha,beta,x,cov)
     real :: aa,bb,f,z,t
     real,external :: serfci
 !
+    !!!print *,'# gauscovreturnlevel: input: a,b,xi,alpha,beta,x,cov = ',a,b,xi,alpha,beta,x,cov
     call getabfromcov(a,b,alpha,beta,cov,aa,bb)
     f = 10.**x
     f = 2/f
     z = serfci(f)
     t = aa + sqrt(2.)*bb*z
     gaucovreturnlevel = t
+    !!!!print *,'# gauscovreturnlevel: output: ',t
 end function gaucovreturnlevel
 
 real function gaucovreturnyear(a,b,xi,alpha,beta,xyear,cov,lchangesign)
