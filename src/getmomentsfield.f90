@@ -939,7 +939,7 @@ program getmomentsfield
             do month=m1,m2
                 m = month-m1
                 do i=1,nvars
-                    print '(a,2i3)','# writing netcdf data',m,i
+                    if ( lwrite ) print '(a,2i3)','# writing netcdf data',m,i
                     call writencslice(ncid,ntvarid,itimeaxis,ntmax, &
      &                   ivars(1,i),res(1,1,1,m,i),nx,ny,nz,nx,ny,nz, &
      &                   m+1,1)
