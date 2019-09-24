@@ -237,7 +237,6 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
                             ntot = ntot + 1
                             yyy(ntot) = yrseries1(mo,yr,iens)
                             zzz(ntot) = yrseries1(mo,yr,jens)
-                            print *,yr,mo,ntot,yyy(ntot),zzz(ntot)
                         end if
                     end do
                 end do
@@ -246,7 +245,6 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
                     crosscorr(iens,jens) = 3e33
                 else
                     call pearsnxx(yyy,zzz,ntot,crosscorr(iens,jens),prob,z,ax,sxx,ay,syy,sxy,df)
-                    print *,'crosscor(',iens,jens,') = ',crosscorr(iens,jens)
                 end if
                 crosscorr(jens,iens) = crosscorr(iens,jens)
             end do
