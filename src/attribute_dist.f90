@@ -13,12 +13,12 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     real :: results(3,nresmax)
     character :: seriesids(0:mens)*(*),assume*(*),distribution*(*)
     character :: var*(*),units*(*),lvar*(*),svar*(*),history*(*),metadata(2,100)*(*)
-    integer :: fyr,lyr,ntot,i,j,k,ntype,nmax,npernew,j1,j2,iens,jens,ensmax,init,ndecor,n
+    integer :: fyr,lyr,ntot,i,j,k,ntype,nmax,npernew,j1,j2,iens,jens,ensmax,init,ndecor,n,yr,mo
     integer,allocatable :: yrs(:)
     real :: a(3),b(3),xi(3),alpha(3),beta(3),cov1,cov2,cov3,offset,t(3,10,3),tx(3,3), &
         regr,intercept,sigb,siga,chi2,q,prob,z,ax,sxx,ay,syy,sxy,df
     real,allocatable :: xx(:,:),yrseries(:,:,:),yrcovariate(:,:,:),yy(:),crosscorr(:,:), &
-        xxx(:,:,:),yyy(:),zzz(:),sig(:)
+        xxx(:,:,:),yyy(:),zzz(:),sig(:),yrseries1(:,:,:)
     logical :: lboot,lprint,subtract_offset,lset,lopen
     character :: operation*4,file*1024,idmax*30,string*20
     real,external :: gevcovreturnlevel,gpdcovreturnlevel,gaucovreturnlevel
@@ -206,6 +206,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         n = n*(n-1)/2
         i = 0
         ! subtract the regression on the covariate first (often trend)
+        allocate(yrseries1(npernew,fyr:lyr,0:mens))
         do iens = mens1,mens
             call fill_linear_array(yrseries,yrcovariate,npernew, &
                 j1,j2,fyr,lyr,iens,iens,xxx(1,1,iens),yrs,nmax,ntot,lwrite)
@@ -214,8 +215,14 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
                 zzz(j) = xxx(2,j,iens) ! covariate
             end do
             call fit(zzz,yyy,ntot,sig,0,intercept,regr,sigb,siga,chi2,q)
-            do j=1,ntot
-                xxx(1,j,iens) = xxx(1,j,iens) - regr*xxx(2,j,iens)
+            do yr=fyr,lyr
+                do mo=1,npernew
+                    if ( yrseries(mo,yr,iens) < 1e33 .and. yrcovariate(mo,yr,iens) < 1e33 ) then
+                        yrseries1(mo,yr,iens) = yrseries(mo,yr,iens) - regr*yrcovariate(mo,yr,iens)
+                    else
+                        yrseries1(mo,yr,iens) = 3e33
+                    end if
+                end do
             end do
         end do
         do iens = mens1,mens
@@ -223,15 +230,23 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
             do jens=iens+1,mens
                 call keepalive1('Computing correlations',i,n)
                 i = i + 1
-                do j=1,ntot
-                    yyy(j) = xxx(1,j,iens)
-                    zzz(j) = xxx(1,j,jens)
+                ntot = 0
+                do yr=fyr,lyr
+                    do mo=1,npernew
+                        if ( yrseries1(mo,yr,iens) < 1e33 .and. yrseries1(mo,yr,jens) < 1e33 ) then
+                            ntot = ntot + 1
+                            yyy(ntot) = yrseries1(mo,yr,iens)
+                            zzz(ntot) = yrseries1(mo,yr,jens)
+                            print *,yr,mo,ntot,yyy(ntot),zzz(ntot)
+                        end if
+                    end do
                 end do
                 df = ntot
                 if ( df < 4 ) then
                     crosscorr(iens,jens) = 3e33
                 else
                     call pearsnxx(yyy,zzz,ntot,crosscorr(iens,jens),prob,z,ax,sxx,ay,syy,sxy,df)
+                    print *,'crosscor(',iens,jens,') = ',crosscorr(iens,jens)
                 end if
                 crosscorr(jens,iens) = crosscorr(iens,jens)
             end do
@@ -739,25 +754,25 @@ subroutine get_covariate_extrayear(covariate,nperyear,npermax,yrbeg,yrend,mens1,
 end subroutine
 
 subroutine fill_linear_array(series,covariate,nperyear,j1,j2,fyr,lyr,mens1,mens,&
-&   xx,yrs,nmax,ntot,lwrite)
+    xx,yrs,nmax,ntot,lwrite)
 
-    ! transfer the valid pairs in series, covariate to xx(1:2,1:ntot)
-    
+!   transfer the valid pairs in series, covariate to xx(1:2,1:ntot)
+
     implicit none
-    integer nperyear,j1,j2,fyr,lyr,mens1,mens,nmax,ntot
-    integer yrs(0:nmax)
-    real series(nperyear,fyr:lyr,0:mens),covariate(nperyear,fyr:lyr,0:mens),xx(2,nmax)
-    integer yy,yr,mm,mo,day,month,yrstart,yrstop,iens
-    logical lwrite
+    integer,intent(in) :: nperyear,j1,j2,fyr,lyr,mens1,mens,nmax
+    integer,intent(out) :: ntot,yrs(0:nmax)
+    real,intent(in) :: series(nperyear,fyr:lyr,0:mens),covariate(nperyear,fyr:lyr,0:mens)
+    real,intent(out) :: xx(2,nmax)
+    integer :: yy,yr,mm,mo,day,month,yrstart,yrstop,iens
+    logical :: lwrite
 
     if ( lwrite ) then
         print *,'fill_linear_array: nperyear,j1,j2,fyr,lyr,mens1,mens = ', &
-        &   nperyear,j1,j2,fyr,lyr,mens1,mens
+            nperyear,j1,j2,fyr,lyr,mens1,mens
         if ( .true. ) then
             print *,'first value each year to give an impression'
             do yr=fyr,lyr
-                if ( series(j1,yr,mens1) < 1e33 .and. &
-     &               covariate(j1,yr,mens1) < 1e33 ) then
+                if ( series(j1,yr,mens1) < 1e33 .and. covariate(j1,yr,mens1) < 1e33 ) then
                     print *,yr,series(j1,yr,mens1),covariate(j1,yr,mens1)
                 end if
             end do
