@@ -6,8 +6,8 @@ subroutine filllinarray(dindx,ddata,lfirst,dddata,ndata,n,j1,j2 &
 
     implicit none
     include 'getopts.inc'
-    integer :: ndata,n,j1,j2,lag,k,nperyear,npermax,yrbeg,yrend,nensmax &
-    ,indxmx,yrstart,yrstop,yrmo(3,ndata)
+    integer :: ndata,n,j1,j2,lag,k,nperyear,npermax,yrbeg,yrend,nensmax,indxmx, &
+        yrstart,yrstop,yrmo(3,ndata)
     integer :: imens(0:indxmx)
     real :: dindx(ndata),ddata(ndata),dddata(ndata)
     logical :: lfirst(ndata)
