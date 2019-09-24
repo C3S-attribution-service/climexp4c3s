@@ -45,7 +45,7 @@ subroutine pearsnxxgen(x,y,n,r,prob,z,ax,sxx,ay,syy,sxy,df,lsubmean)
     dsyy = 0
     do i=1,n
         dsxx = dsxx + (xx(i) - dax)**2
-        dsxy = dsxx + (xx(i) - dax)*(yy(i) - day)
+        dsxy = dsxy + (xx(i) - dax)*(yy(i) - day)
         dsyy = dsyy + (yy(i) - day)**2
     end do
     deallocate(xx,yy)
