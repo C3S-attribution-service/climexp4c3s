@@ -2,16 +2,21 @@ program select_min_years
 !
 !   select stations with a minimum number of years from a stationlist
 !   or min/max elevastion, or min/max lngitude/latitude
+!   or based on a mask
 !
     implicit none
+    integer,parameter :: npolmax=500000
     integer :: minyrs,i,j,n
-    real :: xval,elev,lon,lat,elevmin,elevmax,lon1,lon2,lat1,lat2
-    logical :: lok
-    character :: file*1024,lines(10)*256,string*80,value*80
+    real :: xval,elev,lon,lat,elevmin,elevmax,lon1,lon2,lat1,lat2,npol,inout
+    double precision :: polygon(2,npolmax),x,y
+    logical :: lok,lwrite
+    character :: file*1024,lines(10)*256,string*80,value*80,maskfile*1024
+    real,external :: in_polygon
 
     call get_command_argument(2,string)
     if ( string == ' ' ) then
-        write(0,*) 'usage: select_min_years inlist minyrs [elevmin N] [elevmax M] [lon{12} degrees] [lat{12} degrees]'
+        write(0,*) 'usage: select_min_years inlist minyrs [elevmin N] [elevmax M] '// &
+            '[lon{12} degrees] [lat{12} degrees] [mask maksfile]'
         call exit(-1)
     end if
     read(string,*) minyrs
@@ -21,11 +26,17 @@ program select_min_years
     lon2 = 3e33
     lat1 = 3e33
     lat2 = 3e33
+    maskfile = ' '
+    lwrite = .false.
     do i=3,command_argument_count(),2
         call get_command_argument(i,string)
         call get_command_argument(i+1,value)
         if ( value == ' ' ) exit
         write(0,*) 'string,value = ',trim(string),',',trim(value)
+        if ( string == 'mask' ) then
+            maskfile = value
+            cycle
+        end if
         read(value,*) xval
         if ( string(1:7) == 'elevmin' ) then
             elevmin = xval
@@ -43,6 +54,9 @@ program select_min_years
             write(0,*) 'select_min_years: error: unknown option ',trim(string),' ',trim(value)
         end if
     end do
+    if ( maskfile /= ' ' ) then
+        call read_polygon(maskfile,npol,npolmax,polygon,lwrite)
+    end if
     call get_command_argument(1,file)
     open(1,file=trim(file),status='old')
     read(1,'(a)') lines(1) ! located...
@@ -72,6 +86,17 @@ program select_min_years
                 if ( lon2 < 1e33 .and. lon > lon2 ) lok = .false.
                 if ( lat1 < 1e33 .and. lat < lat1 ) lok = .false.
                 if ( lat2 < 1e33 .and. lat > lat2 ) lok = .false.
+                if ( maskfile /= ' ' ) then
+                    x = lon
+                    y = lat
+                    inout = in_polygon(polygon,npol,x,y,' ',lwrite)
+                    if ( inout > 1e33 ) then
+                        write(0,*) 'error: cannot locate whether ',x,y,' is inside or outside'
+                        lok = .false.
+                    else if ( inout < 0.5 ) then ! outside
+                        lok = .false.
+                    end if
+                end if
             end if
             j = index(lines(i),'Found ') + index(lines(i),'found ')
             if ( j > 0 ) then
