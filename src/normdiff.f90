@@ -12,7 +12,7 @@ program normdiff
     real :: data1(npermax,yrbeg:yrend),data2(npermax,yrbeg:yrend)
     character :: file1*1023,file2*1023,var1*40,var2*40,units1*20,units2*20,string*3
     character :: lvar1*120,lvar2*120,svar1*120,svar2*120,history1*50000,history2*50000
-    character :: metadata1(2,100)*2000,metadata2(2,100)*2000,title*250
+    character :: metadata1(2,100)*2000,metadata2(2,100)*2000,title*2000
     logical :: lwrite
 
     lwrite = .false.
