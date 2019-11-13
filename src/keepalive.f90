@@ -61,6 +61,10 @@ subroutine keepalive2(string,i,n,lforce)
                 ,'s, wall time ',iarray(5),':',iarray(6),':',iarray(7), &
                 ')<p>'
         end if
+        if ( sec > 10*60*60 ) then ! no calculations should last more than 10 hours
+            write(0,'(2a)') trim(string),': maximum run time is 10 hours, aborted'
+            call exit(-1)
+        end if
         flush(0)
     endif
 end subroutine keepalive2
