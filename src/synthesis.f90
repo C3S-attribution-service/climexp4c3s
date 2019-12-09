@@ -203,23 +203,26 @@ program synthesis
 !   transform to the same (maximum) range
 !
     if ( reffile /= 'none' ) then
-        yr1 = years(1,1)
-        s1 = refs(years(1,1))
-        do i=2,n
-            if ( s1 > 1e33 .or. refs(years(1,i)) > 1e33 ) then
-                if ( s1 < 1e33 ) yr1 = years(1,i)
-                write(0,*) 'synthesis: error: reference series is undefined at ',yr1
+        yr1 = 9999
+        s1 = -3e33
+        do i=1,n
+            if ( refs(years(1,i)) > 1e33 ) then
+                write(0,*) 'synthesis: error: reference series is undefined at ',years(1,i)
                 call exit(-1)
             end if
-            if ( refs(years(1,i)) < s1 .neqv. lflip ) then
+            if ( i == 1 .or. ( refs(years(1,i)) < s1 .neqv. lflip ) ) then
                 yr1 = years(1,i)
                 s1 = refs(years(1,i))
             end if
         end do
-        yr2 = years(2,1)
-        s2 = refs(years(2,1))
-        do i=2,n
-            if ( yr2 /= years(2,i) .neqv. lflip ) then
+        yr2 = 9999
+        s2 = -3e33
+        do i=1,n
+            if ( refs(years(2,i)) > 1e33 ) then
+                write(0,*) 'synthesis: error: reference series is undefined at ',years(2,i)
+                call exit(-1)
+            end if
+            if ( i == 1 .or. ( yr2 /= years(2,i) .neqv. lflip ) ) then
                 yr2 = years(2,i)
                 s2 = refs(years(2,i))
             end if
