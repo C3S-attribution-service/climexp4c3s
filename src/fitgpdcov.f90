@@ -26,20 +26,19 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
 !
     implicit none
 !
-    integer nmc
-    parameter(nmc=1000)
-    integer npernew,fyr,lyr,mens1,mens,ntot,j1,j2,nens1,nens2,ntype,yr1a,yr2a,yr2b,ndecor
-    real yrseries(npernew,fyr:lyr,0:mens), &
+    integer,parameter :: nmc=1000
+    integer :: npernew,fyr,lyr,mens1,mens,ntot,j1,j2,nens1,nens2,ntype,yr1a,yr2a,yr2b,ndecor
+    real :: yrseries(npernew,fyr:lyr,0:mens), &
              yrcovariate(npernew,fyr:lyr,0:mens),crosscorr(0:mens,0:mens), &
              a3(3),b3(3),xi3(3),alpha3(3),beta3(3),xyearin, &
              cov1,cov2,cov3,offset,inrestrain,t3(3,10,3),tx3(3,3),threshold, &
              confidenceinterval
-    character assume*(*),idmax*(*)
-    logical lweb,lchangesign,lboot,lprint,dump,plot,lwrite
+    character :: assume*(*),idmax*(*)
+    logical :: lweb,lchangesign,lboot,lprint,dump,plot,lwrite
 !
-    integer i,j,jj,k,l,n,nx,iter,iter1,iens,iiens,nfit,year,tsep,nj
+    integer :: i,j,jj,k,l,n,nx,iter,iter1,iens,iiens,nfit,year,tsep,nj
     integer,allocatable :: yrs(:),bootyrs(:)
-    real x,a,b,ba,xi,alpha,beta,t(10,4),t25(10,4),t975(10,4), &
+    real :: x,a,b,ba,xi,alpha,beta,t(10,4),t25(10,4),t975(10,4), &
              tx(4),tx25(4),tx975(4),aa(nmc),bb(nmc),xixi(nmc),baba(nmc), &
              alphaalpha(nmc),betabeta(nmc),tt(nmc,10,4),a25,a975, &
              b25,b975,ba25,ba975,xi25,xi975,alpha25,alpha975,beta25,beta975, &
@@ -48,11 +47,11 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
              xmin,cmin,cmax,c,xxyear,frac,ttt(10,4),txtxtx(4), &
              acov(3,3),aacov(nmc,3),plo,phi,xyear,scross,sdecor, &
              aa25,aa975,bb25,bb975
-    real adev,var,skew,curt,aaa,bbb,siga,chi2,q,p(4)
+    real :: adev,var,skew,curt,aaa,bbb,siga,chi2,q,p(4)
     integer,allocatable :: ii(:),yyrs(:)
     real,allocatable :: xx(:,:),yy(:),ys(:),zz(:),sig(:)
-    logical lllwrite,lnone,last
-    character lgt*4,string*1000,arg*250,method*3
+    logical :: lllwrite,lnone,last
+    character :: lgt*4,string*1000,arg*250,method*3
 !
     integer nmax,ncur
     parameter(nmax=1000000)
@@ -692,6 +691,7 @@ subroutine fit0gpdcov(a,b,xi,iter)
     integer iter
     real a,b,xi
     integer i,j,n
+    integer,save :: ninitial=0,pinitial=0
     real q(4),p(3,2),y(3),tol
     logical lok
     real,external :: llgpdcov
@@ -750,7 +750,11 @@ subroutine fit0gpdcov(a,b,xi,iter)
         if ( abs(xi).lt.2 ) then
             goto 10
         else
-            write(0,*) 'fit1gpdcov: error: cannot find initial fit values'
+            ninitial = ninitial + 1
+            if ( ninitial >= 2**pinitial ) then
+                pinitial = pinitial + 1 
+                write(0,*) 'fit0gpdcov: error: cannot find initial fit values',ninitial
+            end if
             a = 3e33
             b = 3e33
             xi = 3e33
@@ -770,6 +774,7 @@ subroutine fit1gpdcov(a,b,xi,alpha,dalpha,iter)
     integer iter
     real a,b,xi,alpha,dalpha
     integer i,j,n
+    integer,save :: ninitial=0,pinitial=0
     real q(4),p(4,3),y(4),tol
     logical lok
     real,external :: llgpdcov
@@ -836,7 +841,11 @@ subroutine fit1gpdcov(a,b,xi,alpha,dalpha,iter)
             if ( llwrite ) print *,'trying again with xi = ',xi
             goto 10
         else
-            write(0,*) 'fit1gpdcov: error: cannot find initial fit values'
+            ninitial = ninitial + 1
+            if ( ninitial >= 2**pinitial ) then
+                pinitial = pinitial + 1 
+                write(0,*) 'fit1gpdcov: error: cannot find initial fit values',ninitial
+            end if
             a = 3e33
             b = 3e33
             xi = 3e33
@@ -858,6 +867,7 @@ subroutine fit2gpdcov(a,b,xi,alpha,beta,dalpha,dbeta,iter)
     integer iter
     real a,b,xi,alpha,beta,dalpha,dbeta
     integer i
+    integer,save :: ninitial=0,pinitial=0
     real q(4),p(5,4),y(5),tol
     logical lok
     real llgpdcov
@@ -913,7 +923,11 @@ subroutine fit2gpdcov(a,b,xi,alpha,beta,dalpha,dbeta,iter)
         if ( abs(xi).lt.1 ) then
             goto 10
         else
-            write(0,*) 'fit2gpdcov: error: cannot find initial fit values'
+            ninitial = ninitial + 1
+            if ( ninitial >= 2**pinitial ) then
+                pinitial = pinitial + 1 
+                write(0,*) 'fit2gpdcov: error: cannot find initial fit values',ninitial
+            end if
             a = 3e33
             b = 3e33
             xi = 3e33
