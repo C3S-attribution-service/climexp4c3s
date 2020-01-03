@@ -495,8 +495,10 @@ program correlatefield
     end do
 !   check for ntp a multiple of 365 while nperyear = 366
     s = ntp/real(nperyear)
-    if ( abs(s/nint(s)-1) < 0.01 ) then
-        ntp = nperyear*nint(s)
+    if ( nint(s) > 0 ) then
+        if ( abs(s/nint(s)-1) < 0.01 ) then
+            ntp = nperyear*nint(s)
+        end if
     end if
     if ( lwrite ) print *,'nt,ntp = ',nt,ntp
 !
@@ -906,7 +908,7 @@ program correlatefield
                         if ( df < 1 ) then
                             df = 3e33
                         end if
-                        if ( df < 1 .or. df > 1e33 ) then
+                        if ( df < 1 ) then
                             r(jx,jy,jz,m) = 3e33
                             prob(jx,jy,jz,m) = 3e33
                             a(jx,jy,jz,m) = 3e33
@@ -934,7 +936,7 @@ program correlatefield
                             end if
                             sum = n/(df+2)
                             if ( lwrite ) then
-                                print *,'sum  is: ',sum,n,df
+                                print *,'sum  is: ',sum
                             end if
                             call spearx(ddata,dindx,n,ddata,dindx,d     &
                                   ,zd,probd,r(jx,jy,jz,m),              &
