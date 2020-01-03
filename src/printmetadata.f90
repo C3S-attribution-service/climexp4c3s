@@ -2,17 +2,15 @@ subroutine printmetadata(lun,file,FORM_field,title,history,metadata)
 
     implicit none
     integer :: lun
-    character :: file*(*),FORM_field*(*),title*(*),history*(*),metadata(2,100)*(*),scripturl*2000
-    integer :: i,j,k,ititle,ifile,ii,iscripturl
+    character :: file*(*),FORM_field*(*),title*(*),history*(*),metadata(2,100)*(*)
+    integer :: i,j,k,ititle,ifile
     logical :: linstitution
-    logical,external :: isnumchar
     
     if ( FORM_field /= ' ' ) then
         write(lun,'(5a)') '# <a href=http://climexp.knmi.nl/select.cgi?field=',trim(FORM_field), &
             '>climexp.knmi.nl/select.cgi?field=',trim(FORM_field),'</a>'
     end if
     ifile = 0
-    iscripturl = 0
     if ( file /= ' ' .and. index(file,'aap') == 0 .and. index(file,'noot') == 0 ) then
         ifile = 1
         write(lun,'(2a)') '# file :: ',trim(file)
@@ -67,23 +65,8 @@ subroutine printmetadata(lun,file,FORM_field,title,history,metadata)
                 end do
             end do
             write(lun,'(4a)') '# ',trim(metadata(1,i)),' :: ',trim(metadata(2,i))
-            if ( metadata(1,i)(1:9) == 'scripturl' .and. &
-                 isnumchar(metadata(1,i)(10:10)) .and. isnumchar(metadata(1,i)(11:11)) ) then
-                read(metadata(1,i)(10:11),*) ii
-                iscripturl = max(iscripturl,ii)
-            end if
-       end if
-    end do
-    call getenv('SCRIPTURL',scripturl)
-    if ( scripturl /= ' ' ) then
-        do i=1,100
-            if ( trim(metadata(2,i)) == trim(scripturl) ) exit
-        end do
-        if ( i > 100 ) then
-            iscripturl = iscripturl + 1
-            write(lun,'(a,i2.2,2a)') '# scripturl',iscripturl,' :: ',trim(scripturl)
         end if
-    end if
+    end do
     if ( .not.linstitution ) then
         write(lun,'(a)') '# institution :: KNMI Climate Explorer'
     end if
@@ -200,17 +183,17 @@ subroutine add_varnames_metadata(var,lvar,svar,metadata,variable)
         if ( metadata(1,i) == ' ' ) exit
     end do
     i = i - 1
-    if ( var /= ' ' ) then
+    if ( var /= ' ' .and. i < 100 ) then
         i = i+1
         metadata(1,i) = variable
         metadata(2,i) = var
     end if
-    if ( lvar /= ' ' ) then
+    if ( lvar /= ' ' .and. i < 100 ) then
         i = i+1
         metadata(1,i) = trim(variable)//'_long_name'
         metadata(2,i) = lvar
     end if
-    if ( svar /= ' ' ) then
+    if ( svar /= ' ' .and. i < 100 ) then
         i = i+1
         metadata(1,i) = trim(variable)//'_standard_name'
         metadata(2,i) = svar
