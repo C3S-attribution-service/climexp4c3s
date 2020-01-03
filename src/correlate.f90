@@ -372,7 +372,7 @@
         do k=1,indxuse
             if ( lincl(k) ) then
                 plotfile(i:) = strindx(k)
-                j = index(strindx(k),'.')
+                j = index(strindx(k),'.dat') + index(strindx(k),'.nc')
                 if ( j > 0 ) then
                     i = i+j-1
                 else
