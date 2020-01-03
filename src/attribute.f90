@@ -22,10 +22,10 @@ program attribute
 
     if ( command_argument_count().lt.8 ) then
         write(0,*) 'usage: attribute series covariate_series|none ', &
-        & 'GEV|Gumbel|GPD|Gauss assume shift|scale', &
+        & 'GEV|Gumbel|GPD|Gauss assume shift|scale ', &
         & 'mon n [sel m] [ave N] [log|sqrt] ', &
-        & 'begin2 past_climate_year end2 year_under_study', &
-        & 'plot FAR_plot_file [dgt threshold%]'
+        & 'begin2 past_climate_year end2 year_under_study ', &
+        & 'plot FAR_plot_file [dgt threshold%] [includelast]'
         write(0,*) 'note that n and m are in months even if the series is daily.'
         write(0,*) 'N is always in the same units as the series.'
         write(0,*) 'the covariate series is averaged to the same time scale.'
