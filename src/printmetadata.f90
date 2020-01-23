@@ -3,8 +3,10 @@ subroutine printmetadata(lun,file,FORM_field,title,history,metadata)
     implicit none
     integer :: lun
     character :: file*(*),FORM_field*(*),title*(*),history*(*),metadata(2,100)*(*)
-    integer :: i,j,k,ititle,ifile
+    integer :: i,j,k,ititle,ifile,iscripturl,ii
     logical :: linstitution
+    character :: string*80,scripturl*2000
+    logical,external :: isnumchar
     
     if ( FORM_field /= ' ' ) then
         write(lun,'(5a)') '# <a href=http://climexp.knmi.nl/select.cgi?field=',trim(FORM_field), &
@@ -31,6 +33,7 @@ subroutine printmetadata(lun,file,FORM_field,title,history,metadata)
         end if
     end if
     linstitution = .false.
+    iscripturl = 0
     do i=1,100
         if ( metadata(1,i) /= ' ' ) then
             if ( metadata(1,i) == 'conventions' .or. metadata(1,i) == 'Conventions' ) cycle
@@ -65,10 +68,27 @@ subroutine printmetadata(lun,file,FORM_field,title,history,metadata)
                 end do
             end do
             write(lun,'(4a)') '# ',trim(metadata(1,i)),' :: ',trim(metadata(2,i))
+            if ( metadata(1,i)(1:9) == 'scripturl' .and. &
+                 isnumchar(metadata(1,i)(10:10)) .and. isnumchar(metadata(1,i)(11:11)) ) then
+                read(metadata(1,i)(10:11),*) ii
+                iscripturl = max(iscripturl,ii)
+            end if
         end if
     end do
     if ( .not.linstitution ) then
         write(lun,'(a)') '# institution :: KNMI Climate Explorer'
+    end if
+    call getenv('SCRIPTURL',scripturl)
+    if ( scripturl /= ' ' ) then
+        ! avoid duplicates
+        do i=1,100
+            if ( trim(metadata(2,i)) == trim(scripturl) ) exit
+        end do
+        if ( i > 100 ) then
+            iscripturl = iscripturl + 1
+            write(string,'(a,i2.2)') 'scripturl',iscripturl
+            write(lun,'(4a)') '# ',trim(string),' :: ',trim(scripturl)
+        end if
     end if
     call extend_history(history)
     write(lun,'(2a)') '# history :: ',trim(history)
