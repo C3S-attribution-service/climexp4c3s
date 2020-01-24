@@ -319,7 +319,7 @@ program daily2longerfield
 !   adjust names
 
     call adjustnames(opera,nperyear,nperyearnew,lgt,pcut,punits &
-        ,lvars(1),cell_methods(1))
+        ,lvars(1),cell_methods(1),lsum)
     call adjustvar(opera,vars(1),lwrite)
 
 !   output field
@@ -344,8 +344,8 @@ program daily2longerfield
             close(unit,status='delete')
         end if
         call writectl(file,datfile,nx,xx,ny,yy,nz,zz, &
-        nperyearnew*(lastyr-firstyr+1),nperyearnew, &
-        firstyr,1,undef,title,nvars,vars,ivars,lvars,units)
+            nperyearnew*(lastyr-firstyr+1),nperyearnew, &
+            firstyr,1,undef,title,nvars,vars,ivars,lvars,units)
         open(1,file=trim(datfile),access='direct',form='unformatted' &
             ,recl=recfa4*nx*ny,status='new')
         i=0

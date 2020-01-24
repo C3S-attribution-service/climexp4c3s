@@ -450,15 +450,15 @@ subroutine fieldday2period( &
     enddo                   ! yr
 end subroutine fieldday2period
 
-subroutine adjustnames(oper,nperyear,nperyearnew,lgt,pcut,punits,lvars,cell_methods)
+subroutine adjustnames(oper,nperyear,nperyearnew,lgt,pcut,punits,lvars,cell_methods,lsum)
 
 !   adjust names to reflect the operation just performed
 
     implicit none
-    integer :: nperyear,nperyearnew
+    integer :: nperyear,nperyearnew,lsum
     real :: pcut
     character oper*3,lgt*1,punits*(*),lvars*(*),cell_methods*(*)
-    integer :: i
+    integer :: i,j
     character prefix*255,postfix*255
             
     call nperyear2string(nperyearnew,prefix)
@@ -494,7 +494,16 @@ subroutine adjustnames(oper,nperyear,nperyearnew,lgt,pcut,punits,lvars,cell_meth
     endif
     prefix = trim(prefix)//' of'
     i = len_trim(prefix)
-    call nperyear2string(nperyear,prefix(i+2:))
+    if ( lsum > 1 ) then
+        write(prefix(i+2:),'(i3,a)') lsum,'-'
+    end if
+    i = len_trim(prefix)
+    if ( prefix(i:i) == '-' ) then
+        j = 1
+    else
+        j = 2
+    end if
+    call nperyear2string(nperyear,prefix(i+j:))
 
     if ( lgt == ' ' ) then
         postfix = ' '
