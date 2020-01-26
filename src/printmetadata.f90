@@ -80,6 +80,11 @@ subroutine printmetadata(lun,file,FORM_field,title,history,metadata)
     end if
     call getenv('SCRIPTURL',scripturl)
     if ( scripturl /= ' ' ) then
+        ! change ++ to %%
+        do i=1,len(scripturl)-2
+            if ( scripturl(i:i+2) == '+++' ) scripturl(i:i+2) = '%%%' 
+            if ( scripturl(i:i+2) == '++' ) scripturl(i:i+2) = '%%' 
+        end do
         ! avoid duplicates
         do i=1,100
             if ( trim(metadata(2,i)) == trim(scripturl) ) exit
