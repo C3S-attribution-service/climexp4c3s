@@ -608,6 +608,9 @@ histogram:	histogram.o $(LIBRARY)
 attribute:	attribute.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBRARY) $(LIBS)
 
+attribute_amoeba:	attribute.o adapted_amoeba.o $(LIBRARY)
+		$(LD) $(FFLAGS) -o $@ attribute.o adapted_amoeba.o $(LIBRARY) $(LIBS)
+
 attributefield: attributefield.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBRARY) $(LIBS)
 
