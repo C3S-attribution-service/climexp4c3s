@@ -244,7 +244,8 @@ subroutine readseriesheader(var,units,lvar,svar,history,metadata,line,unit,lwrit
 !   var, units, lvar
 
     j = index(line,'[')
-    if ( j > 0 ) then
+    k = index(line,' :: ')
+    if ( j > 0 .and. k == 0 ) then
         k = index(line,']')
         if ( k > j ) then
             units = line(j+1:k-1)
