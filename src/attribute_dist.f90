@@ -157,7 +157,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         lincludelast = .true.
     end if
     call handle_then_now(yrseries,yrcovariate,npernew,fyr,lyr,j1,j2,yr1a,yr2a,yr2b,mens1,mens, &
-        & xyear,ensmax,cov1,cov2,cov3,lincludelast,lprint,lwrite)
+        & xyear,ensmax,cov1,cov2,cov3,biasrt,lincludelast,lprint,lwrite)
     if ( cov1 > 1e33 .or. cov2 > 1e33 ) then
         if ( lwrite ) print *,'giving up, cov1,cov2 = ',cov1,cov2
         return
@@ -989,30 +989,34 @@ subroutine print_spatial_scale(scross,years)
 end subroutine print_spatial_scale
 
 subroutine handle_then_now(series,covariate,nperyear,fyr,lyr,j1,j2,yr1a,yr2a,yr2b, &
-    &   mens1,mens,xyear,ensmax,cov1,cov2,cov3,lincludelast,lprint,lwrite)
+    &   mens1,mens,xyear,ensmax,cov1,cov2,cov3,biasrt,lincludelast,lprint,lwrite)
 
     ! handle the conversion from "then" (yr1a) and "now" (yr2a) to the variables
     ! fitgevcov expects (xyear,idmax,cov1,cov2), sets series to undef at "now" if xyear is not set.
     
     implicit none
-    integer nperyear,fyr,lyr,j1,j2,yr1a,yr2a,yr2b,mens1,mens,ensmax
-    real series(nperyear,fyr:lyr,0:mens),covariate(nperyear,fyr:lyr,0:mens)
+    integer :: nperyear,fyr,lyr,j1,j2,yr1a,yr2a,yr2b,mens1,mens,ensmax
+    real :: series(nperyear,fyr:lyr,0:mens),covariate(nperyear,fyr:lyr,0:mens)
+    real,intent(in) :: biasrt
     real,intent(inout) :: xyear
     real,intent(out) :: cov1,cov2,cov3
     logical,intent(in) :: lincludelast,lprint,lwrite
-    real dummy
+    real :: dummy
 
-    call find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr1a,cov1,dummy,ensmax,1,lincludelast,lprint,lwrite)
-    call find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr2a,cov2,xyear,ensmax,2,lincludelast,lprint,lwrite)
-    call find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr2b,cov3,dummy,ensmax,3,lincludelast,lprint,lwrite)
+    call find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr1a,cov1,dummy,biasrt, &
+        ensmax,1,lincludelast,lprint,lwrite)
+    call find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr2a,cov2,xyear,biasrt, &
+        ensmax,2,lincludelast,lprint,lwrite)
+    call find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr2b,cov3,dummy,biasrt, &
+        ensmax,3,lincludelast,lprint,lwrite)
 
 end subroutine handle_then_now
 
-subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xyear,ensmax,i12,lincludelast,lprint,lwrite)
+subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xyear,biasrt,ensmax,i12,lincludelast,lprint,lwrite)
     implicit none
     integer,intent(in) :: nperyear,fyr,lyr,mens1,mens,j1,j2,i12
     integer,intent(inout) :: yr,ensmax
-    real,intent(in) :: covariate(nperyear,fyr:lyr,0:mens)
+    real,intent(in) :: covariate(nperyear,fyr:lyr,0:mens),biasrt
     real,intent(inout) :: series(nperyear,fyr:lyr,0:mens)
     real,intent(out) :: cov,xyear
     logical,intent(in) :: lincludelast,lprint,lwrite
@@ -1067,7 +1071,7 @@ subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xy
             &   momax,yrmax,ensmax,') = ',cov
         end if
     end if
-    if ( i12 == 2 ) then
+    if ( i12 == 2 .and. biasrt > 1e33 ) then
         if ( abs(xyear) > 1e33 ) then
             if ( abs(s) > 1e33 ) then ! there was no valid data...
                 write(0,*) 'find_cov: error: cannot find valid data in ',yr,', periods ',j1,j2, &
