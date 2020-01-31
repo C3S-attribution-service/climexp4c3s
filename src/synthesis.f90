@@ -129,10 +129,8 @@ program synthesis
             cycle
         end if
         if ( line == ' ' ) then
-            if ( n > 0 ) then
-                nobs = n
-                cycle
-            end if
+            nobs = n
+            cycle
         end if
         read(line,*,err=906) yr1,yr2,x,xlo,xhi,cc
         if ( min(yr1,yr2) < yrbeg ) goto 905
@@ -260,44 +258,46 @@ program synthesis
 !
 !   compute mean & uncertainties of observations
 !
-!   natural variability: assume 100% correlated
-    do j=1,3
-        s1 = 0
-        do i=1,nobs
-            s1 = s1 + data(j,i)
+    if ( nobs > 0 ) then
+!       natural variability: assume 100% correlated
+        do j=1,3
+            s1 = 0
+            do i=1,nobs
+                s1 = s1 + data(j,i)
+            end do
+            obs(j) = s1/nobs
         end do
-        obs(j) = s1/nobs
-    end do
 
-!   representation error from scatter of mean
-    if ( nobs > 1 .and. lweighted ) then
-        s2 = 0
-        do i=1,nobs
-            s2 = s2 + (data(1,i)-obs(1))**2
-        end do
-        sig_obs = sqrt(s2/(nobs-1))
-        obs(2) = obs(1) - sqrt( (obs(1)-obs(2))**2 + sig_obs**2 )
-        obs(3) = obs(1) + sqrt( (obs(3)-obs(1))**2 + sig_obs**2 )
-    else
-        sig_obs = 0 ! cannot estimate it from one point...
-    end if
-    do i=1,nobs
-        data(4,i) = data(1,i) - sqrt( (data(1,i)-data(2,i))**2 + sig_obs**2 )
-        data(5,i) = data(1,i) + sqrt( (data(3,i)-data(1,i))**2 + sig_obs**2 )
-    end do
-    obs(4) = obs(2)
-    obs(5) = obs(3)
-    if ( lwrite ) print *,'found combined observational estimate ',obs
-    if ( sig_obs > 0 ) then
-        if ( llog ) then
-            print '(a,g12.3)','# representation uncertainty (2&sigma;) factor ',exp(sig_obs)
-        else if ( lperc ) then
-            print '(a,g12.3,a)','# representation uncertainty (2&sigma;) ',100*(-1+exp(sig_obs)),'%'
+!       representation error from scatter of mean
+        if ( nobs > 1 .and. lweighted ) then
+            s2 = 0
+            do i=1,nobs
+                s2 = s2 + (data(1,i)-obs(1))**2
+            end do
+            sig_obs = sqrt(s2/(nobs-1))
+            obs(2) = obs(1) - sqrt( (obs(1)-obs(2))**2 + sig_obs**2 )
+            obs(3) = obs(1) + sqrt( (obs(3)-obs(1))**2 + sig_obs**2 )
         else
-            print '(a,g12.3)','# representation uncertainty (2&sigma;) ',sig_obs
+            sig_obs = 0 ! cannot estimate it from one point...
+        end if
+        do i=1,nobs
+            data(4,i) = data(1,i) - sqrt( (data(1,i)-data(2,i))**2 + sig_obs**2 )
+            data(5,i) = data(1,i) + sqrt( (data(3,i)-data(1,i))**2 + sig_obs**2 )
+        end do
+        obs(4) = obs(2)
+        obs(5) = obs(3)
+        if ( lwrite ) print *,'found combined observational estimate ',obs
+        if ( sig_obs > 0 ) then
+            if ( llog ) then
+                print '(a,g12.3)','# representation uncertainty (2&sigma;) factor ',exp(sig_obs)
+            else if ( lperc ) then
+                print '(a,g12.3,a)','# representation uncertainty (2&sigma;) ',100*(-1+exp(sig_obs)),'%'
+            else
+                print '(a,g12.3)','# representation uncertainty (2&sigma;) ',sig_obs
+            end if
         end if
     end if
- !
+!
 !   compute mean & uncertainties of models
 !
     call getsynmean(lweighted,data,n,nobs,sig_mod)
@@ -346,32 +346,34 @@ program synthesis
 !
 !   compute synthesis: weighted average of obervations and models
 !
-    if ( obs(2) >= obs(3) ) then
-        write(0,*) 'synthesis: internal error: obs = ',obs
-        call exit(-1)
+    if ( nobs > 0 ) then
+        if ( obs(2) >= obs(3) ) then
+            write(0,*) 'synthesis: internal error: obs = ',obs
+            call exit(-1)
+        end if
+        if ( mod(2) >= mod(3) ) then
+            write(0,*) 'synthesis: internal error: mod = ',mod
+            call exit(-1)
+        end if
+        if ( lweighted ) then
+            ! weighted mean coloured
+            w1 = 1/(obs(3)-obs(2))**2
+            w2 = 1/(mod(3)-mod(2))**2
+            syn(1) = (w1*obs(1) + w2*mod(1))/(w1+w2)
+            syn(2) = syn(1) - sqrt( (w1*(obs(1)-obs(2)))**2 + (w2*(mod(1)-mod(2)))**2 )/(w1+w2)
+            syn(3) = syn(1) + sqrt( (w1*(obs(3)-obs(1)))**2 + (w2*(mod(3)-mod(1)))**2 )/(w1+w2)
+            ! unweighted mean of observations and models box
+            s1 = (obs(1) + mod(1))/2
+            syn(4) = s1 - sqrt( (obs(1)-obs(2))**2 + (mod(1)-mod(2))**2 )/2
+            syn(5) = s1 + sqrt( (obs(3)-obs(1))**2 + (mod(3)-mod(1))**2 )/2
+        else
+            call getsynmean(lweighted,data,n,0,sig_mod)
+            syn(1:3) = data(1:3,n+1)
+            syn(4) = syn(2)
+            syn(5) = syn(3)
+        end if
+        if ( lwrite ) print *,'found synthesised estimate ',syn
     end if
-    if ( mod(2) >= mod(3) ) then
-        write(0,*) 'synthesis: internal error: mod = ',mod
-        call exit(-1)
-    end if
-    if ( lweighted ) then
-        ! weighted mean coloured
-        w1 = 1/(obs(3)-obs(2))**2
-        w2 = 1/(mod(3)-mod(2))**2
-        syn(1) = (w1*obs(1) + w2*mod(1))/(w1+w2)
-        syn(2) = syn(1) - sqrt( (w1*(obs(1)-obs(2)))**2 + (w2*(mod(1)-mod(2)))**2 )/(w1+w2)
-        syn(3) = syn(1) + sqrt( (w1*(obs(3)-obs(1)))**2 + (w2*(mod(3)-mod(1)))**2 )/(w1+w2)
-        ! unweighted mean of observations and models box
-        s1 = (obs(1) + mod(1))/2
-        syn(4) = s1 - sqrt( (obs(1)-obs(2))**2 + (mod(1)-mod(2))**2 )/2
-        syn(5) = s1 + sqrt( (obs(3)-obs(1))**2 + (mod(3)-mod(1))**2 )/2
-    else
-        call getsynmean(lweighted,data,n,0,sig_mod)
-        syn(1:3) = data(1:3,n+1)
-        syn(4) = syn(2)
-        syn(5) = syn(3)
-    end if
-    if ( lwrite ) print *,'found synthesised estimate ',syn
 !
 !   transform back
 !
@@ -382,9 +384,9 @@ program synthesis
             end do
         end do
         do j=1,5
-            obs(j) = exp(obs(j))
+            if ( nobs > 0 ) obs(j) = exp(obs(j))
             mod(j) = exp(mod(j))
-            syn(j) = exp(syn(j))
+            if ( nobs > 0 ) syn(j) = exp(syn(j))
         end do
     end if
     if ( lperc ) then
@@ -394,15 +396,15 @@ program synthesis
             end do
         end do
         do j=1,5
-            obs(j) = 100*(-1+exp(obs(j)))
+            if ( nobs > 0 ) obs(j) = 100*(-1+exp(obs(j)))
             mod(j) = 100*(-1+exp(mod(j)))
-            syn(j) = 100*(-1+exp(syn(j)))
+            if ( nobs > 0 ) syn(j) = 100*(-1+exp(syn(j)))
         end do
     end if
 !
 !   output
 !
-   if ( sig_mod > 0 ) then
+    if ( sig_mod > 0 ) then
         if ( llog ) then
             print '(a,g12.3)','# model uncertainty (2&sigma;) factor ',exp(sig_mod)
         else if ( lperc ) then
@@ -427,11 +429,13 @@ program synthesis
     end do
     if ( .not. lnoave ) then
         call printsynline(yr1,yr2,mod,4,'models')
-        if ( lweighted ) then
-            call printsynline(yr1,yr2,syn,5,'synthesis')
-            !!!call printsynline(yr1,yr2,syn,4,'{/:Bold synthesis}') gs chokes on his...
-        else
-            call printsynline(yr1,yr2,syn,5,'average')
+        if ( nobs > 0 ) then
+            if ( lweighted ) then
+                call printsynline(yr1,yr2,syn,5,'synthesis')
+                !!!call printsynline(yr1,yr2,syn,4,'{/:Bold synthesis}') gs chokes on his...
+            else
+                call printsynline(yr1,yr2,syn,5,'average')
+            end if
         end if
     end if
 !
