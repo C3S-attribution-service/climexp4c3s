@@ -36,7 +36,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     character :: assume*(*),idmax*(*)
     logical :: lweb,lchangesign,lboot,lprint,dump,plot,lwrite
 !
-    integer :: i,j,jj,k,l,n,nx,iter,iter1,iens,iiens,nfit,year,tsep,nj
+    integer :: i,j,jj,k,l,n,nx,iter,iter1,iens,iiens,nfit,year,tsep,nj,mo,yr,nvalid
     integer,allocatable :: yrs(:),bootyrs(:)
     real :: x,a,b,ba,xi,alpha,beta,t(10,4),t25(10,4),t975(10,4), &
              tx(4),tx25(4),tx975(4),aa(nmc),bb(nmc),xixi(nmc),baba(nmc), &
@@ -50,7 +50,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     real :: adev,var,skew,curt,aaa,bbb,siga,chi2,q,p(4)
     integer,allocatable :: ii(:),yyrs(:)
     real,allocatable :: xx(:,:),yy(:),ys(:),zz(:),sig(:)
-    logical :: lllwrite,lnone,last
+    logical :: lllwrite,lnone,last,lvalid
     character :: lgt*4,string*1000,arg*250,method*3
 !
     integer nmax,ncur
@@ -67,6 +67,36 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
 !
     real llgpdcov,gpdcovreturnlevel,gpdcovreturnyear
     external llgpdcov,gpdcovreturnlevel,gpdcovreturnyear
+!
+!   check that every time step has teh same number of ensemble members, 
+!   this function assumes that.
+!
+    if ( mens > mens1 ) then
+        nvalid = -1
+        lvalid = .true.
+        do yr=fyr,lyr
+            do mo=1,npernew
+                n = 0
+                do iens=nens1,nens2
+                    if ( yrseries(mo,yr,iens) < 1e33 ) then
+                        n = n + 1
+                    end if
+                end do
+                if ( n > 0 ) then
+                    if ( nvalid == -1 ) nvalid = n
+                    if ( n /= nvalid ) then
+                        lvalid = .false.
+                        write(0,'(2a,2i5,a)') 'fitgpdcov: error: the GPD fit routine cannot ', &
+                            'handle the changing number of ensemble members at ',mo,yr,','
+                        write(0,'(a,i4,a,i4,a)') 'the number of valid ensemble members changed from ', &
+                            nvalid,' to ',n,'. '
+                        nvalid = n
+                    end if
+                end if
+            end do
+        end do
+        if ( .not. lvalid ) call exit(-1)
+    end if
 !
     allocate(yrs(0:nmax),bootyrs(0:nmax))
     allocate(xx(2,nmax))
