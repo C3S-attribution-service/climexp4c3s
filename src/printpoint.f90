@@ -836,9 +836,10 @@ end subroutine plot_tx_cdfs
 
 subroutine getreturnlevels(a,b,xi,alpha,beta,cov1,cov2,cov3,covreturnlevel,j1,j2,assume,t)
     implicit none
-    integer :: j1,j2
-    real :: a,b,xi,alpha,beta,cov1,cov2,cov3,t(10,4)
-    character assume*(*)
+    integer,intent(in) :: j1,j2
+    real,intent(in) :: a,b,xi,alpha,beta,cov1,cov2,cov3
+    real,intent(out) :: t(10,4)
+    character,intent(in) :: assume*(*)
     real,external :: covreturnlevel
     integer :: i
     real :: x,xx
@@ -869,10 +870,10 @@ subroutine getreturnlevels(a,b,xi,alpha,beta,cov1,cov2,cov3,covreturnlevel,j1,j2
 end subroutine getreturnlevels
 
 
-subroutine getreturnyears(a,b,xi,alpha,beta,xyear,cov1,cov2,cov3,covreturnyear,j1,j2,tx, &
-        lchangesign,lwrite)
+subroutine getreturnyears(a,b,xi,alpha,beta,xyear,cov1,cov2,cov3,covreturnyear,j1,j2, &
+        nblockyr,nblockens,tx,lchangesign,lwrite)
     implicit none
-    integer :: j1,j2
+    integer :: j1,j2,nblockyr,nblockens
     real :: a,b,xi,alpha,beta,xyear,cov1,cov2,cov3,tx(4)
     logical :: lchangesign,lwrite
     real,external :: covreturnyear
@@ -881,6 +882,9 @@ subroutine getreturnyears(a,b,xi,alpha,beta,xyear,cov1,cov2,cov3,covreturnyear,j
     if ( cov3 < 1e33 ) then
         tx(4) = covreturnyear(a,b,xi,alpha,beta,xyear,cov3,lchangesign)
     end if
+    tx(3) = 0
+    if ( nblockyr > 1 ) tx = tx*nblockyr
+    if ( nblockens > 1 ) tx = tx*nblockens
     if ( tx(2) > 1e19 ) then
         if ( tx(1) > 1e19 ) then
             tx(3) = 3e33

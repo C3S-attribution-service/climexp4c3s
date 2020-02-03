@@ -35,6 +35,8 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
     biasadd = 0
     lincludelast = .false.
     biasrt = -3e33
+    nblockyr = 1
+    nblockens = 1
     add_option = 0
     lks = .FALSE. 
     lconting = .FALSE. 
@@ -897,11 +899,21 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
         elseif ( line(1:7) == 'biasrt' ) then
             lskip = 1
             call get_command_argument(i+1,line)
-            read(line,*,err=929) biasrt
-            if ( lout ) print '(a,f10.1)','# evaluate model for return time ',biasrt
+            read(line,*,err=931) biasrt
+            if ( lout ) print '(a)','# evaluate model for return time ',biasrt
         elseif ( line(1:11) == 'includelast' ) then
             lincludelast = .true.
-            if ( lout ) print '(a)','# in,cude event itself in fit'
+            if ( lout ) print '(a)','# include event itself in fit'
+        elseif ( line(1:7) == 'blockyr' ) then
+            lskip = 1
+            call get_command_argument(i+1,line)
+            read(line,*,err=930) nblockyr
+            if ( lout ) print '(a,i3,a)','# taking ',nblockyr,'-yr blocks in GEV, Gumbel'
+        elseif ( line(1:8) == 'blockens' ) then
+            lskip = 1
+            call get_command_argument(i+1,line)
+            read(line,*,err=930) nblockens
+            if ( lout ) print '(a,i3,a)','# taking ',nblockens,'-ensemble blocks in GEV, Gumbel'
         elseif ( line(1:6) == 'normal' ) then
             lskip = 1
             call get_command_argument(i+1,line)
@@ -1052,6 +1064,10 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
 928 print *,'getopts: error: invalid value for day: ',trim(line)
     call exit(-1)
 929 print *,'getopts: error: cannot read bias correction from: ',trim(line)
+    call exit(-1)
+930 print *,'getopts: error: cannot read block length from: ',trim(line)
+    call exit(-1)
+931 print *,'getopts: error: cannot read return period from: ',trim(line)
     call exit(-1)
 end subroutine getopts
 

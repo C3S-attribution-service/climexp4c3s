@@ -78,6 +78,12 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
             call make_annual_values(covariate,nperyear1,npermax,yrbeg,yrend,mens1,mens, &
                 yrcovariate,fyr,lyr,fyr,lyr,'mean')
         end if
+        if ( nblockyr > 1 ) then
+            call take_yrblocks(yrseries,fyr,lyr,yr1,yr2,mens1,mens,nblockyr)
+        end if
+        if ( nblockens > 1 ) then
+            call take_ensblocks(yrseries,fyr,lyr,yr1,yr2,mens1,mens,nblockens)
+        end if
         npernew = 1
         j1 = 1
         j2 = 1
@@ -261,7 +267,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         if ( abs(biasrt) < 1e33 ) then
             ! first call to get fit parametrs for a random, plausible value of xyear
             call fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
-                ,crosscorr,a,b,xi,alpha,beta,j1,j2,nens1,nens2 &
+                ,crosscorr,a,b,xi,alpha,beta,j1,j2,nblockyr,nblockens,nens1,nens2 &
                 ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2,cov3,offset &
                 ,t,tx,restrain,assume,confidenceinterval,ndecor,.false.,.false.,.false.,.false.,lwrite)
             ! now compute xyear one based on biasrt in the current climate (cov2)
@@ -272,7 +278,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
             print '(a,f10.1,a,g12.4)','# Evaluated for a return period of ',biasrt,' yr, corresponding to a value of ',xyear
         end if
         call fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
-    &       ,crosscorr,a,b,xi,alpha,beta,j1,j2,nens1,nens2 &
+    &       ,crosscorr,a,b,xi,alpha,beta,j1,j2,nblockyr,nblockens,nens1,nens2 &
     &       ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2,cov3,offset &
     &       ,t,tx,restrain,assume,confidenceinterval,ndecor,lboot,lprint,dump,plot,lwrite)
     else if ( distribution == 'gpd' ) then
@@ -309,7 +315,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         if ( abs(biasrt) < 1e33 ) then
             ! first call to get fit parametrs for a random, plausible value of xyear
             call fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
-                ,crosscorr,a,b,alpha,beta,j1,j2,nens1,nens2 &
+                ,crosscorr,a,b,alpha,beta,j1,j2,nblockyr,nblockens,nens1,nens2 &
                 ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2,cov3,offset &
                 ,t,tx,assume,confidenceinterval,ndecor,.false.,.false.,.false.,.false.,lwrite)
             ! now compute xyear one based on biasrt in the current climate (cov2)
@@ -321,7 +327,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
             print '(a,f10.1,a,g12.4)','# evaluated for a return period of ',biasrt,' yr, corresponding to a value of ',xyear    
         end if
         call fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
-    &       ,crosscorr,a,b,alpha,beta,j1,j2,nens1,nens2 &
+    &       ,crosscorr,a,b,alpha,beta,j1,j2,nblockyr,nblockens,nens1,nens2 &
     &       ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2,cov3,offset &
     &       ,t,tx,assume,confidenceinterval,ndecor,lboot,lprint,dump,plot,lwrite)
     else if  ( distribution == 'gauss' ) then
@@ -1071,7 +1077,7 @@ subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xy
             &   momax,yrmax,ensmax,') = ',cov
         end if
     end if
-    if ( i12 == 2 .and. biasrt > 1e33 ) then
+    if ( i12 == 2 .and. abs(biasrt) > 1e33 ) then
         if ( abs(xyear) > 1e33 ) then
             if ( abs(s) > 1e33 ) then ! there was no valid data...
                 write(0,*) 'find_cov: error: cannot find valid data in ',yr,', periods ',j1,j2, &
@@ -1475,3 +1481,90 @@ subroutine getmeanseries(series,nperyear,mens1,mens,fyr,lyr,j1,j2,lmult,mean)
         end if
     end if
 end subroutine
+
+subroutine take_yrblocks(yrseries,fyr,lyr,yr1,yr2,mens1,mens,nblockyr)
+!
+!   take the maximum of N-yr blocks to zoom in on the tail a bit more
+!
+    implicit none
+    integer,intent(in) :: fyr,lyr,yr1,yr2,mens1,mens,nblockyr
+    real,intent(inout) :: yrseries(1,fyr:lyr,0:mens)
+    integer :: i,i1,i2,n,yr,yrlast,iens
+    real :: maxval
+!
+!   find last year with data and work back from there
+!
+    do iens=mens1,mens
+        do yr=yr2,yr1,-1
+            if ( yrseries(1,yr,iens) < 1e33 ) go to 100
+        end do
+    end do
+    write(0,*) 'take_yrblocks: error: cannot find valid data'
+    call exit(-1)
+100 continue
+    write(0,*) 'Taking ',nblockyr,'-yr blocks.'
+    yrlast = yr
+    do iens = mens1,mens
+        n = 0
+        maxval = -3e33
+        do yr=yrlast,yr1,-1
+            if ( yrseries(1,yr,iens) < 1e33 ) then
+                n = n + 1
+                maxval = max(maxval,yrseries(1,yr,iens))
+                yrseries(1,yr,iens) = 3e33
+                if ( n == 1 ) i1 = yr
+                if ( n == nblockyr ) then
+                    ! change the point halfway to the maxval, the others have been set to undefined
+                    i2 = yr
+                    i = (i1 + i2)/2
+                    yrseries(1,i,iens) = maxval
+                    ! and start new block
+                    n = 0
+                    maxval = -3e33
+                end if
+            end if
+        end do
+    end do
+end subroutine take_yrblocks
+
+
+subroutine take_ensblocks(yrseries,fyr,lyr,yr1,yr2,mens1,mens,nblockens)
+!
+!   take the maximum of N-yr blocks to zoom in on the tail a bit more
+!
+    implicit none
+    integer,intent(in) :: fyr,lyr,yr1,yr2,nblockens
+    integer,intent(inout) :: mens1,mens
+    real,intent(inout) :: yrseries(1,fyr:lyr,0:mens)
+    integer :: i,i1,i2,n,yr,yrlast,iens,jens,nens
+    real :: maxval
+
+    write(0,*) 'Taking ',nblockens,'-ensemble blocks.'
+    nens = 0
+    do yr=yr1,yr2
+        n = 0
+        maxval = -3e33
+        jens = -1
+        do iens = mens1,mens
+            if ( yrseries(1,yr,iens) < 1e33 ) then
+                n = n + 1
+                maxval = max(maxval,yrseries(1,yr,iens))
+                yrseries(1,yr,iens) = 3e33
+                if ( n == nblockens ) then
+                    ! shift the valid ensemble members to the beginning
+                    jens = jens + 1
+                    yrseries(1,yr,jens) = maxval
+                    nens = max(nens,jens)
+                    ! and start new block
+                    n = 0
+                    maxval = -3e33
+                end if
+            end if
+        end do
+    end do
+!
+!   smaller ensemble
+!
+    mens1 = 0
+    mens = nens
+end subroutine take_ensblocks

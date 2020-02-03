@@ -1,5 +1,5 @@
 subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
-        ,mens1,mens,crosscorr,a3,b3,alpha3,beta3,j1,j2,nens1,nens2   &
+        ,mens1,mens,crosscorr,a3,b3,alpha3,beta3,j1,j2,nblockyr,nblockens,nens1,nens2   &
         ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2 &
         ,cov3,offset,t3,tx3,assume,confidenceinterval,ndecor              &
         ,lboot,lprint,dump,plot,lwrite)
@@ -17,13 +17,13 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
 !
     implicit none
 !
-    integer npernew,fyr,lyr,mens1,mens,nmc,ntot,j1,j2,nens1,nens2, &
+    integer :: npernew,fyr,lyr,mens1,mens,nmc,ntot,j1,j2,nblockyr,nblockens,nens1,nens2, &
         ntype,yr1a,yr2a,yr2b,ndecor
-    real yrseries(npernew,fyr:lyr,0:mens),yrcovariate(npernew,fyr:lyr,0:mens), &
+    real :: yrseries(npernew,fyr:lyr,0:mens),yrcovariate(npernew,fyr:lyr,0:mens), &
         crosscorr(0:mens,0:mens),a3(3),b3(3),alpha3(3),beta3(3),xyear,        &
         cov1,cov2,cov3,offset,t3(3,10,3),tx3(3,3),confidenceinterval
-    character assume*(*),idmax*(*)
-    logical lweb,lchangesign,lboot,lprint,dump,plot,lwrite
+    character :: assume*(*),idmax*(*)
+    logical :: lweb,lchangesign,lboot,lprint,dump,plot,lwrite
 !
     integer i,j,nx,iter,iens,nfit,year,nj
     integer,allocatable :: yrs(:)
@@ -164,7 +164,7 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
     call getreturnlevels(a,b,xi,alpha,beta,cov1,cov2,cov3,gevcovreturnlevel,j1,j2,assume,t)
     if ( xyear < 1e33 ) then
         call getreturnyears(a,b,xi,alpha,beta,xyear,cov1,cov2,cov3, &
-            gevcovreturnyear,j1,j2,tx,lchangesign,lwrite)
+            gevcovreturnyear,j1,j2,nblockyr,nblockens,tx,lchangesign,lwrite)
     end if
     call getabfromcov(a,b,alpha,beta,cov1,aaa,bbb)
     acov(1,1) = aaa
@@ -258,8 +258,8 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
             aacov(iens,3) = aaa
         end if
         xi = 0
-        call getreturnlevels(aa(iens),bb(iens),xi,alphaalpha(iens),  &
-            betabeta(iens),cov1,cov2,cov3,gevcovreturnlevel,j1,j2,assume,ttt)
+        call getreturnlevels(aa(iens),bb(iens),xi,alphaalpha(iens),betabeta(iens), &
+            cov1,cov2,cov3,gevcovreturnlevel,j1,j2,assume,ttt)
         do i=1,10
             do j=1,4
                 tt(iens,i,j) = ttt(i,j)
@@ -268,7 +268,7 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
         if ( xyear < 1e33 ) then
             call getreturnyears(aa(iens),bb(iens),xi,                 &
                 alphaalpha(iens),betabeta(iens),xyear,cov1,cov2,cov3, &
-                gevcovreturnyear,j1,j2,txtxtx,lchangesign,lwrite)
+                gevcovreturnyear,j1,j2,nblockyr,nblockens,txtxtx,lchangesign,lwrite)
             do j=1,4
                 txtx(iens,j) = txtxtx(j)
             end do

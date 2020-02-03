@@ -1,5 +1,6 @@
 subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
-             ,mens1,mens,crosscorr,a3,b3,xi3,alpha3,beta3,j1,j2,nens1,nens2 &
+             ,mens1,mens,crosscorr,a3,b3,xi3,alpha3,beta3,j1,j2             &
+             ,nblockyr,nblockens,nens1,nens2 &
              ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2   &
              ,cov3,offset,t3,tx3,inrestrain,assume,confidenceinterval       &
              ,ndecor,lboot,lprint,dump,plot,lwrite)
@@ -25,14 +26,14 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
 !       tx25,tx975 (100-confidenceinterval)/2%, (100+confidenceinterval)/2% quantiles of these return times and their differences
 !
     implicit none
-    integer nmc
-    parameter(nmc=1000)
-    integer npernew,fyr,lyr,mens1,mens,ntot,j1,j2,nens1,nens2,ntype,yr1a,yr2a,yr2b,ndecor
-    real yrseries(npernew,fyr:lyr,0:mens),yrcovariate(npernew,fyr:lyr,0:mens),   &
+    integer,parameter :: nmc=1000
+    integer :: npernew,fyr,lyr,mens1,mens,ntot,j1,j2,nblockyr,nblockens,nens1,nens2, &
+        ntype,yr1a,yr2a,yr2b,ndecor
+    real :: yrseries(npernew,fyr:lyr,0:mens),yrcovariate(npernew,fyr:lyr,0:mens),   &
  &       crosscorr(0:mens,0:mens),a3(3),b3(3),xi3(3),alpha3(3),beta3(3),xyear,   &
  &       cov1,cov2,cov3,offset,inrestrain,t3(3,10,3),tx3(3,3),confidenceinterval
-    character assume*(*),idmax*(*)
-    logical lweb,lchangesign,lboot,lprint,dump,plot,lwrite
+    character :: assume*(*),idmax*(*)
+    logical :: lweb,lchangesign,lboot,lprint,dump,plot,lwrite
 !
     integer i,j,k,l,n,nx,iter,iens,jens,iiens,nfit,year,yr,nj
     integer,allocatable :: yrs(:)
@@ -184,7 +185,7 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
         j1,j2,assume,t)
     if ( xyear < 1e33 ) then
         call getreturnyears(a,b,xi,alpha,beta,xyear,cov1,cov2,cov3          &
-            ,gevcovreturnyear,j1,j2,tx,lchangesign,lwrite)
+            ,gevcovreturnyear,j1,j2,nblockyr,nblockens,tx,lchangesign,lwrite)
     endif
     call getabfromcov(a,b,alpha,beta,cov1,aaa,bbb)
     acov(1,1) = aaa
@@ -292,7 +293,7 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
         if ( xyear < 1e33 ) then
             call getreturnyears(aa(iens),bb(iens),xixi(iens),           &
                  alphaalpha(iens),betabeta(iens),xyear,cov1,cov2,cov3,  &
-                 gevcovreturnyear,j1,j2,txtxtx,lchangesign,lwrite)
+                 gevcovreturnyear,j1,j2,nblockyr,nblockens,txtxtx,lchangesign,lwrite)
             do j=1,4
                 txtx(iens,j) = txtxtx(j)
             end do

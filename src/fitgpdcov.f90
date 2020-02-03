@@ -276,7 +276,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     call getreturnlevels(a,b,xi,alpha,beta,cov1,cov2,cov3,gpdcovreturnlevel,j1,j2,assume,t)
     if ( xyear < 1e33 ) then
         call getreturnyears(a,b,xi,alpha,beta,xyear,cov1,cov2,cov3, &
-             gpdcovreturnyear,j1,j2,tx,lchangesign,lwrite)
+             gpdcovreturnyear,j1,j2,1,1,tx,lchangesign,lwrite)
         ! convert to years
         do i=1,2
             if ( tx(i).lt.1e33 ) then
@@ -419,7 +419,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         if ( xyear < 1e33 ) then
             call getreturnyears(aa(iens),bb(iens),xixi(iens), &
                      alphaalpha(iens),betabeta(iens),xyear,cov1,cov2,cov3, &
-                     gpdcovreturnyear,j1,j2,txtxtx,lchangesign,lwrite)
+                     gpdcovreturnyear,j1,j2,1,1,txtxtx,lchangesign,lwrite)
             do j=1,4
                 if ( j == 3 ) cycle
                 ! convert to years
