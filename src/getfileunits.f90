@@ -8,7 +8,7 @@ subroutine getfileunits(file,nx,ny,nz,nt,nperyear,nvarmax,nvars &
     character :: file*(*),var(nvarmax)*(*),units(nvarmax)*(*),newunits(nvarmax)*(*), &
         lvar(nvarmax)*(*),svar(nvarmax)*(*)
     logical :: xwrap,lwrite
-    integer :: status,ncid,iu,i,i1,i2
+    integer :: status,ncid,iu,i,i1,i2,i3
     integer :: firstyr,firstmo,lastyr,lastmo,endian,ivars(2,100),jvars(6,100),ndpm, &
         nens1,nens2
     character :: datfile*255,title*255,history*50000,metadata(2,100)*2000
@@ -87,7 +87,8 @@ subroutine getfileunits(file,nx,ny,nz,nt,nperyear,nvarmax,nvars &
                 if ( line(1:1) /= '#' .and. line(2:2) /= '#' ) exit
                 i1 = index(line,'[')
                 i2 = index(line,']')
-                if ( i1 > 0 .and. i2 > i1+1 ) then
+                i3 = index(line,' :: ')
+                if ( i1 > 0 .and. i2 > i1+1 .and. i3 == 0 ) then
                     units(1) = line(i1+1:i2-1)
                     call checkstring(units(1))
                     if ( lwrite ) then
