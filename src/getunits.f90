@@ -4,23 +4,26 @@ program getunits
 !       for use in the web interface
 !
     implicit none
-    integer nvarmax
-    parameter(nvarmax=100)
-    integer :: nx,ny,nz,nt,nperyear,nvars,i,j,nens,off,nargs,iarg,nt1
-    logical :: xwrap,lwrite,lexist
-    character :: file*255,var(nvarmax)*40,units(nvarmax)*60, &
-        newunits(nvarmax)*60,lvar(nvarmax)*120,svar(nvarmax)*120,string*80,ensfile*255
+    include 'params.h'
+    integer,parameter :: nvarmax=100,mtmax=24*366*200
+    integer :: nx,ny,nz,nt,nperyear,nvars,i,j,nens,off,nargs,iarg,nt1,ncid,firstmo,firstyr, &
+        ivars(6,nvarmax),nens1,nens2,ndpm
+    logical :: xwrap,lwrite,lexist,tdefined(mtmax),xrev,yrev
+    real :: xx(nxmax),yy(nymax),zz(nzmax),undef,mean,offset,slope
+    character :: file*255,var(nvarmax)*40,units(nvarmax)*60,title*500, &
+        newunits(nvarmax)*60,lvar(nvarmax)*120,svar(nvarmax)*120,string*80,ensfile*255, &
+        lz(3)*20,ltime*120,cell_methods(100)*100,history*50000,metadata(2,100)*1000
  
-    if ( command_argument_count().lt.1 ) then
+    if ( command_argument_count() < 1 ) then
         print *,'usage: getunits file [file2 ..] [debug]'
         stop
     endif
     call get_command_argument(1,file)
     lwrite = .false.
     nargs = command_argument_count()
-    if ( nargs.gt.1 ) then
+    if ( nargs > 1 ) then
         call get_command_argument(nargs,string)
-        if ( string.eq.'debug' .or. string.eq.'lwrite' ) then
+        if ( string == 'debug' .or. string == 'lwrite' ) then
             lwrite = .true.
             print *,'getunits: turned on debug printing'
             nargs = nargs - 1
@@ -28,7 +31,7 @@ program getunits
     endif
     i = index(file,'%%')
     j = index(file,'++')
-    if ( i.ne.0 .or. j.ne.0 ) then
+    if ( i /= 0 .or. j /= 0 ) then
         if ( lwrite ) print *,'counting ensemble members'
         off = 0
         do nens=0,999
@@ -36,7 +39,7 @@ program getunits
             call filloutens(ensfile,nens)
             inquire(file=trim(ensfile),exist=lexist)
             if ( .not.lexist ) then
-                if ( nens.eq.0 ) then
+                if ( nens == 0 ) then
                     off = 1
                 else
                     exit
@@ -46,13 +49,37 @@ program getunits
         nens = nens - off
         call printassignment('NENS',nens)
     end if
-    nt = 0
-    do iarg=1,nargs
-        call get_command_argument(iarg,file)
-        call getfileunits(file,nx,ny,nz,nt1,nperyear,nvarmax,nvars,var &
-        &  ,units,newunits,lvar,svar,xwrap,lwrite)
-        nt = nt + nt1
-    end do
+    i = index(file,'@@')
+    if ( i > 0 ) then
+        ! an internal ensemble dimension, 
+        ! only defined for .nc files, the .dat file has been derived from that
+        i = index(file,'.dat')
+        if ( i /= 0 ) then
+            file(i:) = '.nc'
+        end if
+        ncid = 0
+        call ensparsenc(file,ncid,nxmax,nx,xx,nymax,ny,yy,nzmax &
+            ,nz,zz,lz,nt,nperyear,firstyr,firstmo,ltime,tdefined,mtmax &
+            ,nens1,nens2,undef,title,history,nvmax,nvars,var,ivars &
+            ,lvar,svar,units,cell_methods,metadata)
+        call printassignment('NENS',1+nens2)
+        if ( units(1) == 'K' ) then
+            mean = 273.13
+        else
+            mean = 0
+        endif
+        call makestandardunits(mean,nperyear,var,units(1) &
+            ,newunits(1),offset,slope,ndpm,lwrite)
+        call getxyprop(xx,nx,yy,ny,xrev,yrev,xwrap)
+    else
+        nt = 0
+        do iarg=1,nargs
+            call get_command_argument(iarg,file)
+            call getfileunits(file,nx,ny,nz,nt1,nperyear,nvarmax,nvars,var &
+               ,units,newunits,lvar,svar,xwrap,lwrite)
+            nt = nt + nt1
+        end do
+    end if
     call printassignment('NX',nx)
     call printassignment('NY',ny)
     call printassignment('NZ',nz)
@@ -71,15 +98,15 @@ subroutine printassignment(name,value)
     integer value
     character name*(*)
 
-    if ( value.lt.10 ) then
+    if ( value < 10 ) then
         print '(2a,i1)',trim(name),'=',value
-    elseif ( value.lt.100 ) then
+    elseif ( value < 100 ) then
         print '(2a,i2)',trim(name),'=',value
-    elseif ( value.lt.1000 ) then
+    elseif ( value < 1000 ) then
         print '(2a,i3)',trim(name),'=',value
-    elseif ( value.lt.10000 ) then
+    elseif ( value < 10000 ) then
         print '(2a,i4)',trim(name),'=',value
-    elseif ( value.lt.100000 ) then
+    elseif ( value < 100000 ) then
         print '(2a,i5)',trim(name),'=',value
     else
         print '(2a,i6)',trim(name),'=',value
