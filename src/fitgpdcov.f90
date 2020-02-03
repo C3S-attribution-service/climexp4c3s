@@ -659,7 +659,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         ys(1:ncur) = yy(1:ncur)
         mindata = a
         call plot_ordered_points(yy,ys,yrs,ncur,ntype,nfit,                 &
-            frac,a,b,xi,j1,j2,minindx,mindata,pmindata,                &
+            frac,a,b,xi,j1,j2,1,1,minindx,mindata,pmindata,                &
             year,xyear,snorm,lchangesign,lwrite,.true.)
     else
     ! compute distribution at past year and plot it
@@ -669,7 +669,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         call plotreturnvalue(ntype,t25(1,1),t975(1,1),j2-j1+1)
         mindata = aaa
         call plot_ordered_points(yy,ys,yyrs,ncur,ntype,nfit, &
-            frac,aaa,bbb,xi,j1,j2,minindx,mindata,pmindata, &
+            frac,aaa,bbb,xi,j1,j2,1,1,minindx,mindata,pmindata, &
             year,xyear,snorm,lchangesign,lwrite,.false.)
 
         ! compute distribution at present year and plot it
@@ -686,7 +686,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         call plotreturnvalue(ntype,t25(1,2),t975(1,2),j2-j1+1)
         mindata = aaa
         call plot_ordered_points(yy,ys,yyrs,ncur,ntype,nfit, &
-            frac,aaa,bbb,xi,j1,j2,minindx,mindata,pmindata, &
+            frac,aaa,bbb,xi,j1,j2,1,1,minindx,mindata,pmindata, &
             year,xyear,snorm,lchangesign,lwrite,last)
         if ( cov3 < 1e33 ) then
             ! compute distribution at present year and plot it
@@ -701,7 +701,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
             call plotreturnvalue(ntype,t25(1,4),t975(1,4),j2-j1+1)
             mindata = aaa
             call plot_ordered_points(yy,ys,yyrs,ncur,ntype,nfit, &
-                frac,aaa,bbb,xi,j1,j2,minindx,mindata,pmindata, &
+                frac,aaa,bbb,xi,j1,j2,1,1,minindx,mindata,pmindata, &
                 year,xyear,snorm,lchangesign,lwrite,.true.)
         end if
     end if

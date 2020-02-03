@@ -177,10 +177,10 @@ subroutine invgetcut1(pcut,cut,n,a,llwrite)
     do m=n,1,-1
         if ( a(m) < 1e33 ) exit
     end do
-    if ( a(1) > cut ) then
+    if ( a(1) >= cut ) then
         pcut = 1/real(m+1)
         if ( lwrite) print *,'a(1) > cut ',a(1),cut,' hence pcut = ',pcut
-    else if ( a(m) < cut ) then
+    else if ( a(m) <= cut ) then
         pcut = 1 - 1/real(m+1)
         if ( lwrite ) print *,'a(m) < cut ',a(m),cut,' hence pcut = ',pcut
     else

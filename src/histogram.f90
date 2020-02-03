@@ -1009,7 +1009,7 @@ program histogram
             end if
             frac = 1
             call plot_ordered_points(xx,xs,yrs,ntot,ntype,nfit, &
-                frac,a,b,xi,j1,j2,minindx,mindata,pmindata, &
+                frac,a,b,xi,j1,j2,1,1,minindx,mindata,pmindata, &
                 yr2a,xyear,snorm,lchangesign,lwrite, .true. )
         else
             write(0,*) 'Unknown plot type ',ntype

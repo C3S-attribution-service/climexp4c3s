@@ -420,13 +420,13 @@ end subroutine val_or_inf
 
 
 subroutine plot_ordered_points(xx,xs,yrs,ntot,ntype,nfit, &
-    frac,a,b,xi,j1,j2,minindx,mindata,pmindata, &
+    frac,a,b,xi,j1,j2,nblockyr,nblockens,minindx,mindata,pmindata, &
     yr2a,xyear,snorm,lchangesign,lwrite,last)
 
 !   Gumbel or (sqrt) logarithmic plot
 
     implicit none
-    integer :: ntot,ntype,nfit,j1,j2,yr2a
+    integer :: ntot,ntype,nfit,j1,j2,nblockyr,nblockens,yr2a
     integer :: yrs(0:ntot)
     real :: xx(ntot),xs(ntot),frac,a,b,xi
     real :: minindx,mindata,pmindata,xyear,snorm
@@ -482,6 +482,10 @@ subroutine plot_ordered_points(xx,xs,yrs,ntot,ntype,nfit, &
             if ( abs(f-1) < 1e-6 ) goto 800
             x = -999.9
         endif
+        ff = f
+        if ( ( nfit == 4 .or. nfit == 5 ) .and. ( nblockyr > 1 .or. nblockens > 1 ) ) then
+            f = 1 - (1-f)/(nblockyr*nblockens)
+        end if
         if ( frac /= 1 ) f = 1-(1-f)*frac
         if ( nfit == 0 ) then
             s = -999.9
@@ -524,7 +528,7 @@ subroutine plot_ordered_points(xx,xs,yrs,ntot,ntype,nfit, &
             end if
         elseif ( nfit == 4 ) then
         !   Gumbel distribution
-            s = snorm*f
+            s = snorm*ff
             if ( minindx > -1e33 ) then
                 s = s + exp(-exp(-(minindx-a)/b))
             endif
@@ -532,7 +536,7 @@ subroutine plot_ordered_points(xx,xs,yrs,ntot,ntype,nfit, &
             if ( lchangesign ) s = -s
         elseif ( nfit == 5 ) then
         !   GEV distribution
-            s = snorm*f
+            s = snorm*ff
             if ( minindx > -1e33 ) then
                 s = s + exp(-(1+(minindx-a)/b)**(-1/xi))
             endif
@@ -877,14 +881,18 @@ subroutine getreturnyears(a,b,xi,alpha,beta,xyear,cov1,cov2,cov3,covreturnyear,j
     real :: a,b,xi,alpha,beta,xyear,cov1,cov2,cov3,tx(4)
     logical :: lchangesign,lwrite
     real,external :: covreturnyear
+    integer :: i
+!
     tx(1) = covreturnyear(a,b,xi,alpha,beta,xyear,cov1,lchangesign)
     tx(2) = covreturnyear(a,b,xi,alpha,beta,xyear,cov2,lchangesign)
     if ( cov3 < 1e33 ) then
         tx(4) = covreturnyear(a,b,xi,alpha,beta,xyear,cov3,lchangesign)
     end if
-    tx(3) = 0
-    if ( nblockyr > 1 ) tx = tx*nblockyr
-    if ( nblockens > 1 ) tx = tx*nblockens
+    do i=1,4
+        if ( i == 3 ) cycle
+        if ( nblockyr > 1 .and. tx(i) < 5e19 ) tx(i) = tx(i)*nblockyr
+        if ( nblockens > 1 .and. tx(i) < 5e19 ) tx(i) = tx(i)*nblockens
+    end do
     if ( tx(2) > 1e19 ) then
         if ( tx(1) > 1e19 ) then
             tx(3) = 3e33

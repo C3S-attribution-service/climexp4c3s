@@ -95,6 +95,8 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
             call print_bootstrap_message(max(1,ndecor),j1,j2)
         end if
     else if ( distribution == 'gpd' .or. distribution == 'gauss' ) then
+        nblockyr = 1
+        nblockens = 1
         ! in the others lsum indicates the block maxima length...
         call getj1j2(j1,j2,m1,nperyear,lwrite)
         decor = max(decor,real(lsum)-1)
@@ -271,7 +273,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
                 ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2,cov3,offset &
                 ,t,tx,restrain,assume,confidenceinterval,ndecor,.false.,.false.,.false.,.false.,lwrite)
             ! now compute xyear one based on biasrt in the current climate (cov2)
-            xyear = gevcovreturnlevel(a,b,xi,alpha,beta,log10(biasrt),cov2)
+            xyear = gevcovreturnlevel(a,b,xi,alpha,beta,log10(biasrt/(nblockyr*nblockens)),cov2)
             if ( lchangesign ) then
                 if ( xyear < 1e33 ) xyear = -xyear
             end if
@@ -320,7 +322,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
                 ,t,tx,assume,confidenceinterval,ndecor,.false.,.false.,.false.,.false.,lwrite)
             ! now compute xyear one based on biasrt in the current climate (cov2)
             if ( xi(1) /= 0 ) write(0,*) 'attribute_dist: error: xi /= in Gumbel fit ',xi
-            xyear = gevcovreturnlevel(a,b,xi,alpha,beta,log10(biasrt),cov2)
+            xyear = gevcovreturnlevel(a,b,xi,alpha,beta,log10(biasrt/(nblockyr*nblockens)),cov2)
             if ( lchangesign ) then
                 if ( xyear < 1e33 ) xyear = -xyear
             end if
