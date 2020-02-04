@@ -135,6 +135,10 @@ program synthesis
         read(line,*,err=906) yr1,yr2,x,xlo,xhi,cc
         if ( min(yr1,yr2) < yrbeg ) goto 905
         if ( max(yr1,yr2) > yrend ) goto 905
+        if ( xlo == x .or. xhi == x ) then
+            write(0,*) 'synthesis: error: cannot handle zero uncertainty ',x,xlo,xhi
+            call exit(-1)
+        end if
         n = n + 1
         if ( n > nmax ) then
             write(0,*) 'sythesis: error: increase nmax ',nmax
@@ -143,8 +147,13 @@ program synthesis
         years(1,n) = yr1
         years(2,n) = yr2
         data(1,n) = x
-        data(2,n) = xlo
-        data(3,n) = xhi
+        if ( xlo < xhi ) then ! let's be flexible
+            data(2,n) = xlo
+            data(3,n) = xhi
+        else
+            data(2,n) = xhi
+            data(3,n) = xlo
+        end if
         data(4,n) = 3e33
         data(5,n) = 3e33
         ci(n) = cc
