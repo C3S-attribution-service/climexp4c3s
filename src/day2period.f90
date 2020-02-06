@@ -400,11 +400,11 @@ subroutine day2period( &
                 if ( lwrite ) print *,j,olddata(j,i),lgt,cut(j)
             endif
         enddo
-        if ( .false. .and. lwrite .and. lfirst < 9999 ) then
-            write(*,*) yr,'lfirst,minfac*(j2-j1+1) = ',lfirst,minfac*(j2-j1+1)
+        if ( lwrite .and. lfirst < 9999 ) then
+            write(*,*) yr,'lfirst > (1-minfac)*(j2-j1+1) = ',lfirst,(1-minfac)*(j2-j1+1)
             write(*,*) yr,'ntot,minfac*nperyear/nperyearnew = ',ntot,minfac*nperyear/nperyearnew
         end if
-        if ( lfirst > minfac*(j2-j1+1) .or. &
+        if ( lfirst > (1-minfac)*(j2-j1+1) .or. &
                 ntot < minfac*nperyear/nperyearnew ) then
             newdata(jnew,yr) = 3e33
         elseif ( n == 0 .and. &
