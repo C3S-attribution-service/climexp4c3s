@@ -232,8 +232,9 @@ subroutine printcorr(dindx,ddata,lfirst,dddata,yrmo,n,n0,j1,j2 &
             end if
             call getautocor1(dindx,ddata,n,a1,a2,lwrite)
 !           if autocorrelation is significantly different from zero and does not increase df
-            if ( a1 < 1e33 .and. a1 > exp(-1.) .and. &
-            a1 > 1/sqrt(real(n)) ) then
+            if ( a1 == 1 ) then
+                df = 1 ! otehrwise everything crashes later on
+            else if ( a1 < 1e33 .and. a1 > exp(-1.) .and. a1 > 1/sqrt(real(n)) ) then
                 df = (n-n0-2)*(-log(a1))
                 if ( lwrite ) then
                     print *,'from lag-1    df = ',df
@@ -329,7 +330,6 @@ subroutine printcorr(dindx,ddata,lfirst,dddata,yrmo,n,n0,j1,j2 &
                         close(nunit)
                         deallocate(bb1)
                     end if
-!!!                 print *,'df was ',df
                     if ( lboot ) then
                         ndecor = int(n/df+0.001)
                         if ( lwrite ) print *,'calling bootstrap with ndecor = ',ndecor
