@@ -465,7 +465,7 @@ subroutine getdpm(dpm,nperyear)
 end subroutine getdpm
 
 subroutine make_annual_values(series,nperyear,npermax,yrbeg,yrend,mens1,mens, &
-&   yrseries,fyr,lyr,yy1,yy2,operation)
+    yrseries,fyr,lyr,yy1,yy2,operation)
     
     ! construct an annual time series with the maxima
 
@@ -480,6 +480,7 @@ subroutine make_annual_values(series,nperyear,npermax,yrbeg,yrend,mens1,mens, &
     if ( lwrite ) then
         print *,'make_annual_values: taking ',trim(operation)
         print *,'nperyear,npermax = ',nperyear,npermax
+        print *,'m1,lsum = ',m1,lsum
     end if
     if ( nperyear == 1 ) then
         do iens=mens1,mens
@@ -489,7 +490,7 @@ subroutine make_annual_values(series,nperyear,npermax,yrbeg,yrend,mens1,mens, &
         end do
     else if ( nperyear < 12 ) then
         do iens=mens1,mens
-            do yr=yy1,yy2
+            do yy=yy1,yy2
                 m = 0
                 if ( operation == 'max' ) then
                     s = -3e33
@@ -498,7 +499,9 @@ subroutine make_annual_values(series,nperyear,npermax,yrbeg,yrend,mens1,mens, &
                 else
                     s = 0
                 end if
-                do dy=1,nperyear
+                do mm=m1,m1+lsum-1
+                    dy = mm
+                    call normon(dy,yy,yr,nperyear)
                     if ( series(dy,yr,iens) < 1e33 ) then
                         m = m + 1
                         if ( operation == 'max' ) then
@@ -512,8 +515,9 @@ subroutine make_annual_values(series,nperyear,npermax,yrbeg,yrend,mens1,mens, &
                             call exit(-1)
                         end if
                     end if
+                    print *,'@@@ s = ',s
                 end do
-                if ( m > minfac*nperyear ) then
+                if ( m > minfac*lsum ) then
                     if ( operation == 'min' .or. operation == 'max' ) then
                         yrseries(1,yr,iens) = s
                     else if ( operation == 'mean' ) then
