@@ -13,7 +13,7 @@ subroutine readncfile(ncid,field,nxf,nyf,nx,ny,nperyear &
     logical :: lwrite
     integer :: unit,jx,jy,i,j,k,l,start(4),count(4),stride(4),imap(4) &
         ,status,startmo,ck,noleap,ilast,jlast,nn,jj,itoobig, &
-        ntoobig,jul0,jul1,jul2,dy,mo,nperday,n
+        ntoobig,jul0,jul1,jul2,dy,mo,nperday,n,lastyr
     logical :: notfirst
     integer :: leap,julday
     logical :: isnan
@@ -467,6 +467,10 @@ subroutine readncfile(ncid,field,nxf,nyf,nx,ny,nperyear &
         print *,'readncfile: field(',1+nx/2,1+ny/2,startmo &
             ,max(firstyr,yr1),') = ',field(1+nx/2,1+ny/2,startmo &
             ,max(firstyr,yr1))
+        lastyr = firstyr + (firstmo + nt - 2)/nperyear + 1
+        print *,'readncfile: field(',1+nx/2,1+ny/2,startmo &
+            ,min(lastyr,yr2),') = ',field(1+nx/2,1+ny/2,startmo &
+            ,min(lastyr,yr2))
     endif
     return
 end subroutine readncfile
