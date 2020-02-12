@@ -9,10 +9,16 @@ subroutine filloutens(file,iens)
     if ( i == 0 ) then
         i = index(file,'++')
         if ( i == 0 ) then
-            write(0,*) 'filloutens: error: cannot find + or % in file ',trim(file)
-            call exit(-1)
-        endif
-        teken = '+'
+            i = index(file,'@@')
+            if ( i == 0 ) then
+                write(0,*) 'filloutens: error: cannot find %, + or @ in file name ',trim(file)
+                call exit(-1)
+            else
+                teken = '@'
+            end if
+        else
+            teken = '+'
+        end if
     else
         teken = '%'
     endif
