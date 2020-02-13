@@ -9,9 +9,9 @@ subroutine fieldallday2period( &
     real :: oldfield(nx,ny,nperyear,yrbeg:yrend), &
         newfield(nx,ny,abs(nperyearnew),yrbeg:yrend), &
         cut(nx,ny,nperyear),minfac
-    character oper*3,lgt*1,var*(*),units*(*)
-    logical lvalid(nx,ny,nperyear,yrbeg:yrend),lwrite
-    integer :: j,jj,j1,jold,mo,n,dpm(12),dpm365(12)
+    character :: oper*3,lgt*1,var*(*),units*(*)
+    logical :: lvalid(nx,ny,nperyear,yrbeg:yrend),lwrite
+    integer :: j,jj,j1,j2,jold,mo,n,dpm(12),dpm365(12)
     data dpm   / 31,29,31,30,31,30,31,31,30,31,30,31/
     data dpm365/ 31,28,31,30,31,30,31,31,30,31,30,31/
 
@@ -40,10 +40,11 @@ subroutine fieldallday2period( &
                 'shifted annual data for sub-daily data yet'
             call exit(-1)
         end if
+        j2 = j1 + nperyear - 1
         call fieldday2period( &
             oldfield,nperyear,lvalid, &
             newfield,abs(nperyearnew), &
-            nx,ny,yrbeg,yrend,1,nperyear,1,oper,lgt,cut, &
+            nx,ny,yrbeg,yrend,j1,j2,1,oper,lgt,cut, &
             minfac,add_option,itype,lwrite)
     else if ( nperyearnew == 1 ) then
         call fieldday2period( &
@@ -218,7 +219,7 @@ subroutine fieldday2period( &
                 j = mo
                 call normon(j,yr,i,nperyear)
                 if ( yrbeg == 0 .and. yrend == 0 ) i = yr
-                if ( i < yrbeg ) cycle
+                if ( i < yrbeg .or. i > yrend ) cycle
                 if ( oldfield(1,1,j,i) < 1e33 ) then
                     print *,yr,j,oldfield(1,1,j,i)
                 endif
@@ -385,19 +386,19 @@ subroutine fieldday2period( &
                 end if
                 if ( lfirst > minfac*(j2-j1+1) .or. &
                         ntot < minfac*nperyear/nperyearnew ) then
-                    newfield(jx,jy,jnew,i) = 3e33
+                    newfield(jx,jy,jnew,yr) = 3e33
                 elseif ( n == 0 .and. &
                     (oper == 'mea' .or. oper == 'min' .or. &
                      oper == 'max' .or. oper == 'xti' .or. &
                      oper == 'nti' .or. oper == 'fti' .or. &
                      oper == 'lti' ) ) then
-                    newfield(jx,jy,jnew,i) = 3e33
+                    newfield(jx,jy,jnew,yr) = 3e33
                 elseif ( oper == 'mea' ) then
                     if ( itype == 0 ) then
                         if ( lwrite .and. &
                         jx == (nx+1)/2 .and. jy == (ny+1)/2 ) &
                             print *,'s,n,s/n = ',s,n,s/n
-                        newfield(jx,jy,jnew,i) = s/n
+                        newfield(jx,jy,jnew,yr) = s/n
                     elseif ( itype == 1 ) then
                         if ( lwrite .and. &
                         jx == (nx+1)/2 .and. jy == (ny+1)/2 ) then
@@ -405,44 +406,44 @@ subroutine fieldday2period( &
                             print *,'sy,n,sy/n = ',sy,n,sy/n
                             print *,'atan2(sy,sx)',atan2(sy,sx)
                         endif
-                        newfield(jx,jy,jnew,i) = 45*atan2(sy,sx)/atan(1.)
-                        if ( newfield(jx,jy,jnew,i) < 0 ) &
-                            newfield(jx,jy,jnew,i) = newfield(jx,jy,jnew,i) + 360
+                        newfield(jx,jy,jnew,yr) = 45*atan2(sy,sx)/atan(1.)
+                        if ( newfield(jx,jy,jnew,yr) < 0 ) &
+                            newfield(jx,jy,jnew,yr) = newfield(jx,jy,jnew,yr) + 360
                     endif
                 elseif ( oper == 'sd ' .or. oper == 'var' ) then
-                    newfield(jx,jy,jnew,i) = s2/n - (s/n-mean)**2
+                    newfield(jx,jy,jnew,yr) = s2/n - (s/n-mean)**2
                     if ( oper == 'sd' ) then
-                        if ( newfield(jx,jy,jnew,i) >= 0 ) then
-                            newfield(jx,jy,jnew,i) = &
-                            sqrt(newfield(jx,jy,jnew,i))
+                        if ( newfield(jx,jy,jnew,yr) >= 0 ) then
+                            newfield(jx,jy,jnew,yr) = &
+                            sqrt(newfield(jx,jy,jnew,yr))
                         else
-                            newfield(jx,jy,jnew,i) = 3e33
+                            newfield(jx,jy,jnew,yr) = 3e33
                         end if
                     end if
                 elseif ( oper == 'sum' .or. oper == 'bel' .or. &
                          oper == 'abo' .or. oper == 'min' .or. &
                          oper == 'max' ) then
                     if ( itype == 0 ) then
-                        newfield(jx,jy,jnew,i) = s
+                        newfield(jx,jy,jnew,yr) = s
                     elseif ( itype == 1 ) then
-                        newfield(jx,jy,jnew,i) = 45*atan2(sy,sx)/atan(1.)
-                        if ( newfield(jx,jy,jnew,i) < 0 ) &
-                            newfield(jx,jy,jnew,i) = newfield(jx,jy,jnew,i) + 360
+                        newfield(jx,jy,jnew,yr) = 45*atan2(sy,sx)/atan(1.)
+                        if ( newfield(jx,jy,jnew,yr) < 0 ) &
+                            newfield(jx,jy,jnew,yr) = newfield(jx,jy,jnew,yr) + 360
                     endif
                 elseif ( oper == 'num' ) then
-                    newfield(jx,jy,jnew,i) = n
+                    newfield(jx,jy,jnew,yr) = n
                 elseif ( oper == 'nti' .or. oper == 'xti' .or. &
                     oper == 'fti' .or. oper == 'lti' ) then
-                    newfield(jx,jy,jnew,i) = st
+                    newfield(jx,jy,jnew,yr) = st
                 elseif ( oper == 'con' ) then
-                    newfield(jx,jy,jnew,i) = s
+                    newfield(jx,jy,jnew,yr) = s
                 else
                     write(0,*) 'fieldday2period: error: unknown operation ',oper
                     call exit(-1)
                 endif
                 if ( lwrite .and. jx == (nx+1)/2 .and. jy == (ny+1)/2 ) then
                     print *,'fieldday2period: computed newfield'
-                    print *,i,jnew,newfield(jx,jy,jnew,i),s,st,itype
+                    print *,yr,jnew,newfield(jx,jy,jnew,yr),s,st,itype
                 endif
             100 continue
             enddo           ! jx
