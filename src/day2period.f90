@@ -343,7 +343,7 @@ subroutine day2period( &
 !           [this may be relaxed later...]
             if ( olddata(j,i) > 1e33 ) then
 !**               newdata(jnew,i) = 3e33
-                if ( lwrite ) print *,'skipping because olddata undefined',j,i
+                if ( .false. .and. lwrite ) print *,'skipping because olddata undefined',j,i
                 cycle
             endif
 !           This test should be exactly the same as in daily2longer
