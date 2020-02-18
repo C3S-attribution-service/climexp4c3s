@@ -160,7 +160,8 @@ program synthesis
         do j=1,len(line)
             if ( ( ichar(line(j:j)).ge.ichar('a') .and. ichar(line(j:j)).le.ichar('z') &
               .or. ichar(line(j:j)).ge.ichar('A') .and. ichar(line(j:j)).le.ichar('Z') ) & 
-                .and. line(j:j+1) /= 'E-' .and. line(1:2) /= 'E+' ) then
+                .and. line(j:j+1) /= 'E-' .and. line(1:2) /= 'E+' &
+              .or. line(j:j+2) == '20C' ) then
                 names(n) = line(j:)
                 exit
             end if
