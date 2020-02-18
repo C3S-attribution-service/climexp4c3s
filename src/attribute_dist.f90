@@ -16,7 +16,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     integer :: fyr,lyr,ntot,i,j,k,ntype,nmax,npernew,j1,j2,iens,jens,ensmax,init,ndecor,n,yr,mo
     integer,allocatable :: yrs(:)
     real :: a(3),b(3),xi(3),alpha(3),beta(3),cov1,cov2,cov3,offset,t(3,10,3),tx(3,3), &
-        regr,intercept,sigb,siga,chi2,q,prob,z,ax,sxx,ay,syy,sxy,df
+        regr,intercept,sigb,siga,chi2,q,prob,z,ax,sxx,ay,syy,sxy,df,x
     real,allocatable :: xx(:,:),yrseries(:,:,:),yrcovariate(:,:,:),yy(:),crosscorr(:,:), &
         xxx(:,:,:),yyy(:),zzz(:),sig(:),yrseries1(:,:,:)
     logical :: lboot,lprint,subtract_offset,lset,lopen
@@ -293,10 +293,14 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         if ( lwrite ) print *,'attribute_dist: calling fitgpdcov'
         if ( abs(biasrt) < 1e33 ) then
             ! first call to get fit parametrs for a random, plausible value of xyear
+            x = biasrt/(nblockyr*nblockens)
+            if ( lsel > 1 ) then
+                x = x*lsel
+            end if
             call fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
                 ,crosscorr,a,b,xi,alpha,beta,j1,j2,nens1,nens2 &
                 ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2,cov3,offset &
-                ,t,tx,pmindata,restrain,assume,confidenceinterval,biasrt/(nblockyr*nblockens) &
+                ,t,tx,pmindata,restrain,assume,confidenceinterval,x &
                 ,ndecor,.false.,.false.,.false.,.false.,lwrite)
             ! now compute xyear one based on biasrt in the current climate (cov2)
             if ( lchangesign ) then ! other convention, should be fixed
@@ -304,7 +308,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
                 if ( alpha(1) < 1e33 ) alpha(1) = -alpha(1)
                 if ( beta(1) < 1e33 ) beta(1) = -beta(1)
             end if
-            xyear = gpdcovreturnlevel(a,b,xi,alpha,beta,log10(biasrt),cov2)
+            xyear = gpdcovreturnlevel(a,b,xi,alpha,beta,log10(x),cov2)
             print '(a,f10.1,a,g12.4)','# evaluated for a return period of ',biasrt,' yr, corresponding to a value of ',xyear    
         end if
         call fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
