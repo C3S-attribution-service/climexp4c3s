@@ -64,7 +64,7 @@ subroutine printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,biasrt,lweb,plot,assum
     lprintreturnvalue = .false.
     if ( ntype == 2 .or. ntype == 3 .or. ntype == 4 ) then ! extreme value  plot
         if ( assume == 'scale ' ) then
-            write(units,'(a,i4)') ' % relative to ',yr1a
+            units = ' %'
         else
             units = ' '
         end if
