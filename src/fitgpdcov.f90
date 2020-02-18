@@ -2,7 +2,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
              ,mens1,mens,crosscorr,a3,b3,xi3,alpha3,beta3,j1,j2,nens1,nens2 &
              ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyearin,idmax,cov1,cov2 &
              ,cov3,offset,t3,tx3,threshold,inrestrain,assume &
-             ,confidenceinterval,ndecor,lboot,lprint,dump,plot,lwrite)
+             ,confidenceinterval,biasrt,ndecor,lboot,lprint,dump,plot,lwrite)
 !
 !       fit a GPD distribution to the data, which is already assumed to be declustered
 !       input:
@@ -32,7 +32,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
              yrcovariate(npernew,fyr:lyr,0:mens),crosscorr(0:mens,0:mens), &
              a3(3),b3(3),xi3(3),alpha3(3),beta3(3),xyearin, &
              cov1,cov2,cov3,offset,inrestrain,t3(3,10,3),tx3(3,3),threshold, &
-             confidenceinterval
+             confidenceinterval,biasrt
     character :: assume*(*),idmax*(*)
     logical :: lweb,lchangesign,lboot,lprint,dump,plot,lwrite
 !
@@ -624,7 +624,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     end if
     call printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,yr2b,lweb,plot,assume,lnone,1)
     if ( .not. lnone ) call printcovpvalue(txtx,nmc,iens,lweb,plot)
-    call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume,lnone)
+    call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,biasrt,lweb,plot,assume,lnone)
     if ( .not. lnone ) call printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,yr2b,lweb,plot,assume,lnone,2)
 
     if ( dump ) then

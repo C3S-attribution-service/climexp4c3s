@@ -48,13 +48,13 @@ subroutine printreturnvalue(ntype,t,t25,t975,lweb)
 end subroutine printreturnvalue
 
 
-subroutine printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume,lnone)
+subroutine printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,biasrt,lweb,plot,assume,lnone)
 
 !   print return values for a set of fixed return times
 
     implicit none
     integer :: ntype,yr1a,yr2a
-    real :: t(10,3),t25(10,3),t975(10,3)
+    real :: t(10,3),t25(10,3),t975(10,3),biasrt
     logical :: lweb,plot,lnone
     character assume*(*)
     integer :: i
@@ -71,7 +71,7 @@ subroutine printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume,lnone
         if ( lweb ) then
             do i=1,10,3
                 if ( lnone ) then
-                    if ( lprintreturnvalue ) then
+                    if ( lprintreturnvalue .or. biasrt == 10**(1+i/3) ) then
                         print '(a,i5,a,f16.3,a,f16.3,a,f16.3,a)' &
                             ,'# <tr><td colspan=2>return value ',10**(1+i/3) &
                             ,' yr</td><td>',t(i,1),'</td><td>',t25(i,1) &
@@ -79,7 +79,7 @@ subroutine printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume,lnone
                         call print3untransf(t(i,1),t25(i,1),t975(i,1),-1)
                     end if
                 else
-                    if ( lprintreturnvalue ) then
+                    if ( lprintreturnvalue .or. biasrt == 10**(1+i/3) ) then
                         print '(a,i5,a,i4,a,f16.3,a,f16.3,a,f16.3,a)' &
                             ,'# <tr><td>return value ',10**(1+i/3) &
                             ,' yr</td><td>',yr1a,'</td><td>' &
@@ -91,8 +91,9 @@ subroutine printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume,lnone
                             ,' ... ',t975(i,2),'</td></tr>'
                     end if
                     if ( i == 10 .or. assume == 'both' ) then
-                        print '(3a,f16.3,a,f16.3,a,f16.3,a)' &
-                            ,'# <tr><td>return values</td><td>diff',trim(units), &
+                        print '(a,i4,a,i4,3a,f16.3,a,f16.3,a,f16.3,a)' &
+                            ,'# <tr><td>change in intensity ',yr1a,'-',yr2a, &
+                            '</td><td>diff',trim(units), &
                             '</td><td>',t(i,3),'</td><td>',t25(i,3) &
                             ,' ... ',t975(i,3),'</td></tr>'
                     end if

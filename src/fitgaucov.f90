@@ -1,7 +1,7 @@
 subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
             ,mens1,mens,crosscorr,a3,b3,alpha3,beta3,j1,j2,nens1,nens2 &
             ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2 &
-            ,cov3,offset,t3,tx3,assume,confidenceinterval,ndecor,lboot &
+            ,cov3,offset,t3,tx3,assume,confidenceinterval,biasrt,ndecor,lboot &
             ,lprint,dump,plot,lwrite)
 !
 !   a fit a gaussian distribution with mean linearly dependent on a covariate 
@@ -13,7 +13,7 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
     real yrseries(npernew,fyr:lyr,0:mens), &
             yrcovariate(npernew,fyr:lyr,0:mens),crosscorr(0:mens,0:mens), &
             a3(3),b3(3),alpha3(3),beta3(3),xyear,cov1,cov2,cov3, &
-            offset,t3(3,10,3),tx3(3,3),confidenceinterval
+            offset,t3(3,10,3),tx3(3,3),confidenceinterval,biasrt
     logical lweb,lchangesign,lboot,lprint,dump,plot,lwrite
     character assume*(*),idmax*(*)
 !
@@ -442,7 +442,7 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
     endif
     call printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,yr2b,lweb,plot,assume,lnone,1)
     if ( .not. lnone ) call printcovpvalue(txtx,nmc,nmc,lweb,plot)
-    call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,lweb,plot,assume,lnone)
+    call printcovreturnvalue(ntype,t,t25,t975,yr1a,yr2a,biasrt,lweb,plot,assume,lnone)
     if ( .not. lnone ) call printcovreturntime(year,xyear,idmax,tx,tx25,tx975,yr1a,yr2a,yr2b,lweb,plot,assume,lnone,2)
 
     if ( dump ) then

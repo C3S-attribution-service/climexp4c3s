@@ -271,7 +271,8 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
             call fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
                 ,crosscorr,a,b,xi,alpha,beta,j1,j2,nblockyr,nblockens,nens1,nens2 &
                 ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2,cov3,offset &
-                ,t,tx,restrain,assume,confidenceinterval,ndecor,.false.,.false.,.false.,.false.,lwrite)
+                ,t,tx,restrain,assume,confidenceinterval,biasrt/(nblockyr*nblockens),ndecor &
+                ,.false.,.false.,.false.,.false.,lwrite)
             ! now compute xyear one based on biasrt in the current climate (cov2)
             xyear = gevcovreturnlevel(a,b,xi,alpha,beta,log10(biasrt/(nblockyr*nblockens)),cov2)
             if ( lchangesign ) then
@@ -280,9 +281,10 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
             print '(a,f10.1,a,g12.4)','# Evaluated for a return period of ',biasrt,' yr, corresponding to a value of ',xyear
         end if
         call fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
-    &       ,crosscorr,a,b,xi,alpha,beta,j1,j2,nblockyr,nblockens,nens1,nens2 &
-    &       ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2,cov3,offset &
-    &       ,t,tx,restrain,assume,confidenceinterval,ndecor,lboot,lprint,dump,plot,lwrite)
+            ,crosscorr,a,b,xi,alpha,beta,j1,j2,nblockyr,nblockens,nens1,nens2 &
+            ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2,cov3,offset &
+            ,t,tx,restrain,assume,confidenceinterval,biasrt/(nblockyr*nblockens),ndecor &
+            ,lboot,lprint,dump,plot,lwrite)
     else if ( distribution == 'gpd' ) then
         ntype = 3 ! log plot
         !!!print *,'DEBUG'
@@ -294,8 +296,8 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
             call fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
                 ,crosscorr,a,b,xi,alpha,beta,j1,j2,nens1,nens2 &
                 ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2,cov3,offset &
-                ,t,tx,pmindata,restrain,assume,confidenceinterval,ndecor,.false. &
-                ,.false.,.false.,.false.,lwrite)
+                ,t,tx,pmindata,restrain,assume,confidenceinterval,biasrt/(nblockyr*nblockens) &
+                ,ndecor,.false.,.false.,.false.,.false.,lwrite)
             ! now compute xyear one based on biasrt in the current climate (cov2)
             if ( lchangesign ) then ! other convention, should be fixed
                 if ( a(1) < 1e33 ) a(1) = -a(1)
@@ -306,10 +308,10 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
             print '(a,f10.1,a,g12.4)','# evaluated for a return period of ',biasrt,' yr, corresponding to a value of ',xyear    
         end if
         call fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
-    &       ,crosscorr,a,b,xi,alpha,beta,j1,j2,nens1,nens2 &
-    &       ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2,cov3,offset &
-    &       ,t,tx,pmindata,restrain,assume,confidenceinterval,ndecor,lboot &
-    &       ,lprint,dump,plot,lwrite)
+            ,crosscorr,a,b,xi,alpha,beta,j1,j2,nens1,nens2 &
+            ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2,cov3,offset &
+            ,t,tx,pmindata,restrain,assume,confidenceinterval,biasrt/(nblockyr*nblockens) &
+            ,ndecor,lboot,lprint,dump,plot,lwrite)
     else if  ( distribution == 'gumbel' ) then
         ntype = 2 ! Gumbel plot
         xi = 0
@@ -329,9 +331,10 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
             print '(a,f10.1,a,g12.4)','# evaluated for a return period of ',biasrt,' yr, corresponding to a value of ',xyear    
         end if
         call fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
-    &       ,crosscorr,a,b,alpha,beta,j1,j2,nblockyr,nblockens,nens1,nens2 &
-    &       ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2,cov3,offset &
-    &       ,t,tx,assume,confidenceinterval,ndecor,lboot,lprint,dump,plot,lwrite)
+            ,crosscorr,a,b,alpha,beta,j1,j2,nblockyr,nblockens,nens1,nens2 &
+            ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2,cov3,offset &
+            ,t,tx,assume,confidenceinterval,biasrt/(nblockyr*nblockens) &
+            ,ndecor,lboot,lprint,dump,plot,lwrite)
     else if  ( distribution == 'gauss' ) then
         ntype = 3 ! log plot (sqrtlog gives straight lines, but this makes it easier to compare with other plots)
         xi = 0
@@ -341,7 +344,8 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
             call fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
                 ,crosscorr,a,b,alpha,beta,j1,j2,nens1,nens2 &
                 ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2,cov3,offset &
-                ,t,tx,assume,confidenceinterval,ndecor,.false.,.false.,.false.,.false.,lwrite)
+                ,t,tx,assume,confidenceinterval,biasrt/(nblockyr*nblockens),ndecor &
+                ,.false.,.false.,.false.,.false.,lwrite)
             print *,'# fitgaucov returns a,b,xi,alpha = ',a,b,xi,alpha
             if ( lchangesign ) then ! other convention, should be fixed
                 if ( a(1) < 1e33 ) a(1) = -a(1)
@@ -354,7 +358,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         call fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
     &       ,crosscorr,a,b,alpha,beta,j1,j2,nens1,nens2 &
     &       ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2,cov3,offset &
-    &       ,t,tx,assume,confidenceinterval,ndecor,lboot,lprint,dump,plot,lwrite)
+    &       ,t,tx,assume,confidenceinterval,biasrt/(nblockyr*nblockens),ndecor,lboot,lprint,dump,plot,lwrite)
     else
         write(0,*) 'attribute_dist: error: unknown distribution ',trim(distribution)
     end if
