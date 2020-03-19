@@ -1,6 +1,6 @@
 program seriesensanomal
 
-!   compute the anomaly series
+!   compute the anomaly series or ensemble
 
     implicit none
     include 'param.inc'
@@ -8,11 +8,13 @@ program seriesensanomal
     real,allocatable :: data(:,:,:)
     logical :: lwrite,lstandardunits,lexist
     character :: file*255,ensfile*255,var*40,units*40,line*255
-    lwrite = .false. 
+    character :: lvar*120,svar*120,history*50000,metadata(2,100)*1000
+    lwrite = .false.
     lstandardunits = .false. 
 
     if ( command_argument_count() /= 3 ) then
         print *,'usage: seriesensanomal ensmember ensfile dummy'
+        print *,'       ensmember <0 denotes the full ensemble'
         call exit(-1)
     endif
 
@@ -21,18 +23,26 @@ program seriesensanomal
     call get_command_argument(2,ensfile)
 
     allocate(data(npermax,yrbeg:yrend,0:nensmax))
-    call readensseries(ensfile,data,npermax,yrbeg,yrend,nensmax &
-    ,nperyear,mens1,mens,var,units,lstandardunits,lwrite)
+    call readensseriesmeta(ensfile,data,npermax,yrbeg,yrend,nensmax &
+        ,nperyear,mens1,mens,var,units,lvar,svar,history,metadata &
+        ,lstandardunits,lwrite)
     call anomalensemble(data,npermax,nperyear,yrbeg,yrend, &
-    yrbeg,yrend,mens1,mens)
-    call filloutens(ensfile,nens1)
-    open(1,file=ensfile,status='old')
-    do
-        read(1,'(a)') line
-        if ( line(1:1) /= '#' ) exit
-        if ( line(3:) /= ' ' ) write(*,'(a)') trim(line)
-    end do
-    close(1)
-    write(*,'(a)') '# anomalies with respect to the ensemble mean'
-    call printdatfile(6,data(1,yrbeg,nens1),npermax,nperyear,yrbeg,yrend)
+        yrbeg,yrend,mens1,mens)
+    write(6,'(a)') '# anomalies with respect to the ensemble mean'
+    call printvar(6,var,units,lvar)
+    if ( nens1 >= 0 ) then
+        ! one ensemble member
+        write(6,'(a,i4)') '# ensemble member ',nens1
+        call filloutens(ensfile,nens1)
+        call printmetadata(6,ensfile,' ',' ',history,metadata)
+        call printdatfile(6,data(1,yrbeg,nens1),npermax,nperyear,yrbeg,yrend)
+    else
+        ! whole ensemble
+        call printmetadata(6,ensfile,' ',' ',history,metadata)
+        do iens=mens1,mens
+            write(6,'(a,i4)') '# ensemble member ',iens
+            write(6,'(a)')
+            call printdatfile(6,data(1,yrbeg,iens),npermax,nperyear,yrbeg,yrend)
+        enddo
+    end if
 end program seriesensanomal
