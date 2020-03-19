@@ -12,11 +12,12 @@ program dff_hist_nat
     implicit none
     integer   :: i,j
     real      :: xx(3,2),diff(3),ci(2)
-    logical   :: logscale,lperc,lexist
+    logical   :: logscale,lperc,lexist,ltoperc
     character :: file*1024,string*128
 
     logscale = .false.
     lperc = .false.
+    ltoperc = .false.
     if ( command_argument_count() > 0 ) then
         call get_command_argument(1,file)
         inquire(file=trim(file),exist=lexist)
@@ -50,6 +51,7 @@ program dff_hist_nat
         call get_command_argument(i,string)
         if ( string(1:3) == 'log' ) logscale = .true.
         if ( string(1:4) == 'perc' ) lperc = .true.
+        if ( string(1:6) == 'toperc' ) ltoperc = .true.
     end do
   
     if ( ci(1) /= ci(2) ) then
@@ -59,7 +61,7 @@ program dff_hist_nat
     if ( lperc ) then
         xx = 1 + xx/100
     end if
-    if ( logscale ) then
+    if ( logscale .or. ltoperc ) then
         do i=1,2
             do j=1,3
                 if ( xx(j,i) > 0 ) then
@@ -71,7 +73,7 @@ program dff_hist_nat
             end do
         end do
     end if
-   
+
     diff(1) = xx(1,1) - xx(1,2)
     !!!print *,'@@@ ',xx(1,1),' - ',xx(1,2),' = ',diff(1),exp(diff(1))
     diff(2) = diff(1) - sqrt( (xx(1,1)-xx(2,1))**2 + (xx(1,2)-xx(3,2))**2 ) ! lower bound of hist + upper one of nat
@@ -79,10 +81,10 @@ program dff_hist_nat
     diff(3) = diff(1) + sqrt( (xx(1,1)-xx(3,1))**2 + (xx(1,2)-xx(2,2))**2 ) ! upper bound of hist + lower one of nat
     !!!print *,'@@@ ',diff(1),' + ',diff(3)-diff(1),' = ',diff(3),exp(diff(3))
 
-    if ( logscale ) then
+    if ( logscale .or. ltoperc ) then
         diff = exp(diff)
     end if
-    if ( lperc ) then
+    if ( lperc .or. ltoperc ) then
         diff = 100*(diff-1)
     end if
     
