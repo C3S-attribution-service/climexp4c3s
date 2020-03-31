@@ -13,7 +13,7 @@ program patternfield
         ,firstmo1,nx2,ny2,nz2,nt2,nper2,firstyr2,firstmo2,nvars &
         ,ivars1(6,nvarmax),ivars2(6,nvarmax),ivar &
         ,month,endian1,endian2,status,nperyear,nxf,nyf,mens1,mens &
-        ,nmetadata1,yrpat1,yrpat2
+        ,nmetadata1,yrpat1,yrpat2,lastyr
     integer :: yr1,yr2,nx,ny,nz,yr,mo,iskip
     real ::  xx1(nxmax),yy1(nymax),zz1(nzmax),xx2(nxmax),yy2(nymax),zz2(nzmax),u1,u2
     real :: xx(nxmax),yy(nymax),zz(nymax),minfac
@@ -111,6 +111,8 @@ program patternfield
 
     nxf = max(nx1,nx2)
     nyf = max(ny1,ny2)
+    yr1 = firstyr1
+    yr2 = min(yrend,firstyr1 + (firstmo1+nt1-1)/nper1)
     if ( firstyr2 == 0 .or. firstyr2 == 1 ) then
         yrpat1 = 0
         yrpat2 = 1
@@ -122,7 +124,12 @@ program patternfield
         yrpat1 = firstyr2 - 1
         yrpat2 = yrpat1 + 1
     end if
-    allocate(field1(nxf,nyf,nper1,firstyr1:yrend))
+    lastyr = yr2
+    if ( lwrite ) print *,'patternfield: allocating field1 ',nxf,nyf,nper1, &
+        firstyr1,lastyr,nxf*nyf*nper1*(firstyr1-lastyr+1)
+    allocate(field1(nxf,nyf,nper1,firstyr1:lastyr))
+    if ( lwrite) print *,'patternfield: allocating field2 ',nxf,nyf,nper2,yrpat1,yrpat2, &
+        nxf*nyf*nper1*(yrpat1-yrpat2+1)
     allocate(field2(nxf,nyf,nper2,yrpat1:yrpat2))
 
     minfac = 0.5
@@ -153,23 +160,21 @@ program patternfield
 !   read fields
 
     call keepalive(0,3)
-    yr1 = firstyr1
-    yr2 = min(yrend,firstyr1 + (firstmo1+nt1-1)/nper1)
     write(0,*) 'Reading field...<p>'
     if ( ncid1 == -1 ) then
         call readdatfile(datfile1,field1,nxf,nyf,nx1,ny1,nper1 &
-            ,firstyr1,yrend,firstyr1,firstmo1,nt1,u1,endian1 &
+            ,firstyr1,lastyr,firstyr1,firstmo1,nt1,u1,endian1 &
             ,lwrite,yr1,yr2,1,1)
     else
         call readncfile(ncid1,field1,nxf,nyf,nx1,ny1,nper2 &
-            ,firstyr1,yrend,firstyr1,firstmo1,nt1,u1,lwrite,yr1 &
+            ,firstyr1,lastyr,firstyr1,firstmo1,nt1,u1,lwrite,yr1 &
             ,yr2,ivars1)
     endif
     if ( lstandardunits ) then
     !   convert to standard units
         call makestandardfield(field1,nxf,nyf,1 &
-            ,nper1,firstyr1,yrend,nx1,ny1,1,nperyear &
-            ,firstyr1,yrend,vars1(1),units1(1),lwrite)
+            ,nper1,firstyr1,lastyr,nx1,ny1,1,nperyear &
+            ,firstyr1,lastyr,vars1(1),units1(1),lwrite)
         if ( lwrite ) then
             print *,'patternfield: just after standard units'
             print *,'field1(',(nx1+1)/2,(ny1+1)/2,firstmo1 &
@@ -206,7 +211,7 @@ program patternfield
     call keepalive(3,3)
     allocate(var(nperyear,yr1:yr2))
     call project(var,nperyear,yr1,yr2,0,0,xx,nx,yy,ny, &
-        field1,field2,nxf,nyf,nperyear,firstyr1,yrend, &
+        field1,field2,nxf,nyf,nperyear,firstyr1,lastyr, &
         month,minfac,.false.,.false.,anom,lwrite)
     call printdatfile(6,var,nperyear,nperyear,yr1,yr2)
     return
@@ -215,7 +220,7 @@ program patternfield
 
     goto 999
 902 write(0,*) 'error: firstyr1,lastyr1 = ',firstyr1,firstyr1 + (nt1-1)/nperyear, &
-        ' should be between ',yrbeg,' and ',yrend
+        ' should be between ',yrbeg,' and ',lastyr
     write(0,*) '       recompile if this is too restrictive'
     call exit(-1)
 903 write(0,*)'error: month should be between 0 and ',nperyear,', not ',trim(line)
