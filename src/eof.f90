@@ -564,7 +564,8 @@ program eof
         call getenv('DIR',dir)
         ldir = len_trim(dir)
         if ( ldir <= 1 ) then
-            dir = '/usr/people/oldenbor/climexp/'
+            call getenv('HOME',dir)
+            dir = trim(dir)//'/climexp/'
             ldir= len_trim(dir)
         end if
         if ( dir(ldir:ldir) /= '/' ) then
