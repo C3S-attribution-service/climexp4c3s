@@ -36,7 +36,7 @@ subroutine spearx(data1,data2,n,wksp1,wksp2,d,zd,probd,rs,probrs,sum,a1,s1,a2,s2
     da2 = fgsl_stats_mean(ddata2,1_fgsl_size_t,dim)
     ds2 = fgsl_stats_variance_m(ddata2,1_fgsl_size_t,dim,da2)
     eps = 1e-5 ! trial and error
-    if ( ds1 < eps*abs(da1) .or. ds2 < eps*abs(da2) ) then ! all equal, this will crash the GSL routine
+    if ( ds1 <= eps*abs(da1) .or. ds2 <= eps*abs(da2) ) then ! all equal, this will crash the GSL routine
         drs = 3e33
     else
         drs = fgsl_stats_spearman(ddata1,1_fgsl_size_t,ddata2,1_fgsl_size_t,dim,work)
@@ -50,8 +50,7 @@ subroutine spearx(data1,data2,n,wksp1,wksp2,d,zd,probd,rs,probrs,sum,a1,s1,a2,s2
     if ( rs < 1e33 ) then
         fac = (1-drs)*(1+drs)
         if ( sum < 1 ) then
-            write(0,*) 'spearx: error: sum < 1 ',sum
-            call exit(-1)
+            return ! return undef for rank correlation
         end if
         if ( fac == 0 ) then ! r=±1
             probrs = 0
