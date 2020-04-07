@@ -908,7 +908,7 @@ program correlatefield
                         if ( df < 1 ) then
                             df = 3e33
                         end if
-                        if ( df < 1 ) then
+                        if ( df < 1 .or. df > 1e33 ) then
                             r(jx,jy,jz,m) = 3e33
                             prob(jx,jy,jz,m) = 3e33
                             a(jx,jy,jz,m) = 3e33
@@ -918,7 +918,7 @@ program correlatefield
                             a1(jx,jy,jz,m) = 3e33
                             da1(jx,jy,jz,m) = 3e33
                             if ( lwrite ) print '(a,f5.2,3i5)'          &
-                                 ,'error: df < 1: ',df,jx,jy,jz
+                                 ,'error: df < 1 or > 1e33: ',df,jx,jy,jz
                             goto 790
                         end if
                         if ( lfitnoise ) then
@@ -936,7 +936,7 @@ program correlatefield
                             end if
                             sum = n/(df+2)
                             if ( lwrite ) then
-                                print *,'sum  is: ',sum
+                                print *,'sum  is: ',sum,df
                             end if
                             call spearx(ddata,dindx,n,ddata,dindx,d     &
                                   ,zd,probd,r(jx,jy,jz,m),              &
