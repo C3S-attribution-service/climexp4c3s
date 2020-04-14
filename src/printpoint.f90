@@ -888,6 +888,8 @@ subroutine getreturnyears(a,b,xi,alpha,beta,xyear,cov1,cov2,cov3,covreturnyear,j
     tx(2) = covreturnyear(a,b,xi,alpha,beta,xyear,cov2,lchangesign)
     if ( cov3 < 1e33 ) then
         tx(4) = covreturnyear(a,b,xi,alpha,beta,xyear,cov3,lchangesign)
+    else
+        tx(4) = 3e33
     end if
     do i=1,4
         if ( i == 3 ) cycle
