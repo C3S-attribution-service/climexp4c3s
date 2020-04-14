@@ -377,8 +377,8 @@ PROGRAMS	  = proccgi \
 
 all:		$(PROGRAMS) $(SHLIBS) sstoi2dat
 
-install:	$(PROGRAMS)
-		cp $(PROGRAMS) $(HOME)/oceano/climexp/bin
+install:	$(PROGRAMS) attribute_amoeba
+		install $(PROGRAMS) attribute_amoeba $(HOME)/climexp/bin
 
 climexp.a:	$(OBJS) $(EXTRAOBJS) $(MAKEFILE)
 		ar cruv $@ $(OBJS)
@@ -786,16 +786,16 @@ rocmap:		rocmap.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
 
 ROCscoremap:	ROCscoremap.o
-		$(CC) $(CFLAGS) -o $@ $@.o -L/sw/lib -L/usr/local/free/lib -lnetcdf
+		$(CC) $(CFLAGS) -o $@ $@.o -L/opt/sw/lib -L/usr/local/free/lib -lnetcdf
 
 rocdeb: rocdeb.o
-		$(CC) $(CFLAGS) -o $@ $@.o -L/sw/lib -L/usr/local/free/lib -lnetcdf
+		$(CC) $(CFLAGS) -o $@ $@.o -L/opt/sw/lib -L/usr/local/free/lib -lnetcdf
 
 RPS:		RPS.o
-		$(CC) $(CFLAGS) -o $@ $@.o -L/sw/lib -L/usr/local/free/lib -lnetcdf
+		$(CC) $(CFLAGS) -o $@ $@.o -L/opt/sw/lib -L/usr/local/free/lib -lnetcdf
 
 Briar:		Briar.o
-		$(CC) $(CFLAGS) -o $@ $@.o -L/sw/lib -L/usr/local/free/lib -lnetcdf
+		$(CC) $(CFLAGS) -o $@ $@.o -L/opt/sw/lib -L/usr/local/free/lib -lnetcdf
 
 # rkillfile.so:	rkillfile.f
 # 		R CMD SHLIB ../rkillfile.f

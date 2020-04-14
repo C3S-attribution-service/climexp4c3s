@@ -1,5 +1,5 @@
 ###EOFFLAGS = -O3 -m64 -Dlinux -fbackslash # -fopenmp
-EOFFLAGS = -g -m64 -Dlinux -fbackslash -fbounds-check # -fopenmp
+EOFFLAGS = -I/opt/sw/include -g -m64 -Dlinux -fbackslash -fbounds-check # -fopenmp
 FFLAGS = $(EOFFLAGS) -ffpe-trap=invalid,zero,overflow
 
 CFLAGS = -O -m64
@@ -9,10 +9,10 @@ LD = $(FC) -Wl,-framework -Wl,Accelerate
 EOFLD = $(FC) -Wl,-framework -Wl,Accelerate
 use_gsl=true
 ifeq ($(use_gsl),true)
-    SYSLIBS=-L/sw/lib -lnetcdff -lnetcdf -L/usr/local/lib -lfgsl -lgsl
+    SYSLIBS=-L/opt/sw/lib -lnetcdff -lnetcdf -L/usr/local/lib -lfgsl -lgsl
     NUMLIB=wrappers.a
 else
-    SYSLIBS=-L/sw/lib -lnetcdff -lnetcdf libnr.a
+    SYSLIBS=-L/opt/sw/lib -lnetcdff -lnetcdf libnr.a
     NUMLIB=adapted.a
 endif
 
