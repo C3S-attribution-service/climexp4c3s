@@ -908,12 +908,12 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
             lskip = 1
             call get_command_argument(i+1,line)
             read(line,*,err=930) nblockyr
-            if ( lout ) print '(a,i3,a)','# taking ',nblockyr,'-yr blocks in GEV, Gumbel'
+            if ( nblockyr > 1 .and. lout ) print '(a,i3,a)','# taking ',nblockyr,'-yr blocks in GEV, Gumbel'
         elseif ( line(1:8) == 'blockens' ) then
             lskip = 1
             call get_command_argument(i+1,line)
             read(line,*,err=930) nblockens
-            if ( lout ) print '(a,i3,a)','# taking ',nblockens,'-ensemble blocks in GEV, Gumbel'
+            if ( nblockens > 1 .and. lout ) print '(a,i3,a)','# taking ',nblockens,'-ensemble blocks in GEV, Gumbel'
         elseif ( line(1:6) == 'normal' ) then
             lskip = 1
             call get_command_argument(i+1,line)
