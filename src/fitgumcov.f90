@@ -245,7 +245,11 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
             write(0,*) 'fitgumcov: cannot handle assume = ',assume
             call exit(-1)
         end if
-        if ( assume == 'scale' ) baba(iens) = bb(iens)/aa(iens)
+        if ( assume == 'scale' ) then
+            baba(iens) = bb(iens)/aa(iens)
+        else
+            baba(iens) = 3e33
+        end if
         call getabfromcov(aa(iens),bb(iens),                         &
             alphaalpha(iens),betabeta(iens),cov1,aaa,bbb)
         aacov(iens,1) = aaa
@@ -256,6 +260,8 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
             call getabfromcov(aa(iens),bb(iens),                     &
                 alphaalpha(iens),betabeta(iens),cov3,aaa,bbb)
             aacov(iens,3) = aaa
+        else
+            aacov(iens,3) = 3e33
         end if
         xi = 0
         call getreturnlevels(aa(iens),bb(iens),xi,alphaalpha(iens),betabeta(iens), &
