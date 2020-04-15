@@ -4,9 +4,6 @@ subroutine writencseries(file,data,npermax,yrbeg,yrend,nperyear, &
 !   writes a time series to a netCDF file
 !   part of the KNMI Climate Explorer, GJvO, 2011
 !
-    implicit none
-    include 'netcdf.inc'
-
 !   arguments
     integer :: npermax,yrbeg,yrend,nperyear
     real :: data(npermax,yrbeg:yrend)
@@ -14,10 +11,36 @@ subroutine writencseries(file,data,npermax,yrbeg,yrend,nperyear, &
         history*(*),var*(*),lvar*(*),units*(*)
 
 !   local variables
-    integer :: status,ncid,ntdimid,idim,i,j,l,ii(8),dy,mo,yr,yr0,yr1
-    integer :: yr2,nt,ivar,ntvarid,year,month,n,nperday
-    integer :: firstmo,firstdy,chunks(5)
-    integer,allocatable :: itimeaxis(:)
+    integer :: mens1,mens
+
+    mens1 = 0
+    mens = 0
+    call writencensseries(file,data,npermax,yrbeg,yrend,nperyear, &
+        title,description,comment,metadata,history,var,lvar,units,mens1,mens)
+
+end subroutine writencseries
+
+subroutine writencensseries(file,data,npermax,yrbeg,yrend,nperyear, &
+    title,description,comment,metadata,history,var,lvar,units,mens1,mens)
+!
+!   writes an (ensemble of) time series to a netCDF file
+!   part of the KNMI Climate Explorer, GJvO, 2011
+!
+    implicit none
+    include 'netcdf.inc'
+
+!   arguments
+    integer :: npermax,yrbeg,yrend,nperyear,mens1,mens
+    real :: data(npermax,yrbeg:yrend,0:mens)
+    character :: file*(*),title*(*),description*(*),comment*(*),metadata(2,100)*(*), &
+        history*(*),var*(*),lvar*(*),units*(*)
+
+!   local variables
+    integer :: status,ncid,ntdimid,idim,i,j,l,ii(8),dy,mo,yr,yr0,yr1,iens, &
+        ivars(2),nensdimid,nensvarid,ndims
+    integer :: yr2,nt,ivar,ntvarid,year,month,n,nperday,k
+    integer :: firstmo,firstdy,chunks(5),icount(5),istart(5),istride(5),imap(5)
+    integer,allocatable :: itimeaxis(:),iensaxis(:)
     real :: array(1)
     real,allocatable :: linear(:)
     logical :: lwrite,lcompress,lcomment
@@ -28,21 +51,22 @@ subroutine writencseries(file,data,npermax,yrbeg,yrend,nperyear, &
 
 !   date
     data months &
- &        /'???','JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG'  &
- &        ,'SEP','OCT','NOV','DEC','???','jan','feb','mar','apr' &
- &        ,'may','jun','jul','aug','sep','oct','nov','dec'/
+         /'???','JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG'  &
+         ,'SEP','OCT','NOV','DEC','???','jan','feb','mar','apr' &
+         ,'may','jun','jul','aug','sep','oct','nov','dec'/
     lwrite = .FALSE.
     call getenv('WRITENC_LWRITE',clwrite)
     if ( index(clwrite,'T') + index(clwrite,'t') .gt.0 ) then
         lwrite = .true.
     end if
     if ( lwrite ) then
-        print *,'writencseries called with'
+        print *,'writencensseries called with'
         print *,'file = ',trim(file)
         print *,'title = ',trim(title)
         print *,'description = ',trim(description)
         print *,'npermax,nperyear,yrbeg,yrend = ',npermax,nperyear,yrbeg,yrend
         print *,'var,lvar,units = ',var,lvar,units
+        print *,'mens1,mens = ',mens1,mens
     end if
 !
 !   find beginning, end of data (rounded to the nearest whole year)
@@ -51,10 +75,12 @@ subroutine writencseries(file,data,npermax,yrbeg,yrend,nperyear, &
     yr2 = yrbeg
     do yr=yrbeg,yrend
         do mo=1,nperyear
-            if ( data(mo,yr).lt.1e33 ) then
-                yr1 = min(yr1,yr)
-                yr2 = max(yr2,yr)
-            end if
+            do iens=mens1,mens
+                if ( data(mo,yr,iens).lt.1e33 ) then
+                    yr1 = min(yr1,yr)
+                    yr2 = max(yr2,yr)
+                end if
+            end do
         end do
     end do
     nperday = max(1,nint(nperyear/365.24))
@@ -76,7 +102,8 @@ subroutine writencseries(file,data,npermax,yrbeg,yrend,nperyear, &
         print *,'               nt = ',nt
     end if
     allocate(itimeaxis(nt))
-    allocate(linear(nt))
+    allocate(iensaxis(mens+1))
+    allocate(linear(nt*(mens-mens1+1)))
 !
 !   open file, overwriting old file if it exists
 !
@@ -111,6 +138,9 @@ subroutine writencseries(file,data,npermax,yrbeg,yrend,nperyear, &
 !   define dimension
 !
     if ( lwrite ) print *,'defining time dimension with length ',nt
+    if ( mens > mens1 ) then
+        status = nf_def_dim(ncid,'ens',mens-mens1+1,nensdimid)
+    end if
     if ( nt.gt.0 ) then
         status = nf_def_dim(ncid,'time',nt,ntdimid)
     else
@@ -118,8 +148,19 @@ subroutine writencseries(file,data,npermax,yrbeg,yrend,nperyear, &
     end if
     if ( status.ne.nf_noerr ) call handle_err(status,'def time dim')
 !
-!   define variables: first the axis
+!   define variables: first the axes
 !
+    if ( mens > mens1 ) then
+        if ( lwrite ) print *,'defining ensemble axis'
+        status = nf_def_var(ncid,'ens',nf_float,1,nensdimid,nensvarid)
+        ndims = 2
+        ivars(1) = nensdimid
+        ivars(2) = ntdimid 
+    else
+        ndims = 1
+        ivars(1) = ntdimid
+    end if
+
     if ( lwrite ) print *,'defining time axis'
     status = nf_def_var(ncid,'time',nf_float,1,ntdimid,ntvarid)
     if ( status.ne.nf_noerr ) call handle_err(status,'def time var')
@@ -167,12 +208,12 @@ subroutine writencseries(file,data,npermax,yrbeg,yrend,nperyear, &
 !   next the variable itself
 !
     if ( lwrite ) print *,'define variable'
-    status = nf_def_var(ncid,var,nf_float,1,ntdimid,ivar)
+    status = nf_def_var(ncid,var,nf_float,ndims,ivars,ivar)
     if ( status.ne.nf_noerr ) then ! concatenation does not work in f2c
         write(0,*) 'netCDF error: arguments were '
         write(0,*) 'ncid = ',ncid
         write(0,*) 'vars = ',var
-        write(0,*) 'idim = ',ntdimid
+        write(0,*) 'ndims,ivars = ',ndims,ivars(1:ndims)
         write(0,*) 'ivar = ',ivar
         string = 'def var '//var
         call handle_err(status,trim(string))
@@ -222,6 +263,13 @@ subroutine writencseries(file,data,npermax,yrbeg,yrend,nperyear, &
 !
 !   write axes
 !
+    if ( mens > mens1 ) then
+        do iens=mens1,mens
+            iensaxis(iens-mens1+1) = iens
+        end do
+        status = nf_put_var_int(ncid,nensvarid,iensaxis)
+        if ( status.ne.nf_noerr ) call handle_err(status,'put ens')
+    end if
     call maketimeaxis(nperyear,nt,yr1,itimeaxis,lwrite)
     if ( lwrite ) print *,'put time axis ',itimeaxis(1:nt)
     status = nf_put_var_int(ncid,ntvarid,itimeaxis)
@@ -233,11 +281,13 @@ subroutine writencseries(file,data,npermax,yrbeg,yrend,nperyear, &
     do yr=yr1,yr2
         do mo=1,nperyear
             if ( leap(yr).eq.1 .and. n.eq.366 .and. 1+(mo-1)/nperday.eq.60 ) cycle
-            i = i + 1
-            linear(i) = data(mo,yr)
+            do iens=mens1,mens
+                i = i + 1
+                linear(i) = data(mo,yr,iens)
+            end do
         end do
     end do
-    if ( i.ne.nt ) then
+    if ( i.ne.nt*(mens-mens1+1) ) then
         write(0,*) 'writencseries: error: i != nt: ',i,nt
     end if
     status= nf_put_var_real(ncid,ivar,linear)

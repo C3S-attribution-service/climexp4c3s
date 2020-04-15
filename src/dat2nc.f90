@@ -13,7 +13,7 @@ program dat2nc
     character           :: history*20000,title*200
     logical             :: lwrite,lstandardunits,lexist
     integer,external    :: leap
-    lwrite = .FALSE.
+    lwrite = .false.
 !
 !   read data
 !
@@ -22,16 +22,26 @@ program dat2nc
         stop
     endif
     call get_command_argument(1,file)
-    call get_command_argument(4,ncfile)
-    allocate(data(npermax,yrbeg:yrend,0:nensmax))
     if ( lwrite ) print *,'reading from ',trim(file)
-    lstandardunits = .false.
     ! make sure we do not accidentally read from an old netcdf file :-(
+    i = index(file,'.dat')
+    if ( i /= 0 ) then
+        ncfile = file(:i)//'nc'
+        inquire(file=trim(ncfile),exist=lexist)
+        if ( lexist ) then
+            open(1,file=trim(ncfile))
+            close(1,status='delete')
+        end if
+    end if
+    ! remove output file if it exists
+    call get_command_argument(4,ncfile)
     inquire(file=trim(ncfile),exist=lexist)
     if ( lexist ) then
         open(1,file=trim(ncfile))
         close(1,status='delete')
     end if
+    allocate(data(npermax,yrbeg:yrend,0:nensmax))
+    lstandardunits = .false.
     call readensseriesmeta(file,data,npermax,yrbeg,yrend,nensmax,nperyear,mens1,mens, &
         var,units,lvar,svar,history,metadata,lstandardunits,lwrite)
     if ( var.eq.' ' ) then
@@ -62,7 +72,7 @@ program dat2nc
         call writencseries(ncfile,data,npermax,yrbeg,yrend,nperyear, &
             title,description,comment,metadata,history,var,lvar,units)
     else
-        write(0,*) 'dat2nc: error: writing netcdf ensembles not yet ready'
-        write(*,*) 'dat2nc: error: writing netcdf ensembles not yet ready'
+        call writencensseries(ncfile,data,npermax,yrbeg,yrend,nperyear, &
+            title,description,comment,metadata,history,var,lvar,units,mens1,mens)
     end if
 end program
