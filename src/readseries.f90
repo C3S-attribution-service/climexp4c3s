@@ -41,12 +41,11 @@ subroutine readseriesmeta(infile,data,npermax,yrbeg,yrend,nperyear, &
     character :: lvar*(*),svar*(*),history*(*),metadata(2,100)*(*)
     logical :: lstandardunits,lwrite
     integer :: i,j,k,m,year,month,day,unit,status,ncid,dpm(12), &
-        dpm0(12),imonth,year1,reallynperyear,iarray1(13), &
-        iarray2(13),iret1,iret2
+        dpm0(12),imonth,year1,iarray1(13), &
+        iarray2(13),iret1,iret2,mens1,mens
     logical :: lagain,lexist
     real*8 :: x,y,x1,y1,val12(366)
     character :: file*1023,ncfile*1023,line*10000
-    integer :: getnumwords,monthinline
     save dpm,dpm0
     data dpm0 /31,29,31,30,31,30,31,31,30,31,30,31/
     do i=1,12
@@ -112,75 +111,8 @@ subroutine readseriesmeta(infile,data,npermax,yrbeg,yrend,nperyear, &
         end if
     end if
 !   it is an ascii file.
-    call readseriesheader(var,units,lvar,svar,history,metadata,line,unit,lwrite)
-    if ( line == ' ' ) then
-        nperyear = 0        ! is undefined when there is no data
-        if ( unit /= 5 ) close(unit)
-        return
-    end if
-!   first look for explicit months
-    imonth = monthinline(line)
-    nperyear = getnumwords(line) - 1
-    if ( nperyear == 2 ) then
-!       it is either half-yearly data: yr valOct-March valApr-Sep or monthly data: yr mo val
-        read(line,*) year
-        read(unit,*,end=801) year1
-        if ( year == year1 ) then
-            if ( lwrite ) print *,'monthly data'
-            reallynperyear = 12
-        else
-            if ( lwrite ) print *,'seasonal data'
-            reallynperyear = 2
-        end if
-        backspace(unit)
-    801 continue
-    end if
-    if ( nperyear == 4 ) then
-!       it is either seasonal data: yr valDJF valMAM valJJA valSON
-!       or hourly data: yr mo dy hr val
-        read(line,*) year
-        read(unit,*,end=802) year1
-        if ( year == year1 ) then
-            if ( lwrite ) print *,'monthly data'
-            nperyear = 12
-        else
-            if ( lwrite ) print *,'half-yearly data'
-        end if
-        backspace(unit)
-    802 continue
-    end if
-!   often there is a yearly mean/sum at the end
-    if ( nperyear == 13 ) nperyear = 12
-    if ( nperyear > npermax ) then
-        write(0,*) 'readseries: error: increase npermax ',npermax,nperyear
-        write(*,*) 'readseries: error: increase npermax ',npermax,nperyear
-        call exit(-1)
-    end if
-    if ( lwrite ) print *,'first guess nperyear = ',nperyear
-    if ( imonth > 0 ) then
-        if ( lwrite ) print *,'calling readdymoyrval'
-        call readdymoyrval(data,npermax,yrbeg,yrend,nperyear,line,unit,lwrite)
-    elseif ( nperyear == 1 ) then
-        if ( lwrite ) print *,'calling readyrfracval'
-        call readyrfracval(data,npermax,yrbeg,yrend,nperyear,line,unit,infile,lwrite)
-    elseif ( nperyear == 2 ) then
-        if ( reallynperyear == 2 ) then
-            if ( lwrite ) print *,'calling readyrval'
-            call readyrval(data,npermax,yrbeg,yrend,nperyear,line,unit,lwrite)
-        else
-            if ( lwrite ) print *,'calling readyrmoval'
-            call readyrmoval(data,npermax,yrbeg,yrend,nperyear,line,unit,lwrite)
-        end if
-    elseif ( nperyear == 3 ) then
-        if ( lwrite ) print *,'calling readyrmodyval'
-        call readyrmodyval(data,npermax,yrbeg,yrend,nperyear,line,unit,lwrite)
-    elseif ( nperyear == 366*24 ) then
-        if ( lwrite ) print *,'calling readyrmodyhrval'
-        call readyrmodyhrval(data,npermax,yrbeg,yrend,nperyear,line,unit,lwrite)
-    else
-        if ( lwrite ) print *,'calling readyrval'
-        call readyrval(data,npermax,yrbeg,yrend,nperyear,line,unit,lwrite)
-    end if
+    call readseriesheader(var,units,lvar,svar,history,metadata,line,unit,mens1,lwrite)
+    call readoneseries(unit,infile,line,data,npermax,yrbeg,yrend,nperyear,mens,lwrite)
     if ( unit /= 5 ) then
         if ( lwrite ) print *,'closing unit ',unit
         close(unit)
@@ -193,11 +125,11 @@ subroutine readseriesmeta(infile,data,npermax,yrbeg,yrend,nperyear, &
     call exit(-1)
 end subroutine readseriesmeta
 
-subroutine readseriesheader(var,units,lvar,svar,history,metadata,line,unit,lwrite)
-!       read header, try to find the variable name and the units
-!       it leaves the last (non-header) line read in line
+subroutine readseriesheader(var,units,lvar,svar,history,metadata,line,unit,mens1,lwrite)
+!   read header, try to find the variable name and the units
+!   it leaves the last (non-header) line read in line
     implicit none
-    integer :: unit
+    integer :: unit,mens1
     logical :: lwrite
     character :: var*(*),units*(*),line*(*)
     character :: lvar*(*),svar*(*),history*(*),metadata(2,100)*(*)
@@ -209,9 +141,16 @@ subroutine readseriesheader(var,units,lvar,svar,history,metadata,line,unit,lwrit
     svar = ' '
     history = ' '
     metadata = ' '
+    mens1 = 0
     n = 0
 100 continue
     read(unit,'(a)',err=903,end=900) line
+    if ( line(1:1) == '<' ) then
+        ! probably an HTML error message...
+        write(0,*) 'readseries: error: this looks like an HTML file, not a data file'
+        write(0,*) trim(line)
+        call exit(-1)
+    end if
     if ( lwrite ) print *,'readseriesheader: processing line ',trim(line)
 !   the Mac sometimes gets confused and puts something else before the '#'
     if ( line(1:1) /= '#' .and. line(2:2) /= '#' .and. line /= ' ' .and. &
@@ -294,6 +233,14 @@ subroutine readseriesheader(var,units,lvar,svar,history,metadata,line,unit,lwrit
             print *,'found lvar  =',trim(lvar)
         end if
     end if
+!
+!   ensemble member?
+!
+    j = index(line,'# ensemble member')
+    if ( j /= 0 ) then
+        read(line(j+17:),*) mens1
+    end if
+       
     goto 100
     return
 900 line = ' '
@@ -302,6 +249,91 @@ subroutine readseriesheader(var,units,lvar,svar,history,metadata,line,unit,lwrit
     print *,line
     call exit(-1)
 end subroutine readseriesheader
+
+subroutine readoneseries(unit,infile,line,data,npermax,yrbeg,yrend,nperyear,mens,lwrite)
+!
+!   read one series from unit
+!
+    implicit none
+    integer,intent(in) :: unit,npermax,yrbeg,yrend
+    integer,intent(out) :: nperyear,mens
+    real,intent(out) :: data(npermax,yrbeg:yrend)
+    logical,intent(in) :: lwrite
+    character,intent(inout) :: line*(*)
+    character,intent(in) :: infile
+    integer :: imonth,reallynperyear,year,year1
+    integer,external :: getnumwords,monthinline
+!
+    mens = -1
+    if ( line == ' ' ) then
+        if ( lwrite ) print *,'readoneseries: empty line, no data'
+        nperyear = 0        ! is undefined when there is no data
+        return
+    end if
+!   first look for explicit months
+    imonth = monthinline(line)
+    nperyear = getnumwords(line) - 1
+    if ( nperyear == 2 ) then
+!       it is either half-yearly data: yr valOct-March valApr-Sep or monthly data: yr mo val
+        read(line,*) year
+        read(unit,*,end=801) year1
+        if ( year == year1 ) then
+            if ( lwrite ) print *,'monthly data'
+            reallynperyear = 12
+        else
+            if ( lwrite ) print *,'seasonal data'
+            reallynperyear = 2
+        end if
+        backspace(unit)
+    801 continue
+    end if
+    if ( nperyear == 4 ) then
+!       it is either seasonal data: yr valDJF valMAM valJJA valSON
+!       or hourly data: yr mo dy hr val
+        read(line,*) year
+        read(unit,*,end=802) year1
+        if ( year == year1 ) then
+            if ( lwrite ) print *,'monthly data'
+            nperyear = 12
+        else
+            if ( lwrite ) print *,'half-yearly data'
+        end if
+        backspace(unit)
+    802 continue
+    end if
+!   often there is a yearly mean/sum at the end
+    if ( nperyear == 13 ) nperyear = 12
+    if ( nperyear > npermax ) then
+        write(0,*) 'readseries: error: increase npermax ',npermax,nperyear
+        write(*,*) 'readseries: error: increase npermax ',npermax,nperyear
+        call exit(-1)
+    end if
+    if ( lwrite ) print *,'first guess nperyear = ',nperyear
+    if ( imonth > 0 ) then
+        if ( lwrite ) print *,'calling readdymoyrval'
+        call readdymoyrval(data,npermax,yrbeg,yrend,nperyear,line,unit,mens,lwrite)
+    elseif ( nperyear == 1 ) then
+        if ( lwrite ) print *,'calling readyrfracval'
+        call readyrfracval(data,npermax,yrbeg,yrend,nperyear,line,unit,infile,mens,lwrite)
+    elseif ( nperyear == 2 ) then
+        if ( reallynperyear == 2 ) then
+            if ( lwrite ) print *,'calling readyrval'
+            call readyrval(data,npermax,yrbeg,yrend,nperyear,line,unit,mens,lwrite)
+        else
+            if ( lwrite ) print *,'calling readyrmoval'
+            call readyrmoval(data,npermax,yrbeg,yrend,nperyear,line,unit,mens,lwrite)
+        end if
+    elseif ( nperyear == 3 ) then
+        if ( lwrite ) print *,'calling readyrmodyval'
+        call readyrmodyval(data,npermax,yrbeg,yrend,nperyear,line,unit,mens,lwrite)
+    elseif ( nperyear == 366*24 ) then
+        if ( lwrite ) print *,'calling readyrmodyhrval'
+        call readyrmodyhrval(data,npermax,yrbeg,yrend,nperyear,line,unit,mens,lwrite)
+    else
+        if ( lwrite ) print *,'calling readyrval'
+        call readyrval(data,npermax,yrbeg,yrend,nperyear,line,unit,mens,lwrite)
+    end if
+end subroutine readoneseries
 
 logical function onlynumbers(line)
     implicit none
@@ -359,26 +391,24 @@ logical function onlynumbers(line)
     monthinline = imonth
 end function monthinline
 
-subroutine readdymoyrval(data,npermax,yrbeg,yrend,nperyear,line &
-    ,unit,lwrite)
+subroutine readdymoyrval(data,npermax,yrbeg,yrend,nperyear,line,unit,mens,lwrite)
 
 !       format is NN-MON-YYYY, possibly with the dashes.
 !       Assume daily data in a Gregorian calendar
 !       TODO: other calendars, other nperyears.
 
     implicit none
-    integer :: npermax,yrbeg,yrend,nperyear,unit
+    integer :: npermax,yrbeg,yrend,nperyear,unit,mens
     real :: data(npermax,yrbeg:yrend)
     logical :: lwrite
     character line*(*)
-    integer :: imonth,j,m,day,month,year,dpm(12),dpm0(12)
+    integer :: imonth,i,j,m,day,month,year,dpm(12),dpm0(12)
     real*8 :: val
-    integer :: monthinline
+    integer,external :: monthinline
     save dpm,dpm0
     data dpm0 /31,29,31,30,31,30,31,31,30,31,30,31/
-
-    if ( lwrite ) print *,'readdymoyrval: reading data as '// &
-    'dd-mon-yyyy or ddmonyyyy'
+!
+    if ( lwrite ) print *,'readdymoyrval: reading data as dd-mon-yyyy or ddmonyyyy'
     do month=1,12
         dpm(month) = dpm0(month)
     end do
@@ -386,15 +416,13 @@ subroutine readdymoyrval(data,npermax,yrbeg,yrend,nperyear,line &
  10 continue
     imonth = monthinline(line)
     if ( imonth <= 0 ) then
-        write(0,'(a,i3,a)') &
-        'readseries: cannot recognize month in ',imonth &
-        ,line(imonth:imonth+2)
+        write(0,'(a,i3,a)') 'readseries: cannot recognize month in ',imonth &
+            ,line(imonth:imonth+2)
         write(0,'(a)') trim(line)
         goto 20
     end if
-    month = (index &
-    ('jan feb mar apr may jun jul aug sep oct nov dec' &
-    ,line(imonth:imonth+2)) + 3)/4
+    month = (index('jan feb mar apr may jun jul aug sep oct nov dec' &
+        ,line(imonth:imonth+2)) + 3)/4
     j = imonth-1
     if ( line(j:j) == '-' ) j = j-1
     if ( j-1 <= 0 ) goto 11
@@ -402,8 +430,7 @@ subroutine readdymoyrval(data,npermax,yrbeg,yrend,nperyear,line &
     if ( day < 1 .or. day > dpm(month) ) goto 11
     goto 12
  11 continue
-    write(0,'(a,i8,a,i3,a)') 'readseries: strange day ',day &
-    ,' in ',j,line(j-1:j)
+    write(0,'(a,i8,a,i3,a)') 'readseries: strange day ',day,' in ',j,line(j-1:j)
     write(0,'(a)') trim(line)
     goto 20
  12 continue
@@ -426,6 +453,11 @@ subroutine readdymoyrval(data,npermax,yrbeg,yrend,nperyear,line &
  20 continue
  30 continue
     read(unit,'(a)',err=904,end=1800) line
+    i = index(line,'# ensemble member')
+    if ( i /= 0 ) then
+        read(line(i+17:),*) mens
+        return
+    end if
     if ( line == ' ' .or. index(line(1:2),'#') /= 0 ) goto 30
     call tolower(line)
     goto 10
@@ -437,16 +469,16 @@ subroutine readdymoyrval(data,npermax,yrbeg,yrend,nperyear,line &
     call exit(-1)
 end subroutine readdymoyrval
 
-subroutine readyrval(data,npermax,yrbeg,yrend,nperyear,line,unit,lwrite)
+subroutine readyrval(data,npermax,yrbeg,yrend,nperyear,line,unit,mens,lwrite)
 
 !       format is year val(1) val(2) ...val(nperyear) (nperyear >= 4)
 
     implicit none
-    integer :: npermax,yrbeg,yrend,nperyear,unit
+    integer :: npermax,yrbeg,yrend,nperyear,unit,mens
     real :: data(npermax,yrbeg:yrend)
     logical :: lwrite
     character line*(*)
-    integer :: year,j
+    integer :: year,i,j
     real*8,allocatable :: val12(:)
     logical :: lfirst
     save lfirst
@@ -475,6 +507,11 @@ subroutine readyrval(data,npermax,yrbeg,yrend,nperyear,line,unit,lwrite)
     end if
 200 continue
     read(unit,'(a)',err=300,end=300) line
+    i = index(line,'# ensemble member')
+    if ( i /= 0 ) then
+        read(line(i+17:),*) mens
+        return
+    end if
     if ( line == ' ' .or. line(1:1) == '#' .or. line(2:2) == '#' .or. &
          index(line,'error') > 0 ) then
         goto 200
@@ -490,13 +527,13 @@ subroutine readyrval(data,npermax,yrbeg,yrend,nperyear,line,unit,lwrite)
     call exit(-1)
 end subroutine readyrval
 
-subroutine readyrfracval(data,npermax,yrbeg,yrend,nperyear,line,unit,infile,lwrite)
+subroutine readyrfracval(data,npermax,yrbeg,yrend,nperyear,line,unit,infile,mens,lwrite)
 
 !   format is year.frac value or yyyy[mm[dd[hh]]] value
 !   Figure out nperyear from the data...
 
     implicit none
-    integer :: npermax,yrbeg,yrend,nperyear,unit
+    integer :: npermax,yrbeg,yrend,nperyear,unit,mens
     real :: data(npermax,yrbeg:yrend)
     logical :: lwrite
     character line*(*),infile*(*)
@@ -552,6 +589,11 @@ subroutine readyrfracval(data,npermax,yrbeg,yrend,nperyear,line,unit,infile,lwri
         if ( lwrite ) print *,'invalid data, try again'
    4015 continue
         read(unit,'(a)',err=904,end=1800) line
+        i = index(line,'# ensemble member')
+        if ( i /= 0 ) then
+            read(line(i+17:),*) mens
+            return
+        end if
         if ( .not. onlynumbers(line) ) then
             if ( lwrite ) print *,'found line with non-numbers ',trim(line)
             goto 4015
@@ -565,6 +607,11 @@ subroutine readyrfracval(data,npermax,yrbeg,yrend,nperyear,line,unit,infile,lwri
 405 continue
     read(unit,'(a)',err=904,end=500) line
     if ( lwrite ) print *,'read line ',trim(line)
+    i = index(line,'# ensemble member')
+    if ( i /= 0 ) then
+        read(line(i+17:),*) mens
+        return
+    end if
     if ( .not. onlynumbers(line) ) then
         if ( lwrite ) print *,'Found non-numbers in ',trim(line)
         goto 405
@@ -670,6 +717,11 @@ subroutine readyrfracval(data,npermax,yrbeg,yrend,nperyear,line,unit,infile,lwri
     hour = hour1
 460 continue
     read(unit,'(a)',err=904,end=500) line
+    i = index(line,'# ensemble member')
+    if ( i /= 0 ) then
+        read(line(i+17:),*) mens
+        return
+    end if
     if ( .not. onlynumbers(line) ) goto 460
     if ( lfrac ) then
         read(line,*,err=904,end=500) x1,y1
@@ -729,6 +781,11 @@ subroutine readyrfracval(data,npermax,yrbeg,yrend,nperyear,line,unit,infile,lwri
         rewind(unit)
     480 continue
         read(unit,'(a)') line
+        i = index(line,'# ensemble member')
+        if ( i /= 0 ) then
+            read(line(i+17:),*) mens
+            return
+        end if
         if ( .not. onlynumbers(line) ) goto 480
         if ( lwrite ) print *,'restarting with line = ',trim(line)
         goto 401
@@ -751,18 +808,17 @@ subroutine readyrfracval(data,npermax,yrbeg,yrend,nperyear,line,unit,infile,lwri
     call exit(-1)
 end subroutine readyrfracval
 
-subroutine readyrmoval(data,npermax,yrbeg,yrend,nperyear,line,unit,lwrite)
+subroutine readyrmoval(data,npermax,yrbeg,yrend,nperyear,line,unit,mens,lwrite)
 
-!       format is year mon value
-!       !!!Figure out nperyear from the data...
-!       nperyear is set to 12 always
+!   format is year mon value
+!   nperyear is set to 12 always
 
     implicit none
-    integer :: npermax,yrbeg,yrend,nperyear,unit
+    integer :: npermax,yrbeg,yrend,nperyear,unit,mens
     real :: data(npermax,yrbeg:yrend)
     logical :: lwrite
     character line*(*)
-    integer :: year,j
+    integer :: year,i,j
     real*8 :: y
     logical :: lfirst
     save lfirst
@@ -785,7 +841,13 @@ subroutine readyrmoval(data,npermax,yrbeg,yrend,nperyear,line,unit,lwrite)
     !**         print *,'!! data(',j,year,') = ',y
         data(j,year) = y
     end if
-    read(unit,*,err=904,end=700) year,j,y
+    read(unit,'(a)',err=904,end=700) line
+    i = index(line,'# ensemble member')
+    if ( i /= 0 ) then
+        read(line(i+17:),*) mens
+        return
+    end if
+    read(line,*,err=904,end=700) year,j,y
     goto 600
 700 continue
     return
@@ -795,12 +857,12 @@ subroutine readyrmoval(data,npermax,yrbeg,yrend,nperyear,line,unit,lwrite)
     call exit(-1)
 end subroutine readyrmoval
 
-subroutine readyrmodyval(data,npermax,yrbeg,yrend,nperyear,line,unit,lwrite)
+subroutine readyrmodyval(data,npermax,yrbeg,yrend,nperyear,line,unit,mens,lwrite)
 
-!       format is year mon day value
+!   format is year mon day value
 
     implicit none
-    integer :: npermax,yrbeg,yrend,nperyear,unit
+    integer :: npermax,yrbeg,yrend,nperyear,unit,mens
     real :: data(npermax,yrbeg:yrend)
     logical :: lwrite
     character line*(*)
@@ -812,7 +874,7 @@ subroutine readyrmodyval(data,npermax,yrbeg,yrend,nperyear,line,unit,lwrite)
     data dpm0 /31,29,31,30,31,30,31,31,30,31,30,31/
     data lfirst / .true. /
 
-    if ( lwrite ) print *,'readyrmoval: reading data as yyyy mm dd val'
+    if ( lwrite ) print *,'readyrmodyval: reading data as yyyy mm dd val'
     do month=1,12
         dpm(month) = dpm0(month)
     end do
@@ -866,6 +928,11 @@ subroutine readyrmodyval(data,npermax,yrbeg,yrend,nperyear,line,unit,lwrite)
 8990 continue
     read(unit,'(a)',err=906,end=900) line
     if ( lwrite ) print *,'read from unit ',unit,' line ',trim(line)
+    i = index(line,'# ensemble member')
+    if ( i /= 0 ) then
+        read(line(i+17:),*) mens
+        return
+    end if
     if ( line(1:1) == '#' .or. line == ' ' ) goto 8990
     if ( getnumwords(line) < 4 ) goto 8990
     read(line,*,err=915,end=900) year,month,day,y
@@ -886,12 +953,12 @@ subroutine readyrmodyval(data,npermax,yrbeg,yrend,nperyear,line,unit,lwrite)
     call exit(-1)
 end subroutine readyrmodyval
 
-subroutine readyrmodyhrval(data,npermax,yrbeg,yrend,nperyear,line,unit,lwrite)
+subroutine readyrmodyhrval(data,npermax,yrbeg,yrend,nperyear,line,unit,mens,lwrite)
 
 !       format is year mon day hour value
 
     implicit none
-    integer :: npermax,yrbeg,yrend,nperyear,unit
+    integer :: npermax,yrbeg,yrend,nperyear,unit,mens
     real :: data(npermax,yrbeg:yrend)
     logical :: lwrite
     character line*(*)
@@ -902,8 +969,7 @@ subroutine readyrmodyhrval(data,npermax,yrbeg,yrend,nperyear,line,unit,lwrite)
     data dpm0 /31,29,31,30,31,30,31,31,30,31,30,31/
     data lfirst / .true. /
 
-    if ( lwrite ) print *,'readyrmoval: reading data as '// &
-    'yyyy mm dd hh val'
+    if ( lwrite ) print *,'readyrmodyhrval: reading data as yyyy mm dd hh val'
     do month=1,12
         dpm(month) = dpm0(month)
     end do
@@ -951,7 +1017,13 @@ subroutine readyrmodyhrval(data,npermax,yrbeg,yrend,nperyear,line,unit,lwrite)
         data(j,year) = y
     end if
 899 continue
-    read(unit,*,err=905,end=900) year,month,day,hour,y
+    read(unit,'(a)',err=905,end=900) line
+    i = index(line,'# ensemble member')
+    if ( i /= 0 ) then
+        read(line(i+17:),*) mens
+        return
+    end if
+    read(line,*,err=905,end=900) year,month,day,hour,y
     goto 800
 900 continue
     return
@@ -1219,17 +1291,16 @@ subroutine checkvalid(year,mon,val)
     real*8 :: val
     real :: v
     integer :: year,mon
-    logical :: lwrite
-    parameter (lwrite = .false. )
+    logical,parameter :: lwrite=.false.
 
     v = val
     if ( lwrite) print *,'checkvalid: val = ',v,year,mon
     if ( v > 1e28 .or. v == -999.9 .or. v == -999.8 .or. &
-    v == -999 .or. v == -999.99 .or. v == -9999 .or. &
-    v == -888.8 ) then
+        v == -999 .or. v == -999.99 .or. v == -9999 .or. &
+        v == -888.8 ) then
         if ( v < 1e33 .and. v > -999 .and. v /= -888.8 ) &
-        write(0,'(a,2i5,g20.4)')'# disregarding data point', &
-        year,mon,v
+            write(0,'(a,2i5,g20.4)')'# disregarding data point', &
+            year,mon,v
         val = 3e33
         if ( lwrite) print *,'checkvalid: val invalid '
     end if

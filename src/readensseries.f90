@@ -25,9 +25,9 @@ subroutine readensseriesmeta(file,data,npermax,yrbeg,yrend,nensmax &
     logical :: lstandardunits,lwrite
     character :: file*(*),var*(*),units*(*)
     character ::  lvar*(*),svar*(*),history*(*),metadata(2,100)*(*)
-    integer :: i,iens,status,ncid
+    integer :: i,m,iens,status,ncid,unit
     logical :: lexist,lfirst
-    character :: ensfile*1023,line*10,saveunits*100
+    character :: ensfile*1023,line*1023,saveunits*100
 
     if ( lwrite ) then
         print *,'readensseries: file = ',trim(file)
@@ -38,14 +38,39 @@ subroutine readensseriesmeta(file,data,npermax,yrbeg,yrend,nensmax &
 !   ensemble dimension is in the netcdf file (no other formats are supported)
 
     if ( index(file,'@@') /= 0 ) then
-        ! it is a netcdf file with an ensemble dimension
+        ! it is a file with an ensemble dimension
         i = index(file,'.dat')
         if ( i > 0 ) then
             file(i:) = '.nc'
         end if
-        if ( lwrite ) print *,'calling readncseriesensmeta'
-        call readncseriesensmeta(file,data,npermax,nperyear,yrbeg,yrend,nensmax,mens1,mens &
-            ,ncid,var,units,lvar,svar,history,metadata,lwrite)
+        inquire(file=trim(file),exist=lexist)
+        if ( lexist ) then ! netcdf file
+            if ( lwrite ) print *,'calling readncseriesensmeta ',trim(file)
+            call readncseriesensmeta(file,data,npermax,nperyear,yrbeg,yrend,nensmax,mens1,mens &
+                ,ncid,var,units,lvar,svar,history,metadata,lwrite)
+        else ! only an ascii file
+            call rsunit(unit)
+            file(i:) = '.dat'
+            if ( lwrite ) print *,'readensseriesmeta: opening ',trim(file), &
+                ' as ascii file on unit ',unit
+            open(unit,file=trim(file),status='old',err=902)
+            call readseriesheader(var,units,lvar,svar,history,metadata,line,unit,mens1,lwrite)
+            if ( lwrite) print *,'readensseriesmeta: read metadata, mens1 = ',mens1
+            m = mens1
+            data = 3e33
+            do while ( m >= 0 )
+                ! reads one ensemble member and returns the number of the next one
+                call readoneseries(unit,file,line,data(1,yrbeg,mens),npermax,yrbeg,yrend,nperyear,m,lwrite)
+                ! make sure line contains teh next numerical data
+            101 continue
+                if ( line == ' ' .or. line(1:1) == '#' .or. line(2:2) == '#' ) then
+                    read(unit,'(a)') line
+                    goto 101
+                end if
+                if ( lwrite) print *,'readensseriesmeta: read ensemble member ',mens,', next one is ',m
+                if ( m >= 0 ) mens = m
+            end do 
+        end if 
         if ( lstandardunits ) then
             saveunits = units
             do iens=mens1,mens
@@ -105,4 +130,7 @@ subroutine readensseriesmeta(file,data,npermax,yrbeg,yrend,nensmax &
             end if
         end do
     end if
+    return
+902 print *,'readensseries: error opening ',trim(file)
+    call exit(-1)
 end subroutine readensseriesmeta
