@@ -325,7 +325,8 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
             call fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens & 
                 ,crosscorr,a,b,alpha,beta,j1,j2,nblockyr,nblockens,nens1,nens2 &
                 ,lweb,ntype,lchangesign,yr1a,yr2a,yr2b,xyear,idmax,cov1,cov2,cov3,offset &
-                ,t,tx,assume,confidenceinterval,ndecor,.false.,.false.,.false.,.false.,lwrite)
+                ,t,tx,assume,confidenceinterval,biasrt/(nblockyr*nblockens) &
+                ,ndecor,.false.,.false.,.false.,.false.,lwrite)
             ! now compute xyear one based on biasrt in the current climate (cov2)
             if ( xi(1) /= 0 ) write(0,*) 'attribute_dist: error: xi /= in Gumbel fit ',xi
             xyear = gevcovreturnlevel(a,b,xi,alpha,beta,log10(biasrt/(nblockyr*nblockens)),cov2)
