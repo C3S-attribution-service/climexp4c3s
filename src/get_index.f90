@@ -512,6 +512,11 @@ program get_index
         enddo
         print '(a,i8,a)','found ',npoints,' grid points'
         print '(a)','========='
+        if ( npoints > 1000 ) then
+            write(0,*) 'get_index: error: it makes no sense to generate more than 1000 grid points'
+            write(*,*) 'get_index: error: it makes no sense to generate more than 1000 grid points'
+            call exit(-1)
+        end if
     endif
 
 !   loop over all points
