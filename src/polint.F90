@@ -43,7 +43,11 @@ subroutine polint(xx,yy,n,x,y,erry)
     faccel = fgsl_interp_accel_alloc()
     name = fgsl_interp_name(finterp)
     if ( lwrite ) print *,'polint: using ',trim(name)
+#ifdef FGSL1
+    status = fgsl_interp_init(finterp,dxx,dyy,1_fgsl_size_t)
+#else
     status = fgsl_interp_init(finterp,dxx,dyy)
+#endif
     dy = fgsl_interp_eval(finterp,dxx,dyy,dx,faccel)
     derry = 3e33 ! not yet used in the calling routine
     call fgsl_interp_free(finterp)

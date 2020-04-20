@@ -1,6 +1,9 @@
-.SUFFIXES: .f90 .o
+.SUFFIXES: .f90 .F90 .o
 
 .f90.o:
+	$(FC) $(FFLAGS)	 -c $<
+
+.F90.o:
 	$(FC) $(FFLAGS)	 -c $<
 
 CPPFLAGS = -I/sw/include -I/usr/local/free/include
