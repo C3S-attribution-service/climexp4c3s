@@ -37,6 +37,8 @@ program runningmoments
     else if ( string(1:2) == 'sd' .or. string(1:4) == 's.d.' .or. &
               string(1:3) == 'momentvar' .or. string(1:1) == '2' ) then
         imom = 2
+    else if ( string(1:4) == 'disp' .or. string(1:3) == 's/m' .or. string(1:1) == '-2' ) then
+        imom = -2
     else if ( string(1:3) == 'ske' .or. string(1:1) == '3' ) then
         imom = 3
     else if ( string(1:4) == 'curt' .or. string(1:1) == '4' ) then
@@ -158,6 +160,8 @@ program runningmoments
         momentvar = 'mean'
     else if ( imom == 2 ) then
         momentvar = 's.d.'
+    else if ( imom == -2 ) then
+        momentvar = 'sd/m'
     else if ( imom == 3 ) then
         momentvar = 'skew'
     else if ( imom == 4 ) then
