@@ -33,6 +33,7 @@ subroutine readsetseriesmeta(data,ids,npermax,yrbeg,yrend,nensmax, &
                  line*255,number*20,string*255,command*1023
     integer,external :: getfiletime
 
+    lwrite = .false.
     call get_command_argument(3,prog)
     if ( (prog(1:3) /= 'get' .and. prog(1:3) /= 'eca' .and. &
          prog(1:4) /= 'beca' .and. prog(1:4) /= 'gdcn' .and. &
