@@ -16,7 +16,7 @@ program select_min_years
     call get_command_argument(2,string)
     if ( string == ' ' ) then
         write(0,*) 'usage: select_min_years inlist minyrs [elevmin N] [elevmax M] '// &
-            '[lon{12} degrees] [lat{12} degrees] [mask maksfile]'
+            '[lon{12} degrees] [lat{12} degrees] [mask maskfile]'
         call exit(-1)
     end if
     read(string,*) minyrs
@@ -32,7 +32,7 @@ program select_min_years
         call get_command_argument(i,string)
         call get_command_argument(i+1,value)
         if ( value == ' ' ) exit
-        write(0,*) 'string,value = ',trim(string),',',trim(value)
+        !!!write(0,*) 'string,value = ',trim(string),',',trim(value)
         if ( string == 'mask' ) then
             maskfile = value
             cycle
