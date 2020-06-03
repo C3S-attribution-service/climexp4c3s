@@ -305,6 +305,7 @@ PROGRAMS	  = proccgi \
 		attribute \
 		attributefield \
 		selectyear \
+		selectdate \
 		filtermonthseries \
 		filteryearseries \
 		filteryearfield \
@@ -520,6 +521,9 @@ climatology:	climatology.o $(LIBRARY)
 
 selectyear: selectyear.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ selectyear.o $(LIBRARY) $(LIBS)
+
+selectdate: selectdate.o $(LIBRARY)
+		$(LD) $(FFLAGS) -o $@ selectdate.o $(LIBRARY) $(LIBS)
 
 filtermonthseries:	filtermonthseries.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ filtermonthseries.o $(LIBRARY) $(LIBS)
