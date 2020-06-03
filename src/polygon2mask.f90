@@ -67,7 +67,7 @@ program polygon2mask
         if ( pole /= 'sp' ) pole='np'
         do iarg=3,command_argument_count()-1
             call get_command_argument(iarg,string)
-            if ( string(1:6) == 'lsmask' ) then
+            if ( string(1:7) == 'lsmask ' ) then
                 j = iarg ! getlsmask overwrites its first argument :-(
                 call getlsmask(j,lsmasktype,nxmax,xxls,nymax,yyls,lwrite)
                 if ( lsmasktype /= 'all' ) call checkgridequal(nx,ny,xx,yy,nxls,nyls,xxls,yyls)
