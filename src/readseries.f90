@@ -634,7 +634,7 @@ subroutine readyrfracval(data,npermax,yrbeg,yrend,nperyear,line,unit,infile,mens
         goto 402
     end if
     if ( lfrac ) then
-        nperyear = max(nperyear,nint(i/(x1-x)))
+        nperyear = max(nperyear,nint(1/(x1-x)))
     else
         jul = julday(month,day,year)
         jul1 = julday(month1,day1,year1)
