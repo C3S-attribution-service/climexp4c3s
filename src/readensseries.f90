@@ -61,12 +61,16 @@ subroutine readensseriesmeta(file,data,npermax,yrbeg,yrend,nensmax &
             do while ( m >= 0 )
                 ! reads one ensemble member and returns the number of the next one
                 call readoneseries(unit,file,line,data(1,yrbeg,mens),npermax,yrbeg,yrend,nperyear,m,lwrite)
-                ! make sure line contains teh next numerical data
+                ! make sure line contains the next numerical data
             101 continue
                 if ( line == ' ' .or. line(1:1) == '#' .or. line(2:2) == '#' ) then
-                    read(unit,'(a)') line
+                    read(unit,'(a)',err=102,end=102) line
                     goto 101
                 end if
+                go to 103
+            102 continue
+                m = -1
+            103 continue
                 if ( lwrite) print *,'readensseriesmeta: read ensemble member ',mens,', next one is ',m
                 if ( m >= 0 ) mens = m
             end do 
