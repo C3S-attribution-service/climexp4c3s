@@ -34,7 +34,7 @@ program eof
         history*50000,ltime*120,lz(3)*20,svars(neofmax)*80, &
         metadata(2,100)*2000,FORM_field*250
     logical :: lexist,xrev,yrev,xwrap,compute_work_sizes
-    integer :: getpid,putenv,system
+    integer :: getpid,putenv
     real*4 :: etime
 
     lwrite = .false. 
@@ -575,9 +575,10 @@ program eof
         if ( lweb ) then
             s = b*real(nxy)**3/30 ! half minutes
             write(string,'(i19)') getpid()
-            write(line,'(2a,i3,3a)') dir(1:len_trim(dir)) &
+            write(line,'(2a,i10,3a)') dir(1:len_trim(dir)) &
                 ,'./stillcomputing.cgi ',nint(s),' ', &
                 trim(string),'&'
+            !!!write(0,*) '@@@',trim(line),'<p>'
             call mysystem(line,retval)
             if ( retval /= 0 ) then
                 write(0,*) 'eof: error: ',trim(line),' failed: ',retval
