@@ -6,7 +6,7 @@
 .F90.o:
 	$(FC) $(FFLAGS)	 -c $<
 
-CPPFLAGS = -I/sw/include -I/usr/local/free/include
+CPPFLAGS = -I/usr/local/include -I/usr/local/free/include
 
 VPATH		  = ../src
 
@@ -57,11 +57,10 @@ WRAPPERS = amoeba.o \
 		pearsnxx.o \
 		pearsncross.o \
 		period.o \
-		polint.o \
 		sort.o \
 		spear.o \
-		svdfit.o
-
+		svdfit.o \
+		polint.o
 
 OBJS =	makeabsent.o \
 		operations.o \
@@ -793,16 +792,16 @@ rocmap:		rocmap.o $(LIBRARY)
 		$(LD) $(FFLAGS) -o $@ $@.o $(LIBS)
 
 ROCscoremap:	ROCscoremap.o
-		$(CC) $(CFLAGS) -o $@ $@.o -L/opt/sw/lib -L/usr/local/free/lib -lnetcdf
+		$(CC) $(CFLAGS) -o $@ $@.o -L/usr/local/lib -L/usr/local/free/lib -lnetcdf
 
 rocdeb: rocdeb.o
-		$(CC) $(CFLAGS) -o $@ $@.o -L/opt/sw/lib -L/usr/local/free/lib -lnetcdf
+		$(CC) $(CFLAGS) -o $@ $@.o -L/usr/local/lib -L/usr/local/free/lib -lnetcdf
 
 RPS:		RPS.o
-		$(CC) $(CFLAGS) -o $@ $@.o -L/opt/sw/lib -L/usr/local/free/lib -lnetcdf
+		$(CC) $(CFLAGS) -o $@ $@.o -L/usr/local/lib -L/usr/local/free/lib -lnetcdf
 
 Briar:		Briar.o
-		$(CC) $(CFLAGS) -o $@ $@.o -L/opt/sw/lib -L/usr/local/free/lib -lnetcdf
+		$(CC) $(CFLAGS) -o $@ $@.o -L/usr/local/lib -L/usr/local/free/lib -lnetcdf
 
 # rkillfile.so:	rkillfile.f
 # 		R CMD SHLIB ../rkillfile.f

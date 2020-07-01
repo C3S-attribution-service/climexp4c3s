@@ -6,7 +6,7 @@ CC = gcc-4
 
 LD = $(FC) -L/sw/lib -llapack -lcblas -lf77blas -latlas
 # -Wl,-framework -Wl,vecLib does not work with 64-bit gfortran
-SYSLIBS = -L/sw/opt/netcdf7/lib -L/sw/lib -lnetcdff -lnetcdf
+SYSLIBS = -lnetcdff -lnetcdf
 
 RANLIB = ranlib
 
