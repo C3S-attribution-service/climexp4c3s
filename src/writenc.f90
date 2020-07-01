@@ -102,7 +102,7 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
         print *,'file = ',trim(file)
         print *,'nx,xx = ',nx,(xx(i),i=1,nx)
         print *,'ny,yy = ',ny,(yy(i),i=1,ny)
-        print *,'nz,zz = ',nz,(zz(i),i=1,nz)
+        print *,'nz,zz = ',nz,(zz(i),i=1,nz),lz
         print *,'nt,nperyear,yrbegin,mobegin = ',nt,nperyear,yrbegin,mobegin
         print *,'undef = ',undef
         print *,'title = ',trim(title)
@@ -112,6 +112,11 @@ subroutine enswritenc(file,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
         enddo
         print *,'nens1,nens2 = ',nens1,nens2
     endif
+    if ( lz(1) == 'Pa' ) then
+        if ( lwrite ) print *,'converting from Pa to mb to avoid bugs in GrADS'
+        lz(1) = 'hPa'
+        zz = zz/100
+    end if
 
 !   open file, overwriting old file if it exists
 
