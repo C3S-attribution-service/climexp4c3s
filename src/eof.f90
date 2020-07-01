@@ -461,12 +461,12 @@ program eof
         datfile = outfile(:k-1)//'.grd'
         open(2,file=datfile,form='unformatted',access='direct' &
             ,recl=recfa4*nx*ny,err=920)
-        nrec = 0
         ncid = 0
         call args2title(title)
         call writectl(outfile,datfile,nx,xx,ny,yy,1,zz,1+(m2-m1) &
             ,nperyear,i,j,3e33,title,neigen,vars,ivars,lvars,units)
     else
+        nrec = 0
         undef = 3e33
         call enswritenc(outfile,ncid,ntvarid,itimeaxis,ntmax,nx,xx,ny &
             ,yy,nz,zz,lz,1+(m2-m1),nperyear,i,j,ltime,undef,title &
@@ -553,7 +553,7 @@ program eof
 !       compute eigenvectors - LAPACK routine, see manpage.
     
         dum = 0
-    eps = 1e-3
+        eps = 1e-3
         write(0,'(a,i8,a,f8.2,a)')'Computing eigenvalues, nxy= ' &
             ,nxy,', time: ',etime(tarray),'<p>'
         i = lwork
@@ -578,7 +578,7 @@ program eof
             write(line,'(2a,i10,3a)') dir(1:len_trim(dir)) &
                 ,'./stillcomputing.cgi ',nint(s),' ', &
                 trim(string),'&'
-            !!!write(0,*) '@@@',trim(line),'<p>'
+            !!!write(0,*) 'calling system with ',trim(line),'<p>'
             call mysystem(line,retval)
             if ( retval /= 0 ) then
                 write(0,*) 'eof: error: ',trim(line),' failed: ',retval
@@ -695,7 +695,7 @@ program eof
                     eofxy(1,1,i),nxf,nyf,nz,nx,ny,nz,nrec,1)
             end do
         end if
-    end do
+    end do ! month
     if ( ncid /= 0 ) status = nf_close(ncid)
 
 !   write out time series
