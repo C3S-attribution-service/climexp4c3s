@@ -577,5 +577,13 @@ subroutine printsynline(yr1,yr2,data,colour,name)
     real,intent(in) :: data(5)
     character,intent(in) :: name*(*)
     integer :: j
-    print '(2i5,5g12.3,i3,4a)',yr1,yr2,(data(j),j=1,5),colour,' "',trim(name),'"'
+    character :: name_*100
+
+    name_ = name
+    do j=1,len_trim(name_)
+        if ( name_(j:j) == '_' ) then
+            name_(j:j) = ' '
+        end if
+    end do
+    print '(2i5,5g12.3,i3,4a)',yr1,yr2,(data(j),j=1,5),colour,' "',trim(name_),'"'
 end subroutine
