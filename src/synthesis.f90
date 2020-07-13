@@ -31,7 +31,7 @@ program synthesis
         sig_obs,sig_mod,chi2,f,ci(nmax),cc,w1,w2
     logical :: lnoave,lweighted,llog,lperc,lflip,printit,lwrite
     character :: file*1024,line*128,home*1024,reffile*1024,names(nmax)*40
-    real,external :: syn_func
+    real,external :: syn_func,safe_exp,safe_perc
 
     integer :: syn_n,syn_nobs
     real :: syn_data(5,1000)
@@ -390,13 +390,13 @@ program synthesis
     if ( llog ) then
         do i=1,n
             do j=1,5
-                data(j,i) = exp(data(j,i))
+                data(j,i) = safe_exp(data(j,i))
             end do
         end do
         do j=1,5
-            if ( nobs > 0 ) obs(j) = exp(obs(j))
-            mod(j) = exp(mod(j))
-            if ( nobs > 0 ) syn(j) = exp(syn(j))
+            if ( nobs > 0 ) obs(j) = safe_exp(obs(j))
+            mod(j) = safe_exp(mod(j))
+            if ( nobs > 0 ) syn(j) = safe_exp(syn(j))
         end do
     end if
     if ( lperc ) then
@@ -406,9 +406,9 @@ program synthesis
             end do
         end do
         do j=1,5
-            if ( nobs > 0 ) obs(j) = 100*(-1+exp(obs(j)))
-            mod(j) = 100*(-1+exp(mod(j)))
-            if ( nobs > 0 ) syn(j) = 100*(-1+exp(syn(j)))
+            if ( nobs > 0 ) obs(j) = safe_perc(obs(j))
+            mod(j) = safe_perc(mod(j))
+            if ( nobs > 0 ) syn(j) = safe_perc(syn(j))
         end do
     end if
 !
@@ -586,4 +586,24 @@ subroutine printsynline(yr1,yr2,data,colour,name)
         end if
     end do
     print '(2i5,5g12.3,i3,4a)',yr1,yr2,(data(j),j=1,5),colour,' "',trim(name_),'"'
-end subroutine
+end subroutine printsynline
+
+real function safe_exp(x)
+    implicit none
+    real,intent(in) :: x
+    if ( x < 46.05 ) then
+        safe_exp = exp(x)
+    else
+        safe_exp = 1e20 ! infinite
+    end if
+end function safe_exp
+
+real function safe_perc(x)
+    implicit none
+    real,intent(in) :: x
+    if ( x < 46.05 ) then
+        safe_perc = 100*(-1+exp(x))
+    else
+        safe_perc = 1e20 ! infinite
+    end if
+end function safe_perc
