@@ -16,7 +16,7 @@ program attribute
     character :: seriesfile*1024,covariatefile*1024,distribution*6,assume*5,string*80,seriesids(0:mensmax)*30
     character :: var*40,units*80,lvar*120,svar*120,history*50000,metadata(2,100)*1000
     character :: var1*40,units1*80,lvar1*120,svar1*120,history1*50000,metadata1(2,100)*1000
-    logical :: lprint,lfirst
+    logical :: lprint,lfirst,lopen
     real scalingpower
     common /c_scalingpower/ scalingpower
 
@@ -186,7 +186,16 @@ program attribute
             xyear = -xyear
         end if
     endif
-
+    inquire(unit=16,opened=lopen)
+    if ( lopen ) then
+        if ( assume == 'scale' ) then
+            call printvar(16,'residuals','1','relative residuals of GEV fit')
+        else
+            call printvar(16,trim(var)//'_residuals',units,'residuals of '//trim(distribution)// &
+                ' fit to '//trim(lvar))
+        end if
+        call printmetadata(16,' ',' ',' ',history,metadata)
+    end if
     lprint = .true.
     if ( lwrite ) print *,'attribute: calling attribute_dist'
     call attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yrend, &

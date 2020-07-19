@@ -26,11 +26,11 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
     logical :: lweb,lchangesign,lboot,lprint,dump,plot,lwrite
 !
     integer i,j,nx,iter,iens,nfit,year,nj
-    integer,allocatable :: yrs(:)
-    real,allocatable :: aa(:),bb(:),baba(:),xixi(:),           &
+    integer,allocatable :: yrs(:,:)
+    real,allocatable :: aa(:),bb(:),baba(:),xixi(:),          &
         tt(:,:,:),txtx(:,:),alphaalpha(:),betabeta(:),        &
         aacov(:,:)
-    real x,a,b,ba,xi,alpha,beta,t5(10,4),t1(10,4),db,f         &
+    real x,a,b,ba,xi,alpha,beta,t5(10,4),t1(10,4),db,f        &
         ,threshold,thens,z,ll,ll1                             &
         ,a25,a975,b25,b975,alpha25,alpha975,beta25,beta975    &
         ,aa25,aa975,bb25,bb975,ba25,ba975                     &
@@ -40,7 +40,7 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
         ,acov(3,3),cmin,cmax,plo,phi,scross,sdecor
     real adev,var,skew,curt,aaa,bbb,siga,chi2,q
     real,allocatable :: xx(:,:),yy(:),ys(:),zz(:),sig(:)
-    logical lnone,last
+    logical lnone,last,lopen
     character lgt*4,method*3
 !
     integer nmax,ncur
@@ -58,7 +58,7 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
 !   estimate number of bootstrap samples needed, demand at least 25 above threshold
 !
     nmc = max(1000,nint(25*2/(1-confidenceinterval/100)))
-    allocate(yrs(0:nmax))
+    allocate(yrs(5,0:nmax))
     allocate(xx(2,nmax),aa(nmc),bb(nmc),baba(nmc),xixi(nmc),tt(nmc,10,4),  &
         txtx(nmc,4),alphaalpha(nmc),betabeta(nmc),aacov(nmc,3))
     year = yr2a
@@ -175,6 +175,12 @@ subroutine fitgumcov(yrseries,yrcovariate,npernew,fyr,lyr             &
         acov(1,3) = aaa
     end if
     if ( dump ) call write_threshold(cmin,cmax,a,b,xi,alpha,beta,offset,lchangesign,gevcovreturnlevel)
+    inquire(unit=16,opened=lopen)
+    if ( lopen ) then
+        ys(1:ntot) = yy(1:ntot) ! will be modified
+        call write_residuals(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens,assume, &
+            a,b,xi,alpha,beta,lchangesign,ys,ntot)
+    end if
 !
 !   bootstrap to find error estimates
 !

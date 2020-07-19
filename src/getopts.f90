@@ -551,13 +551,24 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
                 ,nyrwindow,' years'
             irunvar = 0
             call get_command_argument(i+2,plotrunfile)
-            if ( plotrunfile == ' ' ) goto 924
+            if ( plotrunfile == ' ' ) goto 932
             open(14,file=trim(plotrunfile))
             lskip = 2
         elseif ( line(1:7) == 'obsplot' ) then
             call get_command_argument(i+1,plotrunfile)
-            if ( plotrunfile == ' ' ) goto 924
-            open(15,file=trim(plotrunfile))
+            if ( plotrunfile == ' ' ) goto 932
+            inquire(15,opened=lopen)
+            if ( .not.lopen ) then
+                open(15,file=trim(plotrunfile))
+            end if
+            lskip = 1
+        elseif ( line(1:8) == 'residual' ) then
+            call get_command_argument(i+1,plotrunfile)
+            if ( plotrunfile == ' ' ) goto 933
+            inquire(16,opened=lopen)
+            if ( .not.lopen ) then
+                open(16,file=trim(plotrunfile))
+            end if
             lskip = 1
         elseif ( line(1:6) == 'random' ) then
             call get_command_argument(i+1,line)
@@ -787,7 +798,7 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
             else
                 plotfile = 'dump.dat'
             endif
-            if ( .NOT. dump ) then
+            if ( .not. dump ) then
                 dump = .TRUE. 
                 if ( lwrite ) print '(2a)','# writing dumpfile on ',trim(plotfile)
                 open(10,file=trim(plotfile))
@@ -1068,6 +1079,10 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
 930 print *,'getopts: error: cannot read block length from: ',trim(line)
     call exit(-1)
 931 print *,'getopts: error: cannot read return period from: ',trim(line)
+    call exit(-1)
+932 print *,'getopts: error: expecting a file name for obsplot'
+    call exit(-1)
+933 print *,'getopts: error: expecting a file name for residuals'
     call exit(-1)
 end subroutine getopts
 

@@ -13,7 +13,7 @@ program histogram
         ,Nless,nfit,ntot,ntype,iens,mens1,mens,l,nnn &
         ,iboot,mboot,ndecor,nfitted,it,tmax,off,yrstart,yrstop &
         ,dy,mo,iret,jmax,iensmax,nzero
-    integer,allocatable :: yrs(:)
+    integer,allocatable :: yrs(:,:)
     logical :: lastvalid,lprinted,lexist
     logical,allocatable :: lf(:)
     real,allocatable :: data(:,:,:),xx(:),xs(:)
@@ -33,7 +33,7 @@ program histogram
     common /c_scalingpower/ scalingpower
 
     call killfile(string,line,file,0)
-    allocate(yrs(0:maxldat))
+    allocate(yrs(5,0:maxldat))
     allocate(lf(maxldat))
     allocate(xx(maxldat))
     allocate(xs(maxldat))
@@ -88,7 +88,7 @@ program histogram
     i = 3 + off
     nfit = 0
     ntype = 0
-    yrs(0) = 0
+    yrs(:,0) = 0
     assume = 'shift'
     if ( n >= i ) then
      10 continue
@@ -371,12 +371,14 @@ program histogram
                             end if
                             xx(ntot) = data(j,i,iens)
                             call getdymo(dy,mo,j,nperyear)
-                            yrs(ntot) = 10000*i + 100*mo + dy
-                            if ( nperyear > 1000 ) then
-                                yrs(ntot) = 100*yrs(ntot) + mod(ntot,nint(nperyear/366.))
-                            end if
-                            if ( nens1 /= nens2 ) then
-                                yrs(ntot) = 100*yrs(ntot) + iens
+                            yrs(1,ntot) = iens
+                            yrs(2,ntot) = i
+                            yrs(3,ntot) = mo
+                            yrs(4,ntot) = dy
+                            if ( nperyear > 366 ) then
+                                yrs(5,ntot) = mod(ntot,nint(nperyear/366.))
+                            else
+                                yrs(5,ntot) = 0
                             end if
                             offset = offset + xx(ntot)
                             yrstart = min(yrstart,i)

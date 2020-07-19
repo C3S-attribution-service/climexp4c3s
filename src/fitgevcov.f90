@@ -32,11 +32,11 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
     real :: yrseries(npernew,fyr:lyr,0:mens),yrcovariate(npernew,fyr:lyr,0:mens),   &
  &       crosscorr(0:mens,0:mens),a3(3),b3(3),xi3(3),alpha3(3),beta3(3),xyear,   &
  &       cov1,cov2,cov3,offset,inrestrain,t3(3,10,3),tx3(3,3),confidenceinterval,biasrt
-    character :: assume*(*),idmax*(*)
     logical :: lweb,lchangesign,lboot,lprint,dump,plot,lwrite
+    character :: assume*(*),idmax*(*)
 !
     integer i,j,k,l,n,nx,iter,iens,jens,iiens,nfit,year,yr,nj
-    integer,allocatable :: yrs(:)
+    integer,allocatable :: yrs(:,:)
     real x,a,b,ba,xi,alpha,beta,t(10,4),t25(10,4),t975(10,4),           &
  &       tx(4),tx25(4),tx975(4),aa(nmc),bb(nmc),baba(nmc),xixi(nmc),    &
  &       alphaalpha(nmc),betabeta(nmc),tt(nmc,10,4),b25,b975,ba25,ba975 &
@@ -47,8 +47,8 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
  &       acov(3,3),aacov(nmc,3),plo,phi,cmin,cmax,scross,sdecor
     real ttt(10,4),txtxtx(4)
     real adev,var,skew,curt,aaa,bbb,aa25,aa975,bb25,bb975,siga,chi2,q
-    real,allocatable :: xx(:,:),yy(:),ys(:),zz(:),sig(:)
-    logical lnone,last
+    real,allocatable :: xx(:,:),yy(:),ys(:),zz(:),sig(:),xs(:)
+    logical lnone,last,lopen
     character lgt*4,method*3
 !
     integer nmax,ncur
@@ -63,7 +63,8 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
     real llgevcov,gevcovreturnlevel,gevcovreturnyear
     external llgevcov,gevcovreturnlevel,gevcovreturnyear
 !
-    allocate(yrs(0:nmax))
+    allocate(yrs(5,0:nmax))
+    yrs = 0
     allocate(xx(2,nmax))
     if ( cov1 == 0 .and. cov2 == 0 ) then
         lnone = .true.
@@ -196,6 +197,12 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
         acov(1,3) = aaa
     end if
     if ( dump ) call write_threshold(cmin,cmax,a,b,xi,alpha,beta,offset,lchangesign,gevcovreturnlevel)
+    inquire(unit=16,opened=lopen)
+    if ( lopen ) then
+        ys(1:ntot) = yy(1:ntot) ! will be modified
+        call write_residuals(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens,assume, &
+            a,b,xi,alpha,beta,lchangesign,ys,ntot)
+    end if
 !
 !   bootstrap to find error estimates
 !

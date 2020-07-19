@@ -427,12 +427,13 @@ subroutine plot_ordered_points(xx,xs,yrs,ntot,ntype,nfit, &
 !   Gumbel or (sqrt) logarithmic plot
 
     implicit none
-    integer :: ntot,ntype,nfit,j1,j2,nblockyr,nblockens,yr2a
-    integer :: yrs(0:ntot)
-    real :: xx(ntot),xs(ntot),frac,a,b,xi
-    real :: minindx,mindata,pmindata,xyear,snorm
-    logical :: lchangesign,lwrite,last
-    integer :: i,j,it,nzero
+    integer,intent(in) :: ntot,ntype,nfit,j1,j2,nblockyr,nblockens,yr2a
+    integer,intent(in) :: yrs(5,0:ntot)
+    real,intent(in) :: xx(ntot),frac,a,b,xi
+    real,intent(inout) :: xs(ntot)
+    real,intent(in) :: minindx,mindata,pmindata,xyear,snorm
+    logical,intent(in) :: lchangesign,lwrite,last
+    integer :: i,j,m,it,nzero
     real :: f,ff,s,x,z,sqrt2,tmax
     real,save :: smin=3e33,smax=-3e33
     character string*100
@@ -467,7 +468,7 @@ subroutine plot_ordered_points(xx,xs,yrs,ntot,ntype,nfit, &
                 print *,'warning: cannot find year for x = ',x
             end if
         end if
-        j = 0 ! yrs(0) = 0 is orinted
+        j = 0 ! yrs(:,0) = 0 is printed
 790     continue
         if ( j > 0 ) xs(j) = 3e33
 
@@ -569,7 +570,7 @@ subroutine plot_ordered_points(xx,xs,yrs,ntot,ntype,nfit, &
         if ( lchangesign ) then
             if ( x /= -999.9 .and. x < 1e33 ) x = -x
         endif
-        call printpoint(i,f,ntype,x,s,yrs(j))
+        call printpoint(i,f,ntype,x,s,10000*yrs(2,j)+100*yrs(3,j)+yrs(4,j))
         smin = min(s,smin)
         smax = max(s,smax)
         if ( i > ntot .and. (1-f)*(j2-j1+1) < 0.0001 ) goto 800
@@ -1071,7 +1072,7 @@ end subroutine adjustyy
 
 subroutine write_obscov(xx,yrs,ntot,xmin,cov2,xyear,year,offset,lchangesign)
     implicit none
-    integer :: ntot,yrs(0:ntot),year
+    integer :: ntot,yrs(5,0:ntot),year
     real :: xx(2,ntot),xmin,cov2,xyear,offset
     logical :: lchangesign
     integer :: i,is
@@ -1093,7 +1094,8 @@ subroutine write_obscov(xx,yrs,ntot,xmin,cov2,xyear,year,offset,lchangesign)
         write(15,'(a)') '# covariate  value'
         do i=1,ntot
             if ( xx(1,i) > xmin ) then
-                write(15,'(2g20.6,i11)') xx(2,i)+offset,is*xx(1,i),yrs(i)
+                write(15,'(2g20.6,i11)') xx(2,i)+offset,is*xx(1,i), &
+                    10000*yrs(2,i)+100*yrs(3,i)+yrs(4,i)
             end if
         end do
         write(15,'(a)')
@@ -1180,3 +1182,72 @@ subroutine write_dthreshold(cov1,cov2,cov3,acov,offset,lchangesign)
         end if
     endif
 end subroutine write_dthreshold
+
+
+subroutine write_residuals(yrseries,yrcovariate,nperyear,fyr,lyr,mens1,mens,assume, &
+            a,b,xi,alpha,beta,lchangesign,xs,ntot)
+    implicit none
+    integer,intent(in) :: nperyear,fyr,lyr,mens1,mens,ntot
+    real,intent(in) :: yrseries(nperyear,fyr:lyr,0:mens),yrcovariate(nperyear,fyr:lyr,0:mens), &
+        a,b,xi,alpha,beta
+    real,intent(inout) :: xs(ntot)
+    logical,intent(in) :: lchangesign
+    character,intent(in) :: assume*(*)
+    integer :: i,j,yr,mo,dy,month,is,iens,jens
+    real :: aa,bb,f,s
+    real,allocatable :: res(:,:,:)
+    logical :: lopen
+    integer,external :: find_x_in_array
+
+    allocate(res(nperyear,fyr:lyr,0:mens))
+    inquire(unit=16,opened=lopen)
+    if ( lopen ) then
+        if ( lchangesign ) then
+            is = -1
+        else
+            is = +1
+        end if
+        do iens=mens1,mens
+            do yr=fyr,lyr
+                do mo=1,nperyear
+                    if ( yrseries(mo,yr,iens) < 1e33 .and. yrcovariate(mo,yr,iens) < 1e33 ) then
+                        call getabfromcov(a,b,alpha,beta,yrcovariate(mo,yr,iens),aa,bb)
+                        j = find_x_in_array(yrseries(mo,yr,iens),xs,ntot) ! for date
+                        if ( assume == 'scale' ) then
+                            res(mo,yr,iens) = yrseries(mo,yr,iens)/aa - 1
+                        else
+                            res(mo,yr,iens) = yrseries(mo,yr,iens) - aa
+                        end if
+                        !!!call getdymo(dy,month,mo,nperyear)
+                        !!!write(16,'(i4.4,2i2.2,3g12.4)') yr,month,dy,is*res(mo,yr,iens)
+                    else
+                        res(mo,yr,iens) = 3e33
+                    end if
+                end do
+            end do
+            if ( iens > mens1 ) write(16,'(a)')
+            write(16,'(a,i6)') '# ensemble member ',iens
+            write(16,'(a)')
+            call printdatfile(16,res(1,fyr,iens),nperyear,nperyear,fyr,lyr)
+        end do
+        close(16)
+    end if
+end subroutine write_residuals
+
+integer function find_x_in_array(x,xx,n)
+    implicit none
+    integer,intent(in) :: n
+    real,intent(in) :: x
+    real,intent(inout) :: xx(n)
+    integer :: j
+    do j=1,n
+        if ( xx(j) == x ) exit
+    end do
+    if ( j > n ) then
+        write(0,*) 'find_x_in_array: internal error: cannot find x',x,' in linear array'
+        j = 0
+        return
+    endif
+    xx(j) = 3e33 ! so that data points are never counted twice
+    find_x_in_array = j
+end function find_x_in_array

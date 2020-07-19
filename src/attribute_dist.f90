@@ -14,7 +14,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     character :: seriesids(0:mens)*(*),assume*(*),distribution*(*)
     character :: var*(*),units*(*),lvar*(*),svar*(*),history*(*),metadata(2,100)*(*)
     integer :: fyr,lyr,ntot,i,j,k,ntype,nmax,npernew,j1,j2,iens,jens,ensmax,init,ndecor,n,yr,mo
-    integer,allocatable :: yrs(:)
+    integer,allocatable :: yrs(:,:)
     real :: a(3),b(3),xi(3),alpha(3),beta(3),cov1,cov2,cov3,offset,t(3,10,3),tx(3,3), &
         regr,intercept,sigb,siga,chi2,q,prob,z,ax,sxx,ay,syy,sxy,df,x
     real,allocatable :: xx(:,:),yrseries(:,:,:),yrcovariate(:,:,:),yy(:),crosscorr(:,:), &
@@ -42,7 +42,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     nmax = nperyear*(yr2-yr1+1)*(1+mens-mens1)
     !!!write(0,*) 'assume,distribution = ',assume,distribution
     allocate(xx(2,nmax))
-    allocate(yrs(0:nmax))
+    allocate(yrs(5,0:nmax))
     allocate(yy(nmax))
     allocate(crosscorr(0:mens,0:mens))
     allocate(xxx(2,nperyear*(yr2-yr1+1),0:mens))
@@ -779,7 +779,7 @@ subroutine fill_linear_array(series,covariate,nperyear,j1,j2,fyr,lyr,mens1,mens,
 
     implicit none
     integer,intent(in) :: nperyear,j1,j2,fyr,lyr,mens1,mens,nmax
-    integer,intent(out) :: ntot,yrs(0:nmax)
+    integer,intent(out) :: ntot,yrs(5,0:nmax)
     real,intent(in) :: series(nperyear,fyr:lyr,0:mens),covariate(nperyear,fyr:lyr,0:mens)
     real,intent(out) :: xx(2,nmax)
     integer :: yy,yr,mm,mo,day,month,yrstart,yrstop,iens
@@ -811,9 +811,14 @@ subroutine fill_linear_array(series,covariate,nperyear,j1,j2,fyr,lyr,mens1,mens,
                         xx(1,ntot) = series(mo,yr,iens)
                         xx(2,ntot) = covariate(mo,yr,iens)
                         call getdymo(day,month,mo,nperyear)
-                        yrs(ntot) = 10000*yr + 100*month + day
-                        if ( nperyear > 1000 ) then
-                            yrs(ntot) = 100*yrs(ntot) + mod(ntot,nint(nperyear/366.))
+                        yrs(1,ntot) = iens
+                        yrs(2,ntot) = yr
+                        yrs(3,ntot) = month
+                        yrs(4,ntot) = day
+                        if ( nperyear > 366 ) then
+                            yrs(5,ntot) = mod(ntot,nint(nperyear/366.))
+                        else
+                            yrs(5,ntot) = 0
                         end if
                         yrstart = min(yrstart,yr)
                         yrstop = max(yrstop,yr)
@@ -1169,7 +1174,7 @@ subroutine decluster(xx,yrs,nmax,ntot,threshold,tsep,lwrite)
 !   equal to a low value. tsep is determined as in Roth et al, 2014.
 !
 !   input:  xx(2,ntot)  values of time series (1,1:ntot) and covariate (2,1:ntot)
-!           yrs(0:ntot) 10000*yr + 100*mo + dy
+!           yrs(5,0:ntot) ens,yr,mo,dy,sub-day
 !           if >=0      use, do not compute (for bootstrap)
 !   output: xx          with values adjusted so that only the maximum of each cluster remains
 !           tsep        separation computed
@@ -1177,7 +1182,7 @@ subroutine decluster(xx,yrs,nmax,ntot,threshold,tsep,lwrite)
     implicit none
     integer mmax
     parameter(mmax=25)
-    integer ntot,nmax,yrs(0:ntot),tsep
+    integer ntot,nmax,yrs(5,0:ntot),tsep
     real xx(2,nmax),threshold
     logical lwrite
     integer i,j,m,n,nn,yr,mo,dy,jul1,jul2,jmax,nskip
@@ -1208,10 +1213,10 @@ subroutine decluster(xx,yrs,nmax,ntot,threshold,tsep,lwrite)
         fracn = 0
         do i=1,ntot
             if ( xx(1,i) > p95 ) then
-                if ( yrs(i) /= -9999 ) then
-                    yr = yrs(i)/10000
-                    mo = mod(yrs(i),10000)/100
-                    dy = mod(yrs(i),100)
+                if ( yrs(1,i) /= -9999 ) then
+                    yr = yrs(2,i)
+                    mo = yrs(3,i)
+                    dy = yrs(4,i)
                     jul1 = julday(mo,dy,yr)
                 else
                     jul1 = -9999
@@ -1220,10 +1225,10 @@ subroutine decluster(xx,yrs,nmax,ntot,threshold,tsep,lwrite)
                     m = i + n - 1
                     if ( m <= ntot ) then
                         if ( xx(1,m) > p95 ) then
-                            if ( yrs(m) /= -9999 ) then
-                                yr = yrs(m)/10000
-                                mo = mod(yrs(m),10000)/100
-                                dy = mod(yrs(m),100)
+                            if ( yrs(1,m) /= -9999 ) then
+                                yr = yrs(2,m)
+                                mo = yrs(3,m)
+                                dy = yrs(4,m)
                                 jul2 = julday(mo,dy,yr)
                             else
                                 jul2 = -9999

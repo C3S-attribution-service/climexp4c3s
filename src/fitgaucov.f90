@@ -20,7 +20,7 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
     integer nmc
     parameter(nmc=1000)
     integer i,j,jj,n,nx,iter,iens,nfit,imc,ier,year,nj
-    integer,allocatable :: yrs(:)
+    integer,allocatable :: yrs(:,:)
     real a,b,ba,t(10,4),t25(10,4),t975(10,4),tx(4),tx25(4),tx975(4), &
             aa(nmc),bb(nmc),baba(nmc),tt(nmc,10,4),xi,alpha,beta,dalpha,dbeta, &
             xmin,z,x,f,txtx(nmc,4),alphaalpha(nmc),betabeta(nmc), &
@@ -29,7 +29,7 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
     real adev,var,skew,curt,aaa,bbb,siga,chi2,q,cmin,cmax,plo,phi
     real ttt(10,4),txtxtx(4),dum,xi3(3),acov(3,3),aacov(nmc,3)
     real,allocatable :: xx(:,:),yy(:),ys(:),zz(:),sig(:)
-    logical last
+    logical last,lopen
     character lgt*4,method*3
     external gaucovreturnlevel,gaucovreturnyear
 !
@@ -44,7 +44,8 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
     common /fitdata4/ cassume
 !
     year = yr2a
-    allocate(yrs(0:nmax))
+    allocate(yrs(5,0:nmax))
+    yrs = 0
     allocate(xx(2,nmax))
     if ( cov1 == 0 .and. cov2 == 0 ) then
         lnone = .true.
@@ -166,6 +167,12 @@ subroutine fitgaucov(yrseries,yrcovariate,npernew,fyr,lyr &
         acov(1,3) = aaa
     end if
     if ( dump ) call write_threshold(cmin,cmax,a,b,xi,alpha,beta,offset,lchangesign,gaucovreturnlevel)
+    inquire(unit=16,opened=lopen)
+    if ( lopen ) then
+        ys(1:ntot) = yy(1:ntot) ! will be modified
+        call write_residuals(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens,assume, &
+            a,b,xi,alpha,beta,lchangesign,ys,ntot)
+    end if
 !
 !   Bootstrap for error estimate
 !

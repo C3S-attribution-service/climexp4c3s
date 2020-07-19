@@ -37,7 +37,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     logical :: lweb,lchangesign,lboot,lprint,dump,plot,lwrite
 !
     integer :: i,j,jj,k,l,n,nx,iter,iter1,iens,iiens,nfit,year,tsep,nj,mo,yr,nvalid
-    integer,allocatable :: yrs(:),bootyrs(:)
+    integer,allocatable :: yrs(:,:),bootyrs(:,:)
     real :: x,a,b,ba,xi,alpha,beta,t(10,4),t25(10,4),t975(10,4), &
              tx(4),tx25(4),tx975(4),aa(nmc),bb(nmc),xixi(nmc),baba(nmc), &
              alphaalpha(nmc),betabeta(nmc),tt(nmc,10,4),a25,a975, &
@@ -48,9 +48,9 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
              acov(3,3),aacov(nmc,3),plo,phi,xyear,scross,sdecor, &
              aa25,aa975,bb25,bb975
     real :: adev,var,skew,curt,aaa,bbb,siga,chi2,q,p(4)
-    integer,allocatable :: ii(:),yyrs(:)
+    integer,allocatable :: ii(:),yyrs(:,:)
     real,allocatable :: xx(:,:),yy(:),ys(:),zz(:),sig(:)
-    logical :: lllwrite,lnone,last,lvalid
+    logical :: lllwrite,lnone,last,lvalid,lopen
     character :: lgt*4,string*1000,arg*250,method*3
 !
     integer nmax,ncur
@@ -98,7 +98,8 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         if ( .not. lvalid ) call exit(-1)
     end if
 !
-    allocate(yrs(0:nmax),bootyrs(0:nmax))
+    allocate(yrs(5,0:nmax),bootyrs(5,0:nmax))
+    yrs = 0
     allocate(xx(2,nmax))
     if ( cov1 == 0 .and. cov2 == 0 ) then
         lnone = .true.
@@ -184,20 +185,20 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
 !   compute first-guess parameters
 !
     allocate(ii(ncur))
-    allocate(yyrs(0:ncur))
+    allocate(yyrs(5,0:ncur))
     allocate(yy(ncur))
     allocate(ys(ncur))
     allocate(zz(2*ncur))
     allocate(sig(ncur))
     j = 0
-    yyrs(0) = yrs(0)
+    yyrs(:,0) = yrs(:,0)
     do i=1,ntot
         if ( xx(1,i) > xmin ) then
             j = j + 1
             ii(j) = i
             yy(j) = xx(1,i)
             zz(j) = xx(2,i)
-            yyrs(j) = yrs(i)
+            yyrs(:,j) = yrs(:,i)
         end if
     end do
     if ( j /= ncur ) then
@@ -305,6 +306,12 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
         end if
     end if
     if ( dump ) call write_threshold(cmin,cmax,a,b,xi,alpha,beta,offset,lchangesign,gpdcovreturnlevel)
+    inquire(unit=16,opened=lopen)
+    if ( lopen ) then
+        ys(1:ntot) = yy(1:ntot) ! will be modified
+        call write_residuals(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens,assume, &
+            a,b,xi,alpha,beta,lchangesign,ys,ntot)
+    end if
 !
 !   bootstrap to find error estimates
 !
@@ -376,7 +383,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
                 bootyrs = -9999 ! cannot yet keep track of discontinuities, just hope they are not too bad
                 ! or use the original ones
                 ! use the same tsep as the first call, otherwise the answer is *very* different
-                call decluster(data,yrs,ntot,threshold,tsep,lwrite)
+                call decluster(data,bootyrs,ntot,threshold,tsep,lwrite)
             end if
             scross = scross + sdecor
         end if
