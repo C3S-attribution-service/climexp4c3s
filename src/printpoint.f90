@@ -1244,7 +1244,7 @@ integer function find_x_in_array(x,xx,n)
         if ( xx(j) == x ) exit
     end do
     if ( j > n ) then
-        write(0,*) 'find_x_in_array: internal error: cannot find x',x,' in linear array'
+        !!!write(0,*) 'find_x_in_array: internal error: cannot find x',x,' in linear array'
         j = 0
         return
     endif
