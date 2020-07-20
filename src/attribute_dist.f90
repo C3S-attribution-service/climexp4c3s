@@ -109,10 +109,24 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
             init = 1
             call print_bootstrap_message(max(1,ndecor),j1,j2)
         end if
-        allocate(yrseries(nperyear,fyr:lyr,0:mens))
-        yrseries = 3e33
-        ! copy series to keep the code easier to handle GPD and Gauss at the same time :-(
-        yrseries(1:nperyear,yr1:yr2,mens1:mens) = series(1:nperyear,yr1:yr2,mens1:mens)
+        if ( j1 == j2 .and. j1 > 0 ) then ! common case, only one value per year
+            allocate(yrseries(1,fyr:lyr,0:mens))
+            yrseries = 3e33
+            nperyear = 1
+            yrseries(1,yr1:yr2,mens1:mens) = series(j1,yr1:yr2,mens1:mens)
+        else
+            ! copy series to keep the code easier to handle GPD and Gauss at the same time :-(
+            yrseries = 3e33
+            if ( j2 <= nperyear ) then
+                yrseries(j1:j2,yr1:yr2,mens1:mens) = series(j1:j2,yr1:yr2,mens1:mens)
+                allocate(yrcovariate(nperyear,fyr:lyr,0:mens))
+            else
+                yrseries(j1:nperyear,yr1:yr2,mens1:mens) = series(j1:nperyear,yr1:yr2,mens1:mens)
+                do yr=yr1,yr2-1
+                    yrseries(1:j2:j1,yr+1,mens1:mens) = series(1:j2,yr+1,mens1:mens)
+                end do
+            end if
+        end if
         allocate(yrcovariate(nperyear,fyr:lyr,0:mens))
         yrcovariate = 3e33
         ! change covariate to the same time resolution as series
@@ -120,19 +134,19 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
             if ( lwrite ) print *,'repeating covariate from nperyear = ',nperyear1,' to ',nperyear
             do iens=mens1,mens
                 call annual2shorter(covariate(1,yrbeg,iens),npermax,yrbeg,yrend,nperyear1, &
-                &   yrcovariate(1,fyr,iens),nperyear,fyr,lyr,nperyear,1,nperyear,1,lwrite)
+                    yrcovariate(1,fyr,iens),nperyear,fyr,lyr,nperyear,1,nperyear,1,lwrite)
             end do
         else if ( nperyear1 > nperyear ) then
             ! this should not occur in the web interface
             write(0,*) 'atribute_dist: error: covariate should not have higher time resolution than series: ', &
-            &   nperyear1,nperyear
+                nperyear1,nperyear
             write(*,*) 'atribute_dist: error: covariate should not have higher time resolution than series: ', &
-            &   nperyear1,nperyear
+                nperyear1,nperyear
             call exit(-1)
         else ! equal already
             if ( lwrite ) print *,'copying covariate ',nperyear
             yrcovariate(1:nperyear,fyr:lyr,mens1:mens) = covariate(1:nperyear,fyr:lyr, &
-            &   mens1:mens)
+                mens1:mens)
         end if
         npernew = nperyear
         call getj1j2(j1,j2,m1,npernew,.false.)
@@ -144,7 +158,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     
     if ( assume == 'scale' ) then
         call checknonegative(yrseries,npernew,fyr,lyr,mens1,mens,j1,j2,assume, &
-        &   lchangesign,lwrite)
+            lchangesign,lwrite)
     end if
     if ( lnormsd .and. mens > mens1 ) then
         if ( lwrite ) print *,'attrbute_dist: normalising all series',mens1,mens
