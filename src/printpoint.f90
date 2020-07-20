@@ -1185,14 +1185,14 @@ end subroutine write_dthreshold
 
 
 subroutine write_residuals(yrseries,yrcovariate,nperyear,fyr,lyr,mens1,mens,assume, &
-            a,b,xi,alpha,beta,lchangesign,xs,ntot)
+            a,b,xi,alpha,beta,lchangesign,xs,ntot,fit)
     implicit none
     integer,intent(in) :: nperyear,fyr,lyr,mens1,mens,ntot
     real,intent(in) :: yrseries(nperyear,fyr:lyr,0:mens),yrcovariate(nperyear,fyr:lyr,0:mens), &
         a,b,xi,alpha,beta
     real,intent(inout) :: xs(ntot)
     logical,intent(in) :: lchangesign
-    character,intent(in) :: assume*(*)
+    character,intent(in) :: assume*(*),fit*(*)
     integer :: i,j,yr,mo,dy,month,is,iens,jens
     real :: aa,bb,f,s
     real,allocatable :: res(:,:,:)
@@ -1218,8 +1218,8 @@ subroutine write_residuals(yrseries,yrcovariate,nperyear,fyr,lyr,mens1,mens,assu
                         else
                             res(mo,yr,iens) = yrseries(mo,yr,iens) - aa
                         end if
-                        !!!call getdymo(dy,month,mo,nperyear)
-                        !!!write(16,'(i4.4,2i2.2,3g12.4)') yr,month,dy,is*res(mo,yr,iens)
+                        ! GPD fit is only valid above the threshold
+                        if ( fit == 'gpd' .and. res(mo,yr,iens) < 0 ) res(mo,yr,iens) = 3e33
                     else
                         res(mo,yr,iens) = 3e33
                     end if
