@@ -8,7 +8,7 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
 !       input:
 !       xx(2,ntot) data,covariate
 !       j1,j2    use days/months/... j1 to j2
-!       year     leave out this year from teh fit and compute return time for it
+!       year     leave out this year from the fit and compute return time for it
 !       xyear    value for year, has been set to undef in the series
 !       inrestrain restrain xi parameter by adding a normal distribution of width 0.5*inrestrain to the cost function
 !       threshold in percent
@@ -308,9 +308,9 @@ subroutine fitgpdcov(yrseries,yrcovariate,npernew,fyr,lyr &
     if ( dump ) call write_threshold(cmin,cmax,a,b,xi,alpha,beta,offset,lchangesign,gpdcovreturnlevel)
     inquire(unit=16,opened=lopen)
     if ( lopen ) then
-        ys(1:ntot) = yy(1:ntot) ! will be modified
+        ys(1:ncur) = yy(1:ncur) ! will be modified
         call write_residuals(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens,assume, &
-            a,b,xi,alpha,beta,lchangesign,ys,ntot)
+            a,b,xi,alpha,beta,lchangesign,ys,ntot,'gpd')
     end if
 !
 !   bootstrap to find error estimates

@@ -201,7 +201,7 @@ subroutine fitgevcov(yrseries,yrcovariate,npernew,fyr,lyr                   &
     if ( lopen ) then
         ys(1:ntot) = yy(1:ntot) ! will be modified
         call write_residuals(yrseries,yrcovariate,npernew,fyr,lyr,mens1,mens,assume, &
-            a,b,xi,alpha,beta,lchangesign,ys,ntot)
+            a,b,xi,alpha,beta,lchangesign,ys,ntot,'gev')
     end if
 !
 !   bootstrap to find error estimates
