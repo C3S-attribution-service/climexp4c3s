@@ -6,7 +6,7 @@ program polygon2mask
     implicit none
     include 'params.h'
     include 'netcdf.inc'
-    integer,parameter :: npolmax=50000,nvarmax=10
+    integer,parameter :: npolmax=500000,nvarmax=10
     integer i,j,npol,mens,mens1,ncid,nx,ny,nz,nt,nperyear,firstyr,firstmo,endian,nvars,jvars(6,nvarmax),ntvarid
     integer nens1,nens2,ntmax,itimeaxis(1),iarg,ncoords
     real xx(nxmax),yy(nymax),zz(nzmax),undef,xxls(nxmax),yyls(nymax)
