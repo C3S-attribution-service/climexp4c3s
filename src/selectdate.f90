@@ -1,6 +1,6 @@
 program selectdate
 
-!   scale a time series and optionally apply an offset
+!   select one date from each year to make an annual series
 
     implicit none
     include 'param.inc'
