@@ -4,10 +4,11 @@ subroutine printmetadata(lun,file,FORM_field,title,history,metadata)
     integer :: lun
     character :: file*(*),FORM_field*(*),title*(*),history*(*),metadata(2,100)*(*)
     integer :: i,j,k,ititle,ifile,iscripturl,ii
+    integer,save :: init=0
     logical :: linstitution
     character :: string*80,scripturl*2000
     logical,external :: isnumchar
-    
+
     if ( FORM_field /= ' ' ) then
         write(lun,'(5a)') '# <a href=http://climexp.knmi.nl/select.cgi?field=',trim(FORM_field), &
             '>climexp.knmi.nl/select.cgi?field=',trim(FORM_field),'</a>'
@@ -95,9 +96,12 @@ subroutine printmetadata(lun,file,FORM_field,title,history,metadata)
             write(lun,'(4a)') '# ',trim(string),' :: ',trim(scripturl)
         end if
     end if
-    call extend_history(history)
+    if ( init == 0 ) then
+        init = 1
+        call extend_history(history)
+    end if
     write(lun,'(2a)') '# history :: ',trim(history)
-    
+
 end subroutine printmetadata
 
 subroutine printvar(unit,var,units,lvar)
