@@ -46,18 +46,29 @@ subroutine getj1j2(j1,j2,month,nperyear,lprintin)
                 elseif ( nperyear == 2 ) then
                     corrmonths = halfyears(month)
                 else
-                    write(0,*) &
-                    'getj1j2: error: cannot handle nperyear = ',nperyear,' yet'
+                    write(0,*) 'getj1j2: error: cannot handle nperyear = ',nperyear,' yet'
                     call exit(-1)
                 endif
             else
                 if ( nperyear >= 12 ) then
                     write(corrmonths,'(3a)') months(month),'-',months(1+mod(month+lsum-2,12))
-                else
-                    write(corrmonths,'(3a)') seasons(month),'-',seasons(1+mod(month+lsum-2,12))
+                else if ( nperyear == 4 ) then
+                    write(corrmonths,'(3a)') seasons(month),'-',seasons(1+mod(month+lsum-2,4))
+                else if ( nperyear == 2 ) then
+                    write(corrmonths,'(3a)') halfyears(month),'-',halfyears(1+mod(month+lsum-2,2))
                 endif
             endif
-            if ( nperyear == 12 ) then
+            if ( nperyear == 2 ) then
+                if ( lprint ) then
+                    print '(2a)','Half tear: ',corrmonths
+                    if ( dump ) write(10,'(a,12i3)') '# Half year: ',(1+mod(month+l-1,12),l=0,lsum-1)
+                endif
+            else if ( nperyear == 4 ) then
+                if ( lprint ) then
+                    print '(2a)','Season: ',corrmonths
+                    if ( dump ) write(10,'(a,12i3)') '# Season: ',(1+mod(month+l-1,12),l=0,lsum-1)
+                endif
+            else if ( nperyear == 12 ) then
                 if ( lprint ) then
                     print '(2a)','Month: ',corrmonths
                     if ( dump ) write(10,'(a,12i3)') '# Month: ',(1+mod(month+l-1,12),l=0,lsum-1)
