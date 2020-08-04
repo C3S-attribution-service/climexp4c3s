@@ -9,23 +9,24 @@ program attribute
     include 'param.inc'
     include 'getopts.inc'
     integer,parameter :: nresmax=100,mensmax=2000
-    integer nperyear,nperyear1,mens1,mens,mmens1,mmens,iens,nresults
-    integer i,yr,mo,n,off,nmetadata
-    real results(3,nresmax)
+    integer :: nperyear,nperyear1,mens1,mens,mmens1,mmens,iens,nresults
+    integer :: i,yr,mo,n,off,nmetadata
+    integer :: initsum=0
+    real :: results(3,nresmax)
     real,allocatable :: series(:,:,:),covariate(:,:,:)
     character :: seriesfile*1024,covariatefile*1024,distribution*6,assume*5,string*80,seriesids(0:mensmax)*30
     character :: var*40,units*80,lvar*120,svar*120,history*50000,metadata(2,100)*1000
     character :: var1*40,units1*80,lvar1*120,svar1*120,history1*50000,metadata1(2,100)*1000
     logical :: lprint,lfirst,lopen
-    real scalingpower
+    real :: scalingpower
     common /c_scalingpower/ scalingpower
 
     if ( command_argument_count().lt.8 ) then
         write(0,*) 'usage: attribute series covariate_series|none ', &
-        & 'GEV|Gumbel|GPD|Gauss assume shift|scale ', &
-        & 'mon n [sel m] [ave N] [log|sqrt] ', &
-        & 'begin2 past_climate_year end2 year_under_study ', &
-        & 'plot FAR_plot_file [dgt threshold%] [includelast]'
+            'GEV|Gumbel|GPD|Gauss assume shift|scale ', &
+            'mon n [sel m] [ave N] [log|sqrt] ', &
+            'begin2 past_climate_year end2 year_under_study ', &
+            'plot FAR_plot_file [dgt threshold%] [includelast]'
         write(0,*) 'note that n and m are in months even if the series is daily.'
         write(0,*) 'N is always in the same units as the series.'
         write(0,*) 'the covariate series is averaged to the same time scale.'
@@ -93,7 +94,7 @@ program attribute
 !
 !   merge metadata
 !
-    if (covariatefile /= 'none' ) then
+    if ( covariatefile /= 'none' ) then
         do i=1,100
             if ( metadata(1,i) == ' ' ) exit
         end do
@@ -133,6 +134,11 @@ program attribute
         end do
     end if
     if ( lsum.gt.1 ) then
+        if ( initsum == 0 ) then
+            initsum = 1
+            call nperyear2units(nperyear,string)
+            write(0,'(a,i4,3a)') 'Taking ',lsum,'-',trim(string),' running mean.<p>'
+        end if
         do iens=mens1,mens
             call sumit(series(1,yrbeg,iens),npermax,nperyear,yrbeg,yrend,lsum,oper)
         end do

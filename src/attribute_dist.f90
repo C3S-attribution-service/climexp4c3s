@@ -34,11 +34,12 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
     if ( yr2a <= yrend ) then ! it is 9999 if xyear is set
         fyr = min(fyr,yr2a)
         lyr = max(lyr,yr2a)
-    end if    
-    if ( yr2b > 0 ) then
+    end if
+    if ( yr2b > 0 .and. yr2b >= yrbeg ) then
         fyr = min(fyr,yr2b)
         lyr = max(lyr,yr2b)
     end if
+    if ( lwrite ) print *,'fyr,lyr = ',fyr,lyr
     nmax = nperyear*(yr2-yr1+1)*(1+mens-mens1)
     !!!write(0,*) 'assume,distribution = ',assume,distribution
     allocate(xx(2,nmax))
@@ -100,7 +101,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         ! in the others lsum indicates the block maxima length...
         call getj1j2(j1,j2,m1,nperyear,lwrite)
         decor = max(decor,real(lsum)-1)
-        if ( j1 == j2 ) then
+        if ( j1 == j2 .and. j1 > 0 ) then
             ndecor = 1+int(decor/nperyear)
         else
             ndecor = 1+int(decor)
@@ -116,10 +117,10 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
             yrseries(1,yr1:yr2,mens1:mens) = series(j1,yr1:yr2,mens1:mens)
         else
             ! copy series to keep the code easier to handle GPD and Gauss at the same time :-(
+            allocate(yrseries(nperyear,fyr:lyr,0:mens))
             yrseries = 3e33
             if ( j2 <= nperyear ) then
                 yrseries(j1:j2,yr1:yr2,mens1:mens) = series(j1:j2,yr1:yr2,mens1:mens)
-                allocate(yrcovariate(nperyear,fyr:lyr,0:mens))
             else
                 yrseries(j1:nperyear,yr1:yr2,mens1:mens) = series(j1:nperyear,yr1:yr2,mens1:mens)
                 do yr=yr1,yr2-1
@@ -179,7 +180,7 @@ subroutine attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yren
         lincludelast = .true.
     end if
     call handle_then_now(yrseries,yrcovariate,npernew,fyr,lyr,j1,j2,yr1a,yr2a,yr2b,mens1,mens, &
-        & xyear,ensmax,cov1,cov2,cov3,biasrt,lincludelast,lprint,lwrite)
+        xyear,ensmax,cov1,cov2,cov3,biasrt,lincludelast,lprint,lwrite)
     if ( cov1 > 1e33 .or. cov2 > 1e33 ) then
         if ( lwrite ) print *,'giving up, cov1,cov2 = ',cov1,cov2
         return
@@ -494,16 +495,21 @@ subroutine make_annual_values(series,nperyear,npermax,yrbeg,yrend,mens1,mens, &
 
     implicit none
     include 'getopts.inc'
-    integer nperyear,npermax,yrbeg,yrend,mens1,mens,fyr,lyr,yy1,yy2
-    real series(npermax,yrbeg:yrend,0:mens),yrseries(1,fyr:lyr,0:mens)
-    character operation*(*)
-    integer j1,j2,yy,yr,mm,mo,dd,dy,k,m,mtot,n,dpm(12),iens
-    real s
+    integer :: nperyear,npermax,yrbeg,yrend,mens1,mens,fyr,lyr,yy1,yy2
+    real :: series(npermax,yrbeg:yrend,0:mens),yrseries(1,fyr:lyr,0:mens)
+    character :: operation*(*)
+    integer :: j1,j2,yy,yr,mm,mo,dd,dy,k,m,mtot,n,dpm(12),iens
+    integer,save :: init=0
+    real :: s
+    character :: halfyears(4)*7 = (/'Oct-Mar','Apr-Sep','Oct-Mar','Apr-Sep'/)
+    character :: seasons(8)*3 = (/'DJF','MAM','JJA','SON','DJF','MAM','JJA','SON'/)
+    character :: months(24)*3 = (/'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec', &
+                                  'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'/)
 
     if ( lwrite ) then
         print *,'make_annual_values: taking ',trim(operation)
         print *,'nperyear,npermax = ',nperyear,npermax
-        print *,'m1,lsum = ',m1,lsum
+        print *,'m1,lsel = ',m1,lsel
     end if
     if ( nperyear == 1 ) then
         do iens=mens1,mens
@@ -512,48 +518,87 @@ subroutine make_annual_values(series,nperyear,npermax,yrbeg,yrend,mens1,mens, &
             end do
         end do
     else if ( nperyear < 12 ) then
+        call getj1j2(j1,j2,m1,nperyear,lwrite)
+        if ( init == 0 ) then
+            init = 1
+            if ( j1 == j2 .and. j1 > 0 ) then
+                if ( nperyear == 2 ) then
+                    write(0,*) 'Taking ',halfyears(j1),' values.'
+                else if ( nperyear == 4 ) then
+                    write(0,*) 'Taking ',seasons(j1),' values.'
+                else
+                    write(0,*) 'attribute: error: unknown time scale ',nperyear
+                    call exit(-1)
+                end if
+            else
+                write(0,*) 'Taking ',trim(operation),' over '
+                if ( nperyear == 2 ) then
+                    write(0,*) halfyears(j1),'-',halfyears(j2),'.'
+                else if ( nperyear == 4 ) then
+                    write(0,*) seasons(j1),'-',seasons(j2),'.'
+                else
+                    write(0,*) 'attribute: error: unknown time scale ',nperyear
+                    call exit(-1)
+                end if
+            end if
+            write(0,*) '<p>'
+        end if
         do iens=mens1,mens
             do yy=yy1,yy2
-                m = 0
-                if ( operation == 'max' ) then
-                    s = -3e33
-                else if ( operation == 'min' ) then
-                    s = 3e33
+                if ( j1 == j2 .and. j1 > 0 ) then ! simple
+                    yrseries(1,yy,iens) = series(j1,yy,iens)
                 else
-                    s = 0
-                end if
-                do mm=m1,m1+lsum-1
-                    dy = mm
-                    call normon(dy,yy,yr,nperyear)
-                    if ( series(dy,yr,iens) < 1e33 ) then
-                        m = m + 1
-                        if ( operation == 'max' ) then
-                            s = max(s,series(dy,yr,iens))
-                        else if ( operation == 'min' ) then
-                            s = min(s,series(dy,yr,iens))
+                    m = 0
+                    if ( operation == 'max' ) then
+                        s = -3e33
+                    else if ( operation == 'min' ) then
+                        s = 3e33
+                    else
+                        s = 0
+                    end if
+                    do mm=j1,j2
+                        dy = mm
+                        call normon(dy,yy,yr,nperyear)
+                        if ( yr <= yrend ) then
+                            if ( series(dy,yr,iens) < 1e33 ) then
+                                m = m + 1
+                                if ( operation == 'max' ) then
+                                    s = max(s,series(dy,yr,iens))
+                                else if ( operation == 'min' ) then
+                                    s = min(s,series(dy,yr,iens))
+                                else if ( operation == 'mean' ) then
+                                    s = s + series(dy,yr,iens)
+                                else
+                                    write(0,*) 'make_annual_values: unknown operation ',trim(operation)
+                                    call exit(-1)
+                                end if
+                            end if
+                        end if
+                    end do
+                    if ( m > minfac*(j2-j1+1) ) then
+                        if ( operation == 'min' .or. operation == 'max' ) then
+                            yrseries(1,yr,iens) = s
                         else if ( operation == 'mean' ) then
-                            s = s + series(dy,yr,iens)
+                            yrseries(1,yr,iens) = s/m
                         else
                             write(0,*) 'make_annual_values: unknown operation ',trim(operation)
                             call exit(-1)
                         end if
                     end if
-                    print *,'@@@ s = ',s
-                end do
-                if ( m > minfac*lsum ) then
-                    if ( operation == 'min' .or. operation == 'max' ) then
-                        yrseries(1,yr,iens) = s
-                    else if ( operation == 'mean' ) then
-                        yrseries(1,yr,iens) = s/m
-                    else
-                        write(0,*) 'make_annual_values: unknown operation ',trim(operation)
-                        call exit(-1)
-                    end if
-                end if
+                end if ! j1 == j2
             end do ! yr
         end do ! iens                
     else if ( nperyear >= 12 ) then
         call getj1j2(j1,j2,m1,12,lwrite)
+        if ( init == 0 ) then
+            init = 1
+            if ( j1 == j2 .and. j1 > 0 ) then
+                write(0,*) 'Taking ',months(j1),' values.'
+            else
+                write(0,*) 'Taking ',trim(operation),' over ',months(j1),'-',months(j2),'.'
+            end if
+            write(0,*) '<p>'
+        end if
         if ( lwrite ) print *,'make_annual_values: j1,j2,nperyear = ',j1,j2,nperyear
         call getdpm(dpm,nperyear)
         if ( lwrite ) print *,'                    dpm = ',dpm
@@ -613,22 +658,27 @@ subroutine make_annual_values(series,nperyear,npermax,yrbeg,yrend,mens1,mens, &
 end subroutine make_annual_values
 
 subroutine make_two_annual_values(series,covariate,nperyear,npermax,yrbeg,yrend,mens1,mens, &
-&   yrseries,yrcovariate,fyr,lyr,operation)
+    yrseries,yrcovariate,fyr,lyr,operation)
     
-    ! construct two annual time series with the maxima of series and the corresponding values of covariate
+!   construct two annual time series with the maxima of series and the corresponding values of covariate
 
     implicit none
     include 'getopts.inc'
-    integer nperyear,npermax,yrbeg,yrend,mens1,mens,fyr,lyr
-    real series(npermax,yrbeg:yrend,0:mens),covariate(npermax,yrbeg:yrend,0:mens), &
-    & yrseries(1,fyr:lyr,0:mens),yrcovariate(1,fyr:lyr,0:mens)
-    character operation*(*)
-    integer j1,j2,yy,yr,mm,mo,dd,dy,k,m,mtot,n,dpm(12),iens
-    real s
+    integer :: nperyear,npermax,yrbeg,yrend,mens1,mens,fyr,lyr
+    real :: series(npermax,yrbeg:yrend,0:mens),covariate(npermax,yrbeg:yrend,0:mens), &
+        yrseries(1,fyr:lyr,0:mens),yrcovariate(1,fyr:lyr,0:mens)
+    character :: operation*(*)
+    integer :: i,j,j1,j2,yy,yr,mm,mo,dd,dy,k,m,mtot,n,dpm(12),iens
+    integer,save :: init=0
+    real :: s
+    character :: halfyears(4)*7 = (/'Oct-Mar','Apr-Sep','Oct-Mar','Apr-Sep'/)
+    character :: seasons(8)*3 = (/'DJF','MAM','JJA','SON','DJF','MAM','JJA','SON'/)
+    character :: months(24)*3 = (/'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec', &
+                                  'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'/)
 
     if ( lwrite ) then
         print *,'make_two_annual_values: taking ',trim(operation)
-        print *,'nperyear,npermax = ',nperyear,npermax
+        print *,'fyr,lyr,nperyear,npermax = ',fyr,lyr,nperyear,npermax
     end if
     if ( nperyear == 1 ) then
         do iens=mens1,mens
@@ -640,55 +690,98 @@ subroutine make_two_annual_values(series,covariate,nperyear,npermax,yrbeg,yrend,
             end do
         end do
     else if ( nperyear < 12 ) then
-        do iens=mens1,mens
-            do yr=fyr,lyr
-                m = 0
-                if ( operation == 'max' ) then
-                    s = -3e33
-                else if ( operation == 'min' ) then
-                    s = 3e33
+        call getj1j2(j1,j2,m1,nperyear,lwrite)
+        if ( init == 0 ) then
+            init = 1
+            if ( j1 == j2 .and. j1 > 0 ) then
+                if ( nperyear == 2 ) then
+                    write(0,*) 'Taking ',halfyears(j1),' values.'
+                else if ( nperyear == 4 ) then
+                    write(0,*) 'Taking ',seasons(j1),' values.'
                 else
-                    s = 0
-                    yrcovariate(1,yr,iens) = 0
+                    write(0,*) 'attribute: error: unknown time scale ',nperyear
+                    call exit(-1)
                 end if
-                do dy=1,nperyear
-                    if ( series(dy,yr,iens) < 1e33 .and. covariate(dy,yr,iens) < 1e33 ) then
-                        m = m + 1
-                        if ( operation == 'max' ) then
-                            if ( series(dy,yr,iens) > s ) then
-                                s = series(dy,yr,iens)
-                                yrcovariate(1,yr,iens) = covariate(dy,yr,iens)
+            else
+                write(0,*) 'Taking ',trim(operation),' over '
+                if ( nperyear == 2 ) then
+                    write(0,*) halfyears(j1),'-',halfyears(j2),'.'
+                else if ( nperyear == 4 ) then
+                    write(0,*) seasons(j1),'-',seasons(j2),'.'
+                else
+                    write(0,*) 'attribute: error: unknown time scale ',nperyear
+                    call exit(-1)
+                end if
+            end if
+            write(0,*) '<p>'
+        end if
+        do iens=mens1,mens
+            do i=fyr,lyr
+                if ( j1 == j2 .and. j1 > 0 ) then ! in this case it is possible to define the covariate at the time of the max
+                    yrcovariate(1,i,iens) = covariate(j1,i,iens)
+                    yrseries(1,i,iens) = series(j1,i,iens)
+                else
+                    m = 0
+                    if ( operation == 'max' ) then
+                        s = -3e33
+                    else if ( operation == 'min' ) then
+                        s = 3e33
+                    else
+                        s = 0
+                        yrcovariate(1,i,iens) = 0
+                    end if
+                    do j=j1,j2
+                        dy = j
+                        call normon(dy,i,yr,nperyear)
+                        if ( yr <= yrend ) then
+                            if ( series(dy,yr,iens) < 1e33 .and. covariate(dy,yr,iens) < 1e33 ) then
+                                m = m + 1
+                                if ( operation == 'max' ) then
+                                    if ( series(dy,yr,iens) > s ) then
+                                        s = series(dy,yr,iens)
+                                        yrcovariate(1,yr,iens) = covariate(dy,yr,iens)
+                                    end if
+                                else if ( operation == 'min' ) then
+                                    if ( series(dy,yr,iens) < s ) then
+                                        s = series(dy,yr,iens)
+                                        yrcovariate(1,yr,iens) = covariate(dy,yr,iens)
+                                    end if
+                                else if ( operation == 'mean' ) then
+                                    s = s + series(dy,yr,iens)
+                                    yrcovariate(1,yr,iens) = yrcovariate(1,yr,iens) + covariate(dy,yr,iens)
+                                else
+                                    write(0,*) 'make_annual_values: unknown operation ',trim(operation)
+                                    call exit(-1)
+                                end if
                             end if
-                        else if ( operation == 'min' ) then
-                            if ( series(dy,yr,iens) < s ) then
-                                s = series(dy,yr,iens)
-                                yrcovariate(1,yr,iens) = covariate(dy,yr,iens)
-                            end if
+                        end if
+                    end do
+                    if ( m > minfac*(j2-j1+1) ) then
+                        if ( operation == 'min' .or. operation == 'max' ) then
+                            yrseries(1,yr,iens) = s
                         else if ( operation == 'mean' ) then
-                            s = s + series(dy,yr,iens)
-                            yrcovariate(1,yr,iens) = yrcovariate(1,yr,iens) + covariate(dy,yr,iens)
+                            yrseries(1,yr,iens) = s/m
+                            yrcovariate(1,yr,iens) = yrcovariate(1,yr,iens)/m
                         else
                             write(0,*) 'make_annual_values: unknown operation ',trim(operation)
                             call exit(-1)
                         end if
+                        if ( lwrite ) print *,yr,yrcovariate(1,yr,iens),yrseries(1,yr,iens)
                     end if
-                end do
-                if ( m > minfac*nperyear ) then
-                    if ( operation == 'min' .or. operation == 'max' ) then
-                        yrseries(1,yr,iens) = s
-                    else if ( operation == 'mean' ) then
-                        yrseries(1,yr,iens) = s/m
-                        yrcovariate(1,yr,iens) = yrcovariate(1,yr,iens)/m
-                    else
-                        write(0,*) 'make_annual_values: unknown operation ',trim(operation)
-                        call exit(-1)
-                    end if
-                    if ( lwrite ) print *,yr,yrcovariate(1,yr,iens),yrseries(1,yr,iens)
-                end if
+                end if ! j1==j2
             end do ! yr
         end do ! iens                
     else if ( nperyear >= 12 ) then
         call getj1j2(j1,j2,m1,12,lwrite)
+        if ( init == 0 ) then
+            init = 1
+            if ( j1 == j2 .and. j1 > 0 ) then
+                write(0,*) 'Taking ',months(j1),' values.'
+            else
+                write(0,*) 'Taking ',trim(operation),' over ',months(j1),'-',months(j2),'.'
+            end if
+            write(0,*) '<p>'
+        end if
         if ( lwrite ) print *,'make_annual_values: j1,j2,nperyear = ',j1,j2,nperyear
         call getdpm(dpm,nperyear)
         if ( lwrite ) print *,'                    dpm = ',dpm
@@ -918,7 +1011,7 @@ subroutine sample_bootstrap(series,covariate,nperyear,j1,j2,fyr,lyr,nens1,nens2,
             end if
             call random_number(ranf)
             yy = yrstart + int((yrstop-yrstart+1)*ranf)
-            if ( j1 == j2 ) then
+            if ( j1 == j2 .and. j1 > 0 ) then
                 mo = j1
                 yr = yy
             else
@@ -942,7 +1035,7 @@ subroutine sample_bootstrap(series,covariate,nperyear,j1,j2,fyr,lyr,nens1,nens2,
                         if ( lwrite ) print *,'xx(:,',j,') = ',xx(:,j),mo,yr,jens
                         if ( ndecor > 1 ) then
                             ! handle serial autocorrelations with a moving block
-                            if ( j1 == j2 ) then
+                            if ( j1 == j2 .and. j1 > 0 ) then
                                 ! annual values, ndecor refers to year-on-year autocorrelations
                                 ! just skip undefineds, we do the same with the end of the series.
                                 do yy=yr+1,yr+ndecor-1
@@ -1052,7 +1145,9 @@ subroutine handle_then_now(series,covariate,nperyear,fyr,lyr,j1,j2,yr1a,yr2a,yr2
 
 end subroutine handle_then_now
 
-subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xyear,biasrt,ensmax,i12,lincludelast,lprint,lwrite)
+subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xyear, &
+    biasrt,ensmax,i12,lincludelast,lprint,lwrite)
+
     implicit none
     integer,intent(in) :: nperyear,fyr,lyr,mens1,mens,j1,j2,i12
     integer,intent(inout) :: yr,ensmax
@@ -1060,8 +1155,8 @@ subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xy
     real,intent(inout) :: series(nperyear,fyr:lyr,0:mens)
     real,intent(out) :: cov,xyear
     logical,intent(in) :: lincludelast,lprint,lwrite
-    integer i,j,mo,momax,yrmax,iens
-    real s
+    integer :: i,j,mo,momax,yrmax,iens
+    real :: s
 
     if ( mens < 0 ) then
         write(0,*) 'find_cov: internal error: mens < 0 ',mens
@@ -1069,8 +1164,13 @@ subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xy
     end if
     cov = 3e33
     if ( yr == -9999 ) return
-    ensmax = -1
-    s = -3e33
+    if ( lwrite ) then
+        print *,'find_cov: looking for max in year',yr,' period ',j1,j2,' ens ',mens1,mens
+    end if
+    s = series(j1,yr,mens1)
+    momax = j1
+    yrmax = yr
+    ensmax = mens1
     do iens=mens1,mens
         do mo=j1,j2
             j = mo
@@ -1086,9 +1186,6 @@ subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xy
         end do
     end do
     if ( abs(s) > 1e33 ) then
-        momax = 1
-        yrmax = yr
-        ensmax = mens1
         if ( yrmax < fyr .or. yrmax > lyr ) then
             if ( lprint .and. yr /= 9999 ) then
                 write(0,*) 'find_cov: error: yr ',yr,' outside range of data<br>'
@@ -1103,12 +1200,12 @@ subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xy
     end if
     if ( cov > 1e33 ) then
         if ( lprint ) then
-            write(0,*) '<p>find_cov: error: no valid value in covariate(', &
-            &   momax,yrmax,ensmax,') = ',cov,'<br>'
+            write(0,*) '<p>find_cov: error: no valid value in series and covariate(', &
+                momax,yrmax,ensmax,') = ',cov,'<br>'
         end if
         if ( lwrite ) then
             print *,'find_cov: error: no valid value in covariate(', &
-            &   momax,yrmax,ensmax,') = ',cov
+                momax,yrmax,ensmax,') = ',cov
         end if
     end if
     if ( i12 == 2 .and. abs(biasrt) > 1e33 ) then
@@ -1129,7 +1226,7 @@ subroutine find_cov(series,covariate,nperyear,fyr,lyr,mens1,mens,j1,j2,yr,cov,xy
         if ( xyear > 1e33 ) then
             if ( lprint ) then
                 write(0,*) 'find_cov: error: cannot find valid data in ',yr,', periods ',j1,j2, &
-                & ', ensemble members ',mens1,mens
+                    ', ensemble members ',mens1,mens
             end if
             cov = 3e33
         end if
