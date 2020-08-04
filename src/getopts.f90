@@ -15,20 +15,20 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
 !   init
 
     lout = loutin
-    logscale = .FALSE. 
-    sqrtscale = .FALSE. 
-    lchangesign = .FALSE. 
-    lstandardunits = .FALSE. 
-    lallobs = .FALSE. 
-    logfield = .FALSE. 
-    sqrtfield = .FALSE. 
-    squarescale = .FALSE. 
-    twothirdscale = .FALSE. 
-    lnormsd = .FALSE. 
-    lnomissing = .FALSE. 
-    lrank = .FALSE. 
-    lfitnoise = .FALSE. 
-    ldetrend = .FALSE. 
+    logscale = .false.
+    sqrtscale = .false.
+    lchangesign = .false.
+    lstandardunits = .false.
+    lallobs = .false.
+    logfield = .false.
+    sqrtfield = .false.
+    squarescale = .false.
+    twothirdscale = .false.
+    lnormsd = .false.
+    lnomissing = .false.
+    lrank = .false.
+    lfitnoise = .false.
+    ldetrend = .false.
     debias = 0
     normalization = 1
     biasmul = 1
@@ -38,26 +38,26 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
     nblockyr = 1
     nblockens = 1
     add_option = 0
-    lks = .FALSE. 
-    lconting = .FALSE. 
-    lbootstrap = .FALSE. 
-    lrmse = .FALSE. 
-    lmae = .FALSE. 
+    lks = .false.
+    lconting = .false.
+    lbootstrap = .false.
+    lrmse = .false.
+    lmae = .false.
     irunvar = 0
     noisetype = 0
-    anom = .FALSE. 
-    lensanom = .FALSE. 
-    composite = .FALSE. 
-    lrandom = .FALSE. 
+    anom = .false.
+    lensanom = .false.
+    composite = .false.
+    lrandom = .false.
     idiff = 0
     ndiff = 0
     ndiff2 = 0
-    lnooverlap = .FALSE. 
+    lnooverlap = .false.
     ncrossvalidate = 0
     bbfile = ' '
     nfittime = 0
     fitfunc = 1
-    fix2 = .FALSE. 
+    fix2 = .false.
     lag1 = 0
     lag2 = 0
     lsum = 1
@@ -78,7 +78,7 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
     yr1a = yrbeg
     yr2a = yrend + 1
     yr2b = -9999
-    lstartstop = .FALSE. 
+    lstartstop = .false.
     minindx = -2e33
     maxindx = +2e33
     mindata = -2e33
@@ -112,19 +112,19 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
     confidenceinterval = 95
     nens1 = mens1
     nens2 = mens
-    lmakeensfull = .FALSE. 
+    lmakeensfull = .false.
     restrain = 0
     lead1 = 1
     lead2 = 1
-    leads = .FALSE. 
-    lsubtract = .FALSE. 
-    lwrite = .FALSE. 
-    dump = .FALSE. 
-    plot = .FALSE. 
-    lweb = .FALSE. 
+    leads = .false.
+    lsubtract = .false.
+    lwrite = .false.
+    dump = .false.
+    plot = .false.
+    lweb = .false.
     namestring = ' '
     do i=1,19
-        lincl(i) = .FALSE. 
+        lincl(i) = .false.
     enddo
     indxuse = 9
     strindx(1) = 'SOI'
@@ -138,8 +138,8 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
     strindx(9) = 'time'
     call getenv('REMOTE_ADDR',line)
     if ( line /= ' ' ) then
-        lweb = .TRUE. 
-        lout = .FALSE. 
+        lweb = .true.
+        lout = .false.
     endif
 
 !       loop over arguments
@@ -153,46 +153,46 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
         call get_command_argument(i,line)
         if ( lwrite ) print *,'getopts: parsing ',i,trim(line)
         if ( line(1:8) == 'logfield' ) then
-            logfield = .TRUE. 
+            logfield = .true.
             if ( lout ) print '(a)','# set logscale on for field'
         elseif ( line(1:3) == 'log' ) then
-            logscale = .TRUE. 
+            logscale = .true.
             if ( lout ) print '(a)','# set logscale on for timeseries'
         elseif ( line(1:9) == 'sqrtfield' ) then
-            sqrtfield = .TRUE. 
+            sqrtfield = .true.
             if ( lout ) print '(a)','# set sqrt on for field'
         elseif ( line(1:4) == 'sqrt' ) then
-            sqrtscale = .TRUE. 
+            sqrtscale = .true.
             if ( lout ) print '(a)','# set sqrt on for time series'
         elseif ( line(1:6) == 'square' ) then
-            squarescale = .TRUE. 
+            squarescale = .true.
             if ( lout ) print '(a)','# set square on'
         elseif ( line(1:6) == 'cube' ) then
-            cubescale = .TRUE. 
+            cubescale = .true.
             if ( lout ) print '(a)','# set square on'
         elseif ( line(1:8) == 'twothird' ) then
-            twothirdscale = .TRUE. 
+            twothirdscale = .true.
             if ( lout ) print '(a)','# set two-third power on'
         elseif ( line(1:10) == 'changesign' ) then
-            lchangesign = .TRUE. 
+            lchangesign = .true.
             if ( lout ) print '(a)','# change sign of data'
         elseif ( line(1:6) == 'normsd' ) then
-            lnormsd = .TRUE. 
+            lnormsd = .true.
             if ( lout ) print '(a)','# normalize to standard deviation'
         elseif ( line(1:6) == 'nomiss' ) then
-            lnomissing = .TRUE. 
+            lnomissing = .true.
             if ( lout ) print '(a)','# no missing data'
         elseif ( line(1:4) == 'rank' ) then
-            lrank = .TRUE. 
+            lrank = .true.
             if ( lout ) print '(a)','# set rank correllations on'
         elseif ( line(1:8) == 'fitnoise' ) then
-            lfitnoise = .TRUE. 
+            lfitnoise = .true.
             if ( lout ) print '(a)','# fit to noise model'
         elseif ( line(1:7) == 'fitfunc' ) then
             call get_command_argument(i+1,line)
             if ( line(1:3) == 'lin' ) then
                 fitfunc = 1
-            elseif ( line(1:4) == 'quad' .OR. line(1:5) == 'parab' ) then
+            elseif ( line(1:4) == 'quad' .or. line(1:5) == 'parab' ) then
                 fitfunc = 2
             elseif ( line(1:3) == 'cub' ) then
                 fitfunc = 3
@@ -204,7 +204,7 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
         elseif ( line(1:7) == 'fittime' ) then
             if ( lout ) print '(a)','# fitting time derivative with relaxation'
             call get_command_argument(i+1,line)
-            if (  ichar(line(1:1)) >= ichar('0') .AND. &
+            if (  ichar(line(1:1)) >= ichar('0') .and. &
                   ichar(line(1:1)) <= ichar('9') ) then
                 read(line,*,err=919) nfittime
                 if ( nfittime <= 0 ) goto 919
@@ -239,12 +239,12 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
                 write(0,*) 'getopts: unknown option ',trim(line)
             end if
         elseif ( line(1:2) == 'ks' ) then
-            lks = .TRUE. 
+            lks = .true.
             call get_command_argument(i+1,line)
             if ( line(1:4) == 'plot' ) then
                 kscut = -3e33
                 if ( lout ) print *,'Performing KS test, plot in dump.dat'
-                dump = .TRUE. 
+                dump = .true.
                 open(10,file='dump.dat')
             else
                 read(line,*,err=911) kscut
@@ -252,22 +252,22 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
             endif
             lskip = 1
         elseif ( line(1:6) == 'contin' ) then
-            lconting = .TRUE. 
+            lconting = .true.
             if ( lout ) print '(2a)','# computing 3x3 contingency table with cuts min/max index/data'
         elseif ( line(1:3) == 'rms' ) then
-            lrmse = .TRUE. 
+            lrmse = .true.
             if ( lout ) print '(2a)','# computing rms error, bias, ratio variance'
         elseif ( line(1:3) == 'mae' ) then
-            lmae = .TRUE. 
+            lmae = .true.
             if ( lout ) print '(2a)','# computing MAE, bias, ratio variance'
         elseif ( line(1:4) == 'boot' ) then
-            lbootstrap = .TRUE. 
+            lbootstrap = .true.
             if ( lout ) print '(a)','# Bootstrapping to get 1,2sigma bounds on r'
         elseif ( line(1:6) == 'fix1' ) then
-            fix2 = .FALSE. 
+            fix2 = .false.
             if ( lout ) print '(a)','# starting months refer to field1/series'
         elseif ( line(1:6) == 'fix2' ) then
-            fix2 = .TRUE. 
+            fix2 = .true.
             if ( lout ) print '(a)','# starting months refer to field2/field/index'
         elseif ( line(1:3) == 'lag' ) then
             call get_command_argument(i+1,line)
@@ -287,7 +287,7 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
         elseif ( line(1:3) == 'day' ) then
             call get_command_argument(i+1,line)
             read(line,*,err=928) day0
-            if ( day0 < 0 .OR. day0 > 31 ) goto 928
+            if ( day0 < 0 .or. day0 > 31 ) goto 928
             if ( lout ) print '(a,i2)','# only using day ',day0
             lskip = 1
         elseif ( line(1:3) == 'mon' ) then
@@ -301,12 +301,12 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
                 read(line,*,err=906) m1
                 m2 = m1
             endif
-            if ( m1 < 0 .OR. m1 > min(nperyear,12) ) goto 912
-            if ( m2 < 0 .OR. m2 > min(nperyear,12) ) goto 912
+            if ( m1 < 0 .or. m1 > min(nperyear,12) ) goto 912
+            if ( m2 < 0 .or. m2 > min(nperyear,12) ) goto 912
             if ( m1 == 0 ) then
                 if ( lout ) print '(a)','# using all months of the year'
             endif
-            if ( m1 > 0 .OR. m1 /= m2 ) then
+            if ( m1 > 0 .or. m1 /= m2 ) then
                 if ( lout ) print '(a,i2,a,i2)','# only using starting months ',m1,':',m2
             endif
             lskip = 1
@@ -342,7 +342,7 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
             if ( lout ) print '(a,i4)','# ending at year ',yr2
             lskip = 1
         elseif ( line(1:9) == 'startstop' ) then
-            lstartstop = .TRUE. 
+            lstartstop = .true.
             inquire(unit=12,opened=lopen)
             if ( .NOT. lopen ) then ! maybe getopts is called twice...
                 call get_command_argument(i+1,line)
@@ -417,7 +417,7 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
             lskip = 1
         elseif ( line(1:3) == 'sum' ) then
             oper = '+'
-            if ( line(4:4) == ' ' .OR. line(4:4) == 'm' .OR. line(4:4) == '1' ) then
+            if ( line(4:4) == ' ' .or. line(4:4) == 'm' .or. line(4:4) == '1' ) then
                 call get_command_argument(i+1,line)
                 read(line,*,err=906) lsum
                 if ( lsum <= 0 ) then
@@ -439,7 +439,7 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
             lskip = 1
         elseif ( line(1:3) == 'ave' ) then
             oper = 'v'
-            if ( line(4:4) == ' ' .OR. line(4:4) == '1' ) then
+            if ( line(4:4) == ' ' .or. line(4:4) == '1' ) then
                 call get_command_argument(i+1,line)
                 call numbersonly(line)
                 read(line,*,err=906) lsum
@@ -455,7 +455,7 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
             lskip = 1
         elseif ( line(1:3) == 'max' ) then
             oper = 'a'
-            if ( line(4:4) == ' ' .OR. line(4:4) == '1' ) then
+            if ( line(4:4) == ' ' .or. line(4:4) == '1' ) then
                 call get_command_argument(i+1,line)
                 call numbersonly(line)
                 read(line,*,err=906) lsum
@@ -469,11 +469,11 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
                 goto 906
             endif
             lskip = 1
-        elseif (  line(1:4) == 'min ' .OR. &
-            line(1:4) == 'min1' .OR. &
+        elseif (  line(1:4) == 'min ' .or. &
+            line(1:4) == 'min1' .or. &
             line(1:4) == 'min2' ) then
             oper = 'i'
-            if ( line(4:4) == ' ' .OR. line(4:4) == '1' ) then
+            if ( line(4:4) == ' ' .or. line(4:4) == '1' ) then
                 call get_command_argument(i+1,line)
                 call numbersonly(line)
                 read(line,*,err=906) lsum
@@ -486,7 +486,7 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
             endif
             lskip = 1
         elseif ( line(1:5) == 'mdiff' ) then
-            if ( line(6:6) == ' ' .OR. line(6:6) == '1' ) then
+            if ( line(6:6) == ' ' .or. line(6:6) == '1' ) then
                 call get_command_argument(i+1,line)
                 read(line,*,err=906) mdiff
                 if ( lout ) print '(a,i4,a)' &
@@ -573,11 +573,11 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
         elseif ( line(1:6) == 'random' ) then
             call get_command_argument(i+1,line)
             if ( line(1:6) == 'series' ) then
-                lrandom = .FALSE. 
+                lrandom = .false.
                 if ( lout ) print '(3a)','# significance running', &
                     ' correlations assesed by substituting Gauss for series'
-            elseif ( line(1:5) == 'index' .OR. line(1:5) == 'field' ) then
-                lrandom = .TRUE. 
+            elseif ( line(1:5) == 'index' .or. line(1:5) == 'field' ) then
+                lrandom = .true.
                 if ( lout ) print '(4a)','# significance running', &
                     ' correlations assesed by substiting Gauss for ',line(1:5)
             else
@@ -603,7 +603,7 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
         elseif ( line(1:4) == 'conf' ) then
             call get_command_argument(i+1,line)
             read(line,*,err=926) confidenceinterval
-            if ( confidenceinterval < 50 .OR. &
+            if ( confidenceinterval < 50 .or. &
             confidenceinterval >= 100 ) then
                 write(0,*) 'getopts: error: confidence interval ', &
                     confidenceinterval,'% does not make sense, ', &
@@ -616,14 +616,14 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
         elseif ( line(1:3) == 'sel' ) then
             call get_command_argument(i+1,line)
             read(line,*,err=914) lsel
-            if ( lsel < 1 .OR. lsel > nperyear ) goto 914
+            if ( lsel < 1 .or. lsel > nperyear ) goto 914
             if ( lout ) print '(a,i4,a)','# selecting ',lsel,' months'
             lskip = 1
         elseif ( line(1:9) == 'minfacsum' ) then
             call get_command_argument(i+1,line)
             read(line,*,err=915) minfacsum
             if ( minfacsum >= 0.995 ) minfacsum = minfacsum/100
-            if ( minfacsum < 0 .OR. minfacsum > 1 ) goto 915
+            if ( minfacsum < 0 .or. minfacsum > 1 ) goto 915
             if ( lout ) print '(a,f4.2,a)','# requiring at least ' &
                 ,minfacsum,' fraction valid points in sums'
             lskip = 1
@@ -631,7 +631,7 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
             call get_command_argument(i+1,line)
             read(line,*,err=915) minfac
             if ( minfac >= 0.995 ) minfac = minfac/100
-            if ( minfac < 0 .OR. minfac > 1 ) goto 915
+            if ( minfac < 0 .or. minfac > 1 ) goto 915
             if ( lout ) print '(a,f4.2,a)','# requiring at least ' &
                 ,minfac,' fraction valid points'
             lskip = 1
@@ -655,13 +655,13 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
         elseif ( line(1:4) == 'lat1' ) then
             call get_command_argument(i+1,line)
             read(line,*,err=916) lat1
-            if ( lat1 < -90 .OR. lat1 > 90 ) goto 916
+            if ( lat1 < -90 .or. lat1 > 90 ) goto 916
             if ( lout ) print '(a,f7.2)','# starting near latitude '
             lskip = 1
         elseif ( line(1:4) == 'lat2' ) then
             call get_command_argument(i+1,line)
             read(line,*,err=916) lat2
-            if ( lat2 < -90 .OR. lat2 > 90 ) goto 916
+            if ( lat2 < -90 .or. lat2 > 90 ) goto 916
             if ( lout ) print '(a,f7.2)','# stopping near latitude ',lat2
             lskip = 1
         elseif ( line(1:4) == 'lev1' ) then
@@ -699,14 +699,14 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
         elseif ( line(1:7) == 'altlat1' ) then
             call get_command_argument(i+1,line)
             read(line,*,err=916) altlat1
-            if ( altlat1 < -90 .OR. altlat1 > 90 ) goto 916
+            if ( altlat1 < -90 .or. altlat1 > 90 ) goto 916
             if ( lout ) print '(a,f7.2)' &
                 ,'# field 2 starting near latitude ',altlat1
             lskip = 1
         elseif ( line(1:7) == 'altlat2' ) then
             call get_command_argument(i+1,line)
             read(line,*,err=916) altlat2
-            if ( altlat2 < -90 .OR. altlat2 > 90 ) goto 916
+            if ( altlat2 < -90 .or. altlat2 > 90 ) goto 916
             if ( lout ) print '(a,f7.2)' &
                 ,'# field 2 stopping near latitude ',altlat2
             lskip = 1
@@ -737,7 +737,7 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
                 ,altavey,' y grid points'
             lskip = 1
         elseif ( line(1:7) == 'ensanom' ) then
-            lensanom = .TRUE. 
+            lensanom = .true.
             if ( lout ) print '(a)' &
             ,'# taking anomalies wrt ensemble'
         elseif ( line(1:3) == 'ens' ) then
@@ -750,22 +750,22 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
                 lskip = 2
             end if
         elseif ( line(1:11) == 'makeensfull' ) then
-            lmakeensfull = .TRUE. 
+            lmakeensfull = .true.
             if ( lout ) print '(a)','# augmenting ensembles with duplicates to constant size'
         elseif ( line(1:13) == 'standardunits' ) then
-            lstandardunits = .TRUE. 
+            lstandardunits = .true.
             if ( lout ) print '(a)' &
             ,'# converting to standard units'
         elseif ( line(1:6) == 'allobs' ) then
-            lallobs = .TRUE. 
+            lallobs = .true.
             if ( lout ) print '(a)','# using all observations to define the climatology'
         elseif ( line(1:4) == 'lead' ) then
-            leads = .TRUE. 
+            leads = .true.
             call get_command_argument(i+1,line)
             read(line,*,err=925) lead1
             call get_command_argument(i+2,line)
             read(line,*,err=925) lead2
-            if ( lead1 /= 0 .OR. lead2 /= 0 ) then
+            if ( lead1 /= 0 .or. lead2 /= 0 ) then
                 if ( lout ) print '(a,i3,a,i3)','# using lead times ',lead1,' to ',lead2
             endif
             lskip = 2
@@ -799,35 +799,35 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
                 plotfile = 'dump.dat'
             endif
             if ( .not. dump ) then
-                dump = .TRUE. 
+                dump = .true.
                 if ( lwrite ) print '(2a)','# writing dumpfile on ',trim(plotfile)
                 open(10,file=trim(plotfile))
                 call get_command_argument(0,line)
-                k = index(line,'/', .TRUE. )
+                k = index(line,'/', .true. )
                 line = line(k+1:)
                 do j=1,command_argument_count()
                     call get_command_argument(j,string)
-                    k = index(string,'/', .TRUE. )
+                    k = index(string,'/', .true. )
                     line = trim(line)//' '//string(k+1:)
                 end do
                 write(10,'(2a)') '# ',trim(line)
             end if
         elseif ( line(1:4) == 'plot' ) then
             if ( .NOT. plot ) then
-                plot = .TRUE. 
+                plot = .true.
                 call get_command_argument(i+1,plotfile)
                 if ( lwrite ) print *,'Writing plotfile on ',trim(plotfile)
                 open(11,file=trim(plotfile))
             end if
             lskip = 1
-        elseif ( line(1:6) == 'lwrite' .OR. line(1:5) == 'debug' ) then
-            lwrite = .TRUE. 
+        elseif ( line(1:6) == 'lwrite' .or. line(1:5) == 'debug' ) then
+            lwrite = .true.
             if ( lout ) print *,'turned on debug printing'
         elseif ( line(1:4) == 'diff' ) then
             if ( i <= iarg2 ) then
                 call get_command_argument(i+1,line)
-                if ( line(1:1) == '-' .OR. &
-                    ichar(line(1:1)) >= ichar('0') .AND. &
+                if ( line(1:1) == '-' .or. &
+                    ichar(line(1:1)) >= ichar('0') .and. &
                     ichar(line(1:1)) <= ichar('9') ) then
                     read(line,*) j
                     lskip = 1
@@ -854,7 +854,7 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
             endif
         elseif ( line(1:6) == 'noover' ) then
             if ( lout ) print '(a)','# using non-overlapping intervals'
-            lnooverlap = .TRUE. 
+            lnooverlap = .true.
         elseif ( line(1:6) == 'crossv' ) then
             lskip = 2
             call get_command_argument(i+1,line)
@@ -866,11 +866,11 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
             if ( bbfile == 'none' ) then
                 bbfile = ' '
             end if
-            if ( lout .AND. bbfile /= ' ' ) then
+            if ( lout .and. bbfile /= ' ' ) then
                 print '(3a)','# writing cross-validated regression in file ',trim(bbfile)
             end if
         elseif ( line(1:4) == 'detr' ) then
-            ldetrend = .TRUE. 
+            ldetrend = .true.
             if ( lout ) print '(a)','# detrending both fields'
         elseif ( line(1:6) == 'debias' ) then
             lskip = 1
@@ -945,13 +945,13 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
                 lskip = 0
             endif
         elseif ( line(1:4) == 'anom' ) then
-            anom = .TRUE. 
+            anom = .true.
             if ( lout ) print '(a)','# subtracting seasonal cycle'
         elseif ( line(1:4) == 'comp' ) then
-            composite = .TRUE. 
+            composite = .true.
             if ( lout ) print '(a)','# making composites'
         elseif ( line(1:3) == 'sub' ) then
-            lsubtract = .TRUE. 
+            lsubtract = .true.
             if ( lout ) print '(a)' &
             ,'subtracting best fit to produce new field'
         elseif ( line(1:4) == 'name' ) then
@@ -962,26 +962,26 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
             lskip = 1
             if ( lout ) print '(2a)','# name = ',namestring
         elseif ( line(1:3) == 'soi' ) then
-            lincl(1) = .TRUE. 
+            lincl(1) = .true.
         elseif ( line(1:6) == 'nino12' ) then
-            lincl(2) = .TRUE. 
+            lincl(2) = .true.
         elseif ( line(1:6) == 'nino3 ' ) then
-            lincl(3) = .TRUE. 
+            lincl(3) = .true.
         elseif ( line(1:6) == 'nino4 ' ) then
-            lincl(4) = .TRUE. 
-        elseif ( line(1:7) == 'nino3.4' .OR. line(1:7) == 'nino34' ) then
-            lincl(5) = .TRUE. 
+            lincl(4) = .true.
+        elseif ( line(1:7) == 'nino3.4' .or. line(1:7) == 'nino34' ) then
+            lincl(5) = .true.
         elseif ( line(1:3) == 'nao' ) then
-            lincl(6) = .TRUE. 
+            lincl(6) = .true.
         elseif ( line(1:7) == 'sunspot' ) then
-            lincl(7) = .TRUE. 
+            lincl(7) = .true.
         elseif ( line(1:9) == 'sunlength' ) then
-            lincl(8) = .TRUE. 
+            lincl(8) = .true.
         elseif ( line(1:4) == 'time' ) then
-            lincl(9) = .TRUE. 
+            lincl(9) = .true.
         elseif ( line(1:4) == 'file' ) then
             indxuse = indxuse + 1
-            lincl(indxuse) = .TRUE. 
+            lincl(indxuse) = .true.
             call get_command_argument(i+1,indexfiles(indxuse))
             do j=len(indexfiles(indxuse)),1,-1
                 if ( indexfiles(indxuse)(j:j) == '/' ) goto 10
@@ -996,19 +996,19 @@ subroutine getopts(iarg1,iarg2,nperyear,yrbeg,yrend,loutin,mens1,mens)
         50 continue
     enddo
     if ( lconting ) then
-        if ( minindx < -1e30 .AND. pminindx < 0 ) then
+        if ( minindx < -1e30 .and. pminindx < 0 ) then
             pminindx = 100/3.
             if ( lout ) print *,'assumed lower cut on index to be ',pminindx
         endif
-        if ( maxindx > +1e30 .AND. pmaxindx < 0 ) then
+        if ( maxindx > +1e30 .and. pmaxindx < 0 ) then
             pmaxindx = 200/3.
             if ( lout ) print *,'assumed upper cut on index to be ',pmaxindx
         endif
-        if ( mindata < -1e30 .AND. pmindata < 0 ) then
+        if ( mindata < -1e30 .and. pmindata < 0 ) then
             pmindata = 100/3.
             if ( lout ) print *,'assumed lower cut on data to be ',pmindata
         endif
-        if ( maxdata > +1e30 .AND. pmaxdata < 0 ) then
+        if ( maxdata > +1e30 .and. pmaxdata < 0 ) then
             pmaxdata = 200/3.
             if ( lout ) print *,'assumed upper cut on data to be ' ,pmaxdata
         endif
@@ -1095,7 +1095,7 @@ subroutine month2period(m,nperyear,offset)
     integer :: m,nperyear,offset,y
     integer :: j,k,dpm(12)
     logical :: lwrite
-    parameter(lwrite= .FALSE. )
+    parameter(lwrite= .false. )
     data dpm /31,29,31,30,31,30,31,31,30,31,30,31/
 
 !   normalize m
