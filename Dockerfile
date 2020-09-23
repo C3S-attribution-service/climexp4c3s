@@ -30,7 +30,17 @@ RUN cd /src/gsl-2.5 && ./configure --prefix /build && make -j4 && make install
 
 # Install fgsl
 WORKDIR /src
-RUN curl -L "https://doku.lrz.de/download/attachments/28051060/fgsl-1.2.0.tar.gz" > fgsl.tar.gz && tar -xzvf fgsl.tar.gz 
+
+# Original fgfs URL from Dockerfile is dead:
+# RUN curl -L "https://doku.lrz.de/download/attachments/28051060/fgsl-1.2.0.tar.gz" > fgsl.tar.gz && tar -xzvf fgsl.tar.gz 
+
+# Try fgsl1.2 release from github - Error:
+# /bin/sh: ./configure: No such file or directory
+# The command '/bin/sh -c cd /src/fgsl-1.2.0 && ./configure --prefix /build && make && make install' returned a non-zero code: 127
+#RUN curl -L "https://github.com/reinh-bader/fgsl/archive/v1.2.0.tar.gz" > fgsl.tar.gz && tar -xzvf fgsl.tar.gz 
+
+# Try new ugly URL from LRZ
+RUN curl -L "https://doku.lrz.de/download/attachments/43321199/fgsl-1.2.0.tar.gz?version=1&modificationDate=1594902950587&api=v2&download=true" > fgsl.tar.gz && tar -xzvf fgsl.tar.gz 
 RUN cd /src/fgsl-1.2.0 && ./configure --prefix /build && make && make install
 
 # Install climate explorer
