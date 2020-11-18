@@ -23,6 +23,9 @@ ENV CPPFLAGS "-I/usr/include -I/build/include/ -I/build/include/fgsl/ -L/build/l
 ENV LD_LIBRARY_PATH "/build/lib:$LD_LIBRARY_PATH"
 
 
+# Add test data
+ADD debiltdata /testdata
+
 # Install gsl
 WORKDIR /src
 RUN curl -L "ftp://ftp.gnu.org/gnu/gsl/gsl-2.5.tar.gz" > gsl-2.5.tar.gz && tar -xzvf gsl-2.5.tar.gz 
