@@ -32,10 +32,12 @@ program attribute
         write(0,*) 'the covariate series is averaged to the same time scale.'
         stop
     end if
+
 !
 !   initialisation
 !
     call attribute_init(seriesfile,distribution,assume,off,nperyear,yrbeg,yrend,mensmax,lwrite)
+
     allocate(series(npermax,yrbeg:yrend,0:mensmax))
     if ( seriesfile == 'file' ) then
         ! set of stations
@@ -102,6 +104,7 @@ program attribute
         call merge_metadata(metadata,nmetadata,metadata1,' ',history1,'covariate_')
         call add_varnames_metadata(var1,lvar1,svar1,metadata1,'covariate')
     end if
+
 !
 !   process data
 !
@@ -202,11 +205,32 @@ program attribute
         end if
         call printmetadata(16,' ',' ',' ',history,metadata)
     end if
-    lprint = .true.
+
+! Set lprint to false, otherwise attribute_dist() does not populate the results array
+!    lprint = .true.
+    lprint = .false.
+
     if ( lwrite ) print *,'attribute: calling attribute_dist'
     call attribute_dist(series,nperyear,covariate,nperyear1,npermax,yrbeg,yrend, &
         mens1,mens,assume,distribution,seriesids,results,nresmax,nresults,lprint, &
         var,units,lvar,svar,history,metadata)
+
+!    write(0,*) 'nresults'
+!    write(0,*) nresults
+
+!    write(0,*) 'metadata'
+!    write(0,*) metadata
+
+    ! Write the fitting paramaters to a JSON file
+    open(1, file = 'attribute_output.json', status = 'new')
+    write(1,*) '{'
+    write(1,*) '  "a":', results(1,1), ','
+    write(1,*) '  "b":', results(1,2), ','
+    write(1,*) '  "xi":', results(1,3), ','
+    write(1,*) '  "alpha":', results(1,4), ','
+    write(1,*) '  "beta"', results(1,5)
+    write(1,*) '}'
+    close(1)
 
 end program attribute
 
